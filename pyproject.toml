@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dynamic-distillation"
+version = "0.1.0"
+description = "Dynamic distillation column modeling (Tom Z)"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "pandas",
+  "openpyxl",
+  "pytest"
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

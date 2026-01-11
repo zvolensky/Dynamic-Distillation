@@ -1,0 +1,123 @@
+# tests/test_thermo_provider_v1.py
+"""
+Header:
+  Created: 2026-01-11 15:xx (America/New_York)
+  Updated: 2026-01-11 (America/New_York)
+  Purpose: Unit tests for ThermoProviderV1 without requiring DWSIM installed.
+
+Strategy:
+  - monkeypatch dynamic_distillation.thermo_provider_v1.backend with a fake backend
+"""
+
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from dynamic_distillation.thermo_provider_v1 import ThermoProviderV1
+
+
+class _FakeBackend:
+    def __init__(self):
+        self.set_ids_called = None
+        self.set_names_called = None
+        self.flash_calls = []
+        self.coeff_calls = []
+
+    def set_component_ids(self, ids):
+        self.set_ids_called = list(ids)
+
+    def set_component_names(self, names):
+        self.set_names_called = list(names)
+
+    def silence_console(self, enabled=True):
+        class _CM:
+            def __enter__(self_inner): return None
+            def __exit__(self_inner, exc_type, exc, tb): return False
+        return _CM()
+
+    def flash_TP_full_F_psia(self, T_F, P_psia, z):
+        self.flash_calls.append((float(T_F), float(P_psia), np.asarray(z, dtype=float)))
+        z = np.asarray(z, dtype=float)
+        x = z / z.sum()
+        y = (z + 0.1) / (z + 0.1).sum()
+        K = y / x
+        HL = 100.0 + 2.0 * float(T_F)   # linear in T
+        HV = 200.0 + 3.0 * float(T_F)
+        return x, y, K, HL, HV
+
+    def get_thermo_coefficients(self, T_F, P_psia, z, perturbation_dt=1.0):
+        self.coeff_calls.append((float(T_F), float(P_psia), np.asarray(z, dtype=float), float(perturbation_dt)))
+        coeffs = {
+            "HL_B": 2.0,
+            "HV_B": 3.0,
+            "K_A": np.array([0.0]),
+            "K_B": np.array([0.0]),
+            "HL_A": 0.0,
+            "HV_A": 0.0,
+        }
+        props = {"x": np.array(z), "y": np.array(z), "HL": 0.0, "HV": 0.0}
+        return coeffs, props
+
+
+def test_provider_configures_backend_and_flashes(monkeypatch):
+    import dynamic_distillation.thermo_provider_v1 as tp_mod
+
+    fake = _FakeBackend()
+    monkeypatch.setattr(tp_mod, "backend", fake, raising=True)
+
+    prov = ThermoProviderV1(
+        component_names_excel=["n-Propane", "n-Butane"],
+        component_ids_dwsim=["Propane", "N-butane"],
+        cp_dt_F=1.0,
+        silence_backend_console=True,
+    )
+
+    res = prov.flash_TP_full(100.0, 200.0, [0.7, 0.3])
+
+    assert fake.set_ids_called == ["Propane", "N-butane"]
+    assert fake.set_names_called == ["n-Propane", "n-Butane"]
+
+    assert res.x.shape == (2,)
+    assert res.y.shape == (2,)
+    assert res.K.shape == (2,)
+    assert isinstance(res.HL_BTU_lbmol, float)
+    assert isinstance(res.HV_BTU_lbmol, float)
+    assert res.cpL_BTU_lbmolF == 2.0
+    assert res.cpV_BTU_lbmolF == 3.0
+
+
+def test_provider_normalizes_z(monkeypatch):
+    import dynamic_distillation.thermo_provider_v1 as tp_mod
+
+    fake = _FakeBackend()
+    monkeypatch.setattr(tp_mod, "backend", fake, raising=True)
+
+    prov = ThermoProviderV1(["A", "B"], ["A", "B"])
+    prov.flash_TP_full(100.0, 200.0, [7.0, 3.0])
+
+    _T, _P, z_passed = fake.flash_calls[-1]
+    assert abs(float(z_passed.sum()) - 1.0) < 1e-12
+    assert np.allclose(z_passed, np.array([0.7, 0.3]))
+
+
+def test_provider_cp_fallback_if_coefficients_missing(monkeypatch):
+    import dynamic_distillation.thermo_provider_v1 as tp_mod
+
+    fake = _FakeBackend()
+
+    # Force the provider to skip the coefficient path and use finite-difference.
+    # (Deleting doesn't work because methods live on the class, not the instance.)
+    def _raise(*args, **kwargs):
+        raise AttributeError("no get_thermo_coefficients")
+
+    fake.get_thermo_coefficients = _raise  # override on the instance
+
+    monkeypatch.setattr(tp_mod, "backend", fake, raising=True)
+
+    prov = ThermoProviderV1(["A", "B"], ["A", "B"], cp_dt_F=2.0)
+    res = prov.flash_TP_full(10.0, 100.0, [0.5, 0.5])
+
+    # HL = 100 + 2*T so cpL should be ~2, HV = 200 + 3*T so cpV ~3
+    assert abs(res.cpL_BTU_lbmolF - 2.0) < 1e-12
+    assert abs(res.cpV_BTU_lbmolF - 3.0) < 1e-12

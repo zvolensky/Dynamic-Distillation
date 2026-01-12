@@ -4,6 +4,7 @@ thermo_provider_v1.py
 
 Header:
   Created: 2026-01-11 15:xx (America/New_York)
+  Updated: 2026-01-11 16:58 (America/New_York)
   Purpose: Thermo provider that the column model calls.
            DWSIM primary via pr_flash_backend_v1; no hard-wired compounds.
 
@@ -11,7 +12,7 @@ Notes:
   - Case provides Excel component names (for logging + fallback).
   - Compound registry maps Excel names -> DWSIM compound IDs.
   - This provider pushes both lists into the backend.
-  - Z-factor integration is planned later.
+  - Z-factor is optional; when unavailable we default diagnostics to Z=1.0.
 """
 
 from __future__ import annotations
@@ -21,7 +22,7 @@ from typing import Optional, Sequence, Tuple
 
 import numpy as np
 
-from . import pr_flash_backend_v1 as backend
+from dynamic_distillation import pr_flash_backend_v1 as backend
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,7 @@ class FlashResult:
     K: np.ndarray               # (Nc,)
     HL_BTU_lbmol: float
     HV_BTU_lbmol: float
+    Z: Optional[float] = None
     cpL_BTU_lbmolF: Optional[float] = None
     cpV_BTU_lbmolF: Optional[float] = None
 
@@ -55,30 +57,28 @@ class ThermoProviderV1:
         self.cp_dt_F = float(cp_dt_F)
         self.silence_backend_console = bool(silence_backend_console)
 
-        if not self.component_names_excel:
-            raise ValueError("component_names_excel must be non-empty")
-        if len(self.component_ids_dwsim) != len(self.component_names_excel):
-            raise ValueError("Excel names and DWSIM IDs must be the same length")
-
-        self._configured = False
-
     def configure_backend(self) -> None:
-        """Push component mapping into backend (idempotent)."""
-        if self._configured:
-            return
-        backend.set_component_ids(list(self.component_ids_dwsim))
-        backend.set_component_names(list(self.component_names_excel))
-        self._configured = True
+        backend.set_component_ids(self.component_ids_dwsim)
+
+        # Backward-compatible name setter (tests use set_component_names)
+        if hasattr(backend, "set_component_names_excel"):
+            backend.set_component_names_excel(self.component_names_excel)
+        elif hasattr(backend, "set_component_names"):
+            backend.set_component_names(self.component_names_excel)
+        else:
+            # Not fatal for many backends; leave it as a no-op.
+            pass
+
 
     @staticmethod
     def _normalize_z(z: Sequence[float], n: int) -> np.ndarray:
-        zz = np.asarray(z, dtype=float).ravel()
-        if zz.size != n:
-            raise ValueError(f"z must have length {n}; got {zz.size}")
-        s = float(zz.sum())
-        if not np.isfinite(s) or s <= 0.0:
-            raise ValueError("z must have a finite positive sum")
-        return zz / s
+        z = np.asarray(z, dtype=float).reshape((-1,))
+        if z.size != n:
+            raise ValueError(f"Expected z length {n}, got {z.size}")
+        s = float(np.sum(z))
+        if s <= 0.0:
+            raise ValueError("z sum must be > 0")
+        return z / s
 
     def flash_TP_full(self, T_F: float, P_psia: float, z: Sequence[float]) -> FlashResult:
         """Full TP flash: x,y,K plus liquid/vapor molar enthalpies."""
@@ -87,7 +87,18 @@ class ThermoProviderV1:
         z_norm = self._normalize_z(z, Nc)
 
         with backend.silence_console(self.silence_backend_console):
-            x, y, K, HL, HV = backend.flash_TP_full_F_psia(float(T_F), float(P_psia), z_norm)
+            res = backend.flash_TP_full_F_psia(float(T_F), float(P_psia), z_norm)
+
+        Zfac: Optional[float] = None
+        if isinstance(res, (tuple, list)):
+            if len(res) == 5:
+                x, y, K, HL, HV = res
+            elif len(res) == 6:
+                x, y, K, HL, HV, Zfac = res
+            else:
+                raise RuntimeError("backend.flash_TP_full_F_psia must return 5 or 6 values")
+        else:
+            raise RuntimeError("backend.flash_TP_full_F_psia must return a tuple/list")
 
         cpL, cpV = self._cp_from_backend(float(T_F), float(P_psia), z_norm)
 
@@ -97,6 +108,7 @@ class ThermoProviderV1:
             K=np.asarray(K, dtype=float),
             HL_BTU_lbmol=float(HL),
             HV_BTU_lbmol=float(HV),
+            Z=(float(Zfac) if Zfac is not None else None),
             cpL_BTU_lbmolF=cpL,
             cpV_BTU_lbmolF=cpV,
         )
@@ -109,24 +121,18 @@ class ThermoProviderV1:
                 coeffs, _ = backend.get_thermo_coefficients(T_F, P_psia, z_norm, perturbation_dt=self.cp_dt_F)
             cpL = float(coeffs["HL_B"])
             cpV = float(coeffs["HV_B"])
-            if np.isfinite(cpL) and np.isfinite(cpV):
-                return cpL, cpV
+            return cpL, cpV
         except Exception:
             pass
 
-        # Fallback path: do finite difference directly
+        # Fallback: central-ish finite diff (2 calls)
+        dt = float(self.cp_dt_F)
         try:
-            dt = float(self.cp_dt_F)
-            if dt <= 0:
-                return None, None
             with backend.silence_console(self.silence_backend_console):
                 _x0, _y0, _K0, HL0, HV0 = backend.flash_TP_full_F_psia(T_F, P_psia, z_norm)
                 _x1, _y1, _K1, HL1, HV1 = backend.flash_TP_full_F_psia(T_F + dt, P_psia, z_norm)
             cpL = (float(HL1) - float(HL0)) / dt
             cpV = (float(HV1) - float(HV0)) / dt
-            if np.isfinite(cpL) and np.isfinite(cpV):
-                return cpL, cpV
+            return cpL, cpV
         except Exception:
             return None, None
-
-        return None, None

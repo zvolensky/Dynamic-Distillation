@@ -1,5 +1,5 @@
 # excel_case_loader_v1.py
-# Last updated: 2026-01-11 15:xx ET
+# Last updated: 2026-01-11 17:xx ET
 #
 # Responsibilities:
 # - Load a distillation "case" from an Excel .xlsx file matching the provided template format
@@ -16,6 +16,8 @@ import pandas as pd
 
 from dynamic_distillation.compound_registry_v1 import canonicalize_components
 
+__all__ = ["CaseData", "pick_excel_file", "load_case_from_excel"]
+
 
 @dataclass(frozen=True)
 class CaseData:
@@ -28,7 +30,11 @@ class CaseData:
 
 
 def _norm_str(x: Any) -> str:
-    return str(x).strip() if x is not None else ""
+    if x is None:
+        return ""
+    if isinstance(x, float) and pd.isna(x):
+        return ""
+    return str(x).strip()
 
 
 def _get_spec_value(specs_df: pd.DataFrame, label: str) -> Optional[Any]:
@@ -94,7 +100,6 @@ def _try_read_components_sheet(xls_path: Path) -> Optional[List[str]]:
             break
 
     if header_row is None:
-        # maybe a single column of names
         vals = [_norm_str(comp_df.iloc[r, 0]) for r in range(len(comp_df))]
         vals = [v for v in vals if v]
         return vals if vals else None
@@ -126,7 +131,7 @@ def _get_component_names_from_specs(specs_df: pd.DataFrame) -> List[str]:
 
 def _parse_streams_sheet(streams_df: pd.DataFrame, component_names: List[str]) -> Dict[str, Dict[str, Any]]:
     """
-    Streams sheet (header=None) layout (your template):
+    Streams sheet (header=None) layout (template):
     - Find header row where first cell is 'Stream'
     - Parse scalar rows until 'Mole flows (lbmol/h)'
     - Parse component mole flow block
@@ -178,11 +183,7 @@ def _parse_streams_sheet(streams_df: pd.DataFrame, component_names: List[str]) -
             if not comp or comp.lower() == "nan":
                 continue
 
-            # Allow either explicit component columns or "Component Mole Flow i" naming
-            if comp in component_names:
-                comp_key = comp
-            else:
-                comp_key = comp  # keep whatever Excel used in this sheet
+            comp_key = comp  # keep whatever Excel used in this sheet
 
             for j, sname in col_map.items():
                 v = streams_df.iloc[i, j]
@@ -237,7 +238,7 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     specs_df = pd.read_excel(p, sheet_name="Specifications", header=None)
     init_df = pd.read_excel(p, sheet_name="Initial Conditions")
 
-    # Specs (you can add more later; keep what you need now)
+    # Specs
     specs: Dict[str, Any] = {}
     specs["Number of Stages"] = _get_required_int(specs_df, "Number of Stages")
     specs["Number of Components"] = _get_required_int(specs_df, "Number of Components")
@@ -247,6 +248,9 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     specs["Simulation Length (min)"] = _get_optional_float(specs_df, "Simulation Length (min)")
     specs["Timestep (sec)"] = _get_optional_float(specs_df, "Timestep (sec)")
     specs["Log Frequency (timesteps)"] = _get_required_int(specs_df, "Log Frequency (timesteps)")
+
+    # Module 8B: tau (optional)
+    specs["Stage time constant [tau] (sec)"] = _get_optional_float(specs_df, "Stage time constant [tau] (sec)")
 
     # Components (prefer Components sheet)
     comp_names = _try_read_components_sheet(p)
@@ -258,10 +262,9 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
             f"Specifications: expected {specs['Number of Components']} components, found {len(comp_names)}: {comp_names}"
         )
 
-    # NEW: canonicalize and validate against DWSIM compound database (fail fast)
     component_ids_dwsim = canonicalize_components(comp_names)
 
-    # Validate Initial Conditions minimum columns
+    # Validate IC minimum columns
     required_cols = [
         "Stage",
         "Temperature (F)",
@@ -273,7 +276,7 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
         if c not in init_df.columns:
             raise ValueError(f"Initial Conditions: missing required column '{c}'")
 
-    # Validate composition columns exist
+    # Validate composition columns exist (template convention)
     nc = len(comp_names)
     for i in range(1, nc + 1):
         lc = f"Liquid Composition Component {i}"

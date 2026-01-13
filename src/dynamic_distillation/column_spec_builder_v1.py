@@ -4,17 +4,35 @@ column_spec_builder_v1.py
 Dynamic Distillation - ColumnSpec builder
 
 Created: 2026-01-11  (America/New_York)
-Updated: 2026-01-11 18:xx (America/New_York)
+Updated: 2026-01-12  (America/New_York)
 
 Purpose
 -------
 Convert CaseData (loaded from Excel) into a model-ready ColumnSpec.
+
+Module 8B
+---------
+Reads optional "Stage time constant [tau] (sec)" from CaseData.specs and stores as col.tau_eq_sec.
+
+Geometry support (new)
+----------------------
+Reads optional "Geometry Sections" from CaseData.specs (created by the Excel loader).
+Expands it to per-stage arrays and computes a geometry-based vapor volume per stage:
+
+    V_stage_ft3 = A_cross_section_ft2 * tray_spacing_ft * gas_void_frac
+
+Notes:
+- Stage 1 is the condenser in your convention; geometry table may omit it.
+  We back-fill Stage 1 with Stage 2 geometry to keep pressure diagnostics stable.
+- Gas void fraction accepts both fraction (0..1) and percent (0..100) and is normalized to (0..1].
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
+import math
 
 import numpy as np
 import pandas as pd
@@ -50,6 +68,25 @@ class HeatDuties:
 
 
 @dataclass(frozen=True)
+class ColumnGeometrySection:
+    start_stage_1based: int
+    end_stage_1based: int
+    diameter_ft: float
+    tray_spacing_ft: float
+    gas_void_frac: float = 1.0
+
+
+@dataclass(frozen=True)
+class ColumnGeometry:
+    sections: List[ColumnGeometrySection]
+    diameter_ft_per_stage: np.ndarray
+    tray_spacing_ft_per_stage: np.ndarray
+    gas_void_frac_per_stage: np.ndarray
+    area_ft2_per_stage: np.ndarray
+    vapor_volume_ft3_per_stage: np.ndarray
+
+
+@dataclass(frozen=True)
 class ColumnSpec:
     excel_path: str
 
@@ -76,8 +113,110 @@ class ColumnSpec:
 
     streams: Dict[str, StreamSpecNormalized]
 
+    # Optional expanded geometry (used for vapor volume diagnostics)
+    geometry: Optional[ColumnGeometry] = None
+
     # Module 8B: equilibrium relaxation time constant (seconds)
     tau_eq_sec: float = 10.0
+
+
+def _coerce_void_fraction(gv: float) -> float:
+    """Accept either fraction (0..1] or percent (0..100]."""
+    gv = float(gv)
+    if gv <= 0.0:
+        return gv
+    if gv <= 1.0:
+        return gv
+    if gv <= 100.0:
+        return gv / 100.0
+    return gv
+
+
+def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Optional[ColumnGeometry]:
+    sections_raw = specs_raw.get("Geometry Sections", None)
+    if not sections_raw:
+        return None
+    if not isinstance(sections_raw, list):
+        raise ColumnSpecError("Geometry Sections must be a list of rows (dicts).")
+
+    sections: List[ColumnGeometrySection] = []
+    for row in sections_raw:
+        if not isinstance(row, dict):
+            raise ColumnSpecError("Geometry Sections rows must be dict-like.")
+
+        try:
+            ss = int(float(row.get("start_stage_1based")))
+            es = int(float(row.get("end_stage_1based")))
+            d = float(row.get("diameter_ft"))
+            sp = float(row.get("tray_spacing_ft"))
+            gv = float(row.get("gas_void_frac", 1.0))
+        except Exception as exc:
+            raise ColumnSpecError("Geometry Sections row contains invalid values.") from exc
+
+        gv = _coerce_void_fraction(gv)
+
+        sections.append(
+            ColumnGeometrySection(
+                start_stage_1based=ss,
+                end_stage_1based=es,
+                diameter_ft=d,
+                tray_spacing_ft=sp,
+                gas_void_frac=gv,
+            )
+        )
+
+    N = int(n_stages)
+    diam = np.full(N, np.nan, dtype=float)
+    spacing = np.full(N, np.nan, dtype=float)
+    void = np.full(N, np.nan, dtype=float)
+
+    for s in sections:
+        if s.start_stage_1based < 1 or s.end_stage_1based > N or s.end_stage_1based < s.start_stage_1based:
+            raise ColumnSpecError("Geometry section stage bounds are invalid.")
+
+        if (not np.isfinite(s.diameter_ft)) or s.diameter_ft <= 0.0:
+            raise ColumnSpecError("Geometry: diameter (ft) must be > 0.")
+        if (not np.isfinite(s.tray_spacing_ft)) or s.tray_spacing_ft <= 0.0:
+            raise ColumnSpecError("Geometry: tray spacing (ft) must be > 0.")
+        if (not np.isfinite(s.gas_void_frac)) or s.gas_void_frac <= 0.0 or s.gas_void_frac > 1.0:
+            raise ColumnSpecError("Geometry: gas void fraction must be in (0, 1].")
+
+        i0 = s.start_stage_1based - 1
+        i1 = s.end_stage_1based
+        diam[i0:i1] = float(s.diameter_ft)
+        spacing[i0:i1] = float(s.tray_spacing_ft)
+        void[i0:i1] = float(s.gas_void_frac)
+
+    # Fill gaps:
+    # - If Stage 1 missing (common, condenser), back-fill from Stage 2 / first defined stage.
+    # - Forward-fill any internal gaps using previous defined value.
+    if np.all(~np.isfinite(diam)):
+        raise ColumnSpecError("Geometry sections did not provide any usable stage coverage.")
+
+    # Find first finite index
+    first = int(np.argmax(np.isfinite(diam)))
+
+    for arr in (diam, spacing, void):
+        # Back-fill leading NaNs with first finite value
+        for i in range(0, first):
+            arr[i] = arr[first]
+        # Forward-fill remaining NaNs
+        for i in range(first + 1, N):
+            if not np.isfinite(arr[i]):
+                arr[i] = arr[i - 1]
+
+    # Derived geometry
+    area = math.pi * (0.5 * diam) ** 2
+    v_stage = area * spacing * void
+
+    return ColumnGeometry(
+        sections=sections,
+        diameter_ft_per_stage=diam,
+        tray_spacing_ft_per_stage=spacing,
+        gas_void_frac_per_stage=void,
+        area_ft2_per_stage=area,
+        vapor_volume_ft3_per_stage=v_stage,
+    )
 
 
 def build_column_spec_from_case(case: Any) -> ColumnSpec:
@@ -171,6 +310,9 @@ def build_column_spec_from_case(case: Any) -> ColumnSpec:
     if (not np.isfinite(float(tau))) or float(tau) <= 0.0:
         raise ColumnSpecError("Stage time constant [tau] (sec) must be > 0 if provided.")
 
+    # Geometry (optional)
+    geometry = _build_geometry_from_specs(specs_raw, n_stages)
+
     streams_in = getattr(case, "streams", {}) or {}
     streams_norm = _normalize_streams(streams_in)
 
@@ -193,6 +335,7 @@ def build_column_spec_from_case(case: Any) -> ColumnSpec:
         y0=y0,
         x0=x0,
         streams=streams_norm,
+        geometry=geometry,
         tau_eq_sec=float(tau),
     )
 
@@ -301,9 +444,12 @@ def _normalize_streams(streams_in: Any) -> Dict[str, StreamSpecNormalized]:
                 stage_1based=_to_int(stream_obj.get("Stage") or stream_obj.get("stage_1based")),
                 pressure_psia=_to_float(stream_obj.get("Pressure (psia)") or stream_obj.get("pressure_psia")),
                 temperature_f=_to_float(stream_obj.get("Temperature (F)") or stream_obj.get("temperature_f")),
-                vapor_fraction=_to_float(stream_obj.get("Vapour Fraction") or stream_obj.get("vapor_fraction")),
-                total_molar_flow_lbmolph=_to_float(stream_obj.get("Total Molar Flow (lbmol/h)") or stream_obj.get("total_molar_flow_lbmolph")),
-                component_molar_flows_lbmolph=stream_obj.get("Component Mole Flows (lbmol/h)") or stream_obj.get("component_molar_flows_lbmolph"),
+                vapor_fraction=_to_float(_get_first_key(stream_obj, ["Vapour Fraction", "Vapour fraction", "Vapor Fraction", "Vapor fraction", "vapour_fraction", "vapor_fraction"])),
+                total_molar_flow_lbmolph=_to_float(
+                    _get_first_key(stream_obj, ["Total Molar Flow (lbmol/h)", "Total molar flow (lbmol/h)", "total_molar_flow_lbmolph"])
+                ),
+                component_molar_flows_lbmolph=stream_obj.get("Component Mole Flows (lbmol/h)")
+                or stream_obj.get("component_molar_flows_lbmolph"),
             )
     return out
 
@@ -316,6 +462,14 @@ def _to_int(x: Any) -> Optional[int]:
     except Exception:
         return None
 
+
+
+def _get_first_key(d: Dict[str, Any], keys: Sequence[str]) -> Any:
+    """Return d[k] for the first key present in d (even if the value is 0.0 / False)."""
+    for k in keys:
+        if k in d:
+            return d[k]
+    return None
 
 def _to_float(x: Any) -> Optional[float]:
     if x is None:

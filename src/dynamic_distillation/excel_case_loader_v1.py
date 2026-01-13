@@ -1,5 +1,5 @@
 # excel_case_loader_v1.py
-# Last updated: 2026-01-11 17:xx ET
+# Last updated: 2026-01-12 21:29 ET
 #
 # Responsibilities:
 # - Load a distillation "case" from an Excel .xlsx file matching the provided template format
@@ -85,6 +85,109 @@ def _get_optional_str(specs_df: pd.DataFrame, label: str) -> Optional[str]:
     return s if s else None
 
 
+def _coerce_void_fraction(gv: float) -> float:
+    """Accept either fraction (0..1] or percent (0..100]."""
+    gv = float(gv)
+    if gv <= 0.0:
+        return gv
+    if gv <= 1.0:
+        return gv
+    if gv <= 100.0:
+        return gv / 100.0
+    return gv
+
+
+def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[str, Any]]]:
+    """Parse optional stage geometry table from the Specifications sheet.
+
+    Expected headers (case-insensitive; can be offset by a label in col 0):
+      Start Stage | End Stage | Diameter (ft) | Tray Spacing (ft) | Gas Void Fraction
+
+    Rows below the header are read until 'Start Stage' is blank.
+
+    Returns a list of dicts or None if the table is not found.
+    """
+    n_rows = len(specs_df)
+    n_cols = specs_df.shape[1]
+
+    def cell(r: int, c: int) -> str:
+        try:
+            return _norm_str(specs_df.iloc[r, c])
+        except Exception:
+            return ""
+
+    def has_tokens(s: str, *tokens: str) -> bool:
+        ss = s.strip().lower()
+        return all(tok in ss for tok in tokens)
+
+    header_row = None
+    col_start = col_end = col_diam = col_space = col_void = None
+
+    # Find header row containing both "Start Stage" and "End Stage"
+    for r in range(n_rows):
+        start_c = None
+        end_c = None
+        for c in range(min(n_cols, 60)):
+            s = cell(r, c)
+            if start_c is None and has_tokens(s, "start", "stage"):
+                start_c = c
+            if end_c is None and has_tokens(s, "end", "stage"):
+                end_c = c
+        if start_c is not None and end_c is not None:
+            header_row = r
+            col_start, col_end = start_c, end_c
+            for c in range(min(n_cols, 60)):
+                h = cell(r, c).lower()
+                if col_diam is None and "diam" in h:
+                    col_diam = c
+                if col_space is None and "spacing" in h:
+                    col_space = c
+                if col_void is None and ("void" in h or ("gas" in h and "frac" in h)):
+                    col_void = c
+            break
+
+    if header_row is None or col_diam is None or col_space is None:
+        return None
+
+    sections: List[Dict[str, Any]] = []
+    for r in range(header_row + 1, n_rows):
+        v_start = specs_df.iloc[r, col_start]
+        if v_start is None or (isinstance(v_start, float) and pd.isna(v_start)) or (
+            isinstance(v_start, str) and not v_start.strip()
+        ):
+            break
+
+        v_end = specs_df.iloc[r, col_end]
+        v_d = specs_df.iloc[r, col_diam]
+        v_s = specs_df.iloc[r, col_space]
+        v_v = specs_df.iloc[r, col_void] if col_void is not None else None
+
+        try:
+            start_stage = int(float(v_start))
+            end_stage = int(float(v_end))
+            diameter_ft = float(v_d)
+            tray_spacing_ft = float(v_s)
+            gas_void = 1.0
+            if v_v is not None and not (isinstance(v_v, float) and pd.isna(v_v)) and not (
+                isinstance(v_v, str) and not v_v.strip()
+            ):
+                gas_void = _coerce_void_fraction(float(v_v))
+        except Exception:
+            break
+
+        sections.append(
+            {
+                "start_stage_1based": start_stage,
+                "end_stage_1based": end_stage,
+                "diameter_ft": diameter_ft,
+                "tray_spacing_ft": tray_spacing_ft,
+                "gas_void_frac": gas_void,
+            }
+        )
+
+    return sections if sections else None
+
+
 def _try_read_components_sheet(xls_path: Path) -> Optional[List[str]]:
     """Return list of component names from 'Components' sheet, or None if sheet missing."""
     try:
@@ -154,7 +257,9 @@ def _parse_streams_sheet(streams_df: pd.DataFrame, component_names: List[str]) -
     # Parse scalar rows
     for i in range(header_row + 1, len(streams_df)):
         label = _row_label(i)
-        if not label or label.lower().startswith("mole flows"):
+        if not label:
+            continue
+        if label.lower().startswith("mole flows"):
             break
         if label.lower() in {
             "stage",
@@ -251,6 +356,9 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
 
     # Module 8B: tau (optional)
     specs["Stage time constant [tau] (sec)"] = _get_optional_float(specs_df, "Stage time constant [tau] (sec)")
+
+    # Geometry (optional): stage geometry sections for vapor volume estimation
+    specs["Geometry Sections"] = _read_stage_geometry_sections(specs_df)
 
     # Components (prefer Components sheet)
     comp_names = _try_read_components_sheet(p)

@@ -3,7 +3,7 @@ column_rhs_v1.py
 
 Dynamic Distillation - Column RHS (v1)
 
-Updated: 2026-01-11  (America/New_York)
+Updated: 2026-01-12 16:40 (America/New_York)
 
 Notes
 -----
@@ -144,9 +144,19 @@ def column_rhs(
     bottom_V = u.get("bottom_V", None)
 
     # flows (lbmol/s)
-    L_out = np.asarray(col.L_lbmolph, dtype=float) / 3600.0
-    V_out = np.asarray(col.V_lbmolph, dtype=float) / 3600.0
-    if L_out.shape != (N,) or V_out.shape != (N,):
+    # NOTE:
+    # If an explicit Feed stream is present, the steady-state internal L/V profiles loaded
+    # from Excel/ChemSep typically already include the feed effect (step changes at the feed stage).
+    # If we ALSO add feed as an explicit source term, we double-count it and create artificial
+    # accumulation (exactly what you observed at the feed stage).
+    #
+    # Therefore:
+    # - If Feed exists (and has non-zero total), we build internally-consistent L/V profiles
+    #   from boundary flows + the explicit feed.
+    # - Otherwise we fall back to the Excel-provided internal profiles.
+    L_out_profile = np.asarray(col.L_lbmolph, dtype=float) / 3600.0
+    V_out_profile = np.asarray(col.V_lbmolph, dtype=float) / 3600.0
+    if L_out_profile.shape != (N,) or V_out_profile.shape != (N,):
         raise ColumnRHSError("ColumnSpec L/V flow arrays must have shape (n_stages,)")
 
     reflux = inputs.boundary.reflux_lbmolph
@@ -159,6 +169,37 @@ def column_rhs(
     boilup_s = float(boilup) / 3600.0
 
     feed_stage0, Fk_L, Fk_V = _feed_component_rates_lbmolps(col, Nc)
+    Ft_L = float(np.sum(Fk_L))
+    Ft_V = float(np.sum(Fk_V))
+
+    if feed_stage0 is not None and (Ft_L > 0.0 or Ft_V > 0.0):
+        L_out = np.zeros(N, dtype=float)
+        V_out = np.zeros(N, dtype=float)
+
+        # Liquid: seed at top with reflux; add feed liquid at the feed stage.
+        L_out[0] = reflux_s
+        for i in range(1, N):
+            L_out[i] = L_out[i - 1] + (Ft_L if i == feed_stage0 else 0.0)
+
+        # Vapor: seed at bottom with boilup; add feed vapor at the feed stage.
+        V_out[-1] = boilup_s
+        for i in range(N - 2, -1, -1):
+            V_out[i] = V_out[i + 1] + (Ft_V if i == feed_stage0 else 0.0)
+    else:
+        L_out = L_out_profile
+        V_out = V_out_profile
+
+    # Enforce boundary flow endpoints even when using the Excel-provided profiles.
+    # Convention: Stage 1 (index 0) is the condenser.
+    # - Reflux is the liquid leaving the condenser down to Stage 2.
+    # - Boilup is the vapor entering the bottom stage.
+    # - A total condenser has no vapor leaving upward from Stage 1.
+    L_out = np.asarray(L_out, dtype=float).reshape((N,))
+    V_out = np.asarray(V_out, dtype=float).reshape((N,))
+    L_out[0] = reflux_s
+    V_out[-1] = boilup_s
+    V_out[0] = 0.0
+
     D = _draw_from_stream(col, "Top", Nc)
     B = _draw_from_stream(col, "Bottom", Nc)
 
@@ -179,9 +220,11 @@ def column_rhs(
     x_in = np.zeros((N, Nc), dtype=float)
     for i in range(N):
         if i == 0:
-            L_in[i] = reflux_s
-            x_in[i, :] = x_topL
+            # condenser has no liquid inflow from above
+            L_in[i] = 0.0
+            x_in[i, :] = x_tray[i, :]
         else:
+            # liquid enters stage i from stage i-1 above (condenser reflux for i==1)
             L_in[i] = L_out[i - 1]
             x_in[i, :] = x_tray[i - 1, :]
 
@@ -205,10 +248,8 @@ def column_rhs(
 
             d_tray_L[i, k] = (
                 L_in[i] * x_in[i, k]
-                + V_in[i] * y_in[i, k]
                 + feedL
                 - L_out[i] * x_tray[i, k]
-                - V_out[i] * y_tray[i, k]
             )
 
             d_tray_V[i, k] = (
@@ -217,28 +258,30 @@ def column_rhs(
                 - V_out[i] * y_tray[i, k]
             )
 
+    # Stage 1 condenser (index 0): total condenser behavior.
+    # Convert all incoming vapor to liquid immediately (no vapor out of the condenser).
+    # This prevents vapor holdup from artificially accumulating at the condenser.
+    d_tray_L[0, :] += V_in[0] * y_in[0, :]
+    d_tray_V[0, :] -= V_in[0] * y_in[0, :]
+
+    # Distillate draw is removed from condenser liquid holdup (and vapor holdup if specified).
+    if D.has_component_breakdown:
+        d_tray_L[0, :] -= D.comp_L
+        d_tray_V[0, :] -= D.comp_V
+    else:
+        d_tray_L[0, :] -= D.total_L * x_tray[0, :]
+        d_tray_V[0, :] -= D.total_V * y_tray[0, :]
+
     d_top_L = d_top_V = None
     if layout.include_top:
         if top_L is None or top_V is None:
             raise ColumnRHSError("layout.include_top=True requires top_L and top_V states.")
 
+        # With the Stage-1-as-condenser convention, the explicit "top accumulator" states are
+        # kept as inert placeholders for now (layout compatibility). Product + reflux handling
+        # is performed directly on the condenser stage holdups above.
         d_top_L = np.zeros(Nc, dtype=float)
         d_top_V = np.zeros(Nc, dtype=float)
-
-        V_to_cond = V_out[0]
-        y_toptray = y_tray[0, :]
-
-        d_top_L += alpha * V_to_cond * y_toptray
-        d_top_V += (1.0 - alpha) * V_to_cond * y_toptray
-
-        d_top_L -= reflux_s * x_topL
-
-        if D.has_component_breakdown:
-            d_top_L -= D.comp_L
-            d_top_V -= D.comp_V
-        else:
-            d_top_L -= D.total_L * x_topL
-            d_top_V -= D.total_V * y_topV
 
     d_bottom_L = d_bottom_V = None
     if layout.include_bottom:

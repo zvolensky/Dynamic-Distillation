@@ -25,7 +25,7 @@ Public API (stable)
   - set_component_ids([...])                    # DWSIM IDs
   - set_component_names([...])                  # thermo IDs / names for fallback
   - pr_flash_TP_F_psia(T_F, P_psia, z) -> (K, HL, HV)
-  - flash_TP_full_F_psia(T_F, P_psia, z) -> (x, y, K, HL, HV)
+  - flash_TP_full_F_psia(T_F, P_psia, z) -> (x, y, K, HL, HV[, Z])
   - get_thermo_coefficients(T_F, P_psia, z, perturbation_dt=1.0)
 """
 
@@ -41,7 +41,7 @@ import numpy as np
 
 
 # ---------------------------------------------------------------------------
-# 1. Console silencing (unit-test friendly)
+# 1. Console silencing (unit-test friendly, plus .NET/native suppression)
 # ---------------------------------------------------------------------------
 
 class ConsoleCapture:
@@ -69,19 +69,108 @@ class ConsoleCapture:
         return self.stderr.getvalue()
 
 
+class _DotNetConsoleSilencer:
+    """Silence System.Console (works when pythonnet/.NET is involved)."""
+    def __init__(self, enabled: bool):
+        self.enabled = enabled
+        self._Console = None
+        self._TextWriter = None
+        self._old_out = None
+        self._old_err = None
+
+    def __enter__(self):
+        if not self.enabled:
+            return self
+        try:
+            from System import Console  # type: ignore
+            from System.IO import TextWriter  # type: ignore
+            self._Console = Console
+            self._TextWriter = TextWriter
+            self._old_out = Console.Out
+            self._old_err = Console.Error
+            Console.SetOut(TextWriter.Null)
+            Console.SetError(TextWriter.Null)
+        except Exception:
+            # If pythonnet isn't loaded yet or System isn't available, ignore.
+            self._Console = None
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if not self.enabled:
+            return False
+        try:
+            if self._Console is not None:
+                self._Console.SetOut(self._old_out)
+                self._Console.SetError(self._old_err)
+        except Exception:
+            pass
+        return False
+
+
+class _FdSilencer:
+    """Silence OS-level stdout/stderr (best-effort; helps for native DLL prints)."""
+    def __init__(self, enabled: bool):
+        self.enabled = enabled
+        self._devnull = None
+        self._stdout_fd = None
+        self._stderr_fd = None
+
+    def __enter__(self):
+        if not self.enabled:
+            return self
+        try:
+            self._devnull = open(os.devnull, "w")
+            self._stdout_fd = os.dup(1)
+            self._stderr_fd = os.dup(2)
+            os.dup2(self._devnull.fileno(), 1)
+            os.dup2(self._devnull.fileno(), 2)
+        except Exception:
+            # Some environments may not support dup/dup2 cleanly; ignore.
+            self._devnull = None
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if not self.enabled:
+            return False
+        try:
+            if self._stdout_fd is not None:
+                os.dup2(self._stdout_fd, 1)
+                os.close(self._stdout_fd)
+            if self._stderr_fd is not None:
+                os.dup2(self._stderr_fd, 2)
+                os.close(self._stderr_fd)
+        except Exception:
+            pass
+        try:
+            if self._devnull is not None:
+                self._devnull.close()
+        except Exception:
+            pass
+        return False
+
+
 @contextlib.contextmanager
 def _silence_console(enabled: bool = True):
+    """
+    Best-effort silencing for:
+      - Python stdout/stderr (sys)
+      - .NET Console.Out/Error (pythonnet)
+      - OS-level FD 1/2 (native prints)
+    Still returns a capture object for Python-level prints (useful for tests).
+    """
     if not enabled:
         yield ConsoleCapture(io.StringIO(), io.StringIO())
         return
 
     old_out, old_err = sys.stdout, sys.stderr
     cap_out, cap_err = io.StringIO(), io.StringIO()
-    try:
-        sys.stdout, sys.stderr = cap_out, cap_err
-        yield ConsoleCapture(cap_out, cap_err)
-    finally:
-        sys.stdout, sys.stderr = old_out, old_err
+
+    with _FdSilencer(True), _DotNetConsoleSilencer(True):
+        try:
+            sys.stdout, sys.stderr = cap_out, cap_err
+            yield ConsoleCapture(cap_out, cap_err)
+        finally:
+            sys.stdout, sys.stderr = old_out, old_err
 
 
 def silence_console(enabled: bool = True):
@@ -228,7 +317,7 @@ def _init_dwsim():
     _dwsim_initialized = True
 
 
-def _flash_TP_F_psia(T_F: float, P_psia: float, z) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float, float]:
+def _flash_TP_F_psia(T_F: float, P_psia: float, z):
     """Perform a TP flash with DWSIM at T_F [°F], P_psia [psia]."""
     _init_dwsim()
     from System import Array  # type: ignore
@@ -313,7 +402,61 @@ def _flash_TP_F_psia(T_F: float, P_psia: float, z) -> Tuple[np.ndarray, np.ndarr
     HL_BTU_lbmol = float(hL_vals[0]) * J_PER_MOL_TO_BTU_PER_LBMOL
     HV_BTU_lbmol = float(hV_vals[0]) * J_PER_MOL_TO_BTU_PER_LBMOL
 
-    return x, y, K, HL_BTU_lbmol, HV_BTU_lbmol
+    # Optional: compute vapor-phase compressibility factor Z for diagnostics.
+    # DWSIM's PTFlash does not return Z directly, but we can recover it from
+    # vapor density if available: Z = P / (rho_molar * R * T).
+    Zfac = None
+    try:
+        # Try a direct Z property first (name varies by DWSIM build).
+        for _pname in ("compressibilityfactor", "compressibility factor", "z", "Z"):
+            try:
+                _zv = _dtlc.CalcProp(_prop_package, _pname, "Mole", "Vapor", _carray, T_K, P_Pa, y_array)
+                _z = float(_zv[0])
+                if np.isfinite(_z) and _z > 0.0:
+                    Zfac = float(_z)
+                    break
+            except Exception:
+                continue
+
+        if Zfac is None:
+            # Try to get a molar density (basis='Mole'). Some builds return kmol/m3.
+            _rv = _dtlc.CalcProp(_prop_package, "density", "Mole", "Vapor", _carray, T_K, P_Pa, y_array)
+            _rho = float(_rv[0])
+            if np.isfinite(_rho) and _rho > 0.0:
+                # Heuristic unit normalization:
+                # Ideal gas molar density here is O(10^2-10^3) mol/m3, or O(10^-1) kmol/m3.
+                _rho_mol_m3 = _rho * 1000.0 if _rho < 50.0 else _rho
+                R_SI = 8.314462618  # Pa*m3/(mol*K)
+                _z = float(P_Pa) / (_rho_mol_m3 * R_SI * float(T_K))
+                if np.isfinite(_z) and 0.02 < _z < 10.0:
+                    Zfac = float(_z)
+
+        if Zfac is None:
+            # Fallback: use mass density + molecular weight if exposed by CalcProp.
+            _rv = _dtlc.CalcProp(_prop_package, "density", "Mass", "Vapor", _carray, T_K, P_Pa, y_array)
+            _rho_mass = float(_rv[0])  # kg/m3 (typical)
+            if np.isfinite(_rho_mass) and _rho_mass > 0.0:
+                _mw = None
+                for _mwname in ("molecularweight", "molecular weight", "mw"):
+                    try:
+                        _mv = _dtlc.CalcProp(_prop_package, _mwname, "Mole", "Vapor", _carray, T_K, P_Pa, y_array)
+                        _mw = float(_mv[0])
+                        break
+                    except Exception:
+                        continue
+                if _mw is not None and np.isfinite(_mw) and _mw > 0.0:
+                    # Heuristic: if MW looks like kg/kmol (e.g., 44), convert to kg/mol.
+                    _mw_kg_per_mol = _mw / 1000.0 if _mw > 1.0 else _mw
+                    R_SI = 8.314462618
+                    _z = float(P_Pa) * _mw_kg_per_mol / (_rho_mass * R_SI * float(T_K))
+                    if np.isfinite(_z) and 0.02 < _z < 10.0:
+                        Zfac = float(_z)
+    except Exception:
+        Zfac = None
+
+    if Zfac is None:
+        return x, y, K, HL_BTU_lbmol, HV_BTU_lbmol
+    return x, y, K, HL_BTU_lbmol, HV_BTU_lbmol, float(Zfac)
 
 
 def _flash_TP_F_psia_thermo(T_F: float, P_psia: float, z) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float, float]:

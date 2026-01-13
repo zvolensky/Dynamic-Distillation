@@ -3,7 +3,7 @@
 state_vector_layout_v1.py
 
 Created: 2026-01-11  (America/New_York)
-Updated: 2026-01-11  (America/New_York)
+Updated: 2026-01-13  (America/New_York)
 
 Purpose
 -------
@@ -54,7 +54,7 @@ class StateVectorLayout:
     include_bottom: bool = True
     include_vapor: bool = True
 
-    # Legacy temperature-state energy option (your tests rely on this existing)
+    # Legacy temperature-state option (tests rely on this existing)
     include_temperature: bool = False
 
     # Module 6 Option B1
@@ -93,32 +93,43 @@ class StateVectorLayout:
         sl: Dict[str, slice] = {}
         idx = 0
 
-        sl["tray_L"] = slice(idx, idx + N * Nc); idx += N * Nc
+        sl["tray_L"] = slice(idx, idx + N * Nc)
+        idx += N * Nc
 
         if self.include_vapor:
-            sl["tray_V"] = slice(idx, idx + N * Nc); idx += N * Nc
+            sl["tray_V"] = slice(idx, idx + N * Nc)
+            idx += N * Nc
 
         if self.include_top:
-            sl["top_L"] = slice(idx, idx + Nc); idx += Nc
+            sl["top_L"] = slice(idx, idx + Nc)
+            idx += Nc
             if self.include_vapor:
-                sl["top_V"] = slice(idx, idx + Nc); idx += Nc
+                sl["top_V"] = slice(idx, idx + Nc)
+                idx += Nc
 
         if self.include_bottom:
-            sl["bottom_L"] = slice(idx, idx + Nc); idx += Nc
+            sl["bottom_L"] = slice(idx, idx + Nc)
+            idx += Nc
             if self.include_vapor:
-                sl["bottom_V"] = slice(idx, idx + Nc); idx += Nc
+                sl["bottom_V"] = slice(idx, idx + Nc)
+                idx += Nc
 
         if self.include_temperature:
-            sl["tray_T_f"] = slice(idx, idx + N); idx += N
+            sl["tray_T_f"] = slice(idx, idx + N)
+            idx += N
             if self.include_top:
-                sl["top_T_f"] = slice(idx, idx + 1); idx += 1
+                sl["top_T_f"] = slice(idx, idx + 1)
+                idx += 1
             if self.include_bottom:
-                sl["bottom_T_f"] = slice(idx, idx + 1); idx += 1
+                sl["bottom_T_f"] = slice(idx, idx + 1)
+                idx += 1
 
         if self.include_energy:
-            sl["tray_EL_BTU"] = slice(idx, idx + N); idx += N
+            sl["tray_EL_BTU"] = slice(idx, idx + N)
+            idx += N
             if self.include_vapor:
-                sl["tray_EV_BTU"] = slice(idx, idx + N); idx += N
+                sl["tray_EV_BTU"] = slice(idx, idx + N)
+                idx += N
 
         return sl
 
@@ -141,7 +152,7 @@ class StateVectorLayout:
 
     def pack_y0(self, col, thermo: Optional[object] = None) -> np.ndarray:
         """
-        Pack initial conditions from ColumnSpec-like object.
+        Pack initial conditions from a ColumnSpec-like object.
 
         Uses ColumnSpec naming (preferred):
           - M_L_lbmol (N,)
@@ -158,26 +169,18 @@ class StateVectorLayout:
 
         y = np.zeros(self.n_states(), dtype=float)
 
-        ML0 = np.asarray(
-            _get_first_attr(col, ["M_L_lbmol", "ML0_lbmol"]),
-            dtype=float
-        ).reshape((N,))
-
-        MV0 = np.asarray(
-            _get_first_attr(col, ["M_V_lbmol", "MV0_lbmol"]),
-            dtype=float
-        ).reshape((N,))
+        ML0 = np.asarray(_get_first_attr(col, ["M_L_lbmol", "ML0_lbmol"]), dtype=float).reshape((N,))
+        MV0 = np.asarray(_get_first_attr(col, ["M_V_lbmol", "MV0_lbmol"]), dtype=float).reshape((N,))
 
         x0 = np.asarray(_get_first_attr(col, ["x0"]), dtype=float).reshape((N, Nc))
         y0v = np.asarray(_get_first_attr(col, ["y0"]), dtype=float).reshape((N, Nc))
 
-        # Component holdup states
         tray_L = ML0[:, None] * x0
-        y[sl["tray_L"]] = tray_L.ravel()
+        y[sl["tray_L"]] = tray_L.ravel(order="C")
 
         if self.include_vapor:
             tray_V = MV0[:, None] * y0v
-            y[sl["tray_V"]] = tray_V.ravel()
+            y[sl["tray_V"]] = tray_V.ravel(order="C")
 
         # Boundary holdups: tiny eps allocations (doesn't affect tray states)
         if self.include_top:
@@ -196,9 +199,8 @@ class StateVectorLayout:
                 botV = self.epsilon_lbmol * self._safe_norm_vec(botV_base, self.epsilon_lbmol)
                 y[sl["bottom_V"]] = botV
 
-        # Legacy temperature states (if enabled)
+        # Temperature states (if enabled)
         if self.include_temperature:
-            # Prefer col.T_f if present, else col.T0_F, else 100F
             if hasattr(col, "T_f"):
                 Ttray = np.asarray(col.T_f, dtype=float).reshape((N,))
             elif hasattr(col, "T0_F"):
@@ -207,15 +209,13 @@ class StateVectorLayout:
                 Ttray = np.full(N, 100.0, dtype=float)
 
             y[sl["tray_T_f"]] = Ttray
-
             if self.include_top and "top_T_f" in sl:
                 y[sl["top_T_f"]] = np.array([float(Ttray[0])], dtype=float)
             if self.include_bottom and "bottom_T_f" in sl:
                 y[sl["bottom_T_f"]] = np.array([float(Ttray[-1])], dtype=float)
 
-        # Module 6 Option B1: energy holdup states
+        # Energy holdup states (Module 6 Option B1)
         if self.include_energy:
-            # Defaults if missing
             if hasattr(col, "T0_F"):
                 T0 = np.asarray(col.T0_F, dtype=float).reshape((N,))
             elif hasattr(col, "T_f"):
@@ -237,7 +237,6 @@ class StateVectorLayout:
                 ML = max(float(ML0[i]), self.epsilon_lbmol)
                 MV = max(float(MV0[i]), self.epsilon_lbmol)
 
-                # overall z based on phase holdups
                 z = tray_L[i, :].copy()
                 if self.include_vapor:
                     z = z + (MV0[i] * y0v[i, :])
@@ -248,7 +247,6 @@ class StateVectorLayout:
                     hL = float(fres.HL_BTU_lbmol)
                     hV = float(fres.HV_BTU_lbmol)
                 else:
-                    # safe placeholder: nonzero enthalpies
                     hL = float(T0[i])
                     hV = float(T0[i])
 
@@ -289,17 +287,14 @@ class StateVectorLayout:
             if self.include_vapor:
                 out["bottom_V"] = y[sl["bottom_V"]].reshape((Nc,)).copy()
 
-        # Derived mole fractions
         out["x_tray"] = self._safe_norm_rows(np.clip(tray_L, 0.0, None), self.epsilon_lbmol)
         if self.include_vapor:
             out["y_tray"] = self._safe_norm_rows(np.clip(out["tray_V"], 0.0, None), self.epsilon_lbmol)
 
-        # Totals (compat keys expected by existing code/tests)
         out["ML_tot_tray"] = tray_L.sum(axis=1).copy()
         if self.include_vapor:
             out["MV_tot_tray"] = out["tray_V"].sum(axis=1).copy()
 
-        # Temperature states (legacy)
         if self.include_temperature:
             out["tray_T_f"] = y[sl["tray_T_f"]].reshape((N,)).copy()
             if self.include_top and "top_T_f" in sl:
@@ -307,7 +302,6 @@ class StateVectorLayout:
             if self.include_bottom and "bottom_T_f" in sl:
                 out["bottom_T_f"] = y[sl["bottom_T_f"]].reshape((1,)).copy()
 
-        # Energy holdup states
         if self.include_energy:
             out["tray_EL_BTU"] = y[sl["tray_EL_BTU"]].reshape((N,)).copy()
             if self.include_vapor and "tray_EV_BTU" in sl:

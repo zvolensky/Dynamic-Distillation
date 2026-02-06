@@ -93,3 +93,37 @@ def test_energy_enabled_adds_temperature_derivatives():
     assert dT.shape == (2,)
     assert np.all(np.isfinite(dT))
     assert "dT_tray_F_per_s" in diag
+
+
+def test_total_condenser_top_drum_balance():
+    col = _make_tiny_column()
+
+    col2 = ColumnSpec(**{**col.__dict__,
+        "V_lbmolph": np.array([12.0, 12.0], dtype=float),
+        "L_lbmolph": np.array([6.0, 6.0], dtype=float),
+        "streams": {},
+    })
+    object.__setattr__(col2, "top_L0_lbmol", np.array([4.0, 1.0], dtype=float))
+
+    layout = StateVectorLayout(n_stages=2, n_components=2, include_top=True, include_bottom=True, include_vapor=True)
+    y0 = layout.pack_y0(col2)
+
+    inputs = ColumnInputs(boundary=BoundaryFlows(reflux_lbmolph=6.0, boilup_lbmolph=12.0))
+    dydt, _ = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+
+    sl = layout.slices()
+    top_L = y0[sl["top_L"]]
+    x_topL = top_L / max(float(np.sum(top_L)), 1e-300)
+
+    u0 = layout.unpack(y0)
+    y_in0 = u0["y_tray"][1, :]
+
+    reflux_s = 6.0 / 3600.0
+    boilup_s = 12.0 / 3600.0
+
+    expected_d_top = boilup_s * y_in0 - reflux_s * x_topL
+    d_top = dydt[sl["top_L"]].reshape((2,))
+    assert np.allclose(d_top, expected_d_top, atol=1e-12)
+
+    d_tray_L = dydt[sl["tray_L"]].reshape((2, 2))
+    assert np.allclose(d_tray_L[0, :], d_top, atol=1e-12)

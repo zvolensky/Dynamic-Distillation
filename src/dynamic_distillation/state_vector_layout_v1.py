@@ -184,7 +184,84 @@ class StateVectorLayout:
 
         # Boundary holdups: tiny eps allocations (doesn't affect tray states)
         if self.include_top:
-            topL = self.epsilon_lbmol * self._safe_norm_vec(tray_L[0, :].copy(), self.epsilon_lbmol)
+            topL = None
+            top_total = None
+            distillate_z = None
+
+            def _norm_key(s: str) -> str:
+                return "".join(ch for ch in s.lower() if ch.isalnum())
+
+            def _stream_comp_dict(stream_obj) -> Optional[dict]:
+                if stream_obj is None:
+                    return None
+                if hasattr(stream_obj, "component_molar_flows_lbmolph"):
+                    return getattr(stream_obj, "component_molar_flows_lbmolph")
+                if isinstance(stream_obj, dict):
+                    return stream_obj.get("Component Mole Flows (lbmol/h)") or stream_obj.get("component_molar_flows_lbmolph")
+                return None
+
+            # Prefer distillate stream composition for initial top drum composition
+            streams = getattr(col, "streams", None)
+            if isinstance(streams, dict):
+                best = None
+                best_score = 0
+                for nm, sobj in streams.items():
+                    key = _norm_key(str(nm))
+                    if not key or "feed" in key or "bottom" in key:
+                        continue
+                    score = 0
+                    if "distillate" in key:
+                        score = 3
+                    elif key.startswith("dist") or "dist" in key:
+                        score = 2
+                    elif "top" in key:
+                        score = 1
+                    if score > best_score:
+                        best_score = score
+                        best = sobj
+                if best is not None:
+                    comp_dict = _stream_comp_dict(best)
+                    if isinstance(comp_dict, dict):
+                        vals = []
+                        for cname in getattr(col, "components_excel", []):
+                            v = comp_dict.get(cname)
+                            vals.append(0.0 if v is None else float(v))
+                        tot = float(np.sum(vals))
+                        if tot > 0.0:
+                            distillate_z = np.asarray(vals, dtype=float) / tot
+
+            # Optional user input: component holdup vector or total holdup (lbmol)
+            if hasattr(col, "top_L0_lbmol"):
+                raw = getattr(col, "top_L0_lbmol")
+                try:
+                    arr = np.asarray(raw, dtype=float).reshape((-1,))
+                    if arr.size == Nc:
+                        topL = arr.copy()
+                    elif arr.size == 1:
+                        top_total = float(arr[0])
+                except Exception:
+                    pass
+
+            if topL is None:
+                specs = getattr(col, "specs_raw", None)
+                if isinstance(specs, dict):
+                    for key in ("Top Accumulator Holdup (lbmol)", "Top Drum Holdup (lbmol)"):
+                        v = specs.get(key)
+                        if v is not None:
+                            try:
+                                top_total = float(v)
+                                break
+                            except Exception:
+                                pass
+
+            if topL is None and top_total is not None and np.isfinite(top_total) and top_total > 0.0:
+                base = distillate_z if distillate_z is not None else tray_L[0, :].copy()
+                topL = float(top_total) * self._safe_norm_vec(base, self.epsilon_lbmol)
+
+            if topL is None:
+                base = distillate_z if distillate_z is not None else tray_L[0, :].copy()
+                topL = self.epsilon_lbmol * self._safe_norm_vec(base, self.epsilon_lbmol)
+
             y[sl["top_L"]] = topL
             if self.include_vapor:
                 topV_base = (MV0[0] * y0v[0, :]).copy()
@@ -192,7 +269,83 @@ class StateVectorLayout:
                 y[sl["top_V"]] = topV
 
         if self.include_bottom:
-            botL = self.epsilon_lbmol * self._safe_norm_vec(tray_L[-1, :].copy(), self.epsilon_lbmol)
+            botL = None
+            bot_total = None
+            bottoms_z = None
+
+            def _norm_key(s: str) -> str:
+                return "".join(ch for ch in s.lower() if ch.isalnum())
+
+            def _stream_comp_dict(stream_obj) -> Optional[dict]:
+                if stream_obj is None:
+                    return None
+                if hasattr(stream_obj, "component_molar_flows_lbmolph"):
+                    return getattr(stream_obj, "component_molar_flows_lbmolph")
+                if isinstance(stream_obj, dict):
+                    return stream_obj.get("Component Mole Flows (lbmol/h)") or stream_obj.get("component_molar_flows_lbmolph")
+                return None
+
+            # Prefer bottoms stream composition for initial sump composition
+            streams = getattr(col, "streams", None)
+            if isinstance(streams, dict):
+                best = None
+                best_score = 0
+                for nm, sobj in streams.items():
+                    key = _norm_key(str(nm))
+                    if not key or "feed" in key or "dist" in key or "top" in key:
+                        continue
+                    score = 0
+                    if "bottoms" in key:
+                        score = 3
+                    elif key.startswith("bot") or "bottom" in key:
+                        score = 2
+                    elif "sump" in key:
+                        score = 1
+                    if score > best_score:
+                        best_score = score
+                        best = sobj
+                if best is not None:
+                    comp_dict = _stream_comp_dict(best)
+                    if isinstance(comp_dict, dict):
+                        vals = []
+                        for cname in getattr(col, "components_excel", []):
+                            v = comp_dict.get(cname)
+                            vals.append(0.0 if v is None else float(v))
+                        tot = float(np.sum(vals))
+                        if tot > 0.0:
+                            bottoms_z = np.asarray(vals, dtype=float) / tot
+
+            if hasattr(col, "bottom_L0_lbmol"):
+                raw = getattr(col, "bottom_L0_lbmol")
+                try:
+                    arr = np.asarray(raw, dtype=float).reshape((-1,))
+                    if arr.size == Nc:
+                        botL = arr.copy()
+                    elif arr.size == 1:
+                        bot_total = float(arr[0])
+                except Exception:
+                    pass
+
+            if botL is None:
+                specs = getattr(col, "specs_raw", None)
+                if isinstance(specs, dict):
+                    for key in ("Bottom Holdup (lbmol)", "Bottom Sump Holdup (lbmol)"):
+                        v = specs.get(key)
+                        if v is not None:
+                            try:
+                                bot_total = float(v)
+                                break
+                            except Exception:
+                                pass
+
+            if botL is None and bot_total is not None and np.isfinite(bot_total) and bot_total > 0.0:
+                base = bottoms_z if bottoms_z is not None else tray_L[-1, :].copy()
+                botL = float(bot_total) * self._safe_norm_vec(base, self.epsilon_lbmol)
+
+            if botL is None:
+                base = bottoms_z if bottoms_z is not None else tray_L[-1, :].copy()
+                botL = self.epsilon_lbmol * self._safe_norm_vec(base, self.epsilon_lbmol)
+
             y[sl["bottom_L"]] = botL
             if self.include_vapor:
                 botV_base = (MV0[-1] * y0v[-1, :]).copy()

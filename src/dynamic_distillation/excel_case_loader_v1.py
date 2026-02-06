@@ -353,6 +353,8 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     specs["Simulation Length (min)"] = _get_optional_float(specs_df, "Simulation Length (min)")
     specs["Timestep (sec)"] = _get_optional_float(specs_df, "Timestep (sec)")
     specs["Log Frequency (timesteps)"] = _get_required_int(specs_df, "Log Frequency (timesteps)")
+    specs["Top Accumulator Holdup (lbmol)"] = _get_optional_float(specs_df, "Top Accumulator Holdup (lbmol)")
+    specs["Bottom Holdup (lbmol)"] = _get_optional_float(specs_df, "Bottom Holdup (lbmol)")
 
     # Module 8B: tau (optional)
     specs["Stage time constant [tau] (sec)"] = _get_optional_float(specs_df, "Stage time constant [tau] (sec)")

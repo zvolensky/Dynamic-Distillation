@@ -622,10 +622,27 @@ def _profile_rows(
     N = col.n_stages
     Nc = col.n_components
 
+    def _comp_suffix(name: str) -> str:
+        out = "".join(ch if ch.isalnum() else "_" for ch in str(name).strip())
+        out = out.strip("_")
+        return out or "comp"
+
+    comp_labels = [_comp_suffix(nm) for nm in getattr(col, "components_excel", [f"c{i+1}" for i in range(Nc)])]
+
     x = u["x_tray"]
     yv = u["y_tray"]
     ML = u["ML_tot_tray"]
     MV = u["MV_tot_tray"]
+    top_L_total = float(np.sum(u["top_L"])) if (layout.include_top and "top_L" in u) else None
+    top_x = None
+    bottom_L_total = float(np.sum(u["bottom_L"])) if (layout.include_bottom and "bottom_L" in u) else None
+    bottom_x = None
+    if layout.include_top and "top_L" in u:
+        denom = max(float(np.sum(u["top_L"])), 1e-300)
+        top_x = np.asarray(u["top_L"], dtype=float).reshape((Nc,)) / denom
+    if layout.include_bottom and "bottom_L" in u:
+        denom = max(float(np.sum(u["bottom_L"])), 1e-300)
+        bottom_x = np.asarray(u["bottom_L"], dtype=float).reshape((Nc,)) / denom
 
     P_spec = np.asarray(getattr(col, "P_psia", np.full(N, np.nan, dtype=float)), dtype=float).reshape((N,))
 
@@ -634,6 +651,28 @@ def _profile_rows(
     Z = np.where(~np.isfinite(Z) | (Z <= 0.0), 1.0, Z)
 
     T = _tray_temperature_F(col, layout, y, include_temperature)
+    T_distillate = None
+    if layout.include_top and "top_T_f" in u:
+        try:
+            T_distillate = float(u["top_T_f"][0])
+        except Exception:
+            T_distillate = None
+    if T_distillate is None:
+        T_distillate = float(T[0])
+    T_sump = None
+    if layout.include_bottom and "bottom_T_f" in u:
+        try:
+            T_sump = float(u["bottom_T_f"][0])
+        except Exception:
+            T_sump = None
+    T_reb = None
+    if "T_reb_F" in diag:
+        try:
+            T_reb = float(np.asarray(diag["T_reb_F"]).reshape((-1,))[0])
+        except Exception:
+            T_reb = None
+    if T_reb is None:
+        T_reb = float(T[-1])
 
     # Prefer diag-provided P_psia_diag if present; else compute from PV
     if "P_psia_diag" in diag:
@@ -669,11 +708,21 @@ def _profile_rows(
             "F_lbmolph": _stage_value(i1, feed_tag.stage_1based, feed_tag.flow_lbmolph),
             "D_lbmolph": _stage_value(i1, dist_tag.stage_1based, dist_tag.flow_lbmolph),
             "B_lbmolph": _stage_value(i1, bots_tag.stage_1based, bots_tag.flow_lbmolph),
+            "Distillate_L_lbmol": _stage_value(i1, 1 if layout.include_top else None, top_L_total),
+            "Bottoms_L_lbmol": _stage_value(i1, N if layout.include_bottom else None, bottom_L_total),
+            "T_Distillate_F": _stage_value(i1, 1 if layout.include_top else None, T_distillate),
+            "T_sump_F": _stage_value(i1, N if layout.include_bottom else None, T_sump),
+            "T_reb_F": _stage_value(i1, N if layout.include_bottom else None, T_reb),
         }
 
         for k in range(Nc):
-            r[f"x_{k+1}"] = float(x[i, k])
-            r[f"y_{k+1}"] = float(yv[i, k])
+            label = comp_labels[k]
+            r[f"x_{label}"] = float(x[i, k])
+            r[f"y_{label}"] = float(yv[i, k])
+            if top_x is not None:
+                r[f"Distillate_x_{label}"] = _stage_value(i1, 1, float(top_x[k]))
+            if bottom_x is not None:
+                r[f"Bottoms_x_{label}"] = _stage_value(i1, N, float(bottom_x[k]))
 
         rows.append(r)
 
@@ -700,6 +749,13 @@ def _summary_row(
     N = col.n_stages
     Nc = col.n_components
 
+    def _comp_suffix(name: str) -> str:
+        out = "".join(ch if ch.isalnum() else "_" for ch in str(name).strip())
+        out = out.strip("_")
+        return out or "comp"
+
+    comp_labels = [_comp_suffix(nm) for nm in getattr(col, "components_excel", [f"c{i+1}" for i in range(Nc)])]
+
     x = u["x_tray"]
     yv = u["y_tray"]
     MV = u["MV_tot_tray"]
@@ -711,6 +767,14 @@ def _summary_row(
     Z = np.where(~np.isfinite(Z) | (Z <= 0.0), 1.0, Z)
 
     T = _tray_temperature_F(col, layout, y, include_temperature)
+    T_distillate = None
+    if layout.include_top and "top_T_f" in u:
+        try:
+            T_distillate = float(u["top_T_f"][0])
+        except Exception:
+            T_distillate = None
+    if T_distillate is None:
+        T_distillate = float(T[0])
 
     if "P_psia_diag" in diag:
         P_diag = np.asarray(diag["P_psia_diag"], dtype=float).reshape((N,))
@@ -719,6 +783,32 @@ def _summary_row(
 
     if N >= 1 and np.isfinite(P_spec[0]):
         P_diag[0] = float(P_spec[0])
+
+    top_L_total = float(np.sum(u["top_L"])) if (layout.include_top and "top_L" in u) else None
+    top_x = None
+    bottom_L_total = float(np.sum(u["bottom_L"])) if (layout.include_bottom and "bottom_L" in u) else None
+    bottom_x = None
+    if layout.include_top and "top_L" in u:
+        denom = max(float(np.sum(u["top_L"])), 1e-300)
+        top_x = np.asarray(u["top_L"], dtype=float).reshape((Nc,)) / denom
+    if layout.include_bottom and "bottom_L" in u:
+        denom = max(float(np.sum(u["bottom_L"])), 1e-300)
+        bottom_x = np.asarray(u["bottom_L"], dtype=float).reshape((Nc,)) / denom
+
+    T_sump = None
+    if layout.include_bottom and "bottom_T_f" in u:
+        try:
+            T_sump = float(u["bottom_T_f"][0])
+        except Exception:
+            T_sump = None
+    T_reb = None
+    if "T_reb_F" in diag:
+        try:
+            T_reb = float(np.asarray(diag["T_reb_F"]).reshape((-1,))[0])
+        except Exception:
+            T_reb = None
+    if T_reb is None:
+        T_reb = float(T[-1])
 
     out: Dict[str, Any] = {
         "wall_clock_iso": wall_clock_iso,
@@ -732,17 +822,27 @@ def _summary_row(
         "P_bot_psia_spec": float(P_spec[-1]) if np.isfinite(P_spec[-1]) else np.nan,
         "T_top_F": float(T[0]),
         "T_bot_F": float(T[-1]),
+        "T_Distillate_F": float(T_distillate) if T_distillate is not None else np.nan,
         # New: overall stream flow scalars
         "F_lbmolph": float(feed_tag.flow_lbmolph) if feed_tag.flow_lbmolph is not None else np.nan,
         "D_lbmolph": float(dist_tag.flow_lbmolph) if dist_tag.flow_lbmolph is not None else np.nan,
         "B_lbmolph": float(bots_tag.flow_lbmolph) if bots_tag.flow_lbmolph is not None else np.nan,
+        "Distillate_L_lbmol": float(top_L_total) if top_L_total is not None else np.nan,
+        "Bottoms_L_lbmol": float(bottom_L_total) if bottom_L_total is not None else np.nan,
+        "T_sump_F": float(T_sump) if T_sump is not None else np.nan,
+        "T_reb_F": float(T_reb) if T_reb is not None else np.nan,
     }
 
     for k in range(Nc):
-        out[f"x_top_{k+1}"] = float(x[0, k])
-        out[f"y_top_{k+1}"] = float(yv[0, k])
-        out[f"x_bot_{k+1}"] = float(x[-1, k])
-        out[f"y_bot_{k+1}"] = float(yv[-1, k])
+        label = comp_labels[k]
+        out[f"x_Distillate_{label}"] = float(x[0, k])
+        out[f"y_Distillate_{label}"] = float(yv[0, k])
+        out[f"x_Bottoms_{label}"] = float(x[-1, k])
+        out[f"y_Bottoms_{label}"] = float(yv[-1, k])
+        if top_x is not None:
+            out[f"Distillate_x_{label}"] = float(top_x[k])
+        if bottom_x is not None:
+            out[f"Bottoms_x_{label}"] = float(bottom_x[k])
 
     return out
 

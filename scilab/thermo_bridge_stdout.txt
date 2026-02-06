@@ -1,0 +1,6 @@
+[BAT] pwd: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\scilab
+[BAT] pythonExe: "C:/Users/Thoma/Documents/Python Scripts/Dynamic_DistillationII/.venv/Scripts/python.exe"
+[BAT] bridgePy:  "C:/Users/Thoma/Documents/Python Scripts/Dynamic_DistillationII/thermo_bridge.py"
+[BAT] reqFile:   "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\scilab\thermo_request.txt"
+[BAT] respFile:  "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\scilab\thermo_response.txt"
+[BAT] python exit code: 0

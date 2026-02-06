@@ -1,0 +1,1 @@
+ERROR: Stage Profile: could not locate NC composition columns for X0. Expected either component-name columns or x1/x2/... columns.

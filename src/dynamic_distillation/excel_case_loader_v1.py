@@ -122,6 +122,7 @@ def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[
 
     header_row = None
     col_start = col_end = col_diam = col_space = col_void = None
+    col_weir_h = col_weir_L = col_active = None
 
     # Find header row containing both "Start Stage" and "End Stage"
     for r in range(n_rows):
@@ -144,6 +145,12 @@ def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[
                     col_space = c
                 if col_void is None and ("void" in h or ("gas" in h and "frac" in h)):
                     col_void = c
+                if col_weir_h is None and "weir" in h and "height" in h:
+                    col_weir_h = c
+                if col_weir_L is None and "weir" in h and "length" in h:
+                    col_weir_L = c
+                if col_active is None and "active" in h and "area" in h:
+                    col_active = c
             break
 
     if header_row is None or col_diam is None or col_space is None:
@@ -161,6 +168,9 @@ def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[
         v_d = specs_df.iloc[r, col_diam]
         v_s = specs_df.iloc[r, col_space]
         v_v = specs_df.iloc[r, col_void] if col_void is not None else None
+        v_wh = specs_df.iloc[r, col_weir_h] if col_weir_h is not None else None
+        v_wl = specs_df.iloc[r, col_weir_L] if col_weir_L is not None else None
+        v_aa = specs_df.iloc[r, col_active] if col_active is not None else None
 
         try:
             start_stage = int(float(v_start))
@@ -172,6 +182,21 @@ def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[
                 isinstance(v_v, str) and not v_v.strip()
             ):
                 gas_void = _coerce_void_fraction(float(v_v))
+            weir_height_in = None
+            if v_wh is not None and not (isinstance(v_wh, float) and pd.isna(v_wh)) and not (
+                isinstance(v_wh, str) and not v_wh.strip()
+            ):
+                weir_height_in = float(v_wh)
+            weir_length_ft = None
+            if v_wl is not None and not (isinstance(v_wl, float) and pd.isna(v_wl)) and not (
+                isinstance(v_wl, str) and not v_wl.strip()
+            ):
+                weir_length_ft = float(v_wl)
+            active_area_frac = None
+            if v_aa is not None and not (isinstance(v_aa, float) and pd.isna(v_aa)) and not (
+                isinstance(v_aa, str) and not v_aa.strip()
+            ):
+                active_area_frac = _coerce_void_fraction(float(v_aa))
         except Exception:
             break
 
@@ -182,6 +207,9 @@ def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[
                 "diameter_ft": diameter_ft,
                 "tray_spacing_ft": tray_spacing_ft,
                 "gas_void_frac": gas_void,
+                "weir_height_in": weir_height_in,
+                "weir_length_ft": weir_length_ft,
+                "active_area_frac": active_area_frac,
             }
         )
 

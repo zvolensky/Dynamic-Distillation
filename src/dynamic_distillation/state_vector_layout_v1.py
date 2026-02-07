@@ -13,7 +13,7 @@ Supports:
 - Tray liquid component holdup states (always)
 - Optional tray vapor component holdup states
 - Optional boundary holdup states (top/bottom)
-- Optional temperature states (legacy): tray_T_f + top_T_f + bottom_T_f
+- Optional temperature states (legacy): tray_T_f + bottom_T_f
 - Optional energy holdup states (Module 6, Option B1):
     tray_EL_BTU[i] = ML[i] * hL[i]   (Btu)
     tray_EV_BTU[i] = MV[i] * hV[i]   (Btu)
@@ -82,7 +82,6 @@ class StateVectorLayout:
           bottom_L (Nc) [if include_bottom]
           bottom_V (Nc) [if include_bottom and include_vapor]
           tray_T_f (N) [if include_temperature]
-          top_T_f (1) [if include_temperature and include_top]
           bottom_T_f (1) [if include_temperature and include_bottom]
           tray_EL_BTU (N) [if include_energy]
           tray_EV_BTU (N) [if include_energy and include_vapor]
@@ -117,9 +116,6 @@ class StateVectorLayout:
         if self.include_temperature:
             sl["tray_T_f"] = slice(idx, idx + N)
             idx += N
-            if self.include_top:
-                sl["top_T_f"] = slice(idx, idx + 1)
-                idx += 1
             if self.include_bottom:
                 sl["bottom_T_f"] = slice(idx, idx + 1)
                 idx += 1
@@ -200,6 +196,24 @@ class StateVectorLayout:
                     return stream_obj.get("Component Mole Flows (lbmol/h)") or stream_obj.get("component_molar_flows_lbmolph")
                 return None
 
+            def _norm_comp_key(s: str) -> str:
+                return "".join(ch for ch in str(s).lower() if ch.isalnum())
+
+            def _comp_val(comp_dict: dict, comp_name: str) -> Optional[float]:
+                if not isinstance(comp_dict, dict):
+                    return None
+                norm_map = {_norm_comp_key(k): float(v) for k, v in comp_dict.items()}
+                key = _norm_comp_key(comp_name)
+                if key in norm_map:
+                    return norm_map[key]
+                try:
+                    from dynamic_distillation.compound_registry_v1 import canonicalize_to_dwsim_id
+                    canon = canonicalize_to_dwsim_id(comp_name)
+                    key2 = _norm_comp_key(canon)
+                    return norm_map.get(key2)
+                except Exception:
+                    return None
+
             # Prefer distillate stream composition for initial top drum composition
             streams = getattr(col, "streams", None)
             if isinstance(streams, dict):
@@ -224,7 +238,7 @@ class StateVectorLayout:
                     if isinstance(comp_dict, dict):
                         vals = []
                         for cname in getattr(col, "components_excel", []):
-                            v = comp_dict.get(cname)
+                            v = _comp_val(comp_dict, cname)
                             vals.append(0.0 if v is None else float(v))
                         tot = float(np.sum(vals))
                         if tot > 0.0:
@@ -285,6 +299,24 @@ class StateVectorLayout:
                     return stream_obj.get("Component Mole Flows (lbmol/h)") or stream_obj.get("component_molar_flows_lbmolph")
                 return None
 
+            def _norm_comp_key(s: str) -> str:
+                return "".join(ch for ch in str(s).lower() if ch.isalnum())
+
+            def _comp_val(comp_dict: dict, comp_name: str) -> Optional[float]:
+                if not isinstance(comp_dict, dict):
+                    return None
+                norm_map = {_norm_comp_key(k): float(v) for k, v in comp_dict.items()}
+                key = _norm_comp_key(comp_name)
+                if key in norm_map:
+                    return norm_map[key]
+                try:
+                    from dynamic_distillation.compound_registry_v1 import canonicalize_to_dwsim_id
+                    canon = canonicalize_to_dwsim_id(comp_name)
+                    key2 = _norm_comp_key(canon)
+                    return norm_map.get(key2)
+                except Exception:
+                    return None
+
             # Prefer bottoms stream composition for initial sump composition
             streams = getattr(col, "streams", None)
             if isinstance(streams, dict):
@@ -309,7 +341,7 @@ class StateVectorLayout:
                     if isinstance(comp_dict, dict):
                         vals = []
                         for cname in getattr(col, "components_excel", []):
-                            v = comp_dict.get(cname)
+                            v = _comp_val(comp_dict, cname)
                             vals.append(0.0 if v is None else float(v))
                         tot = float(np.sum(vals))
                         if tot > 0.0:
@@ -362,10 +394,22 @@ class StateVectorLayout:
                 Ttray = np.full(N, 100.0, dtype=float)
 
             y[sl["tray_T_f"]] = Ttray
-            if self.include_top and "top_T_f" in sl:
-                y[sl["top_T_f"]] = np.array([float(Ttray[0])], dtype=float)
             if self.include_bottom and "bottom_T_f" in sl:
-                y[sl["bottom_T_f"]] = np.array([float(Ttray[-1])], dtype=float)
+                bot_T = float(Ttray[-1])
+                streams = getattr(col, "streams", None)
+                if isinstance(streams, dict):
+                    for nm, sobj in streams.items():
+                        if nm is None:
+                            continue
+                        key = "".join(ch for ch in str(nm).lower() if ch.isalnum())
+                        if "bottom" in key or key.startswith("bot") or "sump" in key:
+                            if hasattr(sobj, "temperature_f") and getattr(sobj, "temperature_f") is not None:
+                                try:
+                                    bot_T = float(getattr(sobj, "temperature_f"))
+                                except Exception:
+                                    pass
+                            break
+                y[sl["bottom_T_f"]] = np.array([float(bot_T)], dtype=float)
 
         # Energy holdup states (Module 6 Option B1)
         if self.include_energy:
@@ -450,8 +494,6 @@ class StateVectorLayout:
 
         if self.include_temperature:
             out["tray_T_f"] = y[sl["tray_T_f"]].reshape((N,)).copy()
-            if self.include_top and "top_T_f" in sl:
-                out["top_T_f"] = y[sl["top_T_f"]].reshape((1,)).copy()
             if self.include_bottom and "bottom_T_f" in sl:
                 out["bottom_T_f"] = y[sl["bottom_T_f"]].reshape((1,)).copy()
 

@@ -74,6 +74,9 @@ class ColumnGeometrySection:
     diameter_ft: float
     tray_spacing_ft: float
     gas_void_frac: float = 1.0
+    weir_height_in: Optional[float] = None
+    weir_length_ft: Optional[float] = None
+    active_area_frac: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -84,6 +87,10 @@ class ColumnGeometry:
     gas_void_frac_per_stage: np.ndarray
     area_ft2_per_stage: np.ndarray
     vapor_volume_ft3_per_stage: np.ndarray
+    weir_height_in_per_stage: Optional[np.ndarray] = None
+    weir_length_ft_per_stage: Optional[np.ndarray] = None
+    active_area_frac_per_stage: Optional[np.ndarray] = None
+    active_area_ft2_per_stage: Optional[np.ndarray] = None
 
 
 @dataclass(frozen=True)
@@ -132,6 +139,11 @@ def _coerce_void_fraction(gv: float) -> float:
     return gv
 
 
+def _coerce_fraction(val: float) -> float:
+    """Accept either fraction (0..1] or percent (0..100]."""
+    return _coerce_void_fraction(val)
+
+
 def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Optional[ColumnGeometry]:
     sections_raw = specs_raw.get("Geometry Sections", None)
     if not sections_raw:
@@ -150,10 +162,22 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
             d = float(row.get("diameter_ft"))
             sp = float(row.get("tray_spacing_ft"))
             gv = float(row.get("gas_void_frac", 1.0))
+            wh = row.get("weir_height_in", None)
+            wl = row.get("weir_length_ft", None)
+            aa = row.get("active_area_frac", None)
         except Exception as exc:
             raise ColumnSpecError("Geometry Sections row contains invalid values.") from exc
 
         gv = _coerce_void_fraction(gv)
+        wh = None if wh is None else float(wh)
+        wl = None if wl is None else float(wl)
+        aa = None if aa is None else _coerce_fraction(float(aa))
+        if wh is not None and (not np.isfinite(wh) or wh < 0.0):
+            raise ColumnSpecError("Geometry: weir height (in) must be >= 0 if provided.")
+        if wl is not None and (not np.isfinite(wl) or wl <= 0.0):
+            raise ColumnSpecError("Geometry: weir length (ft) must be > 0 if provided.")
+        if aa is not None and (not np.isfinite(aa) or aa <= 0.0 or aa > 1.0):
+            raise ColumnSpecError("Geometry: active area fraction must be in (0, 1] if provided.")
 
         sections.append(
             ColumnGeometrySection(
@@ -162,6 +186,9 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
                 diameter_ft=d,
                 tray_spacing_ft=sp,
                 gas_void_frac=gv,
+                weir_height_in=wh,
+                weir_length_ft=wl,
+                active_area_frac=aa,
             )
         )
 
@@ -169,6 +196,9 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
     diam = np.full(N, np.nan, dtype=float)
     spacing = np.full(N, np.nan, dtype=float)
     void = np.full(N, np.nan, dtype=float)
+    weir_h = np.full(N, np.nan, dtype=float)
+    weir_L = np.full(N, np.nan, dtype=float)
+    aaf = np.full(N, np.nan, dtype=float)
 
     for s in sections:
         if s.start_stage_1based < 1 or s.end_stage_1based > N or s.end_stage_1based < s.start_stage_1based:
@@ -186,6 +216,12 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
         diam[i0:i1] = float(s.diameter_ft)
         spacing[i0:i1] = float(s.tray_spacing_ft)
         void[i0:i1] = float(s.gas_void_frac)
+        if s.weir_height_in is not None:
+            weir_h[i0:i1] = float(s.weir_height_in)
+        if s.weir_length_ft is not None:
+            weir_L[i0:i1] = float(s.weir_length_ft)
+        if s.active_area_frac is not None:
+            aaf[i0:i1] = float(s.active_area_frac)
 
     # Fill gaps:
     # - If Stage 1 missing (common, condenser), back-fill from Stage 2 / first defined stage.
@@ -196,7 +232,7 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
     # Find first finite index
     first = int(np.argmax(np.isfinite(diam)))
 
-    for arr in (diam, spacing, void):
+    for arr in (diam, spacing, void, weir_h, weir_L, aaf):
         # Back-fill leading NaNs with first finite value
         for i in range(0, first):
             arr[i] = arr[first]
@@ -208,6 +244,7 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
     # Derived geometry
     area = math.pi * (0.5 * diam) ** 2
     v_stage = area * spacing * void
+    active_area = area * aaf
 
     return ColumnGeometry(
         sections=sections,
@@ -216,6 +253,10 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
         gas_void_frac_per_stage=void,
         area_ft2_per_stage=area,
         vapor_volume_ft3_per_stage=v_stage,
+        weir_height_in_per_stage=weir_h,
+        weir_length_ft_per_stage=weir_L,
+        active_area_frac_per_stage=aaf,
+        active_area_ft2_per_stage=active_area,
     )
 
 

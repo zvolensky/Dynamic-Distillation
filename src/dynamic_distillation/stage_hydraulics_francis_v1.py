@@ -35,7 +35,7 @@ def compute_francis_weir_liquid_outflow(
     h_ow = np.zeros(n)
     ML_out = np.zeros(n)
 
-    for i in range(1, n - 1):  # stages 2..N-1
+    for i in range(1, n - 1):  # stages 2..N-1 (exclude condenser and reboiler)
         rho = rhoL_lbmol_ft3[i]
         if rho <= 0.0:
             raise ValueError(f"Invalid rhoL at stage {i+1}")

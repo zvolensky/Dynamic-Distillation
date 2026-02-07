@@ -284,6 +284,14 @@ class StubThermoProvider:
     def flash_TP_full(self, T_F: float, P_psia: float, z: List[float]):
         return self.flash_TP_full_F_psia(T_F, P_psia, z)
 
+    def liquid_density_lbmol_ft3(self, T_F: float, P_psia: float, x: List[float]) -> float:
+        # Simple stub: constant density to keep hydraulics running in stub mode.
+        return 1.0
+
+    def cp_liq_vap_btu_per_lbmolF(self, T_F: float, P_psia: float, z: List[float]):
+        # Simple stub: constant Cp values to keep energy balance running in stub mode.
+        return (30.0, 20.0)
+
 
 # -------------------------
 # Runner config
@@ -629,8 +637,8 @@ def _profile_rows(
 
     comp_labels = [_comp_suffix(nm) for nm in getattr(col, "components_excel", [f"c{i+1}" for i in range(Nc)])]
 
-    x = u["x_tray"]
-    yv = u["y_tray"]
+    x = diag.get("x_tray", u["x_tray"])
+    yv = diag.get("y_tray", u["y_tray"])
     ML = u["ML_tot_tray"]
     MV = u["MV_tot_tray"]
     top_L_total = float(np.sum(u["top_L"])) if (layout.include_top and "top_L" in u) else None
@@ -649,8 +657,49 @@ def _profile_rows(
     Z_raw = diag.get("Z_tray", np.full(N, np.nan, dtype=float))
     Z = np.asarray(Z_raw, dtype=float).reshape((N,))
     Z = np.where(~np.isfinite(Z) | (Z <= 0.0), 1.0, Z)
+    L_out_hyd = None
+    if "L_out_hyd_lbmolph" in diag:
+        try:
+            L_out_hyd = np.asarray(diag["L_out_hyd_lbmolph"], dtype=float).reshape((N,))
+        except Exception:
+            L_out_hyd = None
+    h_ow = None
+    if "h_ow_ft" in diag:
+        try:
+            h_ow = np.asarray(diag["h_ow_ft"], dtype=float).reshape((N,))
+        except Exception:
+            h_ow = None
+    mass_resid = None
+    if "mass_balance_resid_lbmolps_tray" in diag:
+        try:
+            mass_resid = np.asarray(diag["mass_balance_resid_lbmolps_tray"], dtype=float).reshape((N,))
+        except Exception:
+            mass_resid = None
+    energy_resid = None
+    if "energy_balance_resid_BTUps_tray" in diag:
+        try:
+            energy_resid = np.asarray(diag["energy_balance_resid_BTUps_tray"], dtype=float).reshape((N,))
+        except Exception:
+            energy_resid = None
+    reflux_ratio = None
+    if "L_out_lbmolph" in diag and dist_tag.flow_lbmolph is not None:
+        try:
+            L_out_lbmolph = np.asarray(diag["L_out_lbmolph"], dtype=float).reshape((N,))
+            D_flow = float(dist_tag.flow_lbmolph)
+            if np.isfinite(D_flow) and D_flow > 0.0 and np.isfinite(L_out_lbmolph[0]):
+                reflux_ratio = float(L_out_lbmolph[0]) / D_flow
+        except Exception:
+            reflux_ratio = None
 
     T = _tray_temperature_F(col, layout, y, include_temperature)
+    if "T_reb_F" in diag:
+        try:
+            T_reb_diag = float(np.asarray(diag["T_reb_F"]).reshape((-1,))[0])
+            if np.isfinite(T_reb_diag):
+                T = np.asarray(T, dtype=float).copy()
+                T[-1] = float(T_reb_diag)
+        except Exception:
+            pass
     T_distillate = None
     if layout.include_top and "top_T_f" in u:
         try:
@@ -665,14 +714,6 @@ def _profile_rows(
             T_sump = float(u["bottom_T_f"][0])
         except Exception:
             T_sump = None
-    T_reb = None
-    if "T_reb_F" in diag:
-        try:
-            T_reb = float(np.asarray(diag["T_reb_F"]).reshape((-1,))[0])
-        except Exception:
-            T_reb = None
-    if T_reb is None:
-        T_reb = float(T[-1])
 
     # Prefer diag-provided P_psia_diag if present; else compute from PV
     if "P_psia_diag" in diag:
@@ -698,12 +739,14 @@ def _profile_rows(
             "time_s": float(t_s),
             "stage": i1,
             "T_F": float(T[i]),
-            "P_psia": float(P_spec[i]) if np.isfinite(P_spec[i]) else float(P_diag[i]),
             "P_psia_diag": float(P_diag[i]) if np.isfinite(P_diag[i]) else np.nan,
-            "P_psia_spec": float(P_spec[i]) if np.isfinite(P_spec[i]) else np.nan,
-            "Z": float(Z[i]) if np.isfinite(Z[i]) else np.nan,
+            "L_out_hyd_lbmolph": float(L_out_hyd[i]) if L_out_hyd is not None and np.isfinite(L_out_hyd[i]) else np.nan,
+            "h_ow_ft": float(h_ow[i]) if h_ow is not None and np.isfinite(h_ow[i]) else np.nan,
             "ML_lbmol": float(ML[i]),
             "MV_lbmol": float(MV[i]),
+            "stage_mass_balance_resid_lbmolps": float(mass_resid[i]) if mass_resid is not None and np.isfinite(mass_resid[i]) else np.nan,
+            "stage_energy_balance_resid_BTUps": float(energy_resid[i]) if energy_resid is not None and np.isfinite(energy_resid[i]) else np.nan,
+            "reflux_ratio": _stage_value(i1, 1, reflux_ratio),
             # New: stream flow columns placed on their stages
             "F_lbmolph": _stage_value(i1, feed_tag.stage_1based, feed_tag.flow_lbmolph),
             "D_lbmolph": _stage_value(i1, dist_tag.stage_1based, dist_tag.flow_lbmolph),
@@ -712,7 +755,6 @@ def _profile_rows(
             "Bottoms_L_lbmol": _stage_value(i1, N if layout.include_bottom else None, bottom_L_total),
             "T_Distillate_F": _stage_value(i1, 1 if layout.include_top else None, T_distillate),
             "T_sump_F": _stage_value(i1, N if layout.include_bottom else None, T_sump),
-            "T_reb_F": _stage_value(i1, N if layout.include_bottom else None, T_reb),
         }
 
         for k in range(Nc):
@@ -756,8 +798,8 @@ def _summary_row(
 
     comp_labels = [_comp_suffix(nm) for nm in getattr(col, "components_excel", [f"c{i+1}" for i in range(Nc)])]
 
-    x = u["x_tray"]
-    yv = u["y_tray"]
+    x = diag.get("x_tray", u["x_tray"])
+    yv = diag.get("y_tray", u["y_tray"])
     MV = u["MV_tot_tray"]
 
     P_spec = np.asarray(getattr(col, "P_psia", np.full(N, np.nan, dtype=float)), dtype=float).reshape((N,))
@@ -767,6 +809,14 @@ def _summary_row(
     Z = np.where(~np.isfinite(Z) | (Z <= 0.0), 1.0, Z)
 
     T = _tray_temperature_F(col, layout, y, include_temperature)
+    if "T_reb_F" in diag:
+        try:
+            T_reb_diag = float(np.asarray(diag["T_reb_F"]).reshape((-1,))[0])
+            if np.isfinite(T_reb_diag):
+                T = np.asarray(T, dtype=float).copy()
+                T[-1] = float(T_reb_diag)
+        except Exception:
+            pass
     T_distillate = None
     if layout.include_top and "top_T_f" in u:
         try:
@@ -801,14 +851,7 @@ def _summary_row(
             T_sump = float(u["bottom_T_f"][0])
         except Exception:
             T_sump = None
-    T_reb = None
-    if "T_reb_F" in diag:
-        try:
-            T_reb = float(np.asarray(diag["T_reb_F"]).reshape((-1,))[0])
-        except Exception:
-            T_reb = None
-    if T_reb is None:
-        T_reb = float(T[-1])
+    T_reboiler = float(T[-1])
 
     out: Dict[str, Any] = {
         "wall_clock_iso": wall_clock_iso,
@@ -821,7 +864,6 @@ def _summary_row(
         "P_bot_psia_diag": float(P_diag[-1]) if np.isfinite(P_diag[-1]) else np.nan,
         "P_bot_psia_spec": float(P_spec[-1]) if np.isfinite(P_spec[-1]) else np.nan,
         "T_top_F": float(T[0]),
-        "T_bot_F": float(T[-1]),
         "T_Distillate_F": float(T_distillate) if T_distillate is not None else np.nan,
         # New: overall stream flow scalars
         "F_lbmolph": float(feed_tag.flow_lbmolph) if feed_tag.flow_lbmolph is not None else np.nan,
@@ -830,7 +872,7 @@ def _summary_row(
         "Distillate_L_lbmol": float(top_L_total) if top_L_total is not None else np.nan,
         "Bottoms_L_lbmol": float(bottom_L_total) if bottom_L_total is not None else np.nan,
         "T_sump_F": float(T_sump) if T_sump is not None else np.nan,
-        "T_reb_F": float(T_reb) if T_reb is not None else np.nan,
+        "T_Reboiler_F": float(T_reboiler),
     }
 
     for k in range(Nc):
@@ -914,7 +956,16 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     last_Z_tray: Optional[np.ndarray] = None
     last_y_eq: Optional[np.ndarray] = None
     last_P_diag: Optional[np.ndarray] = None
+    last_rhoL: Optional[np.ndarray] = None
+    last_K_tray: Optional[np.ndarray] = None
+    last_HL: Optional[np.ndarray] = None
+    last_HV: Optional[np.ndarray] = None
+    last_Zfac: Optional[np.ndarray] = None
     last_diag: Optional[Dict[str, np.ndarray]] = None
+    last_reb_T: Optional[float] = None
+    last_reb_x: Optional[np.ndarray] = None
+    last_reb_y: Optional[np.ndarray] = None
+    last_reb_beta: Optional[float] = None
 
     try:
         if cfg.write_logs:
@@ -930,7 +981,28 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             do_thermo = (step % thermo_every) == 0
 
             if do_thermo:
-                inputs = base_inputs
+                inputs = ColumnInputs(
+                    boundary=base_inputs.boundary,
+                    volume_model=base_inputs.volume_model,
+                    thermo=base_inputs.thermo,
+                    thermo_provider=base_inputs.thermo_provider,
+                    compute_thermo_diag=base_inputs.compute_thermo_diag,
+                    equilibrium_relaxation=base_inputs.equilibrium_relaxation,
+                    tau_eq_sec=base_inputs.tau_eq_sec,
+                    condenser_alpha=base_inputs.condenser_alpha,
+                    clamp_alpha=base_inputs.clamp_alpha,
+                    reboiler_mode=base_inputs.reboiler_mode,
+                    reboiler_equilibrium=base_inputs.reboiler_equilibrium,
+                    rhoL_tray_lbmol_ft3=last_rhoL,
+                    K_tray_prev=last_K_tray,
+                    HL_prev=last_HL,
+                    HV_prev=last_HV,
+                    Zfac_prev=last_Zfac,
+                    reb_T_prev=last_reb_T,
+                    reb_x_prev=last_reb_x,
+                    reb_y_prev=last_reb_y,
+                    reb_beta_prev=last_reb_beta,
+                )
             else:
                 # Skip thermo calls on intermediate steps
                 inputs = ColumnInputs(
@@ -941,6 +1013,11 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     compute_thermo_diag=False,
                     equilibrium_relaxation=False,
                     tau_eq_sec=base_inputs.tau_eq_sec,
+                    rhoL_tray_lbmol_ft3=last_rhoL,
+                    reb_T_prev=last_reb_T,
+                    reb_x_prev=last_reb_x,
+                    reb_y_prev=last_reb_y,
+                    reb_beta_prev=last_reb_beta,
                 )
 
             dydt, diag = column_rhs(t_s, y, col, layout, inputs=inputs)
@@ -953,6 +1030,36 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     last_y_eq = np.asarray(diag["y_eq_tray"], dtype=float).copy()
                 if "P_psia_diag" in diag:
                     last_P_diag = np.asarray(diag["P_psia_diag"], dtype=float).copy()
+                if "rhoL_tray_lbmol_ft3" in diag:
+                    last_rhoL = np.asarray(diag["rhoL_tray_lbmol_ft3"], dtype=float).copy()
+                if "K_tray" in diag:
+                    last_K_tray = np.asarray(diag["K_tray"], dtype=float).copy()
+                if "HL_BTU_lbmol_tray" in diag:
+                    last_HL = np.asarray(diag["HL_BTU_lbmol_tray"], dtype=float).copy()
+                if "HV_BTU_lbmol_tray" in diag:
+                    last_HV = np.asarray(diag["HV_BTU_lbmol_tray"], dtype=float).copy()
+                if "Z_tray" in diag:
+                    last_Zfac = np.asarray(diag["Z_tray"], dtype=float).copy()
+                if "reb_T_F" in diag:
+                    try:
+                        last_reb_T = float(np.asarray(diag["reb_T_F"]).reshape((-1,))[0])
+                    except Exception:
+                        pass
+                if "reb_beta" in diag:
+                    try:
+                        last_reb_beta = float(np.asarray(diag["reb_beta"]).reshape((-1,))[0])
+                    except Exception:
+                        pass
+                if "reb_x" in diag:
+                    try:
+                        last_reb_x = np.asarray(diag["reb_x"], dtype=float).reshape((col.n_components,)).copy()
+                    except Exception:
+                        pass
+                if "reb_y" in diag:
+                    try:
+                        last_reb_y = np.asarray(diag["reb_y"], dtype=float).reshape((col.n_components,)).copy()
+                    except Exception:
+                        pass
                 last_diag = diag
             else:
                 if last_Z_tray is not None:
@@ -961,6 +1068,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     diag["y_eq_tray"] = last_y_eq
                 if last_P_diag is not None:
                     diag["P_psia_diag"] = last_P_diag
+                if last_rhoL is not None:
+                    diag["rhoL_tray_lbmol_ft3"] = last_rhoL
 
             # Log / print at cadence
             if (step % log_every) == 0:
@@ -1011,6 +1120,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                         profile_header_written = True
                     for r in prow:
                         profile_writer.writerow(r)
+                    if profile_file is not None:
+                        profile_file.write("\n")
 
                     if not summary_header_written:
                         summary_writer = csv.DictWriter(summary_file, fieldnames=list(srow.keys()))

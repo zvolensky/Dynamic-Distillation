@@ -56,6 +56,10 @@ class ThermoProviderV1:
         self.component_ids_dwsim = [str(s) for s in component_ids_dwsim]
         self.cp_dt_F = float(cp_dt_F)
         self.silence_backend_console = bool(silence_backend_console)
+        self._rhoL_cache: dict[tuple, float] = {}
+        self._rhoL_cache_max = 2000
+        self._cp_cache: dict[tuple, tuple[Optional[float], Optional[float]]] = {}
+        self._cp_cache_max = 2000
 
     def configure_backend(self) -> None:
         backend.set_component_ids(self.component_ids_dwsim)
@@ -136,3 +140,49 @@ class ThermoProviderV1:
             return cpL, cpV
         except Exception:
             return None, None
+
+    def cp_liq_vap_btu_per_lbmolF(self, T_F: float, P_psia: float, z: Sequence[float]) -> Tuple[Optional[float], Optional[float]]:
+        """Stage-dependent Cp (liquid/vapor) from thermo backend."""
+        self.configure_backend()
+        Nc = len(self.component_ids_dwsim)
+        z_norm = self._normalize_z(z, Nc)
+
+        key = (
+            round(float(T_F), 3),
+            round(float(P_psia), 3),
+            tuple(float(f"{v:.8f}") for v in z_norm.tolist()),
+        )
+        if key in self._cp_cache:
+            return self._cp_cache[key]
+
+        cpL, cpV = self._cp_from_backend(float(T_F), float(P_psia), z_norm)
+        self._cp_cache[key] = (cpL, cpV)
+        if len(self._cp_cache) > self._cp_cache_max:
+            self._cp_cache.clear()
+        return cpL, cpV
+
+    def liquid_density_lbmol_ft3(self, T_F: float, P_psia: float, x: Sequence[float]) -> Optional[float]:
+        """Liquid molar density (lbmol/ft^3) from thermo backend."""
+        self.configure_backend()
+        Nc = len(self.component_ids_dwsim)
+        x_norm = self._normalize_z(x, Nc)
+
+        # Cache by (T,P,x) to avoid repeated backend calls.
+        key = (
+            round(float(T_F), 3),
+            round(float(P_psia), 3),
+            tuple(float(f"{v:.8f}") for v in x_norm.tolist()),
+        )
+        if key in self._rhoL_cache:
+            return self._rhoL_cache[key]
+
+        try:
+            with backend.silence_console(self.silence_backend_console):
+                rho = backend.liquid_density_lbmol_ft3(float(T_F), float(P_psia), x_norm)
+            if rho is not None:
+                self._rhoL_cache[key] = float(rho)
+                if len(self._rhoL_cache) > self._rhoL_cache_max:
+                    self._rhoL_cache.clear()
+            return rho
+        except Exception:
+            return None

@@ -198,9 +198,16 @@ PSIA_TO_PA = 6894.7572931783
 
 # DWSIM CalcProp enthalpy in J/mol -> BTU/lbmol
 J_PER_MOL_TO_BTU_PER_LBMOL = 0.4299226139294927
+M3_PER_FT3 = 0.028316846592
+MOL_PER_LBMOL = 453.59237
 
 def F_to_K(T_F: float) -> float:
     return (T_F - 32.0) * 5.0 / 9.0 + 273.15
+
+
+def _mol_m3_to_lbmol_ft3(rho_mol_m3: float) -> float:
+    # mol/m3 -> mol/ft3 -> lbmol/ft3
+    return float(rho_mol_m3) * M3_PER_FT3 / MOL_PER_LBMOL
 
 
 # ---------------------------------------------------------------------------
@@ -457,6 +464,57 @@ def _flash_TP_F_psia(T_F: float, P_psia: float, z):
     if Zfac is None:
         return x, y, K, HL_BTU_lbmol, HV_BTU_lbmol
     return x, y, K, HL_BTU_lbmol, HV_BTU_lbmol, float(Zfac)
+
+
+def liquid_density_lbmol_ft3(T_F: float, P_psia: float, x) -> Optional[float]:
+    """Compute liquid molar density (lbmol/ft^3) using DWSIM CalcProp."""
+    _init_dwsim()
+    from System import Array  # type: ignore
+
+    T_K = F_to_K(T_F)
+    P_Pa = float(P_psia) * PSIA_TO_PA
+
+    x = np.asarray(x, dtype=float).ravel()
+    if x.size != len(_component_ids):
+        raise ValueError(f"x must be length {len(_component_ids)}; got {x.size}")
+    if x.sum() <= 0:
+        raise ValueError("x must have a positive sum")
+    x = x / x.sum()
+
+    x_array = Array[float](list(x))
+
+    # Try molar density directly
+    try:
+        _rv = _dtlc.CalcProp(_prop_package, "density", "Mole", "Liquid", _carray, T_K, P_Pa, x_array)
+        _rho = float(_rv[0])
+        if np.isfinite(_rho) and _rho > 0.0:
+            _rho_mol_m3 = _rho * 1000.0 if _rho < 50.0 else _rho
+            return _mol_m3_to_lbmol_ft3(_rho_mol_m3)
+    except Exception:
+        pass
+
+    # Fallback: use mass density + molecular weight
+    try:
+        _rv = _dtlc.CalcProp(_prop_package, "density", "Mass", "Liquid", _carray, T_K, P_Pa, x_array)
+        _rho_mass = float(_rv[0])  # kg/m3 (typical)
+        if np.isfinite(_rho_mass) and _rho_mass > 0.0:
+            _mw = None
+            for _mwname in ("molecularweight", "molecular weight", "mw"):
+                try:
+                    _mv = _dtlc.CalcProp(_prop_package, _mwname, "Mole", "Liquid", _carray, T_K, P_Pa, x_array)
+                    _mw = float(_mv[0])
+                    break
+                except Exception:
+                    continue
+            if _mw is not None and np.isfinite(_mw) and _mw > 0.0:
+                _mw_kg_per_mol = _mw / 1000.0 if _mw > 1.0 else _mw
+                _rho_mol_m3 = _rho_mass / _mw_kg_per_mol
+                if np.isfinite(_rho_mol_m3) and _rho_mol_m3 > 0.0:
+                    return _mol_m3_to_lbmol_ft3(_rho_mol_m3)
+    except Exception:
+        pass
+
+    return None
 
 
 def _flash_TP_F_psia_thermo(T_F: float, P_psia: float, z) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float, float]:

@@ -28,7 +28,7 @@ from typing import Dict, Optional, Tuple, Any
 
 import numpy as np
 
-from dynamic_distillation.column_spec_builder_v1 import ColumnSpec
+from dynamic_distillation.column_spec_builder_v1 import ColumnSpec, ColumnGeometry
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
 from dynamic_distillation.thermo_model_v1 import ThermoModel, ConstantCpThermo
 from dynamic_distillation.stage_thermo_v1 import flash_TP_full_F_psia
@@ -43,6 +43,8 @@ class ColumnRHSError(RuntimeError):
 class BoundaryFlows:
     reflux_lbmolph: Optional[float] = None
     boilup_lbmolph: Optional[float] = None
+    distillate_lbmolph: Optional[float] = None
+    bottoms_lbmolph: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -58,6 +60,13 @@ class ColumnInputs:
 
     condenser_alpha: Optional[float] = None
     clamp_alpha: bool = True
+    # Condenser duty handling:
+    #   "total-condense" = compute duty by condensing all stage-2 vapor (current behavior)
+    #   "specified"      = use specified/overridden condenser duty directly
+    condenser_duty_mode: str = "total-condense"
+    condenser_duty_btu_per_h: Optional[float] = None
+    # Optional duty trim applied on top of computed total-condense duty.
+    condenser_duty_trim_btu_per_h: Optional[float] = None
 
     # Legacy temperature-state energy model (only used when layout.include_temperature=True)
     thermo: Optional[ThermoModel] = None
@@ -78,6 +87,35 @@ class ColumnInputs:
     reboiler_mode: str = "auto"
     reboiler_equilibrium: bool = True
 
+    # Pressure model
+    # "spec"      = use ColumnSpec.P_psia
+    # "hydraulic" = compute from vapor flow + geometry (anchored at bottom)
+    pressure_model: str = "spec"
+    # Optional top-pressure anchor (psia) for hydraulic profile control.
+    pressure_top_anchor_psia: Optional[float] = None
+    # Vapor flow model
+    # "profile" = use Excel V profile (or feed-adjusted profile)
+    # "energy"  = compute V_out from energy balance with dT/dt target
+    vapor_flow_model: str = "profile"
+    dry_tray_K: float = 1.0
+    vapor_holdup_relaxation_sec: Optional[float] = None
+    component_mw_lbm_per_lbmol: Optional[np.ndarray] = None
+    P_tray_prev: Optional[np.ndarray] = None
+    vapor_flow_relaxation_sec: Optional[float] = None
+    V_out_prev_lbmolph: Optional[np.ndarray] = None
+    dT_tray_target_F_per_s: Optional[np.ndarray] = None
+    thermo_refresh_dT_F: Optional[float] = None
+    thermo_refresh_dP_psia: Optional[float] = None
+    thermo_refresh_dx: Optional[float] = None
+    T_tray_prev_F: Optional[np.ndarray] = None
+    Z_overall_prev: Optional[np.ndarray] = None
+    # Clamp for stage N-1 vapor flow as a ratio of boilup in energy mode.
+    reboiler_neighbor_vflow_hi_ratio: float = 1.02
+    reboiler_neighbor_vflow_lo_ratio: float = 0.98
+    # When True and thermo_provider is available, split feed with a TP flash
+    # at feed-stage pressure instead of using stream vapor_fraction directly.
+    flash_feed_at_stage_conditions: bool = True
+
     # Optional: cached liquid density per stage (lbmol/ft3) for hydraulics throttling
     rhoL_tray_lbmol_ft3: Optional[np.ndarray] = None
 
@@ -92,7 +130,6 @@ class ColumnInputs:
     reb_x_prev: Optional[np.ndarray] = None
     reb_y_prev: Optional[np.ndarray] = None
     reb_beta_prev: Optional[float] = None
-
 
 def _layout_slices(layout: StateVectorLayout) -> Dict[str, slice]:
     if hasattr(layout, "slices") and callable(getattr(layout, "slices")):
@@ -117,10 +154,24 @@ def _energy_derivatives_b1(
     Q_cond_BTUph: float,
     Q_reb_BTUph: float,
     epsilon_lbmol: float,
+    total_condenser: bool = True,
+    max_abs_h_btu_per_lbmol: float = 1.0e6,
+    no_liquid_holdup_mask: Optional[np.ndarray] = None,
+    no_vapor_holdup_mask: Optional[np.ndarray] = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     N = ML_tot.size
-    hL = EL_BTU / np.maximum(ML_tot, epsilon_lbmol)
-    hV = EV_BTU / np.maximum(MV_tot, epsilon_lbmol)
+    ML_den = np.maximum(np.asarray(ML_tot, dtype=float), float(epsilon_lbmol))
+    MV_den = np.maximum(np.asarray(MV_tot, dtype=float), float(epsilon_lbmol))
+
+    # Protect specific-enthalpy reconstruction from exploding when energy states
+    # drift while phase holdup approaches zero.
+    with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
+        hL = np.asarray(EL_BTU, dtype=float) / ML_den
+        hV = np.asarray(EV_BTU, dtype=float) / MV_den
+    hL = np.nan_to_num(hL, nan=0.0, posinf=float(max_abs_h_btu_per_lbmol), neginf=-float(max_abs_h_btu_per_lbmol))
+    hV = np.nan_to_num(hV, nan=0.0, posinf=float(max_abs_h_btu_per_lbmol), neginf=-float(max_abs_h_btu_per_lbmol))
+    hL = np.clip(hL, -float(max_abs_h_btu_per_lbmol), float(max_abs_h_btu_per_lbmol))
+    hV = np.clip(hV, -float(max_abs_h_btu_per_lbmol), float(max_abs_h_btu_per_lbmol))
 
     dEL = np.zeros(N, dtype=float)
     dEV = np.zeros(N, dtype=float)
@@ -137,8 +188,26 @@ def _energy_derivatives_b1(
         dEV[i] += Vin * hin
         dEV[i] -= float(V_out[i]) * hV[i]
 
-    dEV[0] += float(Q_cond_BTUph) / 3600.0
+    # For a total condenser with no vapor outflow from stage 1, condenser duty
+    # is applied to liquid energy (condensed phase), not vapor energy holdup.
+    if bool(total_condenser):
+        dEL[0] += float(Q_cond_BTUph) / 3600.0
+    else:
+        dEV[0] += float(Q_cond_BTUph) / 3600.0
     dEL[-1] += float(Q_reb_BTUph) / 3600.0
+
+    if no_liquid_holdup_mask is not None:
+        try:
+            ml_mask = np.asarray(no_liquid_holdup_mask, dtype=bool).reshape((N,))
+            dEL[ml_mask] = 0.0
+        except Exception:
+            pass
+    if no_vapor_holdup_mask is not None:
+        try:
+            mv_mask = np.asarray(no_vapor_holdup_mask, dtype=bool).reshape((N,))
+            dEV[mv_mask] = 0.0
+        except Exception:
+            pass
     return dEL, dEV
 
 
@@ -190,15 +259,9 @@ def column_rhs(
 
     # flows (lbmol/s)
     # NOTE:
-    # If an explicit Feed stream is present, the steady-state internal L/V profiles loaded
-    # from Excel/ChemSep typically already include the feed effect (step changes at the feed stage).
-    # If we ALSO add feed as an explicit source term, we double-count it and create artificial
-    # accumulation (exactly what you observed at the feed stage).
-    #
-    # Therefore:
-    # - If Feed exists (and has non-zero total), we build internally-consistent L/V profiles
-    #   from boundary flows + the explicit feed.
-    # - Otherwise we fall back to the Excel-provided internal profiles.
+    # Internal L/V profiles from Excel/ChemSep are treated as source-of-truth.
+    # They already include feed-stage effects (including flashing and non-equimolar behavior).
+    # Feed still enters explicitly through component source terms (Fk_L/Fk_V) in mass/energy balances.
     L_out_profile = np.asarray(col.L_lbmolph, dtype=float) / 3600.0
     V_out_profile = np.asarray(col.V_lbmolph, dtype=float) / 3600.0
     if L_out_profile.shape != (N,) or V_out_profile.shape != (N,):
@@ -212,6 +275,8 @@ def column_rhs(
 
     D = _draw_from_stream(col, "Top", Nc)
     B = _draw_from_stream(col, "Bottom", Nc)
+    D = _override_draw_total_lbmolph(D, inputs.boundary.distillate_lbmolph, prefer_liquid=True)
+    B = _override_draw_total_lbmolph(B, inputs.boundary.bottoms_lbmolph, prefer_liquid=True)
 
     alpha = _infer_condenser_alpha(col, inputs)
     if inputs.clamp_alpha:
@@ -329,26 +394,20 @@ def column_rhs(
             boilup = float(col.V_lbmolph[-1])
     boilup_s = float(boilup) / 3600.0
 
-    feed_stage0, Fk_L, Fk_V = _feed_component_rates_lbmolps(col, Nc)
+    feed_stage0, Fk_L, Fk_V = _feed_component_rates_lbmolps(
+        col,
+        Nc,
+        thermo_provider=inputs.thermo_provider,
+        P_tray_psia=inputs.P_tray_prev,
+        flash_feed_at_stage_conditions=bool(inputs.flash_feed_at_stage_conditions),
+    )
     Ft_L = float(np.sum(Fk_L))
     Ft_V = float(np.sum(Fk_V))
+    Ft_feed = Ft_L + Ft_V
+    feed_vf_effective = (Ft_V / Ft_feed) if Ft_feed > 1e-300 else np.nan
 
-    if feed_stage0 is not None and (Ft_L > 0.0 or Ft_V > 0.0):
-        L_out = np.zeros(N, dtype=float)
-        V_out = np.zeros(N, dtype=float)
-
-        # Liquid: seed at top with reflux; add feed liquid at the feed stage.
-        L_out[0] = reflux_s
-        for i in range(1, N):
-            L_out[i] = L_out[i - 1] + (Ft_L if i == feed_stage0 else 0.0)
-
-        # Vapor: seed at bottom with boilup; add feed vapor at the feed stage.
-        V_out[-1] = boilup_s
-        for i in range(N - 2, -1, -1):
-            V_out[i] = V_out[i + 1] + (Ft_V if i == feed_stage0 else 0.0)
-    else:
-        L_out = L_out_profile
-        V_out = V_out_profile
+    L_out = L_out_profile
+    V_out = V_out_profile
 
     # Optional stage hydraulics: compute liquid outflow via Francis weir if geometry is available.
     rhoL_tray = None
@@ -604,6 +663,281 @@ def column_rhs(
             "reb_flash_used_cache": float(1.0 if reboiler_flash_used_cache else 0.0),
         }
 
+    vflow_diag = None
+    # Vapor flows via energy balance (dynamic closure).
+    if (inputs.vapor_flow_model or "").strip().lower() == "energy":
+        HL_cache = None
+        HV_cache = None
+        if inputs.HL_prev is not None:
+            try:
+                HL_cache = np.asarray(inputs.HL_prev, dtype=float).reshape((N,))
+            except Exception:
+                HL_cache = None
+        if inputs.HV_prev is not None:
+            try:
+                HV_cache = np.asarray(inputs.HV_prev, dtype=float).reshape((N,))
+            except Exception:
+                HV_cache = None
+        if "tray_T_f" in u:
+            T_tray_for_v = np.asarray(u["tray_T_f"], dtype=float).reshape((N,))
+        elif hasattr(col, "T_f"):
+            T_tray_for_v = np.asarray(col.T_f, dtype=float).reshape((N,))
+        else:
+            T_tray_for_v = np.full(N, 100.0, dtype=float)
+
+        if inputs.P_tray_prev is not None:
+            try:
+                P_tray_energy = np.asarray(inputs.P_tray_prev, dtype=float).reshape((N,))
+            except Exception:
+                P_tray_energy = np.asarray(getattr(col, "P_psia", np.full(N, 200.0)), dtype=float).reshape((N,))
+        else:
+            P_tray_energy = np.asarray(getattr(col, "P_psia", np.full(N, 200.0)), dtype=float).reshape((N,))
+
+        thermo = inputs.thermo
+        if thermo is None:
+            thermo = ConstantCpThermo(
+                cp_liq_components=np.full(Nc, 30.0, dtype=float),
+                cp_vap_components=np.full(Nc, 20.0, dtype=float),
+                tref_f=60.0,
+            )
+
+        dT_target = inputs.dT_tray_target_F_per_s
+        if dT_target is None:
+            dT_target = np.zeros(N, dtype=float)
+        else:
+            try:
+                dT_target = np.asarray(dT_target, dtype=float).reshape((N,))
+            except Exception:
+                dT_target = np.zeros(N, dtype=float)
+
+        alpha_v = None
+        if inputs.vapor_flow_relaxation_sec is not None:
+            try:
+                tau_vflow = float(inputs.vapor_flow_relaxation_sec)
+            except Exception:
+                tau_vflow = None
+            if tau_vflow is not None and np.isfinite(tau_vflow) and tau_vflow > 0.0:
+                dt = getattr(getattr(col, "sim", None), "dt_sec", None)
+                try:
+                    dt = float(dt)
+                except Exception:
+                    dt = None
+                if dt is not None and np.isfinite(dt) and dt > 0.0:
+                    alpha_v = min(dt / tau_vflow, 1.0)
+        vflow_ok = np.full(N, np.nan, dtype=float)
+        vflow_denom = np.full(N, np.nan, dtype=float)
+        vflow_calc = np.full(N, np.nan, dtype=float)
+        vflow_used = np.full(N, np.nan, dtype=float)
+        vflow_clamped = np.full(N, np.nan, dtype=float)
+        vflow_limit_hi = np.full(N, np.nan, dtype=float)
+        vflow_limit_lo = np.full(N, np.nan, dtype=float)
+        vflow_alpha = np.full(N, np.nan, dtype=float)
+        if alpha_v is not None:
+            vflow_alpha[1 : max(N - 1, 1)] = float(alpha_v)
+
+        V_prev = None
+        if inputs.V_out_prev_lbmolph is not None:
+            try:
+                V_prev = np.asarray(inputs.V_out_prev_lbmolph, dtype=float).reshape((N,)) / 3600.0
+            except Exception:
+                V_prev = None
+        if V_prev is None:
+            V_prev = V_out.copy()
+
+        # Boundary conditions
+        V_out[0] = 0.0
+        V_out[-1] = boilup_s
+
+        # March upward: use known V_out[i+1] as V_in for stage i.
+        # Conservative hard limits prevent single-step numerical spikes.
+        vflow_prev_up_ratio = 1.2
+        vflow_prev_down_ratio = 0.8
+        vflow_nominal_abs_ratio = 1.5
+        # Keep the stage above the reboiler tightly coupled to boilup.
+        # This suppresses slow upward drift in lower-column vapor rates.
+        vflow_reb_neighbor_up_ratio = 1.02
+        vflow_reb_neighbor_down_ratio = 0.98
+        try:
+            up_cfg = float(inputs.reboiler_neighbor_vflow_hi_ratio)
+            if np.isfinite(up_cfg) and up_cfg > 0.0:
+                vflow_reb_neighbor_up_ratio = up_cfg
+        except Exception:
+            pass
+        try:
+            dn_cfg = float(inputs.reboiler_neighbor_vflow_lo_ratio)
+            if np.isfinite(dn_cfg) and dn_cfg > 0.0:
+                vflow_reb_neighbor_down_ratio = dn_cfg
+        except Exception:
+            pass
+        if vflow_reb_neighbor_down_ratio > vflow_reb_neighbor_up_ratio:
+            vflow_reb_neighbor_down_ratio = vflow_reb_neighbor_up_ratio
+        min_latent_abs = 100.0  # BTU/lbmol minimum |hV_out-hL_out| for stable division
+        for i in range(N - 2, 0, -1):
+            V_in_i = float(V_out[i + 1])
+            y_in_i = y_tray[i + 1, :]
+
+            T_L_in = float(T_tray_for_v[i - 1]) if i > 0 else float(T_tray_for_v[i])
+            if i == (N - 1):
+                T_V_in = float(T_reb) if ("T_reb" in locals() and T_reb is not None) else float(T_tray_for_v[i])
+            else:
+                T_V_in = float(T_tray_for_v[i + 1])
+
+            if HL_cache is not None:
+                if i > 0:
+                    hL_in = float(HL_cache[i - 1])
+                else:
+                    hL_in = float(HL_cache[i])
+                hL_out = float(HL_cache[i])
+            else:
+                hL_in = thermo.h_liq_btu_per_lbmol(T_L_in, P_tray_energy[i], x_in[i, :])
+                hL_out = thermo.h_liq_btu_per_lbmol(float(T_tray_for_v[i]), P_tray_energy[i], x_tray[i, :])
+
+            if HV_cache is not None:
+                if i < (N - 1):
+                    hV_in = float(HV_cache[i + 1])
+                else:
+                    hV_in = float(HV_cache[i])
+                hV_out = float(HV_cache[i])
+            else:
+                hV_in = thermo.h_vap_btu_per_lbmol(T_V_in, P_tray_energy[i], y_in_i)
+                hV_out = thermo.h_vap_btu_per_lbmol(float(T_tray_for_v[i]), P_tray_energy[i], y_tray[i, :])
+
+            q_feed = _feed_enthalpy_rate_btu_per_s(
+                feed_stage0=feed_stage0,
+                stage0=i,
+                col=col,
+                Nc=Nc,
+                Fk_L=Fk_L,
+                Fk_V=Fk_V,
+                T_stage_F=float(T_tray_for_v[i]),
+                P_stage_psia=float(P_tray_energy[i]),
+                thermo=thermo,
+                thermo_provider=inputs.thermo_provider,
+                epsilon_lbmol=float(layout.epsilon_lbmol),
+            )
+
+            Q_i = 0.0
+            if i == 0:
+                Q_i += float(_get_condenser_duty_btu_per_h(col)) / 3600.0
+            if i == (N - 1):
+                Q_i += float(_get_reboiler_duty_btu_per_h(col)) / 3600.0
+
+            use_provider_cp = (
+                inputs.thermo_provider is not None
+                and hasattr(inputs.thermo_provider, "cp_liq_vap_btu_per_lbmolF")
+            )
+            if use_provider_cp:
+                z_for_cp = tray_L[i, :].copy()
+                if tray_V is not None:
+                    z_for_cp = z_for_cp + tray_V[i, :]
+                s = float(np.sum(z_for_cp))
+                if s <= layout.epsilon_lbmol:
+                    z_for_cp = x_tray[i, :].copy()
+                    s = float(np.sum(z_for_cp))
+                z_for_cp = z_for_cp / max(s, 1e-300)
+                try:
+                    cpL, cpV = inputs.thermo_provider.cp_liq_vap_btu_per_lbmolF(
+                        float(T_tray_for_v[i]), float(P_tray_energy[i]), z_for_cp
+                    )
+                except Exception:
+                    cpL = cpV = None
+            else:
+                cpL = cpV = None
+            if cpL is None or cpV is None:
+                cpL = thermo.cp_liq_btu_per_lbmolF(float(T_tray_for_v[i]), P_tray_energy[i], x_tray[i, :])
+                cpV = thermo.cp_vap_btu_per_lbmolF(float(T_tray_for_v[i]), P_tray_energy[i], y_tray[i, :])
+
+            ML_tot = float(np.sum(tray_L[i, :]))
+            MV_tot = float(np.sum(tray_V[i, :])) if tray_V is not None else 0.0
+            C = ML_tot * cpL + MV_tot * cpV
+            dE_target = float(C) * float(dT_target[i])
+
+            # Solve V_out from a reference-invariant tray energy relation with fixed L_out.
+            #
+            # Using dE_target = C*dT directly with absolute enthalpies is not datum-invariant.
+            # Rewriting around hL_out gives:
+            #   dE_target = L_in*(hL_in-hL_out) + V_in*(hV_in-hL_out)
+            #            + F_L*(hF_L-hL_out) + F_V*(hF_V-hL_out) + Q
+            #            - V_out*(hV_out-hL_out)
+            # so:
+            #   V_out = [ ... - dE_target ] / (hV_out - hL_out)
+            denom = float(hV_out - hL_out)
+            ft_feed_i = (Ft_L + Ft_V) if (feed_stage0 == i) else 0.0
+            numer = (
+                L_in[i] * (hL_in - hL_out)
+                + V_in_i * (hV_in - hL_out)
+                + q_feed
+                - ft_feed_i * hL_out
+                + Q_i
+                - dE_target
+            )
+
+            vflow_denom[i] = float(denom)
+            ok = bool(np.isfinite(denom) and (abs(denom) > min_latent_abs))
+
+            if not ok:
+                V_calc = float(V_prev[i]) if V_prev is not None else float(V_out[i])
+            else:
+                V_calc = numer / denom
+            if not np.isfinite(V_calc):
+                ok = False
+
+            if not np.isfinite(V_calc) or V_calc < 0.0:
+                V_calc = 0.0
+                ok = False
+
+            # Hard clamp relative to previous and nominal profile values.
+            # This keeps startup transients from exploding internal vapor rates.
+            V_prev_i = max(float(V_prev[i]), 0.0)
+            V_nom_i = max(float(V_out_profile[i]), 0.0)
+
+            V_hi = max(
+                vflow_prev_up_ratio * V_prev_i,
+                vflow_nominal_abs_ratio * V_nom_i,
+                float(boilup_s),
+            )
+            V_lo = 0.0
+            if V_prev_i > layout.epsilon_lbmol and V_nom_i > layout.epsilon_lbmol:
+                V_lo = min(vflow_prev_down_ratio * V_prev_i, vflow_prev_down_ratio * V_nom_i)
+
+            # Reboiler-neighbor guard: keep tray N-1 near reboiler boilup to
+            # avoid non-physical long-horizon growth in lower-section vapor flow.
+            if i == (N - 2):
+                V_hi = min(V_hi, vflow_reb_neighbor_up_ratio * float(boilup_s))
+                if float(boilup_s) > layout.epsilon_lbmol:
+                    V_lo = max(V_lo, vflow_reb_neighbor_down_ratio * float(boilup_s))
+
+            vflow_limit_hi[i] = float(V_hi) * 3600.0
+            vflow_limit_lo[i] = float(V_lo) * 3600.0
+            clamped = False
+            if V_calc > V_hi:
+                V_calc = V_hi
+                clamped = True
+            elif V_calc < V_lo:
+                V_calc = V_lo
+                clamped = True
+            vflow_clamped[i] = 1.0 if clamped else 0.0
+
+            vflow_ok[i] = 1.0 if ok else 0.0
+            vflow_calc[i] = float(V_calc) * 3600.0
+
+            if alpha_v is not None and V_prev is not None:
+                V_out[i] = float(V_prev[i] + alpha_v * (V_calc - V_prev[i]))
+            else:
+                V_out[i] = float(V_calc)
+            vflow_used[i] = float(V_out[i]) * 3600.0
+
+        vflow_diag = {
+            "vflow_energy_ok": vflow_ok,
+            "vflow_energy_denom_BTU_per_lbmol": vflow_denom,
+            "vflow_energy_calc_lbmolph": vflow_calc,
+            "vflow_energy_used_lbmolph": vflow_used,
+            "vflow_energy_clamped": vflow_clamped,
+            "vflow_energy_limit_hi_lbmolph": vflow_limit_hi,
+            "vflow_energy_limit_lo_lbmolph": vflow_limit_lo,
+            "vflow_relax_alpha": vflow_alpha,
+        }
+
     V_in = np.zeros(N, dtype=float)
     y_in = np.zeros((N, Nc), dtype=float)
     for i in range(N):
@@ -613,6 +947,47 @@ def column_rhs(
         else:
             V_in[i] = V_out[i + 1]
             y_in[i, :] = y_tray[i + 1, :]
+
+    P_tray_hyd = None
+    if (inputs.pressure_model or "").strip().lower() == "hydraulic":
+        geom = getattr(col, "geometry", None)
+        if geom is not None:
+            if "tray_T_f" in u:
+                T_tray_for_p = np.asarray(u["tray_T_f"], dtype=float).reshape((N,))
+            elif hasattr(col, "T_f"):
+                T_tray_for_p = np.asarray(col.T_f, dtype=float).reshape((N,))
+            else:
+                T_tray_for_p = np.full(N, 100.0, dtype=float)
+
+            if hasattr(col, "P_psia"):
+                P_profile = np.asarray(col.P_psia, dtype=float).reshape((N,))
+                P_anchor = float(np.asarray(col.P_psia, dtype=float).reshape((N,))[-1])
+                P_top_spec = float(P_profile[0]) if np.isfinite(float(P_profile[0])) else None
+            else:
+                P_anchor = float(200.0)
+                P_top_spec = None
+
+            Z_for_p = (
+                np.asarray(inputs.Zfac_prev, dtype=float).reshape((N,))
+                if inputs.Zfac_prev is not None
+                else np.ones(N, dtype=float)
+            )
+
+            P_tray_hyd = _pressure_profile_hydraulic_psia(
+                P_bottom_psia=P_anchor,
+                T_F=T_tray_for_p,
+                V_in_lbmolps=V_in,
+                y_tray=y_tray,
+                x_tray=x_tray,
+                Z_vap=Z_for_p,
+                geom=geom,
+                h_ow_ft=h_ow_ft,
+                rhoL_lbmol_ft3=rhoL_tray,
+                mw_components=inputs.component_mw_lbm_per_lbmol,
+                dry_tray_K=float(inputs.dry_tray_K),
+                P_top_spec_psia=P_top_spec,
+                P_top_anchor_psia=inputs.pressure_top_anchor_psia,
+            )
 
     d_tray_L = np.zeros((N, Nc), dtype=float)
     d_tray_V = np.zeros((N, Nc), dtype=float)
@@ -715,6 +1090,52 @@ def column_rhs(
         # Bottoms draw is taken from the sump only.
         # (Boilup is handled on the reboiler stage via tray balances.)
 
+    # Vapor holdup relaxation: enforce ideal-gas holdup implied by computed pressure + geometry.
+    tau_v = inputs.vapor_holdup_relaxation_sec
+    if (tau_v is not None) and (P_tray_hyd is not None) and layout.include_vapor:
+        try:
+            tau_v = float(tau_v)
+        except Exception:
+            tau_v = None
+        if tau_v is not None and np.isfinite(tau_v) and tau_v > 0.0:
+            T_tray_for_mv = (
+                np.asarray(u["tray_T_f"], dtype=float).reshape((N,))
+                if "tray_T_f" in u
+                else np.asarray(getattr(col, "T_f", np.full(N, 100.0, dtype=float)), dtype=float).reshape((N,))
+            )
+            Z_mv = (
+                np.asarray(inputs.Zfac_prev, dtype=float).reshape((N,))
+                if inputs.Zfac_prev is not None
+                else np.ones(N, dtype=float)
+            )
+            Z_mv = np.where(~np.isfinite(Z_mv) | (Z_mv <= 0.0), 1.0, Z_mv)
+
+            V_ft3 = (
+                np.asarray(inputs.volume_model.vapor_volume_ft3_per_stage, dtype=float).reshape((N,))
+                if inputs.volume_model.vapor_volume_ft3_per_stage is not None
+                else np.full(N, float(inputs.volume_model.default_vapor_volume_ft3), dtype=float)
+            )
+            V_ft3 = np.where(~np.isfinite(V_ft3) | (V_ft3 <= 0.0), 1.0, V_ft3)
+
+            R = 10.7316
+            T_R = T_tray_for_mv + 459.67
+            T_R = np.where(~np.isfinite(T_R) | (T_R <= 0.0), 520.0, T_R)
+            P_use = np.asarray(P_tray_hyd, dtype=float).reshape((N,))
+            P_use = np.where(~np.isfinite(P_use) | (P_use <= 0.0), 14.7, P_use)
+
+            MV_target = P_use * V_ft3 / (Z_mv * R * T_R)
+            MV_tot = np.sum(tray_V, axis=1).reshape((N,))
+            dMV = (MV_target - MV_tot) / tau_v
+
+            for i in range(N):
+                if i == 0:
+                    continue  # condenser has no vapor holdup
+                if reboiler_no_holdup and i == (N - 1):
+                    continue
+                d_tray_V[i, :] += y_tray[i, :] * float(dMV[i])
+        else:
+            tau_v = None
+
     dydt = np.zeros(layout.n_states(), dtype=float)
     sl = _layout_slices(layout)
 
@@ -730,6 +1151,9 @@ def column_rhs(
         dydt[sl["bottom_V"]] = d_bottom_V
 
     diag: Dict[str, np.ndarray] = {}
+    if vflow_diag is not None:
+        for k, v in vflow_diag.items():
+            diag[k] = v
 
     ML_key = "ML_tot_tray" if "ML_tot_tray" in u else ("ML_tot" if "ML_tot" in u else None)
     MV_key = "MV_tot_tray" if "MV_tot_tray" in u else ("MV_tot" if "MV_tot" in u else None)
@@ -740,6 +1164,11 @@ def column_rhs(
     diag["MV_tot_tray"] = np.asarray(u[MV_key], dtype=float).copy()
     diag["x_tray"] = x_tray.copy()
     diag["y_tray"] = y_tray.copy()
+    if P_tray_hyd is not None:
+        try:
+            diag["P_psia_hyd"] = np.asarray(P_tray_hyd, dtype=float).reshape((N,))
+        except Exception:
+            pass
     try:
         mass_resid = np.sum(d_tray_L + d_tray_V, axis=1)
         diag["mass_balance_resid_lbmolps_tray"] = np.asarray(mass_resid, dtype=float).reshape((N,))
@@ -749,6 +1178,12 @@ def column_rhs(
         diag["L_out_lbmolph"] = np.asarray(L_out, dtype=float).reshape((N,)) * 3600.0
     except Exception:
         pass
+    try:
+        diag["V_out_lbmolph"] = np.asarray(V_out, dtype=float).reshape((N,)) * 3600.0
+    except Exception:
+        pass
+    if np.isfinite(feed_vf_effective):
+        diag["feed_vf_effective"] = np.array([float(feed_vf_effective)], dtype=float)
     if rhoL_tray is not None:
         try:
             diag["rhoL_tray_lbmol_ft3"] = np.asarray(rhoL_tray, dtype=float).reshape((N,)).copy()
@@ -804,6 +1239,11 @@ def column_rhs(
             P_tray = np.asarray(col.P_psia, dtype=float).reshape((N,))
         else:
             P_tray = np.asarray(diag["P_psia_diag"], dtype=float).reshape((N,))
+        if P_tray_hyd is not None:
+            try:
+                P_tray = np.asarray(P_tray_hyd, dtype=float).reshape((N,))
+            except Exception:
+                pass
 
         # overall z per stage (liquid + vapor holdup)
         Z_overall = np.zeros((N, Nc), dtype=float)
@@ -838,7 +1278,97 @@ def column_rhs(
             else np.ones(N, dtype=float)
         )
 
+        dT_thresh = inputs.thermo_refresh_dT_F
+        if dT_thresh is not None:
+            try:
+                dT_thresh = float(dT_thresh)
+            except Exception:
+                dT_thresh = None
+        if dT_thresh is not None and (not np.isfinite(dT_thresh) or dT_thresh <= 0.0):
+            dT_thresh = None
+
+        T_prev = None
+        if inputs.T_tray_prev_F is not None:
+            try:
+                T_prev = np.asarray(inputs.T_tray_prev_F, dtype=float).reshape((N,))
+            except Exception:
+                T_prev = None
+
+        dP_thresh = inputs.thermo_refresh_dP_psia
+        if dP_thresh is not None:
+            try:
+                dP_thresh = float(dP_thresh)
+            except Exception:
+                dP_thresh = None
+        if dP_thresh is not None and (not np.isfinite(dP_thresh) or dP_thresh <= 0.0):
+            dP_thresh = None
+
+        dX_thresh = inputs.thermo_refresh_dx
+        if dX_thresh is not None:
+            try:
+                dX_thresh = float(dX_thresh)
+            except Exception:
+                dX_thresh = None
+        if dX_thresh is not None and (not np.isfinite(dX_thresh) or dX_thresh <= 0.0):
+            dX_thresh = None
+
+        P_prev = None
+        if inputs.P_tray_prev is not None:
+            try:
+                P_prev = np.asarray(inputs.P_tray_prev, dtype=float).reshape((N,))
+            except Exception:
+                P_prev = None
+
+        Z_prev = None
+        if inputs.Z_overall_prev is not None:
+            try:
+                Z_prev = np.asarray(inputs.Z_overall_prev, dtype=float).reshape((N, Nc))
+            except Exception:
+                Z_prev = None
+
+        flash_skipped = np.zeros(N, dtype=float)
+        flash_refreshed = np.zeros(N, dtype=float)
+
         for i in range(N):
+            gate_active = False
+            gate_pass = True
+            if dT_thresh is not None:
+                gate_active = True
+                try:
+                    if T_prev is None or not (np.isfinite(T_prev[i]) and np.isfinite(T_tray[i])):
+                        gate_pass = False
+                    else:
+                        gate_pass = gate_pass and (abs(float(T_tray[i]) - float(T_prev[i])) < dT_thresh)
+                except Exception:
+                    gate_pass = False
+
+            if dP_thresh is not None:
+                gate_active = True
+                try:
+                    if P_prev is None or not (np.isfinite(P_prev[i]) and np.isfinite(P_tray[i])):
+                        gate_pass = False
+                    else:
+                        gate_pass = gate_pass and (abs(float(P_tray[i]) - float(P_prev[i])) < dP_thresh)
+                except Exception:
+                    gate_pass = False
+
+            if dX_thresh is not None:
+                gate_active = True
+                try:
+                    if Z_prev is None:
+                        gate_pass = False
+                    else:
+                        dz = np.asarray(Z_overall[i, :] - Z_prev[i, :], dtype=float)
+                        if not np.all(np.isfinite(dz)):
+                            gate_pass = False
+                        else:
+                            gate_pass = gate_pass and (float(np.max(np.abs(dz))) < dX_thresh)
+                except Exception:
+                    gate_pass = False
+
+            if gate_active and gate_pass:
+                flash_skipped[i] = 1.0
+                continue
             try:
                 fres = flash_TP_full_F_psia(
                     inputs.thermo_provider,
@@ -852,6 +1382,7 @@ def column_rhs(
                 HV[i] = fres.HV_BTU_lbmol
                 if getattr(fres, "Z", None) is not None:
                     Zfac_tray[i] = float(fres.Z)
+                flash_refreshed[i] = 1.0
             except Exception:
                 # If flash fails, keep previous values (seeded below) and continue.
                 pass
@@ -861,6 +1392,8 @@ def column_rhs(
         # Module 8A: if Z provided, upgrade pressure diagnostic
         diag["Z_tray"] = Zfac_tray
         diag["P_psia_diag"] = _pressure_diagnostic_psia(col, diag["MV_tot_tray"], inputs.volume_model, Z_factor=Zfac_tray)
+        diag["thermo_flash_skipped"] = flash_skipped
+        diag["thermo_flash_refreshed"] = flash_refreshed
 
         # Module 7 diagnostics output
     if inputs.compute_thermo_diag:
@@ -921,20 +1454,53 @@ def column_rhs(
         EL = np.asarray(u["tray_EL_BTU"], dtype=float).reshape((N,))
         EV = np.asarray(u["tray_EV_BTU"], dtype=float).reshape((N,)) if layout.include_vapor else np.zeros(N, dtype=float)
 
-        Qc_BTUph = 0.0
-        Qr_BTUph = 0.0
-        specs = getattr(col, "specs", None) or {}
-        if isinstance(specs, dict):
-            if "Condenser Duty (Btu/h)" in specs:
-                Qc_BTUph = float(specs["Condenser Duty (Btu/h)"])
-            if "Reboiler Duty (Btu/h)" in specs:
-                Qr_BTUph = float(specs["Reboiler Duty (Btu/h)"])
+        if "tray_T_f" in u:
+            T_tray_q = np.asarray(u["tray_T_f"], dtype=float).reshape((N,))
+        elif hasattr(col, "T_f"):
+            T_tray_q = np.asarray(col.T_f, dtype=float).reshape((N,))
+        else:
+            T_tray_q = np.full(N, 100.0, dtype=float)
 
-        if hasattr(col, "duties"):
-            if getattr(col.duties, "q_cond_btu_per_h", None) is not None and Qc_BTUph == 0.0:
-                Qc_BTUph = float(col.duties.q_cond_btu_per_h)
-            if getattr(col.duties, "q_reb_btu_per_h", None) is not None and Qr_BTUph == 0.0:
-                Qr_BTUph = float(col.duties.q_reb_btu_per_h)
+        if hasattr(col, "P_psia"):
+            P_tray_q = np.asarray(col.P_psia, dtype=float).reshape((N,))
+        else:
+            P_tray_q = np.asarray(diag.get("P_psia_diag", np.full(N, 200.0, dtype=float)), dtype=float).reshape((N,))
+        if P_tray_hyd is not None:
+            try:
+                P_tray_q = np.asarray(P_tray_hyd, dtype=float).reshape((N,))
+            except Exception:
+                pass
+
+        Qc_BTUph, Qc_calc_BTUph, T_cond_bubble_F, condenser_duty_mode = _resolve_condenser_duty_btu_per_h(
+            col=col,
+            inputs=inputs,
+            N=N,
+            tray_T_F=T_tray_q,
+            P_tray_psia=P_tray_q,
+            V_in_lbmolps=V_in,
+            y_in=y_in,
+            epsilon_lbmol=float(layout.epsilon_lbmol),
+        )
+        Qr_BTUph = _get_reboiler_duty_btu_per_h(col)
+
+        diag["Q_cond_used_BTUph"] = np.array([float(Qc_BTUph)], dtype=float)
+        diag["Q_cond_mode_total_condense"] = np.array(
+            [1.0 if str(condenser_duty_mode) == "total-condense" else 0.0], dtype=float
+        )
+        if Qc_calc_BTUph is not None and np.isfinite(float(Qc_calc_BTUph)):
+            diag["Q_cond_calc_BTUph"] = np.array([float(Qc_calc_BTUph)], dtype=float)
+        if T_cond_bubble_F is not None and np.isfinite(float(T_cond_bubble_F)):
+            diag["T_cond_bubble_F"] = np.array([float(T_cond_bubble_F)], dtype=float)
+
+        condenser_is_total = bool(float(V_out[0]) <= float(layout.epsilon_lbmol))
+        try:
+            ctype = str(getattr(getattr(col, "duties", None), "condenser_type", "") or "").strip().lower()
+            if ctype:
+                condenser_is_total = ("total" in ctype)
+        except Exception:
+            pass
+        no_liquid_holdup = np.asarray(diag["ML_tot_tray"], dtype=float).reshape((N,)) <= float(layout.epsilon_lbmol)
+        no_vapor_holdup = np.asarray(diag["MV_tot_tray"], dtype=float).reshape((N,)) <= float(layout.epsilon_lbmol)
 
         dEL, dEV = _energy_derivatives_b1(
             L_out=L_out,
@@ -946,7 +1512,17 @@ def column_rhs(
             Q_cond_BTUph=Qc_BTUph,
             Q_reb_BTUph=Qr_BTUph,
             epsilon_lbmol=layout.epsilon_lbmol,
+            total_condenser=bool(condenser_is_total),
+            max_abs_h_btu_per_lbmol=1.0e6,
+            no_liquid_holdup_mask=no_liquid_holdup,
+            no_vapor_holdup_mask=no_vapor_holdup,
         )
+
+        # Stage-N can be configured as a no-holdup reboiler flash.
+        # In that mode, there is no tray energy holdup state to integrate.
+        if reboiler_no_holdup and N > 0:
+            dEL[-1] = 0.0
+            dEV[-1] = 0.0
 
         dydt[sl["tray_EL_BTU"]] = dEL
         if layout.include_vapor:
@@ -955,7 +1531,15 @@ def column_rhs(
         diag["dEL_BTU_per_s"] = dEL.copy()
         diag["dEV_BTU_per_s"] = dEV.copy()
         try:
-            diag["energy_balance_resid_BTUps_tray"] = (dEL + dEV).copy()
+            energy_resid = (dEL + dEV).copy()
+            if reboiler_no_holdup and N > 0:
+                energy_resid[-1] = np.nan
+            no_state = (
+                (np.asarray(diag["ML_tot_tray"], dtype=float).reshape((N,)) <= float(layout.epsilon_lbmol))
+                & (np.asarray(diag["MV_tot_tray"], dtype=float).reshape((N,)) <= float(layout.epsilon_lbmol))
+            )
+            energy_resid[no_state] = np.nan
+            diag["energy_balance_resid_BTUps_tray"] = energy_resid
         except Exception:
             pass
 
@@ -972,13 +1556,35 @@ def column_rhs(
             )
 
         tray_T = u["tray_T_f"].reshape(N)
-        top_T = float(u["top_T_f"][0]) if layout.include_top and "top_T_f" in u else None
         bot_T = float(u["bottom_T_f"][0]) if layout.include_bottom and "bottom_T_f" in u else None
 
         P_tray = np.asarray(col.P_psia, dtype=float).reshape(N) if hasattr(col, "P_psia") else diag["P_psia_diag"].reshape(N)
+        if P_tray_hyd is not None:
+            try:
+                P_tray = np.asarray(P_tray_hyd, dtype=float).reshape((N,))
+            except Exception:
+                pass
 
-        Qc_BTUph = _get_condenser_duty_btu_per_h(col)
+        Qc_BTUph, Qc_calc_BTUph, T_cond_bubble_F, condenser_duty_mode = _resolve_condenser_duty_btu_per_h(
+            col=col,
+            inputs=inputs,
+            N=N,
+            tray_T_F=np.asarray(tray_T, dtype=float).reshape((N,)),
+            P_tray_psia=np.asarray(P_tray, dtype=float).reshape((N,)),
+            V_in_lbmolps=V_in,
+            y_in=y_in,
+            epsilon_lbmol=float(layout.epsilon_lbmol),
+        )
         Qr_BTUph = _get_reboiler_duty_btu_per_h(col)
+
+        diag["Q_cond_used_BTUph"] = np.array([float(Qc_BTUph)], dtype=float)
+        diag["Q_cond_mode_total_condense"] = np.array(
+            [1.0 if str(condenser_duty_mode) == "total-condense" else 0.0], dtype=float
+        )
+        if Qc_calc_BTUph is not None and np.isfinite(float(Qc_calc_BTUph)):
+            diag["Q_cond_calc_BTUph"] = np.array([float(Qc_calc_BTUph)], dtype=float)
+        if T_cond_bubble_F is not None and np.isfinite(float(T_cond_bubble_F)):
+            diag["T_cond_bubble_F"] = np.array([float(T_cond_bubble_F)], dtype=float)
 
         dT_tray = np.zeros(N, dtype=float)
         use_provider_cp = (
@@ -986,8 +1592,63 @@ def column_rhs(
             and hasattr(inputs.thermo_provider, "cp_liq_vap_btu_per_lbmolF")
         )
 
+        # Optional provider-based phase enthalpies at current tray conditions.
+        # This removes a large inconsistency when include_temperature=True and a
+        # thermo provider is active, but inputs.thermo is a simple Cp model.
+        hL_stage_provider = None
+        hV_stage_provider = None
+        if inputs.thermo_provider is not None:
+            hL_try = np.full(N, np.nan, dtype=float)
+            hV_try = np.full(N, np.nan, dtype=float)
+            for j in range(N):
+                try:
+                    fres_L = flash_TP_full_F_psia(
+                        inputs.thermo_provider,
+                        float(tray_T[j]),
+                        float(P_tray[j]),
+                        x_tray[j, :],
+                        n_components=Nc,
+                    )
+                    hL_try[j] = float(getattr(fres_L, "HL_BTU_lbmol"))
+                except Exception:
+                    pass
+                try:
+                    fres_V = flash_TP_full_F_psia(
+                        inputs.thermo_provider,
+                        float(tray_T[j]),
+                        float(P_tray[j]),
+                        y_tray[j, :],
+                        n_components=Nc,
+                    )
+                    hV_try[j] = float(getattr(fres_V, "HV_BTU_lbmol"))
+                except Exception:
+                    pass
+            if np.any(np.isfinite(hL_try)):
+                hL_stage_provider = hL_try
+            if np.any(np.isfinite(hV_try)):
+                hV_stage_provider = hV_try
+
         for i in range(N):
-            T_L_in = top_T if (i == 0 and top_T is not None) else (tray_T[i - 1] if i > 0 else tray_T[i])
+            # No-holdup reboiler stage has no tray energy state to integrate.
+            # Keep the tray-T state bounded by relaxing it to reboiler flash temperature.
+            if reboiler_no_holdup and i == (N - 1):
+                if "T_reb" in locals() and T_reb is not None:
+                    tau_reb_T_sec = 1.0
+                    dT_tray[i] = (float(T_reb) - float(tray_T[i])) / max(tau_reb_T_sec, 1e-6)
+                else:
+                    dT_tray[i] = 0.0
+                continue
+
+            # Stage 1 total-condenser temperature closure:
+            # relax tray-1 temperature to condenser bubble point (from stage-2
+            # vapor composition at condenser pressure), rather than forcing a
+            # fixed condenser duty into the tray temperature ODE.
+            if i == 0 and str(condenser_duty_mode) == "total-condense" and T_cond_bubble_F is not None and np.isfinite(float(T_cond_bubble_F)):
+                tau_cond_T_sec = 1.0
+                dT_tray[i] = (float(T_cond_bubble_F) - float(tray_T[i])) / max(tau_cond_T_sec, 1e-6)
+                continue
+
+            T_L_in = tray_T[i - 1] if i > 0 else tray_T[i]
             if i == N - 1:
                 if "T_reb" in locals() and T_reb is not None:
                     T_V_in = float(T_reb)
@@ -996,28 +1657,77 @@ def column_rhs(
             else:
                 T_V_in = tray_T[i + 1] if i < N - 1 else tray_T[i]
 
-            hL_in = thermo.h_liq_btu_per_lbmol(T_L_in, P_tray[i], x_in[i, :])
-            hV_in = thermo.h_vap_btu_per_lbmol(T_V_in, P_tray[i], y_in[i, :])
+            hL_in = None
+            if hL_stage_provider is not None:
+                src_i = i if i == 0 else (i - 1)
+                if 0 <= src_i < N and np.isfinite(hL_stage_provider[src_i]):
+                    hL_in = float(hL_stage_provider[src_i])
+            if hL_in is None:
+                hL_in = float(thermo.h_liq_btu_per_lbmol(T_L_in, P_tray[i], x_in[i, :]))
 
-            hL_out = thermo.h_liq_btu_per_lbmol(tray_T[i], P_tray[i], x_tray[i, :])
-            hV_out = thermo.h_vap_btu_per_lbmol(tray_T[i], P_tray[i], y_tray[i, :])
+            hV_in = None
+            if hV_stage_provider is not None:
+                src_i = i if i == (N - 1) else (i + 1)
+                if 0 <= src_i < N and np.isfinite(hV_stage_provider[src_i]):
+                    hV_in = float(hV_stage_provider[src_i])
+            if hV_in is None:
+                hV_in = float(thermo.h_vap_btu_per_lbmol(T_V_in, P_tray[i], y_in[i, :]))
 
-            q_feed = 0.0
-            if feed_stage0 == i:
-                sF = col.streams.get("Feed")
-                T_feed = float(sF.temperature_f) if (sF is not None and sF.temperature_f is not None) else float(tray_T[i])
-                z_feed = _safe_feed_comp(col, i)
-                hF_L = thermo.h_liq_btu_per_lbmol(T_feed, P_tray[i], z_feed)
-                hF_V = thermo.h_vap_btu_per_lbmol(T_feed, P_tray[i], z_feed)
-                q_feed = float(np.sum(Fk_L)) * hF_L + float(np.sum(Fk_V)) * hF_V
+            hL_out = None
+            if hL_stage_provider is not None and np.isfinite(hL_stage_provider[i]):
+                hL_out = float(hL_stage_provider[i])
+            if hL_out is None:
+                hL_out = float(thermo.h_liq_btu_per_lbmol(tray_T[i], P_tray[i], x_tray[i, :]))
 
-            dE = (
-                L_in[i] * hL_in
-                + V_in[i] * hV_in
-                + q_feed
-                - L_out[i] * hL_out
-                - V_out[i] * hV_out
+            hV_out = None
+            if hV_stage_provider is not None and np.isfinite(hV_stage_provider[i]):
+                hV_out = float(hV_stage_provider[i])
+            if hV_out is None:
+                hV_out = float(thermo.h_vap_btu_per_lbmol(tray_T[i], P_tray[i], y_tray[i, :]))
+
+            q_feed = _feed_enthalpy_rate_btu_per_s(
+                feed_stage0=feed_stage0,
+                stage0=i,
+                col=col,
+                Nc=Nc,
+                Fk_L=Fk_L,
+                Fk_V=Fk_V,
+                T_stage_F=float(tray_T[i]),
+                P_stage_psia=float(P_tray[i]),
+                thermo=thermo,
+                thermo_provider=inputs.thermo_provider,
+                epsilon_lbmol=float(layout.epsilon_lbmol),
             )
+
+            if i == 0 and layout.include_top:
+                # Condenser/top-drum temperature closure:
+                # use a reference-invariant form with h_ref = hL_out so
+                # liquid outflows at tray temperature do not spuriously
+                # drive dT when only holdup changes.
+                h_ref = hL_out
+                Ft_feed_i = (Ft_L + Ft_V) if (feed_stage0 == i) else 0.0
+                dE = (
+                    L_in[i] * (hL_in - h_ref)
+                    + V_in[i] * (hV_in - h_ref)
+                    + q_feed
+                    - Ft_feed_i * h_ref
+                    - L_out[i] * (hL_out - h_ref)
+                    - V_out[i] * (hV_out - h_ref)
+                )
+
+                # If a non-total condenser stream withdraws overhead vapor,
+                # account for vapor draw enthalpy relative to h_ref.
+                if D.total_V > 0.0:
+                    hV_top = float(hV_out)
+                    dE -= float(D.total_V) * (hV_top - h_ref)
+            else:
+                dE = (
+                    L_in[i] * hL_in
+                    + V_in[i] * hV_in
+                    + q_feed
+                    - L_out[i] * hL_out
+                    - V_out[i] * hV_out
+                )
 
             if i == 0:
                 dE += float(Qc_BTUph) / 3600.0
@@ -1048,6 +1758,9 @@ def column_rhs(
 
             C = diag["ML_tot_tray"][i] * cpL + diag["MV_tot_tray"][i] * cpV
             if C <= 0.0:
+                if (diag["ML_tot_tray"][i] + diag["MV_tot_tray"][i]) <= layout.epsilon_lbmol:
+                    dT_tray[i] = 0.0
+                    continue
                 raise ColumnRHSError("Non-positive tray heat capacity encountered.")
 
             dT_tray[i] = dE / C
@@ -1119,6 +1832,33 @@ class Draw:
     has_component_breakdown: bool
 
 
+def _norm_comp_key(name: Any) -> str:
+    return "".join(ch for ch in str(name).lower() if ch.isalnum())
+
+
+def _component_molar_flows_vector_lbmolps(
+    comp_map: Dict[str, Any],
+    component_names_excel: np.ndarray,
+) -> np.ndarray:
+    """
+    Convert a component-flow mapping (lbmol/h) to an ordered vector (lbmol/s),
+    matching component names case/format-insensitively.
+    """
+    norm_map: Dict[str, float] = {}
+    for k, v in (comp_map or {}).items():
+        try:
+            norm_map[_norm_comp_key(k)] = float(v)
+        except Exception:
+            continue
+
+    Nc = int(len(component_names_excel))
+    out = np.zeros(Nc, dtype=float)
+    for i, cname in enumerate(component_names_excel):
+        v = norm_map.get(_norm_comp_key(cname))
+        out[i] = 0.0 if v is None else (float(v) / 3600.0)
+    return out
+
+
 def _draw_from_stream(col: ColumnSpec, stream_name: str, Nc: int) -> Draw:
     streams = getattr(col, "streams", {}) or {}
 
@@ -1155,15 +1895,62 @@ def _draw_from_stream(col: ColumnSpec, stream_name: str, Nc: int) -> Draw:
     total_V = vf * total
 
     if s.component_molar_flows_lbmolph:
-        comp = np.zeros(Nc, dtype=float)
-        for k, cname in enumerate(col.components_excel):
-            v = s.component_molar_flows_lbmolph.get(cname)
-            comp[k] = 0.0 if v is None else float(v) / 3600.0
+        comp = _component_molar_flows_vector_lbmolps(
+            s.component_molar_flows_lbmolph,
+            col.components_excel,
+        )
         comp_L = (1.0 - vf) * comp
         comp_V = vf * comp
         return Draw(total_L, total_V, comp_L, comp_V, True)
 
     return Draw(total_L, total_V, np.zeros(Nc), np.zeros(Nc), False)
+
+
+def _override_draw_total_lbmolph(
+    draw: Draw,
+    total_lbmolph: Optional[float],
+    *,
+    prefer_liquid: bool = True,
+) -> Draw:
+    """
+    Override total product draw while preserving existing phase split/composition.
+    """
+    if total_lbmolph is None:
+        return draw
+    try:
+        total_s = float(total_lbmolph) / 3600.0
+    except Exception:
+        return draw
+    if (not np.isfinite(total_s)) or total_s < 0.0:
+        return draw
+
+    old_total = float(draw.total_L + draw.total_V)
+    if old_total > 1e-300:
+        frac_v = float(draw.total_V) / old_total
+    else:
+        frac_v = 0.0 if prefer_liquid else 1.0
+    frac_v = float(np.clip(frac_v, 0.0, 1.0))
+    frac_l = 1.0 - frac_v
+
+    new_total_L = float(total_s) * frac_l
+    new_total_V = float(total_s) * frac_v
+
+    if draw.has_component_breakdown:
+        compL = np.asarray(draw.comp_L, dtype=float).copy()
+        compV = np.asarray(draw.comp_V, dtype=float).copy()
+        oldL = float(np.sum(compL))
+        oldV = float(np.sum(compV))
+        if oldL > 1e-300:
+            compL = compL * (new_total_L / oldL)
+        else:
+            compL[:] = 0.0
+        if oldV > 1e-300:
+            compV = compV * (new_total_V / oldV)
+        else:
+            compV[:] = 0.0
+        return Draw(new_total_L, new_total_V, compL, compV, True)
+
+    return Draw(new_total_L, new_total_V, draw.comp_L, draw.comp_V, False)
 
 
 def _safe_comp_from_holdup(holdup: Optional[np.ndarray], fallback: np.ndarray, eps: float) -> np.ndarray:
@@ -1176,7 +1963,13 @@ def _safe_comp_from_holdup(holdup: Optional[np.ndarray], fallback: np.ndarray, e
     return h / tot
 
 
-def _feed_component_rates_lbmolps(col: ColumnSpec, Nc: int) -> Tuple[Optional[int], np.ndarray, np.ndarray]:
+def _feed_component_rates_lbmolps(
+    col: ColumnSpec,
+    Nc: int,
+    thermo_provider: Optional[Any] = None,
+    P_tray_psia: Optional[np.ndarray] = None,
+    flash_feed_at_stage_conditions: bool = True,
+) -> Tuple[Optional[int], np.ndarray, np.ndarray]:
     s = col.streams.get("Feed")
     if s is None or s.stage_1based is None or s.total_molar_flow_lbmolph is None:
         return None, np.zeros(Nc), np.zeros(Nc)
@@ -1187,20 +1980,176 @@ def _feed_component_rates_lbmolps(col: ColumnSpec, Nc: int) -> Tuple[Optional[in
     vf = float(np.clip(vf, 0.0, 1.0))
 
     if s.component_molar_flows_lbmolph:
-        Fk = np.zeros(Nc, dtype=float)
-        for k, cname in enumerate(col.components_excel):
-            v = s.component_molar_flows_lbmolph.get(cname)
-            Fk[k] = 0.0 if v is None else float(v) / 3600.0
+        Fk = _component_molar_flows_vector_lbmolps(
+            s.component_molar_flows_lbmolph,
+            col.components_excel,
+        )
     else:
         z = np.asarray(col.x0[stage0, :], dtype=float).copy()
         z = z / max(float(np.sum(z)), 1e-300)
         Fk = Ft * z
+
+    # Optional: split feed via TP flash at feed-stage pressure for a more realistic
+    # on-tray feed phase split than a fixed stream vapor fraction.
+    if (
+        flash_feed_at_stage_conditions
+        and (thermo_provider is not None)
+        and (getattr(s, "temperature_f", None) is not None)
+        and np.isfinite(float(getattr(s, "temperature_f")))
+    ):
+        try:
+            if P_tray_psia is not None:
+                P_arr = np.asarray(P_tray_psia, dtype=float).reshape((-1,))
+                if 0 <= stage0 < P_arr.size and np.isfinite(P_arr[stage0]) and P_arr[stage0] > 0.0:
+                    P_feed = float(P_arr[stage0])
+                else:
+                    P_feed = None
+            else:
+                P_feed = None
+
+            if P_feed is None:
+                if hasattr(col, "P_psia"):
+                    P_arr = np.asarray(col.P_psia, dtype=float).reshape((-1,))
+                    if 0 <= stage0 < P_arr.size and np.isfinite(P_arr[stage0]) and P_arr[stage0] > 0.0:
+                        P_feed = float(P_arr[stage0])
+                    else:
+                        P_feed = 200.0
+                else:
+                    P_feed = 200.0
+
+            Ft_comp = float(np.sum(Fk))
+            if np.isfinite(Ft_comp) and Ft_comp > 1e-300:
+                z_feed = Fk / Ft_comp
+                T_feed = float(getattr(s, "temperature_f"))
+                fres = flash_TP_full_F_psia(
+                    thermo_provider,
+                    T_feed,
+                    float(P_feed),
+                    z_feed,
+                    n_components=Nc,
+                )
+                K = np.asarray(fres.K, dtype=float).reshape((Nc,))
+                beta = _rachford_rice_beta(K, z_feed)
+                beta = float(np.clip(beta, 0.0, 1.0))
+
+                denom = 1.0 + beta * (K - 1.0)
+                denom = np.where(np.abs(denom) < 1e-12, np.sign(denom) * 1e-12 + (denom == 0) * 1e-12, denom)
+                x = np.clip(z_feed / denom, 0.0, None)
+                sx = float(np.sum(x))
+                if not np.isfinite(sx) or sx <= 1e-300:
+                    x = z_feed.copy()
+                else:
+                    x = x / sx
+                y = np.clip(K * x, 0.0, None)
+                sy = float(np.sum(y))
+                if not np.isfinite(sy) or sy <= 1e-300:
+                    y = z_feed.copy()
+                else:
+                    y = y / sy
+
+                return stage0, (1.0 - beta) * Ft_comp * x, beta * Ft_comp * y
+        except Exception:
+            pass
 
     return stage0, (1.0 - vf) * Fk, vf * Fk
 
 
 def _safe_feed_comp(col: ColumnSpec, stage0: int) -> np.ndarray:
     return np.asarray(col.x0[stage0, :], dtype=float).copy()
+
+
+def _feed_enthalpy_rate_btu_per_s(
+    *,
+    feed_stage0: Optional[int],
+    stage0: int,
+    col: ColumnSpec,
+    Nc: int,
+    Fk_L: np.ndarray,
+    Fk_V: np.ndarray,
+    T_stage_F: float,
+    P_stage_psia: float,
+    thermo: Any,
+    thermo_provider: Optional[Any],
+    epsilon_lbmol: float,
+) -> float:
+    """
+    Feed enthalpy source term (BTU/s) for stage energy balances.
+
+    Uses the *actual* feed phase split vectors (Fk_L/Fk_V). If a thermo provider
+    is available, enthalpies are taken from a TP flash at stage pressure using
+    the overall feed composition implied by Fk_L + Fk_V.
+    """
+    if feed_stage0 != stage0:
+        return 0.0
+
+    FL = float(np.sum(Fk_L))
+    FV = float(np.sum(Fk_V))
+    Ft = FL + FV
+    if (not np.isfinite(Ft)) or Ft <= float(epsilon_lbmol):
+        return 0.0
+
+    FkL = np.asarray(Fk_L, dtype=float).reshape((Nc,))
+    FkV = np.asarray(Fk_V, dtype=float).reshape((Nc,))
+    z_feed = np.clip(FkL + FkV, 0.0, None)
+    sz = float(np.sum(z_feed))
+    if not np.isfinite(sz) or sz <= float(epsilon_lbmol):
+        z_feed = np.full(Nc, 1.0 / max(Nc, 1), dtype=float)
+    else:
+        z_feed = z_feed / sz
+
+    if FL > float(epsilon_lbmol):
+        x_feed = np.clip(FkL, 0.0, None)
+        sx = float(np.sum(x_feed))
+        x_feed = x_feed / max(sx, float(epsilon_lbmol))
+    else:
+        x_feed = z_feed.copy()
+
+    if FV > float(epsilon_lbmol):
+        y_feed = np.clip(FkV, 0.0, None)
+        sy = float(np.sum(y_feed))
+        y_feed = y_feed / max(sy, float(epsilon_lbmol))
+    else:
+        y_feed = z_feed.copy()
+
+    sF = col.streams.get("Feed")
+    T_feed = float(T_stage_F)
+    if sF is not None and getattr(sF, "temperature_f", None) is not None:
+        try:
+            T_feed = float(getattr(sF, "temperature_f"))
+        except Exception:
+            pass
+    P_feed = float(P_stage_psia) if np.isfinite(float(P_stage_psia)) and float(P_stage_psia) > 0.0 else 200.0
+
+    hF_L = None
+    hF_V = None
+    if thermo_provider is not None:
+        try:
+            fres = flash_TP_full_F_psia(
+                thermo_provider,
+                float(T_feed),
+                float(P_feed),
+                z_feed,
+                n_components=Nc,
+            )
+            h_try_L = getattr(fres, "HL_BTU_lbmol", None)
+            if h_try_L is None:
+                h_try_L = getattr(fres, "HL", None)
+            h_try_V = getattr(fres, "HV_BTU_lbmol", None)
+            if h_try_V is None:
+                h_try_V = getattr(fres, "HV", None)
+            if h_try_L is not None and np.isfinite(float(h_try_L)):
+                hF_L = float(h_try_L)
+            if h_try_V is not None and np.isfinite(float(h_try_V)):
+                hF_V = float(h_try_V)
+        except Exception:
+            pass
+
+    if hF_L is None:
+        hF_L = float(thermo.h_liq_btu_per_lbmol(float(T_feed), float(P_feed), x_feed))
+    if hF_V is None:
+        hF_V = float(thermo.h_vap_btu_per_lbmol(float(T_feed), float(P_feed), y_feed))
+
+    return float(FL) * float(hF_L) + float(FV) * float(hF_V)
 
 
 def _fallback_comp_stage(col: ColumnSpec, stage0: int, Nc: int) -> np.ndarray:
@@ -1273,6 +2222,177 @@ def _get_condenser_duty_btu_per_h(col: ColumnSpec) -> float:
     return 0.0
 
 
+def _normalize_condenser_duty_mode(mode: Optional[str]) -> str:
+    s = str(mode or "").strip().lower().replace("_", "-")
+    if s in ("", "auto", "total", "total-condense", "total-condensing", "total-condenser"):
+        return "total-condense"
+    if s in ("specified", "spec", "fixed", "manual"):
+        return "specified"
+    return "total-condense"
+
+
+def _resolve_condenser_duty_btu_per_h(
+    *,
+    col: ColumnSpec,
+    inputs: ColumnInputs,
+    N: int,
+    tray_T_F: np.ndarray,
+    P_tray_psia: np.ndarray,
+    V_in_lbmolps: np.ndarray,
+    y_in: np.ndarray,
+    epsilon_lbmol: float,
+) -> Tuple[float, Optional[float], Optional[float], str]:
+    """
+    Resolve condenser duty for the current RHS call.
+
+    Returns:
+      (Q_used_BTUph, Q_calc_BTUph_or_None, T_cond_bubble_F_or_None, mode_norm)
+    """
+    mode = _normalize_condenser_duty_mode(getattr(inputs, "condenser_duty_mode", None))
+
+    q_base = None
+    q_override = getattr(inputs, "condenser_duty_btu_per_h", None)
+    if q_override is not None:
+        try:
+            q_try = float(q_override)
+            if np.isfinite(q_try):
+                q_base = q_try
+        except Exception:
+            q_base = None
+    if q_base is None:
+        q_base = float(_get_condenser_duty_btu_per_h(col))
+
+    q_used = float(q_base)
+    q_calc = None
+    t_bub = None
+    q_trim = 0.0
+    q_trim_raw = getattr(inputs, "condenser_duty_trim_btu_per_h", None)
+    if q_trim_raw is not None:
+        try:
+            q_try = float(q_trim_raw)
+            if np.isfinite(q_try):
+                q_trim = float(q_try)
+        except Exception:
+            q_trim = 0.0
+
+    if mode == "total-condense" and inputs.thermo_provider is not None and N > 0:
+        src_i = 1 if N > 1 else 0
+        try:
+            q_try, t_try = _compute_total_condenser_duty_btu_per_h(
+                thermo_provider=inputs.thermo_provider,
+                V_vapor_in_lbmolps=float(V_in_lbmolps[0]),
+                y_vapor_in=np.asarray(y_in[0, :], dtype=float),
+                T_vapor_in_F=float(tray_T_F[src_i]),
+                P_vapor_in_psia=float(P_tray_psia[src_i]),
+                P_condenser_psia=float(P_tray_psia[0]),
+                T_guess_F=float(tray_T_F[0]),
+                epsilon_lbmol=float(epsilon_lbmol),
+            )
+            if q_try is not None and np.isfinite(float(q_try)):
+                q_calc = float(q_try)
+                q_used = float(q_try)
+            if t_try is not None and np.isfinite(float(t_try)):
+                t_bub = float(t_try)
+        except Exception:
+            pass
+
+    if mode == "total-condense":
+        q_used = float(q_used) + float(q_trim)
+
+    return float(q_used), q_calc, t_bub, mode
+
+
+def _compute_total_condenser_duty_btu_per_h(
+    *,
+    thermo_provider: Any,
+    V_vapor_in_lbmolps: float,
+    y_vapor_in: np.ndarray,
+    T_vapor_in_F: float,
+    P_vapor_in_psia: float,
+    P_condenser_psia: float,
+    T_guess_F: float,
+    epsilon_lbmol: float = 1e-12,
+) -> Tuple[Optional[float], Optional[float]]:
+    """
+    Compute total-condenser duty (BTU/h) by condensing incoming vapor to
+    saturated liquid at bubble point.
+
+    Returns (Q_cond_BTUph, T_bubble_F). Negative Q means heat removal.
+    """
+    if thermo_provider is None:
+        return None, None
+
+    y = np.asarray(y_vapor_in, dtype=float).reshape((-1,))
+    y = np.where(np.isfinite(y), y, 0.0)
+    sy = float(np.sum(y))
+    if sy <= epsilon_lbmol:
+        return 0.0, (float(T_guess_F) if np.isfinite(float(T_guess_F)) else None)
+    y = y / sy
+
+    V_in = float(V_vapor_in_lbmolps)
+    if (not np.isfinite(V_in)) or V_in <= epsilon_lbmol:
+        return 0.0, (float(T_guess_F) if np.isfinite(float(T_guess_F)) else None)
+
+    P_cond = float(P_condenser_psia) if np.isfinite(float(P_condenser_psia)) and float(P_condenser_psia) > 0.0 else float(P_vapor_in_psia)
+    P_vin = float(P_vapor_in_psia) if np.isfinite(float(P_vapor_in_psia)) and float(P_vapor_in_psia) > 0.0 else P_cond
+    T_in = float(T_vapor_in_F) if np.isfinite(float(T_vapor_in_F)) else float(T_guess_F)
+    T_guess = float(T_guess_F) if np.isfinite(float(T_guess_F)) else T_in
+
+    # Condensed-liquid composition for a total condenser is the incoming vapor composition.
+    x_cond = y.copy()
+
+    try:
+        T_bub_F, fres_bub = _bubble_point_T_F(
+            thermo_provider=thermo_provider,
+            P_psia=P_cond,
+            x=x_cond,
+            T_guess_F=T_guess,
+        )
+    except Exception:
+        return None, None
+
+    hL_cond = getattr(fres_bub, "HL_BTU_lbmol", None)
+    if hL_cond is None or (not np.isfinite(float(hL_cond))):
+        hL_cond = getattr(fres_bub, "HL", None)
+    if hL_cond is None or (not np.isfinite(float(hL_cond))):
+        try:
+            fres_liq = flash_TP_full_F_psia(
+                thermo_provider,
+                float(T_bub_F),
+                float(P_cond),
+                x_cond,
+                n_components=x_cond.size,
+            )
+            hL_cond = getattr(fres_liq, "HL_BTU_lbmol", None)
+            if hL_cond is None or (not np.isfinite(float(hL_cond))):
+                hL_cond = getattr(fres_liq, "HL", None)
+        except Exception:
+            hL_cond = None
+    if hL_cond is None or (not np.isfinite(float(hL_cond))):
+        return None, float(T_bub_F)
+
+    try:
+        fres_vin = flash_TP_full_F_psia(
+            thermo_provider,
+            float(T_in),
+            float(P_vin),
+            y,
+            n_components=y.size,
+        )
+        hV_in = getattr(fres_vin, "HV_BTU_lbmol", None)
+        if hV_in is None or (not np.isfinite(float(hV_in))):
+            hV_in = getattr(fres_vin, "HV", None)
+    except Exception:
+        hV_in = None
+    if hV_in is None or (not np.isfinite(float(hV_in))):
+        return None, float(T_bub_F)
+
+    Q_cond_BTUph = float(V_in) * (float(hL_cond) - float(hV_in)) * 3600.0
+    if not np.isfinite(Q_cond_BTUph):
+        return None, float(T_bub_F)
+    return float(Q_cond_BTUph), float(T_bub_F)
+
+
 def _pressure_diagnostic_psia(
     col: ColumnSpec,
     MV_tot_tray: np.ndarray,
@@ -1298,6 +2418,240 @@ def _pressure_diagnostic_psia(
     Z = np.ones(N, dtype=float) if Z_factor is None else np.asarray(Z_factor, dtype=float).reshape(N)
 
     return MV * Z * R * T_R / V
+
+
+def _mixture_mw_lbm_per_lbmol(
+    z: np.ndarray,
+    mw_components: Optional[np.ndarray],
+    default: float = 1.0,
+) -> float:
+    if mw_components is None:
+        return float(default)
+    mw = np.asarray(mw_components, dtype=float).reshape((-1,))
+    z = np.asarray(z, dtype=float).reshape((-1,))
+    if mw.size != z.size:
+        return float(default)
+    if not np.all(np.isfinite(mw)) or np.any(mw <= 0.0):
+        return float(default)
+    zsum = float(np.sum(z))
+    if not np.isfinite(zsum) or zsum <= 0.0:
+        return float(default)
+    z = z / zsum
+    return float(np.dot(z, mw))
+
+
+def _pressure_profile_hydraulic_psia(
+    *,
+    P_bottom_psia: float,
+    T_F: np.ndarray,
+    V_in_lbmolps: np.ndarray,
+    y_tray: np.ndarray,
+    x_tray: np.ndarray,
+    Z_vap: np.ndarray,
+    geom: ColumnGeometry,
+    h_ow_ft: Optional[np.ndarray],
+    rhoL_lbmol_ft3: Optional[np.ndarray],
+    mw_components: Optional[np.ndarray],
+    dry_tray_K: float,
+    P_top_spec_psia: Optional[float] = None,
+    P_top_anchor_psia: Optional[float] = None,
+    min_pressure_psia: float = 14.7,
+    max_dp_per_stage_psia: float = 5.0,
+) -> np.ndarray:
+    N = int(len(T_F))
+    P = np.full(N, np.nan, dtype=float)
+    P[-1] = float(P_bottom_psia)
+
+    area = None
+    if getattr(geom, "active_area_ft2_per_stage", None) is not None:
+        area = np.asarray(geom.active_area_ft2_per_stage, dtype=float).reshape((N,))
+        if not np.all(np.isfinite(area)) or np.any(area <= 0.0):
+            area = None
+    if area is None:
+        area = np.asarray(geom.area_ft2_per_stage, dtype=float).reshape((N,))
+    area = np.where(~np.isfinite(area) | (area <= 0.0), 1.0, area)
+
+    h_ow = np.zeros(N, dtype=float)
+    if h_ow_ft is not None:
+        try:
+            h_ow = np.asarray(h_ow_ft, dtype=float).reshape((N,))
+            h_ow = np.where(~np.isfinite(h_ow) | (h_ow < 0.0), 0.0, h_ow)
+        except Exception:
+            h_ow = np.zeros(N, dtype=float)
+
+    rhoL_molar = None
+    if rhoL_lbmol_ft3 is not None:
+        try:
+            rhoL_molar = np.asarray(rhoL_lbmol_ft3, dtype=float).reshape((N,))
+        except Exception:
+            rhoL_molar = None
+
+    Z_use = np.asarray(Z_vap, dtype=float).reshape((N,))
+    Z_use = np.where(~np.isfinite(Z_use) | (Z_use <= 0.0), 1.0, Z_use)
+
+    R = 10.7316  # psia*ft^3/(lbmol*R)
+    PSF_PER_PSIA = 144.0
+
+    p_floor = float(min_pressure_psia) if np.isfinite(float(min_pressure_psia)) and float(min_pressure_psia) > 0.0 else 14.7
+    if P_top_spec_psia is not None:
+        try:
+            p_top_spec = float(P_top_spec_psia)
+            if np.isfinite(p_top_spec) and p_top_spec > 0.0:
+                p_floor = max(p_floor, 0.5 * p_top_spec)
+        except Exception:
+            pass
+    dp_stage_cap = float(max_dp_per_stage_psia) if np.isfinite(float(max_dp_per_stage_psia)) and float(max_dp_per_stage_psia) > 0.0 else 5.0
+
+    # Compute raw tray-to-tray pressure drops using current local state.
+    # Index i represents drop from stage i to stage i-1.
+    dp_raw = np.zeros(N, dtype=float)
+    for i in range(N - 1, 0, -1):
+        if i == (N - 1):
+            # No dry/liquid drop across reboiler boundary in this tray model.
+            dp_psia = 0.0
+        else:
+            P_i = float(P[i])
+            if not np.isfinite(P_i) or P_i <= 0.0:
+                P_i = max(float(P_bottom_psia), p_floor)
+
+            T_R = float(T_F[i]) + 459.67
+            if not np.isfinite(T_R) or T_R <= 0.0:
+                T_R = 520.0
+
+            Z_i = float(Z_use[i])
+            Vdot = float(V_in_lbmolps[i]) * R * T_R / max(P_i * Z_i, 1e-12)
+            v = Vdot / max(float(area[i]), 1e-12)
+
+            mw_v = _mixture_mw_lbm_per_lbmol(y_tray[i, :], mw_components, default=1.0)
+            rho_molar_v = P_i / max(Z_i * R * T_R, 1e-12)
+            rho_mass_v = rho_molar_v * mw_v
+
+            dp_dry = float(dry_tray_K) * 0.5 * rho_mass_v * v * v / PSF_PER_PSIA
+
+            dp_liq = 0.0
+            if rhoL_molar is not None and np.isfinite(rhoL_molar[i]) and rhoL_molar[i] > 0.0:
+                mw_l = _mixture_mw_lbm_per_lbmol(x_tray[i, :], mw_components, default=1.0)
+                rho_mass_l = float(rhoL_molar[i]) * mw_l
+                dp_liq = rho_mass_l * float(h_ow[i]) / PSF_PER_PSIA
+
+            dp_psia = max(dp_dry + dp_liq, 0.0)
+            if np.isfinite(dp_stage_cap) and dp_stage_cap > 0.0:
+                dp_psia = min(dp_psia, dp_stage_cap)
+        dp_raw[i] = float(max(dp_psia, 0.0))
+
+    # Determine drop scaling:
+    # - with explicit top anchor, scale drops so computed top pressure tracks it
+    # - otherwise keep total pressure drop physically bounded so top never collapses
+    total_drop_raw = float(np.sum(dp_raw[1:]))  # ignore index 0 sentinel
+    drop_scale = 1.0
+    p_top_anchor = None
+    if P_top_anchor_psia is not None:
+        try:
+            p_try = float(P_top_anchor_psia)
+            if np.isfinite(p_try) and p_try > 0.0:
+                p_top_anchor = max(float(p_try), p_floor)
+        except Exception:
+            p_top_anchor = None
+    if p_top_anchor is not None:
+        target_total_drop = max(float(P_bottom_psia) - float(p_top_anchor), 0.0)
+        if total_drop_raw > 1e-12:
+            drop_scale = target_total_drop / total_drop_raw
+        else:
+            drop_scale = 0.0
+    else:
+        max_total_drop = max(float(P_bottom_psia) - p_floor, 0.0)
+        if total_drop_raw > max_total_drop and total_drop_raw > 1e-12:
+            drop_scale = max_total_drop / total_drop_raw
+
+    for i in range(N - 1, 0, -1):
+        dp_psia = float(dp_raw[i]) * float(drop_scale)
+        P[i - 1] = max(float(P[i]) - dp_psia, p_floor)
+
+    return P
+
+
+def _vapor_outflow_hydraulic_lbmolps(
+    *,
+    P_profile_psia: np.ndarray,
+    T_F: np.ndarray,
+    y_tray: np.ndarray,
+    x_tray: np.ndarray,
+    Z_vap: np.ndarray,
+    geom: ColumnGeometry,
+    h_ow_ft: Optional[np.ndarray],
+    rhoL_lbmol_ft3: Optional[np.ndarray],
+    mw_components: Optional[np.ndarray],
+    dry_tray_K: float,
+) -> np.ndarray:
+    N = int(len(T_F))
+    V_out = np.zeros(N, dtype=float)
+
+    area = None
+    if getattr(geom, "active_area_ft2_per_stage", None) is not None:
+        area = np.asarray(geom.active_area_ft2_per_stage, dtype=float).reshape((N,))
+        if not np.all(np.isfinite(area)) or np.any(area <= 0.0):
+            area = None
+    if area is None:
+        area = np.asarray(geom.area_ft2_per_stage, dtype=float).reshape((N,))
+    area = np.where(~np.isfinite(area) | (area <= 0.0), 1.0, area)
+
+    h_ow = np.zeros(N, dtype=float)
+    if h_ow_ft is not None:
+        try:
+            h_ow = np.asarray(h_ow_ft, dtype=float).reshape((N,))
+            h_ow = np.where(~np.isfinite(h_ow) | (h_ow < 0.0), 0.0, h_ow)
+        except Exception:
+            h_ow = np.zeros(N, dtype=float)
+
+    rhoL_molar = None
+    if rhoL_lbmol_ft3 is not None:
+        try:
+            rhoL_molar = np.asarray(rhoL_lbmol_ft3, dtype=float).reshape((N,))
+        except Exception:
+            rhoL_molar = None
+
+    Z_use = np.asarray(Z_vap, dtype=float).reshape((N,))
+    Z_use = np.where(~np.isfinite(Z_use) | (Z_use <= 0.0), 1.0, Z_use)
+
+    R = 10.7316
+    PSF_PER_PSIA = 144.0
+
+    Pp = np.asarray(P_profile_psia, dtype=float).reshape((N,))
+    for i in range(1, N - 1):
+        P_i = float(Pp[i])
+        P_above = float(Pp[i - 1])
+        if not np.isfinite(P_i) or P_i <= 0.0 or not np.isfinite(P_above) or P_above <= 0.0:
+            continue
+
+        dp_total = max(P_i - P_above, 0.0)
+        if dp_total <= 0.0:
+            continue
+
+        T_R = float(T_F[i]) + 459.67
+        if not np.isfinite(T_R) or T_R <= 0.0:
+            T_R = 520.0
+        Z_i = float(Z_use[i])
+
+        mw_v = _mixture_mw_lbm_per_lbmol(y_tray[i, :], mw_components, default=1.0)
+        rho_molar_v = P_i / max(Z_i * R * T_R, 1e-12)
+        rho_mass_v = rho_molar_v * mw_v
+
+        dp_liq = 0.0
+        if rhoL_molar is not None and np.isfinite(rhoL_molar[i]) and rhoL_molar[i] > 0.0:
+            mw_l = _mixture_mw_lbm_per_lbmol(x_tray[i, :], mw_components, default=1.0)
+            rho_mass_l = float(rhoL_molar[i]) * mw_l
+            dp_liq = rho_mass_l * float(h_ow[i]) / PSF_PER_PSIA
+
+        dp_dry = max(dp_total - dp_liq, 0.0)
+        if dp_dry <= 0.0 or dry_tray_K <= 0.0 or rho_mass_v <= 0.0:
+            continue
+
+        v = (2.0 * dp_dry * PSF_PER_PSIA / (dry_tray_K * rho_mass_v)) ** 0.5
+        Vdot_ft3_s = v * float(area[i])
+
+        V_out[i] = Vdot_ft3_s * P_i / max(Z_i * R * T_R, 1e-12)
+
+    return V_out
 
 
 def _rachford_rice_beta(K: np.ndarray, z: np.ndarray, tol: float = 1e-10, max_iter: int = 100) -> float:
@@ -1463,6 +2817,28 @@ def _get_liquid_density_lbmol_ft3(col: ColumnSpec, default: float = 1.0) -> floa
     return float(default)
 
 
+def _thermo_provider_temperature_bounds_F(thermo_provider: Any) -> Optional[Tuple[float, float]]:
+    """
+    Return (T_min_F, T_max_F) if provider exposes a tabular temperature grid.
+    """
+    if thermo_provider is None:
+        return None
+    grid = getattr(thermo_provider, "T_grid_F", None)
+    if grid is None:
+        return None
+    try:
+        g = np.asarray(grid, dtype=float).reshape((-1,))
+    except Exception:
+        return None
+    if g.size < 2 or (not np.all(np.isfinite(g))):
+        return None
+    t_min = float(np.min(g))
+    t_max = float(np.max(g))
+    if (not np.isfinite(t_min)) or (not np.isfinite(t_max)) or (t_max <= t_min):
+        return None
+    return float(t_min), float(t_max)
+
+
 def _bubble_point_T_F(
     *,
     thermo_provider: Any,
@@ -1482,6 +2858,13 @@ def _bubble_point_T_F(
     x = np.asarray(x, dtype=float).reshape((-1,))
     x = x / max(float(np.sum(x)), 1e-300)
 
+    # Keep bubble-point solve within provider table bounds when available.
+    t_bounds = _thermo_provider_temperature_bounds_F(thermo_provider)
+    if t_bounds is not None:
+        t_lo, t_hi = t_bounds
+        T_min_F = max(float(T_min_F), float(t_lo))
+        T_max_F = min(float(T_max_F), float(t_hi))
+
     def eval_f(T_F: float):
         fres = flash_TP_full_F_psia(thermo_provider, float(T_F), float(P_psia), x, n_components=x.size)
         K = np.asarray(getattr(fres, "K", None), dtype=float)
@@ -1499,6 +2882,14 @@ def _bubble_point_T_F(
     # Initial guess
     if T_guess_F is None or not np.isfinite(T_guess_F):
         T_guess_F = 200.0
+    T_guess_F = float(T_guess_F)
+
+    # Degenerate bound window: return clipped guess.
+    if (not np.isfinite(float(T_min_F))) or (not np.isfinite(float(T_max_F))) or float(T_max_F) <= float(T_min_F):
+        T_use = float(T_guess_F)
+        f_use, beta_use, fres_use = eval_f(T_use)
+        _ = (f_use, beta_use)
+        return float(T_use), fres_use
 
     # Coarse scan to find a sign change bracket
     n_scan = 21
@@ -1535,14 +2926,11 @@ def _bubble_point_T_F(
         return float(T_root), fres_root
 
     if bracket is None:
-        # No sign change; return the temperature with smallest |f|,
-        # breaking ties by proximity to the initial guess.
-        candidates = []
-        for T, f, fres in zip(Ts, fs, fres_list):
-            candidates.append((abs(float(f)), abs(float(T) - float(T_guess_F)), float(T), fres))
-        candidates.sort(key=lambda r: (r[0], r[1]))
-        _fabs, _d, T_best, fres_best = candidates[0]
-        return float(T_best), fres_best
+        # No sign change: keep continuity by evaluating at the clipped guess,
+        # rather than snapping to a coarse-scan node.
+        T_use = float(np.clip(float(T_guess_F), float(T_min_F), float(T_max_F)))
+        _f_use, _beta_use, fres_use = eval_f(T_use)
+        return float(T_use), fres_use
 
     T_low, T_high, f_low, f_high = bracket
     f_low, _beta_low, fres_low = eval_f(T_low)

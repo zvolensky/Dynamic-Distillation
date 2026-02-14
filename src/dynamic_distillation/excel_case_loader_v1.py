@@ -373,6 +373,13 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
 
     # Specs
     specs: Dict[str, Any] = {}
+
+    def _first_optional_float(labels: list[str]) -> Optional[float]:
+        for lab in labels:
+            v = _get_optional_float(specs_df, lab)
+            if v is not None:
+                return v
+        return None
     specs["Number of Stages"] = _get_required_int(specs_df, "Number of Stages")
     specs["Number of Components"] = _get_required_int(specs_df, "Number of Components")
     specs["Condenser Type"] = _get_optional_str(specs_df, "Condenser Type")
@@ -384,8 +391,100 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     specs["Top Accumulator Holdup (lbmol)"] = _get_optional_float(specs_df, "Top Accumulator Holdup (lbmol)")
     specs["Bottom Holdup (lbmol)"] = _get_optional_float(specs_df, "Bottom Holdup (lbmol)")
 
+    # Optional reflux-drum geometry to infer top vapor-space volume.
+    specs["Top Drum Vapor Volume (ft3)"] = _first_optional_float(
+        [
+            "Top Drum Vapor Volume (ft3)",
+            "Top Accumulator Vapor Volume (ft3)",
+            "Reflux Drum Vapor Volume (ft3)",
+            "Distillate Drum Vapor Volume (ft3)",
+            "Top Vapor Volume (ft3)",
+        ]
+    )
+    specs["Top Drum Total Volume (ft3)"] = _first_optional_float(
+        [
+            "Top Drum Total Volume (ft3)",
+            "Top Accumulator Total Volume (ft3)",
+            "Reflux Drum Total Volume (ft3)",
+            "Distillate Drum Total Volume (ft3)",
+            "Top Drum Volume (ft3)",
+            "Reflux Drum Volume (ft3)",
+            "Distillate Drum Volume (ft3)",
+        ]
+    )
+    specs["Top Drum Diameter (ft)"] = _first_optional_float(
+        [
+            "Top Drum Diameter (ft)",
+            "Top Accumulator Diameter (ft)",
+            "Reflux Drum Diameter (ft)",
+            "Distillate Drum Diameter (ft)",
+            "Top Drum ID (ft)",
+            "Reflux Drum ID (ft)",
+            "Distillate Drum ID (ft)",
+        ]
+    )
+    specs["Top Drum Length (ft)"] = _first_optional_float(
+        [
+            "Top Drum Length (ft)",
+            "Top Accumulator Length (ft)",
+            "Reflux Drum Length (ft)",
+            "Distillate Drum Length (ft)",
+        ]
+    )
+    top_liq_frac = _first_optional_float(
+        [
+            "Top Drum Liquid Volume Fraction",
+            "Top Drum Liquid Fraction",
+            "Top Accumulator Liquid Volume Fraction",
+            "Top Accumulator Liquid Fraction",
+            "Reflux Drum Liquid Volume Fraction",
+            "Reflux Drum Liquid Fraction",
+            "Distillate Drum Liquid Volume Fraction",
+            "Distillate Drum Liquid Fraction",
+            "Top Drum Fill Fraction",
+            "Reflux Drum Fill Fraction",
+            "Distillate Drum Fill Fraction",
+        ]
+    )
+    if top_liq_frac is not None and top_liq_frac > 1.0 and top_liq_frac <= 100.0:
+        top_liq_frac = float(top_liq_frac) / 100.0
+    if top_liq_frac is not None and (top_liq_frac < 0.0 or top_liq_frac > 1.0):
+        top_liq_frac = None
+    specs["Top Drum Liquid Fraction (-)"] = top_liq_frac
+
     # Module 8B: tau (optional)
     specs["Stage time constant [tau] (sec)"] = _get_optional_float(specs_df, "Stage time constant [tau] (sec)")
+    specs["Dry Tray K"] = _get_optional_float(specs_df, "Dry Tray K")
+    specs["Vapor Holdup Relaxation (sec)"] = _get_optional_float(specs_df, "Vapor Holdup Relaxation (sec)")
+    specs["Vapor Flow Relaxation (sec)"] = _get_optional_float(specs_df, "Vapor Flow Relaxation (sec)")
+    cond_dp = _get_optional_float(specs_df, "Condenser Pressure Drop (psi)")
+    if cond_dp is None:
+        cond_dp = _get_optional_float(specs_df, "Condenser Pressure Drop (psia)")
+    specs["Condenser Pressure Drop (psi)"] = cond_dp
+    reb_nbr_hi = _get_optional_float(specs_df, "Reboiler Neighbor Vapor Hi Ratio")
+    if reb_nbr_hi is None:
+        reb_nbr_hi = _get_optional_float(specs_df, "Reboiler Neighbor Vflow Hi Ratio")
+    specs["Reboiler Neighbor Vapor Hi Ratio"] = reb_nbr_hi
+    reb_nbr_lo = _get_optional_float(specs_df, "Reboiler Neighbor Vapor Lo Ratio")
+    if reb_nbr_lo is None:
+        reb_nbr_lo = _get_optional_float(specs_df, "Reboiler Neighbor Vflow Lo Ratio")
+    specs["Reboiler Neighbor Vapor Lo Ratio"] = reb_nbr_lo
+    thermo_refresh = _get_optional_float(specs_df, "Thermo Refresh dT (F)")
+    if thermo_refresh is None:
+        thermo_refresh = _get_optional_float(specs_df, "Thermo Refresh Delta T (F)")
+    if thermo_refresh is None:
+        thermo_refresh = _get_optional_float(specs_df, "Thermo Refresh Delta (F)")
+    if thermo_refresh is None:
+        thermo_refresh = _get_optional_float(specs_df, "Thermo Refresh \u0394T (F)")
+    specs["Thermo Refresh dT (F)"] = thermo_refresh
+    thermo_refresh_dp = _get_optional_float(specs_df, "Thermo Refresh dP (psia)")
+    if thermo_refresh_dp is None:
+        thermo_refresh_dp = _get_optional_float(specs_df, "Thermo Refresh Delta P (psia)")
+    specs["Thermo Refresh dP (psia)"] = thermo_refresh_dp
+    thermo_refresh_dx = _get_optional_float(specs_df, "Thermo Refresh dX")
+    if thermo_refresh_dx is None:
+        thermo_refresh_dx = _get_optional_float(specs_df, "Thermo Refresh Delta X")
+    specs["Thermo Refresh dX"] = thermo_refresh_dx
 
     # Geometry (optional): stage geometry sections for vapor volume estimation
     specs["Geometry Sections"] = _read_stage_geometry_sections(specs_df)

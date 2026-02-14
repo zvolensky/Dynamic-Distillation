@@ -141,7 +141,15 @@ def _as_bool(x: Any) -> Optional[bool]:
     return None
 
 
-def _pi_update(controller: PIController, *, pv: float, sp: float, dt_sec: float) -> float:
+def _pi_update(
+    controller: PIController,
+    *,
+    pv: float,
+    sp: float,
+    dt_sec: float,
+    out_min: Optional[float] = None,
+    out_max: Optional[float] = None,
+) -> float:
     """
     One-step PI with anti-windup (conditional integration).
     """
@@ -155,19 +163,28 @@ def _pi_update(controller: PIController, *, pv: float, sp: float, dt_sec: float)
     if not np.isfinite(controller.integ):
         controller.integ = 0.0
 
+    umin = float(controller.out_min if out_min is None else out_min)
+    umax = float(controller.out_max if out_max is None else out_max)
+    if not np.isfinite(umin):
+        umin = float(controller.out_min)
+    if not np.isfinite(umax):
+        umax = float(controller.out_max)
+    if umax < umin:
+        umax = umin
+
     # Tentative unclamped output
     i_next = controller.integ + e * float(dt_sec) / max(float(controller.ti_sec), 1e-9)
     u_unclamped = float(controller.bias) + float(controller.kc) * (e + i_next)
-    u = float(np.clip(u_unclamped, float(controller.out_min), float(controller.out_max)))
+    u = float(np.clip(u_unclamped, umin, umax))
 
     # Anti-windup: accept integrator update only when output is unsaturated
     # or error would move output back toward unsaturated region.
-    sat_hi = u_unclamped > float(controller.out_max) + 1e-12
-    sat_lo = u_unclamped < float(controller.out_min) - 1e-12
+    sat_hi = u_unclamped > umax + 1e-12
+    sat_lo = u_unclamped < umin - 1e-12
     allow_int = (not sat_hi and not sat_lo) or (sat_hi and e < 0.0) or (sat_lo and e > 0.0)
     if allow_int:
         controller.integ = float(i_next)
-        u = float(np.clip(float(controller.bias) + float(controller.kc) * (e + controller.integ), float(controller.out_min), float(controller.out_max)))
+        u = float(np.clip(float(controller.bias) + float(controller.kc) * (e + controller.integ), umin, umax))
     return u
 
 
@@ -371,12 +388,17 @@ class RunnerConfig:
     thermo_table_path: Optional[str] = None
     reboiler_neighbor_vflow_hi_ratio: Optional[float] = None
     reboiler_neighbor_vflow_lo_ratio: Optional[float] = None
+    vapor_holdup_relaxation_sec: Optional[float] = None
+    vapor_flow_relaxation_sec: Optional[float] = None
 
     reflux_lbmolph: Optional[float] = None
     boilup_lbmolph: Optional[float] = None
     condenser_duty_mode: str = "total-condense"
     condenser_duty_btu_per_h: Optional[float] = None
     condenser_duty_trim_btu_per_h: Optional[float] = None
+    condenser_pressure_drop_psi: Optional[float] = None
+    top_drum_vapor_volume_ft3: Optional[float] = None
+    top_drum_total_volume_ft3: Optional[float] = None
     enable_level_control: bool = False
     top_level_sp_lbmol: Optional[float] = None
     bottom_level_sp_lbmol: Optional[float] = None
@@ -393,6 +415,26 @@ class RunnerConfig:
     condenser_duty_max_btu_per_h: Optional[float] = None
     top_pressure_anchor_min_psia: Optional[float] = None
     top_pressure_anchor_max_psia: Optional[float] = None
+    enable_distillate_composition_control: bool = False
+    distillate_composition_component: str = "C4"
+    distillate_composition_sp_molfrac: Optional[float] = None
+    distillate_composition_kc: Optional[float] = None
+    distillate_composition_ti_sec: Optional[float] = None
+    reflux_cmd_min_lbmolph: Optional[float] = None
+    reflux_cmd_max_lbmolph: Optional[float] = None
+    reflux_ratio_min: Optional[float] = None
+    reflux_ratio_max: Optional[float] = None
+    enable_bottoms_composition_control: bool = False
+    bottoms_composition_component: str = "C5"
+    bottoms_composition_sp_molfrac: Optional[float] = None
+    bottoms_composition_kc: Optional[float] = None
+    bottoms_composition_ti_sec: Optional[float] = None
+    bottoms_composition_mv: str = "boilup"  # boilup|reboiler-duty
+    boilup_cmd_min_lbmolph: Optional[float] = None
+    boilup_cmd_max_lbmolph: Optional[float] = None
+    reboiler_duty_cmd_min_btu_per_h: Optional[float] = None
+    reboiler_duty_cmd_max_btu_per_h: Optional[float] = None
+    reboiler_duty_btu_per_h: Optional[float] = None
 
     logs_dir: str = "logs"
     write_logs: bool = True
@@ -561,10 +603,14 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     tau_v = _spec_float(specs, "Vapor Holdup Relaxation (sec)")
     if tau_v is None:
         tau_v = _spec_float(specs, "Stage time constant [tau] (sec)")
+    if cfg.vapor_holdup_relaxation_sec is not None:
+        tau_v = float(cfg.vapor_holdup_relaxation_sec)
     if tau_v is not None and (not np.isfinite(tau_v) or tau_v <= 0.0):
         tau_v = None
 
     tau_vflow = _spec_float(specs, "Vapor Flow Relaxation (sec)")
+    if cfg.vapor_flow_relaxation_sec is not None:
+        tau_vflow = float(cfg.vapor_flow_relaxation_sec)
     if tau_vflow is not None and (not np.isfinite(tau_vflow) or tau_vflow <= 0.0):
         tau_vflow = None
 
@@ -619,6 +665,223 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     if thermo_refresh_dX is not None and (not np.isfinite(thermo_refresh_dX) or thermo_refresh_dX <= 0.0):
         thermo_refresh_dX = None
 
+    condenser_dp_psi = cfg.condenser_pressure_drop_psi
+    if condenser_dp_psi is None:
+        condenser_dp_psi = _spec_float(
+            specs,
+            "Condenser Pressure Drop (psi)",
+            "Condenser Pressure Drop (psia)",
+            "Condenser dP (psi)",
+            "Condenser dP (psia)",
+            "Condenser Delta P (psi)",
+            "Condenser Delta P (psia)",
+        )
+    if condenser_dp_psi is not None and (not np.isfinite(condenser_dp_psi) or condenser_dp_psi < 0.0):
+        condenser_dp_psi = None
+
+    top_drum_total_volume_ft3 = cfg.top_drum_total_volume_ft3
+    if top_drum_total_volume_ft3 is None:
+        top_drum_total_volume_ft3 = _spec_float(
+            specs,
+            "Top Drum Total Volume (ft3)",
+            "Top Accumulator Total Volume (ft3)",
+            "Reflux Drum Total Volume (ft3)",
+            "Distillate Drum Total Volume (ft3)",
+            "Top Drum Volume (ft3)",
+            "Reflux Drum Volume (ft3)",
+            "Distillate Drum Volume (ft3)",
+        )
+    if top_drum_total_volume_ft3 is None:
+        d_ft = _spec_float(
+            specs,
+            "Top Drum Diameter (ft)",
+            "Top Accumulator Diameter (ft)",
+            "Reflux Drum Diameter (ft)",
+            "Distillate Drum Diameter (ft)",
+            "Top Drum ID (ft)",
+            "Reflux Drum ID (ft)",
+            "Distillate Drum ID (ft)",
+        )
+        l_ft = _spec_float(
+            specs,
+            "Top Drum Length (ft)",
+            "Top Accumulator Length (ft)",
+            "Reflux Drum Length (ft)",
+            "Distillate Drum Length (ft)",
+        )
+        if d_ft is not None and l_ft is not None and d_ft > 0.0 and l_ft > 0.0:
+            top_drum_total_volume_ft3 = float(np.pi * 0.25 * float(d_ft) * float(d_ft) * float(l_ft))
+
+    top_drum_vapor_volume_ft3 = cfg.top_drum_vapor_volume_ft3
+    if top_drum_vapor_volume_ft3 is None:
+        top_drum_vapor_volume_ft3 = _spec_float(
+            specs,
+            "Top Drum Vapor Volume (ft3)",
+            "Top Accumulator Vapor Volume (ft3)",
+            "Reflux Drum Vapor Volume (ft3)",
+            "Distillate Drum Vapor Volume (ft3)",
+            "Top Vapor Volume (ft3)",
+        )
+    if top_drum_vapor_volume_ft3 is None:
+        if top_drum_total_volume_ft3 is not None and np.isfinite(top_drum_total_volume_ft3) and top_drum_total_volume_ft3 > 0.0:
+            top_liq_frac = _spec_float(
+                specs,
+                "Top Drum Liquid Fraction (-)",
+                "Top Drum Liquid Volume Fraction",
+                "Top Drum Liquid Fraction",
+                "Top Accumulator Liquid Volume Fraction",
+                "Top Accumulator Liquid Fraction",
+                "Reflux Drum Liquid Volume Fraction",
+                "Reflux Drum Liquid Fraction",
+                "Distillate Drum Liquid Volume Fraction",
+                "Distillate Drum Liquid Fraction",
+                "Top Drum Fill Fraction",
+                "Reflux Drum Fill Fraction",
+                "Distillate Drum Fill Fraction",
+            )
+            if top_liq_frac is not None and top_liq_frac > 1.0 and top_liq_frac <= 100.0:
+                top_liq_frac = float(top_liq_frac) / 100.0
+            if top_liq_frac is not None and (top_liq_frac < 0.0 or top_liq_frac > 1.0):
+                top_liq_frac = None
+
+            top_liq_vol_ft3 = None
+            if top_liq_frac is not None:
+                top_liq_vol_ft3 = float(top_liq_frac) * float(top_drum_total_volume_ft3)
+            else:
+                top_holdup_lbmol = _spec_float(
+                    specs,
+                    "Top Accumulator Holdup (lbmol)",
+                    "Top Drum Holdup (lbmol)",
+                    "Reflux Drum Holdup (lbmol)",
+                )
+                if (
+                    top_holdup_lbmol is not None
+                    and top_holdup_lbmol > 0.0
+                    and hasattr(prov, "liquid_density_lbmol_ft3")
+                    and hasattr(col, "x0")
+                    and hasattr(col, "T_f")
+                    and hasattr(col, "P_psia")
+                ):
+                    try:
+                        x_top = np.asarray(getattr(col, "x0"), dtype=float).reshape((col.n_stages, col.n_components))[0, :]
+                        T_top = float(np.asarray(getattr(col, "T_f"), dtype=float).reshape((col.n_stages,))[0])
+                        P_top = float(np.asarray(getattr(col, "P_psia"), dtype=float).reshape((col.n_stages,))[0])
+                        rho_top = float(prov.liquid_density_lbmol_ft3(T_top, P_top, x_top))
+                        if np.isfinite(rho_top) and rho_top > 1e-12:
+                            top_liq_vol_ft3 = float(top_holdup_lbmol) / float(rho_top)
+                    except Exception:
+                        top_liq_vol_ft3 = None
+
+            if top_liq_vol_ft3 is None or (not np.isfinite(top_liq_vol_ft3)):
+                # If only geometry is provided, default to half-full.
+                top_liq_vol_ft3 = 0.5 * float(top_drum_total_volume_ft3)
+            top_liq_vol_ft3 = float(np.clip(top_liq_vol_ft3, 0.0, float(top_drum_total_volume_ft3)))
+            top_drum_vapor_volume_ft3 = float(top_drum_total_volume_ft3) - float(top_liq_vol_ft3)
+    if (
+        top_drum_total_volume_ft3 is None
+        and top_drum_vapor_volume_ft3 is not None
+        and np.isfinite(top_drum_vapor_volume_ft3)
+        and top_drum_vapor_volume_ft3 > 0.0
+    ):
+        top_liq_frac = _spec_float(
+            specs,
+            "Top Drum Liquid Fraction (-)",
+            "Top Drum Liquid Volume Fraction",
+            "Top Drum Liquid Fraction",
+            "Top Accumulator Liquid Volume Fraction",
+            "Top Accumulator Liquid Fraction",
+            "Reflux Drum Liquid Volume Fraction",
+            "Reflux Drum Liquid Fraction",
+            "Distillate Drum Liquid Volume Fraction",
+            "Distillate Drum Liquid Fraction",
+            "Top Drum Fill Fraction",
+            "Reflux Drum Fill Fraction",
+            "Distillate Drum Fill Fraction",
+        )
+        if top_liq_frac is not None and top_liq_frac > 1.0 and top_liq_frac <= 100.0:
+            top_liq_frac = float(top_liq_frac) / 100.0
+        if top_liq_frac is not None and 0.0 <= float(top_liq_frac) < 1.0:
+            try:
+                top_drum_total_volume_ft3 = float(top_drum_vapor_volume_ft3) / max(1.0 - float(top_liq_frac), 1e-12)
+            except Exception:
+                top_drum_total_volume_ft3 = None
+        elif (
+            hasattr(prov, "liquid_density_lbmol_ft3")
+            and hasattr(col, "x0")
+            and hasattr(col, "T_f")
+            and hasattr(col, "P_psia")
+        ):
+            # Infer total drum volume from initial liquid holdup + explicit initial vapor volume.
+            top_holdup_lbmol = _spec_float(
+                specs,
+                "Top Accumulator Holdup (lbmol)",
+                "Top Drum Holdup (lbmol)",
+                "Reflux Drum Holdup (lbmol)",
+            )
+            if top_holdup_lbmol is not None and top_holdup_lbmol >= 0.0:
+                try:
+                    x_top = np.asarray(getattr(col, "x0"), dtype=float).reshape((col.n_stages, col.n_components))[0, :]
+                    T_top = float(np.asarray(getattr(col, "T_f"), dtype=float).reshape((col.n_stages,))[0])
+                    P_top = float(np.asarray(getattr(col, "P_psia"), dtype=float).reshape((col.n_stages,))[0])
+                    rho_top = float(prov.liquid_density_lbmol_ft3(T_top, P_top, x_top))
+                    if np.isfinite(rho_top) and rho_top > 1e-12:
+                        top_liq_vol_ft3 = float(top_holdup_lbmol) / float(rho_top)
+                        total_try = float(top_drum_vapor_volume_ft3) + max(float(top_liq_vol_ft3), 0.0)
+                        if np.isfinite(total_try) and total_try > float(top_drum_vapor_volume_ft3):
+                            top_drum_total_volume_ft3 = total_try
+                except Exception:
+                    top_drum_total_volume_ft3 = None
+
+    if top_drum_vapor_volume_ft3 is None:
+        try:
+            vv = _vapor_volume_ft3_per_stage(vol, int(col.n_stages))
+            top_drum_vapor_volume_ft3 = float(vv[0])
+        except Exception:
+            top_drum_vapor_volume_ft3 = None
+    if (
+        top_drum_total_volume_ft3 is None
+        and top_drum_vapor_volume_ft3 is not None
+        and np.isfinite(top_drum_vapor_volume_ft3)
+        and top_drum_vapor_volume_ft3 > 0.0
+        and hasattr(prov, "liquid_density_lbmol_ft3")
+        and hasattr(col, "x0")
+        and hasattr(col, "T_f")
+        and hasattr(col, "P_psia")
+    ):
+        top_holdup_lbmol = _spec_float(
+            specs,
+            "Top Accumulator Holdup (lbmol)",
+            "Top Drum Holdup (lbmol)",
+            "Reflux Drum Holdup (lbmol)",
+        )
+        if top_holdup_lbmol is not None and top_holdup_lbmol >= 0.0:
+            try:
+                x_top = np.asarray(getattr(col, "x0"), dtype=float).reshape((col.n_stages, col.n_components))[0, :]
+                T_top = float(np.asarray(getattr(col, "T_f"), dtype=float).reshape((col.n_stages,))[0])
+                P_top = float(np.asarray(getattr(col, "P_psia"), dtype=float).reshape((col.n_stages,))[0])
+                rho_top = float(prov.liquid_density_lbmol_ft3(T_top, P_top, x_top))
+                if np.isfinite(rho_top) and rho_top > 1e-12:
+                    top_liq_vol_ft3 = float(top_holdup_lbmol) / float(rho_top)
+                    total_try = float(top_drum_vapor_volume_ft3) + max(float(top_liq_vol_ft3), 0.0)
+                    if np.isfinite(total_try) and total_try > float(top_drum_vapor_volume_ft3):
+                        top_drum_total_volume_ft3 = total_try
+            except Exception:
+                top_drum_total_volume_ft3 = None
+    if top_drum_vapor_volume_ft3 is not None and (
+        (not np.isfinite(top_drum_vapor_volume_ft3)) or top_drum_vapor_volume_ft3 <= 0.0
+    ):
+        top_drum_vapor_volume_ft3 = None
+    if top_drum_total_volume_ft3 is not None and (
+        (not np.isfinite(top_drum_total_volume_ft3)) or top_drum_total_volume_ft3 <= 0.0
+    ):
+        top_drum_total_volume_ft3 = None
+    if (
+        top_drum_total_volume_ft3 is not None
+        and top_drum_vapor_volume_ft3 is not None
+        and top_drum_vapor_volume_ft3 > top_drum_total_volume_ft3
+    ):
+        top_drum_vapor_volume_ft3 = float(top_drum_total_volume_ft3)
+
     mw_components = None
     if hasattr(prov, "component_mw_lbm_per_lbmol"):
         try:
@@ -644,8 +907,20 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         compute_thermo_diag=True,
         equilibrium_relaxation=bool(cfg.enable_equilibrium_relaxation),
         tau_eq_sec=getattr(col, "tau_eq_sec", None),
+        reboiler_duty_btu_per_h=(float(cfg.reboiler_duty_btu_per_h) if cfg.reboiler_duty_btu_per_h is not None else None),
         pressure_model=str(pressure_model),
         pressure_top_anchor_psia=None,
+        condenser_pressure_drop_psi=(float(condenser_dp_psi) if condenser_dp_psi is not None else None),
+        top_drum_vapor_volume_ft3=(
+            float(top_drum_vapor_volume_ft3)
+            if top_drum_vapor_volume_ft3 is not None
+            else None
+        ),
+        top_drum_total_volume_ft3=(
+            float(top_drum_total_volume_ft3)
+            if top_drum_total_volume_ft3 is not None
+            else None
+        ),
         vapor_flow_model=str(vapor_flow_model),
         dry_tray_K=float(dry_tray_k),
         vapor_holdup_relaxation_sec=(float(tau_v) if tau_v is not None else None),
@@ -736,6 +1011,45 @@ def _tray_temperature_F(col: ColumnSpec, layout: StateVectorLayout, y: np.ndarra
         if "tray_T_f" in u:
             return np.asarray(u["tray_T_f"], dtype=float).reshape((N,))
     return np.asarray(getattr(col, "T_f", np.full(N, np.nan, dtype=float)), dtype=float).reshape((N,))
+
+
+def _total_inventory_lbmol(layout: StateVectorLayout, y: np.ndarray) -> float:
+    """Total molar inventory over all holdup states (lbmol)."""
+    u = layout.unpack(np.asarray(y, dtype=float))
+    total = 0.0
+    # When a separate top drum state is present, tray-1 liquid/vapor are tied to
+    # that same inventory in the RHS. Exclude tray-1 from global totals to avoid
+    # double counting in mass-closure diagnostics.
+    has_top_drum = bool(getattr(layout, "include_top", False)) and ("top_L" in u)
+    for key in ("tray_L", "tray_V", "top_L", "top_V", "bottom_L", "bottom_V"):
+        if key not in u:
+            continue
+        try:
+            arr = np.asarray(u[key], dtype=float)
+            if has_top_drum and key in ("tray_L", "tray_V") and arr.ndim == 2 and arr.shape[0] > 0:
+                arr = arr[1:, :]
+            total += float(np.nansum(arr))
+        except Exception:
+            pass
+    return float(total)
+
+
+def _total_inventory_rate_lbmolps(layout: StateVectorLayout, dydt: np.ndarray) -> float:
+    """Total inventory time derivative over molar holdup states (lbmol/s)."""
+    ud = layout.unpack(np.asarray(dydt, dtype=float))
+    total = 0.0
+    has_top_drum = bool(getattr(layout, "include_top", False)) and ("top_L" in ud)
+    for key in ("tray_L", "tray_V", "top_L", "top_V", "bottom_L", "bottom_V"):
+        if key not in ud:
+            continue
+        try:
+            arr = np.asarray(ud[key], dtype=float)
+            if has_top_drum and key in ("tray_L", "tray_V") and arr.ndim == 2 and arr.shape[0] > 0:
+                arr = arr[1:, :]
+            total += float(np.nansum(arr))
+        except Exception:
+            pass
+    return float(total)
 
 
 def _vapor_volume_ft3_per_stage(vol: VolumeModel, N: int) -> np.ndarray:
@@ -857,6 +1171,52 @@ def _initialize_vapor_holdup_from_spec_pressure(
     sl = layout.slices()
     y_new = np.asarray(y, dtype=float).copy()
     y_new[sl["tray_V"]] = tray_V.ravel(order="C")
+
+    # Optional top-drum vapor initialization from top pressure specification.
+    if layout.include_top and layout.include_vapor and ("top_V" in sl):
+        top_vol = inputs.top_drum_vapor_volume_ft3
+        top_total_vol = inputs.top_drum_total_volume_ft3
+        if top_total_vol is not None and np.isfinite(float(top_total_vol)) and float(top_total_vol) > 0.0:
+            rho_top = None
+            if inputs.thermo_provider is not None and hasattr(inputs.thermo_provider, "liquid_density_lbmol_ft3"):
+                try:
+                    x_top = np.asarray(u["top_L"], dtype=float).reshape((col.n_components,))
+                    x_top = _normalize_comp(np.where(np.isfinite(x_top), x_top, 0.0))
+                    rho_try = float(
+                        inputs.thermo_provider.liquid_density_lbmol_ft3(
+                            float(T_F[0]),
+                            float(P_spec[0]) if np.isfinite(float(P_spec[0])) else 200.0,
+                            x_top,
+                        )
+                    )
+                    if np.isfinite(rho_try) and rho_try > 1e-12:
+                        rho_top = rho_try
+                except Exception:
+                    rho_top = None
+            if rho_top is not None:
+                try:
+                    m_top = float(np.sum(np.asarray(u["top_L"], dtype=float).reshape((col.n_components,))))
+                    liq_vol = max(m_top / float(rho_top), 0.0)
+                    liq_vol = float(np.clip(liq_vol, 0.0, float(top_total_vol)))
+                    top_vol = float(top_total_vol) - liq_vol
+                    if top_vol < 1e-3:
+                        top_vol = 1e-3
+                except Exception:
+                    top_vol = inputs.top_drum_vapor_volume_ft3
+        if top_vol is None:
+            try:
+                top_vol = float(V[0])
+            except Exception:
+                top_vol = None
+        if top_vol is not None and np.isfinite(float(top_vol)) and float(top_vol) > 0.0:
+            p_top = float(P_spec[0]) if np.isfinite(float(P_spec[0])) and float(P_spec[0]) > 0.0 else np.nan
+            if np.isfinite(p_top):
+                z_top = float(Z0[0]) if np.isfinite(float(Z0[0])) and float(Z0[0]) > 0.0 else 1.0
+                mv_top = p_top * float(top_vol) / max(z_top * R * T_R[0], 1e-12)
+                mv_top = max(float(mv_top), 0.0)
+                top_y_src_idx = 1 if N > 1 else 0
+                top_y = _normalize_comp(yfrac[top_y_src_idx, :])
+                y_new[sl["top_V"]] = (mv_top * top_y).reshape((-1,))
     return y_new
 
 
@@ -938,7 +1298,7 @@ def _build_pressure_controller(
         sp = _spec_float(specs, "Top Pressure SP (psia)", "Condenser Pressure SP (psia)")
     if sp is None:
         try:
-            p_ctrl_idx = 1 if int(getattr(col, "n_stages", 1)) > 1 else 0
+            p_ctrl_idx = 0
             sp = float(np.asarray(getattr(col, "P_psia"), dtype=float).reshape((-1,))[p_ctrl_idx])
         except Exception:
             sp = None
@@ -997,7 +1357,7 @@ def _build_pressure_controller(
         return True, ctrl, float(sp), mv_mode
 
     # top-anchor pressure control mode
-    p_ctrl_idx = 1 if int(getattr(col, "n_stages", 1)) > 1 else 0
+    p_ctrl_idx = 0
     try:
         p_bias = float(np.asarray(getattr(col, "P_psia"), dtype=float).reshape((-1,))[p_ctrl_idx])
     except Exception:
@@ -1110,6 +1470,357 @@ def _build_level_controllers(
         integ=0.0,
     )
     return True, top_ctrl, bot_ctrl, (float(sp_top) if sp_top is not None else None), (float(sp_bot) if sp_bot is not None else None)
+
+
+def _component_index_by_name(col: ColumnSpec, token: str) -> Optional[int]:
+    tok = _normalize_spec_key(token)
+    if not tok:
+        return None
+
+    excel_names = list(getattr(col, "components_excel", []) or [])
+    dwsim_names = list(getattr(col, "components_dwsim", []) or [])
+    n_comp = int(getattr(col, "n_components", len(excel_names)))
+
+    def _aliases_for(i: int) -> List[str]:
+        out: List[str] = []
+        if i < len(excel_names):
+            out.append(_normalize_spec_key(excel_names[i]))
+        if i < len(dwsim_names):
+            out.append(_normalize_spec_key(dwsim_names[i]))
+        for v in list(out):
+            if len(v) >= 3 and v.startswith("c") and "h" in v:
+                h_pos = v.find("h")
+                cnum = v[1:h_pos]
+                if cnum.isdigit():
+                    out.append(f"c{int(cnum)}")
+        return [a for a in out if a]
+
+    all_aliases = [_aliases_for(i) for i in range(n_comp)]
+    for i, aliases in enumerate(all_aliases):
+        if tok in aliases:
+            return i
+
+    carbon_alias = {
+        "c1": ("methane",),
+        "c2": ("ethane",),
+        "c3": ("propane",),
+        "c4": ("butane",),
+        "c5": ("pentane",),
+        "c6": ("hexane",),
+        "c7": ("heptane",),
+        "c8": ("octane",),
+    }
+    if tok in carbon_alias:
+        hints = tuple(_normalize_spec_key(v) for v in carbon_alias[tok])
+        for i, aliases in enumerate(all_aliases):
+            for a in aliases:
+                for h in hints:
+                    if h and h in a:
+                        return i
+
+    for i, aliases in enumerate(all_aliases):
+        for a in aliases:
+            if len(tok) >= 2 and (a.startswith(tok) or tok in a):
+                return i
+    return None
+
+
+def _build_distillate_composition_controller(
+    *,
+    col: ColumnSpec,
+    cfg: RunnerConfig,
+    boundary: BoundaryFlows,
+    dist_tag: StreamTag,
+) -> Tuple[bool, Optional[PIController], Optional[float], Optional[int], Optional[str]]:
+    specs = getattr(col, "specs_raw", None) or {}
+    enabled = bool(cfg.enable_distillate_composition_control)
+    if (not enabled) and (cfg.distillate_composition_sp_molfrac is not None):
+        enabled = True
+    if not enabled:
+        b = _as_bool(
+            _spec_get(
+                specs,
+                "Enable Distillate Composition Control",
+                "Distillate Composition Control Enabled",
+            )
+        )
+        enabled = bool(b) if b is not None else False
+    if not enabled:
+        return False, None, None, None, None
+
+    comp_name = str(cfg.distillate_composition_component or "").strip()
+    if not comp_name:
+        comp_name = str(
+            _spec_get(
+                specs,
+                "Distillate Composition Component",
+                "Distillate Controller Component",
+            )
+            or "C4"
+        ).strip()
+
+    comp_idx = _component_index_by_name(col, comp_name)
+    if comp_idx is None:
+        return False, None, None, None, None
+
+    sp = cfg.distillate_composition_sp_molfrac
+    if sp is None:
+        sp = _spec_float(
+            specs,
+            "Distillate Composition SP",
+            "Distillate C4 SP",
+            "Distillate x SP",
+        )
+    if sp is None:
+        return False, None, None, None, None
+    sp = float(sp)
+    if (not np.isfinite(sp)) or sp < 0.0 or sp > 1.0:
+        return False, None, None, None, None
+
+    kc = cfg.distillate_composition_kc
+    if kc is None:
+        kc = _spec_float(specs, "Distillate Composition Kc", "Distillate Controller Kc")
+    if kc is None:
+        kc = 1.0e4
+
+    ti = cfg.distillate_composition_ti_sec
+    if ti is None:
+        ti = _spec_float(specs, "Distillate Composition Ti (sec)", "Distillate Controller Ti (sec)")
+    if ti is None:
+        ti = 240.0
+
+    l_bias = float(boundary.reflux_lbmolph) if boundary.reflux_lbmolph is not None else np.nan
+    d_bias = float(dist_tag.flow_lbmolph) if dist_tag.flow_lbmolph is not None else np.nan
+    if (not np.isfinite(l_bias)) or l_bias < 0.0:
+        l_bias = float(np.asarray(getattr(col, "L_lbmolph"), dtype=float).reshape((-1,))[0])
+
+    l_min = cfg.reflux_cmd_min_lbmolph
+    l_max = cfg.reflux_cmd_max_lbmolph
+
+    # Backward-compatible fallback: if only ratio clamps are provided, map them
+    # to reflux-flow clamps around current distillate flow.
+    if l_min is None and cfg.reflux_ratio_min is not None and np.isfinite(d_bias) and d_bias > 0.0:
+        l_min = float(cfg.reflux_ratio_min) * float(d_bias)
+    if l_max is None and cfg.reflux_ratio_max is not None and np.isfinite(d_bias) and d_bias > 0.0:
+        l_max = float(cfg.reflux_ratio_max) * float(d_bias)
+
+    if l_min is None:
+        l_min = _spec_float(
+            specs,
+            "Reflux Flow Min (lbmol/h)",
+            "Distillate Composition Reflux Min (lbmol/h)",
+        )
+    if l_max is None:
+        l_max = _spec_float(
+            specs,
+            "Reflux Flow Max (lbmol/h)",
+            "Distillate Composition Reflux Max (lbmol/h)",
+        )
+
+    if l_min is None:
+        l_min = 0.0
+    if l_max is None:
+        l_max = max(2.5 * max(float(l_bias), 1.0), float(l_bias) + 5000.0)
+    l_min = float(l_min)
+    l_max = float(l_max)
+    if l_min > l_max:
+        l_min, l_max = l_max, l_min
+
+    ctrl = PIController(
+        kc=float(kc),
+        ti_sec=float(ti),
+        bias=float(l_bias),
+        out_min=float(l_min),
+        out_max=float(l_max),
+        integ=0.0,
+    )
+
+    comp_label = None
+    try:
+        comp_label = str(list(getattr(col, "components_excel", []))[int(comp_idx)])
+    except Exception:
+        comp_label = str(comp_name)
+    return True, ctrl, float(sp), int(comp_idx), comp_label
+
+
+def _build_bottoms_composition_controller(
+    *,
+    col: ColumnSpec,
+    cfg: RunnerConfig,
+    boundary: BoundaryFlows,
+) -> Tuple[bool, Optional[str], Optional[PIController], Optional[float], Optional[int], Optional[str]]:
+    specs = getattr(col, "specs_raw", None) or {}
+    enabled = bool(cfg.enable_bottoms_composition_control)
+    if (not enabled) and (cfg.bottoms_composition_sp_molfrac is not None):
+        enabled = True
+    if not enabled:
+        b = _as_bool(
+            _spec_get(
+                specs,
+                "Enable Bottoms Composition Control",
+                "Bottoms Composition Control Enabled",
+            )
+        )
+        enabled = bool(b) if b is not None else False
+    if not enabled:
+        return False, None, None, None, None, None
+
+    comp_name = str(cfg.bottoms_composition_component or "").strip()
+    if not comp_name:
+        comp_name = str(
+            _spec_get(
+                specs,
+                "Bottoms Composition Component",
+                "Bottoms Controller Component",
+            )
+            or "C5"
+        ).strip()
+
+    comp_idx = _component_index_by_name(col, comp_name)
+    if comp_idx is None:
+        return False, None, None, None, None, None
+
+    sp = cfg.bottoms_composition_sp_molfrac
+    if sp is None:
+        sp = _spec_float(
+            specs,
+            "Bottoms Composition SP",
+            "Bottoms C5 SP",
+            "Bottoms x SP",
+        )
+    if sp is None:
+        return False, None, None, None, None, None
+    sp = float(sp)
+    if (not np.isfinite(sp)) or sp < 0.0 or sp > 1.0:
+        return False, None, None, None, None, None
+
+    mv_raw = str(cfg.bottoms_composition_mv or "").strip()
+    if not mv_raw:
+        mv_raw = str(
+            _spec_get(
+                specs,
+                "Bottoms Composition MV",
+                "Bottoms Controller MV",
+            )
+            or "boilup"
+        ).strip()
+    mv_norm = mv_raw.lower().replace("_", "-").replace(" ", "")
+    if mv_norm in ("duty", "reboilerduty", "reboiler-duty", "qreb", "reboilerq"):
+        mv_mode = "reboiler-duty"
+    else:
+        mv_mode = "boilup"
+
+    kc = cfg.bottoms_composition_kc
+    if kc is None:
+        kc = _spec_float(specs, "Bottoms Composition Kc", "Bottoms Controller Kc")
+
+    ti = cfg.bottoms_composition_ti_sec
+    if ti is None:
+        ti = _spec_float(specs, "Bottoms Composition Ti (sec)", "Bottoms Controller Ti (sec)")
+    if ti is None:
+        ti = 240.0
+
+    if mv_mode == "reboiler-duty":
+        q_bias = cfg.reboiler_duty_btu_per_h
+        if q_bias is None:
+            q_bias = _spec_float(specs, "Reboiler Duty (Btu/h)")
+        if q_bias is None:
+            try:
+                q_bias = float(getattr(getattr(col, "duties", None), "q_reb_btu_per_h"))
+            except Exception:
+                q_bias = None
+        if q_bias is None or (not np.isfinite(float(q_bias))):
+            q_bias = 0.0
+        q_bias = float(q_bias)
+
+        if kc is None:
+            # Preserve rough authority of legacy boilup-MV default by converting
+            # with an estimated latent heat near the design point.
+            v_bias = float(boundary.boilup_lbmolph) if boundary.boilup_lbmolph is not None else np.nan
+            if (not np.isfinite(v_bias)) or v_bias <= 0.0:
+                try:
+                    v_bias = float(np.asarray(getattr(col, "V_lbmolph"), dtype=float).reshape((-1,))[-1])
+                except Exception:
+                    v_bias = np.nan
+            latent_est = q_bias / max(v_bias, 1.0) if np.isfinite(v_bias) and v_bias > 0.0 else 15000.0
+            kc = -1.0e4 * float(latent_est)
+
+        q_min = cfg.reboiler_duty_cmd_min_btu_per_h
+        q_max = cfg.reboiler_duty_cmd_max_btu_per_h
+        if q_min is None:
+            q_min = _spec_float(
+                specs,
+                "Reboiler Duty Min (Btu/h)",
+                "Bottoms Composition Reboiler Duty Min (Btu/h)",
+            )
+        if q_max is None:
+            q_max = _spec_float(
+                specs,
+                "Reboiler Duty Max (Btu/h)",
+                "Bottoms Composition Reboiler Duty Max (Btu/h)",
+            )
+        if q_min is None:
+            q_min = 0.0
+        if q_max is None:
+            q_max = max(2.5 * max(float(q_bias), 1.0), float(q_bias) + 5.0e7)
+        q_min = float(q_min)
+        q_max = float(q_max)
+        if q_min > q_max:
+            q_min, q_max = q_max, q_min
+
+        ctrl = PIController(
+            kc=float(kc),
+            ti_sec=float(ti),
+            bias=float(q_bias),
+            out_min=float(q_min),
+            out_max=float(q_max),
+            integ=0.0,
+        )
+    else:
+        if kc is None:
+            kc = -1.0e4
+        v_bias = float(boundary.boilup_lbmolph) if boundary.boilup_lbmolph is not None else np.nan
+        if (not np.isfinite(v_bias)) or v_bias < 0.0:
+            v_bias = float(np.asarray(getattr(col, "V_lbmolph"), dtype=float).reshape((-1,))[-1])
+
+        v_min = cfg.boilup_cmd_min_lbmolph
+        v_max = cfg.boilup_cmd_max_lbmolph
+        if v_min is None:
+            v_min = _spec_float(
+                specs,
+                "Boilup Flow Min (lbmol/h)",
+                "Bottoms Composition Boilup Min (lbmol/h)",
+            )
+        if v_max is None:
+            v_max = _spec_float(
+                specs,
+                "Boilup Flow Max (lbmol/h)",
+                "Bottoms Composition Boilup Max (lbmol/h)",
+            )
+        if v_min is None:
+            v_min = 0.0
+        if v_max is None:
+            v_max = max(2.5 * max(float(v_bias), 1.0), float(v_bias) + 5000.0)
+        v_min = float(v_min)
+        v_max = float(v_max)
+        if v_min > v_max:
+            v_min, v_max = v_max, v_min
+
+        ctrl = PIController(
+            kc=float(kc),
+            ti_sec=float(ti),
+            bias=float(v_bias),
+            out_min=float(v_min),
+            out_max=float(v_max),
+            integ=0.0,
+        )
+
+    comp_label = None
+    try:
+        comp_label = str(list(getattr(col, "components_excel", []))[int(comp_idx)])
+    except Exception:
+        comp_label = str(comp_name)
+    return True, mv_mode, ctrl, float(sp), int(comp_idx), comp_label
 
 
 def _profile_rows(
@@ -1262,18 +1973,150 @@ def _profile_rows(
             Q_cond_used_BTUph = float(np.asarray(diag["Q_cond_used_BTUph"], dtype=float).reshape((-1,))[0])
         except Exception:
             Q_cond_used_BTUph = np.nan
+    Q_reb_used_BTUph = np.nan
+    if "Q_reb_used_BTUph" in diag:
+        try:
+            Q_reb_used_BTUph = float(np.asarray(diag["Q_reb_used_BTUph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Q_reb_used_BTUph = np.nan
     Q_cond_cmd_BTUph = np.nan
     if "Q_cond_cmd_BTUph" in diag:
         try:
             Q_cond_cmd_BTUph = float(np.asarray(diag["Q_cond_cmd_BTUph"], dtype=float).reshape((-1,))[0])
         except Exception:
             Q_cond_cmd_BTUph = np.nan
+    P_top_drum_psia = np.nan
+    if "P_top_drum_psia" in diag:
+        try:
+            P_top_drum_psia = float(np.asarray(diag["P_top_drum_psia"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            P_top_drum_psia = np.nan
+    V_condensed_in_lbmolph = np.nan
+    if "V_condensed_in_lbmolph" in diag:
+        try:
+            V_condensed_in_lbmolph = float(np.asarray(diag["V_condensed_in_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            V_condensed_in_lbmolph = np.nan
+    V_to_top_drum_lbmolph = np.nan
+    if "V_to_top_drum_lbmolph" in diag:
+        try:
+            V_to_top_drum_lbmolph = float(np.asarray(diag["V_to_top_drum_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            V_to_top_drum_lbmolph = np.nan
+    V_condensed_top_lbmolph = np.nan
+    if "V_condensed_top_lbmolph" in diag:
+        try:
+            V_condensed_top_lbmolph = float(np.asarray(diag["V_condensed_top_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            V_condensed_top_lbmolph = np.nan
+    V_top_drum_vapor_ft3 = np.nan
+    if "V_top_drum_vapor_ft3" in diag:
+        try:
+            V_top_drum_vapor_ft3 = float(np.asarray(diag["V_top_drum_vapor_ft3"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            V_top_drum_vapor_ft3 = np.nan
+    V_top_drum_liquid_ft3 = np.nan
+    if "V_top_drum_liquid_ft3" in diag:
+        try:
+            V_top_drum_liquid_ft3 = float(np.asarray(diag["V_top_drum_liquid_ft3"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            V_top_drum_liquid_ft3 = np.nan
+    rho_top_drum_liq_lbmol_ft3 = np.nan
+    if "rho_top_drum_liq_lbmol_ft3" in diag:
+        try:
+            rho_top_drum_liq_lbmol_ft3 = float(np.asarray(diag["rho_top_drum_liq_lbmol_ft3"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            rho_top_drum_liq_lbmol_ft3 = np.nan
+    Q_reb_cmd_BTUph = np.nan
+    if "Q_reb_cmd_BTUph" in diag:
+        try:
+            Q_reb_cmd_BTUph = float(np.asarray(diag["Q_reb_cmd_BTUph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Q_reb_cmd_BTUph = np.nan
     P_top_anchor_cmd_psia = np.nan
     if "P_top_anchor_cmd_psia" in diag:
         try:
             P_top_anchor_cmd_psia = float(np.asarray(diag["P_top_anchor_cmd_psia"], dtype=float).reshape((-1,))[0])
         except Exception:
             P_top_anchor_cmd_psia = np.nan
+    xD_comp_sp = np.nan
+    if "xD_comp_sp" in diag:
+        try:
+            xD_comp_sp = float(np.asarray(diag["xD_comp_sp"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            xD_comp_sp = np.nan
+    xD_comp_pv = np.nan
+    if "xD_comp_pv" in diag:
+        try:
+            xD_comp_pv = float(np.asarray(diag["xD_comp_pv"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            xD_comp_pv = np.nan
+    RR_comp_cmd = np.nan
+    if "RR_comp_cmd" in diag:
+        try:
+            RR_comp_cmd = float(np.asarray(diag["RR_comp_cmd"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            RR_comp_cmd = np.nan
+    Reflux_cmd_lbmolph = np.nan
+    if "Reflux_cmd_lbmolph" in diag:
+        try:
+            Reflux_cmd_lbmolph = float(np.asarray(diag["Reflux_cmd_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Reflux_cmd_lbmolph = np.nan
+    xB_comp_sp = np.nan
+    if "xB_comp_sp" in diag:
+        try:
+            xB_comp_sp = float(np.asarray(diag["xB_comp_sp"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            xB_comp_sp = np.nan
+    xB_comp_pv = np.nan
+    if "xB_comp_pv" in diag:
+        try:
+            xB_comp_pv = float(np.asarray(diag["xB_comp_pv"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            xB_comp_pv = np.nan
+    Boilup_cmd_lbmolph = np.nan
+    if "Boilup_cmd_lbmolph" in diag:
+        try:
+            Boilup_cmd_lbmolph = float(np.asarray(diag["Boilup_cmd_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Boilup_cmd_lbmolph = np.nan
+    M_total_lbmol = np.nan
+    if "M_total_lbmol" in diag:
+        try:
+            M_total_lbmol = float(np.asarray(diag["M_total_lbmol"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            M_total_lbmol = np.nan
+    dM_total_dt_lbmolph = np.nan
+    if "dM_total_dt_lbmolph" in diag:
+        try:
+            dM_total_dt_lbmolph = float(np.asarray(diag["dM_total_dt_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            dM_total_dt_lbmolph = np.nan
+    net_F_minus_D_minus_B_lbmolph = np.nan
+    if "net_F_minus_D_minus_B_lbmolph" in diag:
+        try:
+            net_F_minus_D_minus_B_lbmolph = float(np.asarray(diag["net_F_minus_D_minus_B_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            net_F_minus_D_minus_B_lbmolph = np.nan
+    global_mass_closure_error_lbmolph = np.nan
+    if "global_mass_closure_error_lbmolph" in diag:
+        try:
+            global_mass_closure_error_lbmolph = float(np.asarray(diag["global_mass_closure_error_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            global_mass_closure_error_lbmolph = np.nan
+    global_mass_closure_cum_lbmol = np.nan
+    if "global_mass_closure_cum_lbmol" in diag:
+        try:
+            global_mass_closure_cum_lbmol = float(np.asarray(diag["global_mass_closure_cum_lbmol"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            global_mass_closure_cum_lbmol = np.nan
+    stage_mass_resid_sum_lbmolps = np.nan
+    if "stage_mass_resid_sum_lbmolps" in diag:
+        try:
+            stage_mass_resid_sum_lbmolps = float(np.asarray(diag["stage_mass_resid_sum_lbmolps"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            stage_mass_resid_sum_lbmolps = np.nan
     T_sump = None
     if layout.include_bottom and "bottom_T_f" in u:
         try:
@@ -1330,8 +2173,30 @@ def _profile_rows(
             "T_Distillate_F": _stage_value(i1, 1, T_distillate),
             "Q_cond_calc_BTUph": _stage_value(i1, 1, Q_cond_calc_BTUph),
             "Q_cond_used_BTUph": _stage_value(i1, 1, Q_cond_used_BTUph),
+            "Q_reb_used_BTUph": _stage_value(i1, N, Q_reb_used_BTUph),
             "Q_cond_cmd_BTUph": _stage_value(i1, 1, Q_cond_cmd_BTUph),
+            "P_top_drum_psia": _stage_value(i1, 1, P_top_drum_psia),
+            "V_condensed_in_lbmolph": _stage_value(i1, 1, V_condensed_in_lbmolph),
+            "V_to_top_drum_lbmolph": _stage_value(i1, 1, V_to_top_drum_lbmolph),
+            "V_condensed_top_lbmolph": _stage_value(i1, 1, V_condensed_top_lbmolph),
+            "V_top_drum_vapor_ft3": _stage_value(i1, 1, V_top_drum_vapor_ft3),
+            "V_top_drum_liquid_ft3": _stage_value(i1, 1, V_top_drum_liquid_ft3),
+            "rho_top_drum_liq_lbmol_ft3": _stage_value(i1, 1, rho_top_drum_liq_lbmol_ft3),
+            "Q_reb_cmd_BTUph": _stage_value(i1, N, Q_reb_cmd_BTUph),
             "P_top_anchor_cmd_psia": _stage_value(i1, 1, P_top_anchor_cmd_psia),
+            "xD_comp_sp": _stage_value(i1, 1, xD_comp_sp),
+            "xD_comp_pv": _stage_value(i1, 1, xD_comp_pv),
+            "RR_comp_cmd": _stage_value(i1, 1, RR_comp_cmd),
+            "Reflux_cmd_lbmolph": _stage_value(i1, 1, Reflux_cmd_lbmolph),
+            "xB_comp_sp": _stage_value(i1, N, xB_comp_sp),
+            "xB_comp_pv": _stage_value(i1, N, xB_comp_pv),
+            "Boilup_cmd_lbmolph": _stage_value(i1, N, Boilup_cmd_lbmolph),
+            "M_total_lbmol": _stage_value(i1, 1, M_total_lbmol),
+            "dM_total_dt_lbmolph": _stage_value(i1, 1, dM_total_dt_lbmolph),
+            "net_F_minus_D_minus_B_lbmolph": _stage_value(i1, 1, net_F_minus_D_minus_B_lbmolph),
+            "global_mass_closure_error_lbmolph": _stage_value(i1, 1, global_mass_closure_error_lbmolph),
+            "global_mass_closure_cum_lbmol": _stage_value(i1, 1, global_mass_closure_cum_lbmol),
+            "stage_mass_resid_sum_lbmolps": _stage_value(i1, 1, stage_mass_resid_sum_lbmolps),
             "T_sump_F": _stage_value(i1, N if layout.include_bottom else None, T_sump),
         }
 
@@ -1401,18 +2266,150 @@ def _summary_row(
             Q_cond_used_BTUph = float(np.asarray(diag["Q_cond_used_BTUph"], dtype=float).reshape((-1,))[0])
         except Exception:
             Q_cond_used_BTUph = np.nan
+    Q_reb_used_BTUph = np.nan
+    if "Q_reb_used_BTUph" in diag:
+        try:
+            Q_reb_used_BTUph = float(np.asarray(diag["Q_reb_used_BTUph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Q_reb_used_BTUph = np.nan
     Q_cond_cmd_BTUph = np.nan
     if "Q_cond_cmd_BTUph" in diag:
         try:
             Q_cond_cmd_BTUph = float(np.asarray(diag["Q_cond_cmd_BTUph"], dtype=float).reshape((-1,))[0])
         except Exception:
             Q_cond_cmd_BTUph = np.nan
+    P_top_drum_psia = np.nan
+    if "P_top_drum_psia" in diag:
+        try:
+            P_top_drum_psia = float(np.asarray(diag["P_top_drum_psia"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            P_top_drum_psia = np.nan
+    V_condensed_in_lbmolph = np.nan
+    if "V_condensed_in_lbmolph" in diag:
+        try:
+            V_condensed_in_lbmolph = float(np.asarray(diag["V_condensed_in_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            V_condensed_in_lbmolph = np.nan
+    V_to_top_drum_lbmolph = np.nan
+    if "V_to_top_drum_lbmolph" in diag:
+        try:
+            V_to_top_drum_lbmolph = float(np.asarray(diag["V_to_top_drum_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            V_to_top_drum_lbmolph = np.nan
+    V_condensed_top_lbmolph = np.nan
+    if "V_condensed_top_lbmolph" in diag:
+        try:
+            V_condensed_top_lbmolph = float(np.asarray(diag["V_condensed_top_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            V_condensed_top_lbmolph = np.nan
+    V_top_drum_vapor_ft3 = np.nan
+    if "V_top_drum_vapor_ft3" in diag:
+        try:
+            V_top_drum_vapor_ft3 = float(np.asarray(diag["V_top_drum_vapor_ft3"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            V_top_drum_vapor_ft3 = np.nan
+    V_top_drum_liquid_ft3 = np.nan
+    if "V_top_drum_liquid_ft3" in diag:
+        try:
+            V_top_drum_liquid_ft3 = float(np.asarray(diag["V_top_drum_liquid_ft3"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            V_top_drum_liquid_ft3 = np.nan
+    rho_top_drum_liq_lbmol_ft3 = np.nan
+    if "rho_top_drum_liq_lbmol_ft3" in diag:
+        try:
+            rho_top_drum_liq_lbmol_ft3 = float(np.asarray(diag["rho_top_drum_liq_lbmol_ft3"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            rho_top_drum_liq_lbmol_ft3 = np.nan
+    Q_reb_cmd_BTUph = np.nan
+    if "Q_reb_cmd_BTUph" in diag:
+        try:
+            Q_reb_cmd_BTUph = float(np.asarray(diag["Q_reb_cmd_BTUph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Q_reb_cmd_BTUph = np.nan
     P_top_anchor_cmd_psia = np.nan
     if "P_top_anchor_cmd_psia" in diag:
         try:
             P_top_anchor_cmd_psia = float(np.asarray(diag["P_top_anchor_cmd_psia"], dtype=float).reshape((-1,))[0])
         except Exception:
             P_top_anchor_cmd_psia = np.nan
+    xD_comp_sp = np.nan
+    if "xD_comp_sp" in diag:
+        try:
+            xD_comp_sp = float(np.asarray(diag["xD_comp_sp"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            xD_comp_sp = np.nan
+    xD_comp_pv = np.nan
+    if "xD_comp_pv" in diag:
+        try:
+            xD_comp_pv = float(np.asarray(diag["xD_comp_pv"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            xD_comp_pv = np.nan
+    RR_comp_cmd = np.nan
+    if "RR_comp_cmd" in diag:
+        try:
+            RR_comp_cmd = float(np.asarray(diag["RR_comp_cmd"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            RR_comp_cmd = np.nan
+    Reflux_cmd_lbmolph = np.nan
+    if "Reflux_cmd_lbmolph" in diag:
+        try:
+            Reflux_cmd_lbmolph = float(np.asarray(diag["Reflux_cmd_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Reflux_cmd_lbmolph = np.nan
+    xB_comp_sp = np.nan
+    if "xB_comp_sp" in diag:
+        try:
+            xB_comp_sp = float(np.asarray(diag["xB_comp_sp"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            xB_comp_sp = np.nan
+    xB_comp_pv = np.nan
+    if "xB_comp_pv" in diag:
+        try:
+            xB_comp_pv = float(np.asarray(diag["xB_comp_pv"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            xB_comp_pv = np.nan
+    Boilup_cmd_lbmolph = np.nan
+    if "Boilup_cmd_lbmolph" in diag:
+        try:
+            Boilup_cmd_lbmolph = float(np.asarray(diag["Boilup_cmd_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Boilup_cmd_lbmolph = np.nan
+    M_total_lbmol = np.nan
+    if "M_total_lbmol" in diag:
+        try:
+            M_total_lbmol = float(np.asarray(diag["M_total_lbmol"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            M_total_lbmol = np.nan
+    dM_total_dt_lbmolph = np.nan
+    if "dM_total_dt_lbmolph" in diag:
+        try:
+            dM_total_dt_lbmolph = float(np.asarray(diag["dM_total_dt_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            dM_total_dt_lbmolph = np.nan
+    net_F_minus_D_minus_B_lbmolph = np.nan
+    if "net_F_minus_D_minus_B_lbmolph" in diag:
+        try:
+            net_F_minus_D_minus_B_lbmolph = float(np.asarray(diag["net_F_minus_D_minus_B_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            net_F_minus_D_minus_B_lbmolph = np.nan
+    global_mass_closure_error_lbmolph = np.nan
+    if "global_mass_closure_error_lbmolph" in diag:
+        try:
+            global_mass_closure_error_lbmolph = float(np.asarray(diag["global_mass_closure_error_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            global_mass_closure_error_lbmolph = np.nan
+    global_mass_closure_cum_lbmol = np.nan
+    if "global_mass_closure_cum_lbmol" in diag:
+        try:
+            global_mass_closure_cum_lbmol = float(np.asarray(diag["global_mass_closure_cum_lbmol"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            global_mass_closure_cum_lbmol = np.nan
+    stage_mass_resid_sum_lbmolps = np.nan
+    if "stage_mass_resid_sum_lbmolps" in diag:
+        try:
+            stage_mass_resid_sum_lbmolps = float(np.asarray(diag["stage_mass_resid_sum_lbmolps"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            stage_mass_resid_sum_lbmolps = np.nan
 
     if "P_psia_diag" in diag:
         P_diag = np.asarray(diag["P_psia_diag"], dtype=float).reshape((N,))
@@ -1422,9 +2419,18 @@ def _summary_row(
     if N >= 1 and np.isfinite(P_spec[0]):
         P_diag[0] = float(P_spec[0])
 
-    p_ctrl_idx = 1 if N > 1 else 0
+    p_ctrl_idx = 0
     P_top_meas = float(P_diag[p_ctrl_idx])
-    if "P_psia_hyd" in diag:
+    has_top_drum_pv = False
+    if "P_top_drum_psia" in diag:
+        try:
+            p_top_drum = float(np.asarray(diag["P_top_drum_psia"], dtype=float).reshape((-1,))[0])
+            if np.isfinite(p_top_drum) and p_top_drum > 0.0:
+                P_top_meas = float(p_top_drum)
+                has_top_drum_pv = True
+        except Exception:
+            pass
+    if (not has_top_drum_pv) and "P_psia_hyd" in diag:
         try:
             p_h = np.asarray(diag["P_psia_hyd"], dtype=float).reshape((N,))
             if np.isfinite(float(p_h[p_ctrl_idx])) and float(p_h[p_ctrl_idx]) > 0.0:
@@ -1454,7 +2460,7 @@ def _summary_row(
         "wall_clock_iso": wall_clock_iso,
         "wall_elapsed_s": float(wall_elapsed_s),
         "time_s": float(t_s),
-        "P_top_psia": float(P_spec[0]) if np.isfinite(P_spec[0]) else float(P_diag[0]),
+        "P_top_psia": float(P_top_meas) if np.isfinite(P_top_meas) else (float(P_spec[0]) if np.isfinite(P_spec[0]) else float(P_diag[0])),
         "P_top_psia_spec": float(P_spec[0]) if np.isfinite(P_spec[0]) else np.nan,
         "P_top_ctrl_pv_psia": float(P_top_meas),
         "P_bot_psia": float(P_spec[-1]) if np.isfinite(P_spec[-1]) else float(P_diag[-1]),
@@ -1462,8 +2468,30 @@ def _summary_row(
         "T_Distillate_F": float(T_distillate) if T_distillate is not None else np.nan,
         "Q_cond_calc_BTUph": float(Q_cond_calc_BTUph) if np.isfinite(Q_cond_calc_BTUph) else np.nan,
         "Q_cond_used_BTUph": float(Q_cond_used_BTUph) if np.isfinite(Q_cond_used_BTUph) else np.nan,
+        "Q_reb_used_BTUph": float(Q_reb_used_BTUph) if np.isfinite(Q_reb_used_BTUph) else np.nan,
         "Q_cond_cmd_BTUph": float(Q_cond_cmd_BTUph) if np.isfinite(Q_cond_cmd_BTUph) else np.nan,
+        "P_top_drum_psia": float(P_top_drum_psia) if np.isfinite(P_top_drum_psia) else np.nan,
+        "V_condensed_in_lbmolph": float(V_condensed_in_lbmolph) if np.isfinite(V_condensed_in_lbmolph) else np.nan,
+        "V_to_top_drum_lbmolph": float(V_to_top_drum_lbmolph) if np.isfinite(V_to_top_drum_lbmolph) else np.nan,
+        "V_condensed_top_lbmolph": float(V_condensed_top_lbmolph) if np.isfinite(V_condensed_top_lbmolph) else np.nan,
+        "V_top_drum_vapor_ft3": float(V_top_drum_vapor_ft3) if np.isfinite(V_top_drum_vapor_ft3) else np.nan,
+        "V_top_drum_liquid_ft3": float(V_top_drum_liquid_ft3) if np.isfinite(V_top_drum_liquid_ft3) else np.nan,
+        "rho_top_drum_liq_lbmol_ft3": float(rho_top_drum_liq_lbmol_ft3) if np.isfinite(rho_top_drum_liq_lbmol_ft3) else np.nan,
+        "Q_reb_cmd_BTUph": float(Q_reb_cmd_BTUph) if np.isfinite(Q_reb_cmd_BTUph) else np.nan,
         "P_top_anchor_cmd_psia": float(P_top_anchor_cmd_psia) if np.isfinite(P_top_anchor_cmd_psia) else np.nan,
+        "xD_comp_sp": float(xD_comp_sp) if np.isfinite(xD_comp_sp) else np.nan,
+        "xD_comp_pv": float(xD_comp_pv) if np.isfinite(xD_comp_pv) else np.nan,
+        "RR_comp_cmd": float(RR_comp_cmd) if np.isfinite(RR_comp_cmd) else np.nan,
+        "Reflux_cmd_lbmolph": float(Reflux_cmd_lbmolph) if np.isfinite(Reflux_cmd_lbmolph) else np.nan,
+        "xB_comp_sp": float(xB_comp_sp) if np.isfinite(xB_comp_sp) else np.nan,
+        "xB_comp_pv": float(xB_comp_pv) if np.isfinite(xB_comp_pv) else np.nan,
+        "Boilup_cmd_lbmolph": float(Boilup_cmd_lbmolph) if np.isfinite(Boilup_cmd_lbmolph) else np.nan,
+        "M_total_lbmol": float(M_total_lbmol) if np.isfinite(M_total_lbmol) else np.nan,
+        "dM_total_dt_lbmolph": float(dM_total_dt_lbmolph) if np.isfinite(dM_total_dt_lbmolph) else np.nan,
+        "net_F_minus_D_minus_B_lbmolph": float(net_F_minus_D_minus_B_lbmolph) if np.isfinite(net_F_minus_D_minus_B_lbmolph) else np.nan,
+        "global_mass_closure_error_lbmolph": float(global_mass_closure_error_lbmolph) if np.isfinite(global_mass_closure_error_lbmolph) else np.nan,
+        "global_mass_closure_cum_lbmol": float(global_mass_closure_cum_lbmol) if np.isfinite(global_mass_closure_cum_lbmol) else np.nan,
+        "stage_mass_resid_sum_lbmolps": float(stage_mass_resid_sum_lbmolps) if np.isfinite(stage_mass_resid_sum_lbmolps) else np.nan,
         # New: overall stream flow scalars
         "F_lbmolph": float(feed_tag.flow_lbmolph) if feed_tag.flow_lbmolph is not None else np.nan,
         "D_lbmolph": float(dist_tag.flow_lbmolph) if dist_tag.flow_lbmolph is not None else np.nan,
@@ -1643,10 +2671,45 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             f"top_P_SP={float(top_pressure_sp):.3f} psia  "
             f"Kc={float(top_pressure_ctrl.kc):.3g}  Ti={float(top_pressure_ctrl.ti_sec):.3g} s"
         )
+    comp_control_enabled, dist_comp_ctrl, dist_comp_sp, dist_comp_idx, dist_comp_name = _build_distillate_composition_controller(
+        col=col,
+        cfg=cfg,
+        boundary=base_inputs.boundary,
+        dist_tag=dist_tag,
+    )
+    if comp_control_enabled and dist_comp_ctrl is not None and dist_comp_sp is not None and dist_comp_idx is not None:
+        print(
+            "[Control] Distillate composition control enabled  "
+            f"component={str(dist_comp_name)}  "
+            f"x_SP={float(dist_comp_sp):.6f}  "
+            f"Kc={float(dist_comp_ctrl.kc):.3g}  Ti={float(dist_comp_ctrl.ti_sec):.3g} s  "
+            f"MV=reflux_lbmolph  limits=({float(dist_comp_ctrl.out_min):.3f}, {float(dist_comp_ctrl.out_max):.3f})"
+        )
+    (
+        bot_comp_control_enabled,
+        bot_comp_mv_mode,
+        bot_comp_ctrl,
+        bot_comp_sp,
+        bot_comp_idx,
+        bot_comp_name,
+    ) = _build_bottoms_composition_controller(
+        col=col,
+        cfg=cfg,
+        boundary=base_inputs.boundary,
+    )
+    if bot_comp_control_enabled and bot_comp_ctrl is not None and bot_comp_sp is not None and bot_comp_idx is not None:
+        mv_label = "boilup_lbmolph" if str(bot_comp_mv_mode) != "reboiler-duty" else "reboiler_duty_btuph"
+        print(
+            "[Control] Bottoms composition control enabled  "
+            f"component={str(bot_comp_name)}  "
+            f"x_SP={float(bot_comp_sp):.6f}  "
+            f"Kc={float(bot_comp_ctrl.kc):.3g}  Ti={float(bot_comp_ctrl.ti_sec):.3g} s  "
+            f"MV={mv_label}  limits=({float(bot_comp_ctrl.out_min):.3f}, {float(bot_comp_ctrl.out_max):.3f})"
+        )
 
     last_top_pressure_pv_psia: Optional[float] = None
     try:
-        p_ctrl_idx = 1 if int(getattr(col, "n_stages", 1)) > 1 else 0
+        p_ctrl_idx = 0
         p0 = float(np.asarray(getattr(col, "P_psia"), dtype=float).reshape((-1,))[p_ctrl_idx])
         if np.isfinite(p0) and p0 > 0.0:
             last_top_pressure_pv_psia = p0
@@ -1669,6 +2732,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
 
     start_perf = time.perf_counter()
     t_s = 0.0
+    global_mass_closure_cum_lbmol = 0.0
 
     try:
         if cfg.write_logs:
@@ -1700,12 +2764,32 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 else None
             )
             step_condenser_duty_cmd_btu_per_h: Optional[float] = None
+            step_reboiler_mode = str(base_inputs.reboiler_mode)
+            step_reboiler_duty_btu_per_h: Optional[float] = (
+                float(base_inputs.reboiler_duty_btu_per_h)
+                if base_inputs.reboiler_duty_btu_per_h is not None
+                else None
+            )
+            step_reboiler_duty_trim_btu_per_h: Optional[float] = (
+                float(base_inputs.reboiler_duty_trim_btu_per_h)
+                if base_inputs.reboiler_duty_trim_btu_per_h is not None
+                else None
+            )
+            step_reboiler_duty_cmd_btu_per_h: Optional[float] = None
             step_pressure_top_anchor_psia: Optional[float] = (
                 float(base_inputs.pressure_top_anchor_psia)
                 if base_inputs.pressure_top_anchor_psia is not None
                 else None
             )
             step_pressure_top_anchor_cmd_psia: Optional[float] = None
+            step_distillate_comp_pv: Optional[float] = None
+            step_distillate_comp_sp: Optional[float] = None
+            step_reflux_ratio_cmd: Optional[float] = None
+            step_reflux_cmd_lbmolph: Optional[float] = None
+            step_bottoms_comp_pv: Optional[float] = None
+            step_bottoms_comp_sp: Optional[float] = None
+            step_boilup_cmd_lbmolph: Optional[float] = None
+            controllers_active = step > 0
             if (
                 level_control_enabled
                 and top_level_ctrl is not None
@@ -1716,19 +2800,28 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 u_now = layout.unpack(y)
                 top_level_pv = float(np.sum(np.asarray(u_now.get("top_L", []), dtype=float)))
                 bot_level_pv = float(np.sum(np.asarray(u_now.get("bottom_L", []), dtype=float)))
-                dt_ctrl = float(dt) if step > 0 else 0.0
-                dist_cmd = _pi_update(
-                    top_level_ctrl,
-                    pv=top_level_pv,
-                    sp=float(top_level_sp),
-                    dt_sec=dt_ctrl,
-                )
-                bot_cmd = _pi_update(
-                    bot_level_ctrl,
-                    pv=bot_level_pv,
-                    sp=float(bot_level_sp),
-                    dt_sec=dt_ctrl,
-                )
+                if controllers_active:
+                    dist_cmd = _pi_update(
+                        top_level_ctrl,
+                        pv=top_level_pv,
+                        sp=float(top_level_sp),
+                        dt_sec=float(dt),
+                    )
+                    bot_cmd = _pi_update(
+                        bot_level_ctrl,
+                        pv=bot_level_pv,
+                        sp=float(bot_level_sp),
+                        dt_sec=float(dt),
+                    )
+                else:
+                    if step_boundary.distillate_lbmolph is not None:
+                        dist_cmd = float(step_boundary.distillate_lbmolph)
+                    else:
+                        dist_cmd = float(dist_tag.flow_lbmolph)
+                    if step_boundary.bottoms_lbmolph is not None:
+                        bot_cmd = float(step_boundary.bottoms_lbmolph)
+                    else:
+                        bot_cmd = float(bots_tag.flow_lbmolph)
                 step_boundary = BoundaryFlows(
                     reflux_lbmolph=base_inputs.boundary.reflux_lbmolph,
                     boilup_lbmolph=base_inputs.boundary.boilup_lbmolph,
@@ -1745,9 +2838,152 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     flow_lbmolph=float(bot_cmd),
                     stage_1based=bots_tag.stage_1based,
                 )
+            if (
+                comp_control_enabled
+                and dist_comp_ctrl is not None
+                and dist_comp_sp is not None
+                and dist_comp_idx is not None
+            ):
+                u_now = layout.unpack(y)
+                top_liq = np.asarray(u_now.get("top_L", []), dtype=float).reshape((-1,))
+                xD_pv = np.nan
+                top_total = np.nan
+                if top_liq.size == int(col.n_components):
+                    top_total = float(np.sum(top_liq))
+                    if np.isfinite(top_total) and top_total > 0.0:
+                        xD_vec = top_liq / max(top_total, 1e-300)
+                        xD_pv = float(xD_vec[int(dist_comp_idx)])
+
+                # Reflux feasibility clamp:
+                # keep reflux bounded by condenser liquid generation plus a limited
+                # drawdown of reflux-drum inventory so composition control cannot
+                # starve top holdup and force distillate draw to zero.
+                d_cmd_lbmolph = np.nan
+                if step_boundary.distillate_lbmolph is not None:
+                    d_cmd_lbmolph = float(step_boundary.distillate_lbmolph)
+                elif step_dist_tag.flow_lbmolph is not None:
+                    d_cmd_lbmolph = float(step_dist_tag.flow_lbmolph)
+                elif dist_tag.flow_lbmolph is not None:
+                    d_cmd_lbmolph = float(dist_tag.flow_lbmolph)
+                if (not np.isfinite(d_cmd_lbmolph)) or d_cmd_lbmolph < 0.0:
+                    d_cmd_lbmolph = 0.0
+
+                vin0_est_lbmolph = np.nan
+                try:
+                    if last_V_out is not None:
+                        vprev = np.asarray(last_V_out, dtype=float).reshape((-1,))
+                        if vprev.size > 1 and np.isfinite(float(vprev[1])):
+                            vin0_est_lbmolph = float(vprev[1])
+                        elif vprev.size > 0 and np.isfinite(float(vprev[0])):
+                            vin0_est_lbmolph = float(vprev[0])
+                except Exception:
+                    vin0_est_lbmolph = np.nan
+                if (not np.isfinite(vin0_est_lbmolph)) and int(getattr(col, "n_stages", 0)) > 1:
+                    try:
+                        vprof = np.asarray(getattr(col, "V_lbmolph"), dtype=float).reshape((-1,))
+                        if vprof.size > 1 and np.isfinite(float(vprof[1])):
+                            vin0_est_lbmolph = float(vprof[1])
+                    except Exception:
+                        vin0_est_lbmolph = np.nan
+                if (not np.isfinite(vin0_est_lbmolph)) or vin0_est_lbmolph < 0.0:
+                    vin0_est_lbmolph = 0.0
+
+                reflux_max_feasible = float(dist_comp_ctrl.out_max)
+                if np.isfinite(top_total):
+                    # Keep top inventory moving toward its level setpoint so the
+                    # composition loop cannot pin operation at D=0 while draining
+                    # (or holding low) reflux-drum holdup.
+                    top_sp = float(top_level_sp) if top_level_sp is not None and np.isfinite(float(top_level_sp)) else top_total
+                    recover_tau_sec = 120.0
+                    if top_level_ctrl is not None and np.isfinite(float(top_level_ctrl.ti_sec)):
+                        recover_tau_sec = max(float(top_level_ctrl.ti_sec), 30.0)
+                    desired_dM_top_lbmolph = (float(top_sp) - float(top_total)) * 3600.0 / max(recover_tau_sec, 1e-9)
+                    sustainable_lbmolph = float(vin0_est_lbmolph) - float(d_cmd_lbmolph)
+                    reflux_max_feasible = min(
+                        float(dist_comp_ctrl.out_max),
+                        max(0.0, sustainable_lbmolph - desired_dM_top_lbmolph),
+                    )
+                reflux_max_feasible = max(float(dist_comp_ctrl.out_min), float(reflux_max_feasible))
+
+                if controllers_active:
+                    reflux_cmd = _pi_update(
+                        dist_comp_ctrl,
+                        pv=float(xD_pv),
+                        sp=float(dist_comp_sp),
+                        dt_sec=float(dt),
+                        out_max=float(reflux_max_feasible),
+                    )
+                else:
+                    if step_boundary.reflux_lbmolph is not None:
+                        reflux_cmd = float(step_boundary.reflux_lbmolph)
+                    else:
+                        reflux_cmd = float(reflux_tag.flow_lbmolph)
+                step_boundary = BoundaryFlows(
+                    reflux_lbmolph=float(reflux_cmd),
+                    boilup_lbmolph=step_boundary.boilup_lbmolph,
+                    distillate_lbmolph=step_boundary.distillate_lbmolph,
+                    bottoms_lbmolph=step_boundary.bottoms_lbmolph,
+                )
+                step_reflux_cmd_lbmolph = float(reflux_cmd)
+                d_for_ratio = np.nan
+                if step_boundary.distillate_lbmolph is not None:
+                    d_for_ratio = float(step_boundary.distillate_lbmolph)
+                elif step_dist_tag.flow_lbmolph is not None:
+                    d_for_ratio = float(step_dist_tag.flow_lbmolph)
+                elif dist_tag.flow_lbmolph is not None:
+                    d_for_ratio = float(dist_tag.flow_lbmolph)
+                step_distillate_comp_pv = float(xD_pv) if np.isfinite(xD_pv) else np.nan
+                step_distillate_comp_sp = float(dist_comp_sp)
+                if np.isfinite(d_for_ratio) and d_for_ratio > 0.0:
+                    step_reflux_ratio_cmd = float(reflux_cmd) / float(d_for_ratio)
+            if (
+                bot_comp_control_enabled
+                and bot_comp_ctrl is not None
+                and bot_comp_sp is not None
+                and bot_comp_idx is not None
+            ):
+                u_now = layout.unpack(y)
+                bot_liq = np.asarray(u_now.get("bottom_L", []), dtype=float).reshape((-1,))
+                xB_pv = np.nan
+                if bot_liq.size == int(col.n_components):
+                    bot_total = float(np.sum(bot_liq))
+                    if np.isfinite(bot_total) and bot_total > 0.0:
+                        xB_vec = bot_liq / max(bot_total, 1e-300)
+                        xB_pv = float(xB_vec[int(bot_comp_idx)])
+                if controllers_active:
+                    boilup_cmd = _pi_update(
+                        bot_comp_ctrl,
+                        pv=float(xB_pv),
+                        sp=float(bot_comp_sp),
+                        dt_sec=float(dt),
+                    )
+                elif str(bot_comp_mv_mode) == "reboiler-duty":
+                    if step_reboiler_duty_btu_per_h is not None:
+                        boilup_cmd = float(step_reboiler_duty_btu_per_h)
+                    else:
+                        boilup_cmd = float(bot_comp_ctrl.bias)
+                else:
+                    if step_boundary.boilup_lbmolph is not None:
+                        boilup_cmd = float(step_boundary.boilup_lbmolph)
+                    else:
+                        boilup_cmd = float(boilup_tag.flow_lbmolph)
+                if str(bot_comp_mv_mode) == "reboiler-duty":
+                    step_reboiler_mode = "duty"
+                    step_reboiler_duty_btu_per_h = float(boilup_cmd)
+                    step_reboiler_duty_cmd_btu_per_h = float(boilup_cmd)
+                else:
+                    step_boundary = BoundaryFlows(
+                        reflux_lbmolph=step_boundary.reflux_lbmolph,
+                        boilup_lbmolph=float(boilup_cmd),
+                        distillate_lbmolph=step_boundary.distillate_lbmolph,
+                        bottoms_lbmolph=step_boundary.bottoms_lbmolph,
+                    )
+                    step_boilup_cmd_lbmolph = float(boilup_cmd)
+                step_bottoms_comp_pv = float(xB_pv) if np.isfinite(xB_pv) else np.nan
+                step_bottoms_comp_sp = float(bot_comp_sp)
 
             if pressure_control_enabled and top_pressure_ctrl is not None and top_pressure_sp is not None:
-                p_ctrl_idx = 1 if int(getattr(col, "n_stages", 1)) > 1 else 0
+                p_ctrl_idx = 0
                 pv = None
                 if last_top_pressure_pv_psia is not None:
                     try:
@@ -1761,19 +2997,28 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                         pv = float(np.asarray(getattr(col, "P_psia"), dtype=float).reshape((-1,))[p_ctrl_idx])
                     except Exception:
                         pv = float(top_pressure_sp)
-                dt_ctrl = float(dt) if step > 0 else 0.0
-                q_cmd = _pi_update(
-                    top_pressure_ctrl,
-                    pv=float(pv),
-                    sp=float(top_pressure_sp),
-                    dt_sec=dt_ctrl,
-                )
+                if controllers_active:
+                    q_cmd = _pi_update(
+                        top_pressure_ctrl,
+                        pv=float(pv),
+                        sp=float(top_pressure_sp),
+                        dt_sec=float(dt),
+                    )
+                elif str(pressure_control_mv) == "top-anchor":
+                    if step_pressure_top_anchor_psia is not None:
+                        q_cmd = float(step_pressure_top_anchor_psia)
+                    else:
+                        q_cmd = float(top_pressure_ctrl.bias)
+                elif step_condenser_duty_btu_per_h is not None:
+                    q_cmd = float(step_condenser_duty_btu_per_h)
+                else:
+                    q_cmd = float(top_pressure_ctrl.bias)
                 if str(pressure_control_mv) == "top-anchor":
                     step_pressure_top_anchor_cmd_psia = float(q_cmd)
                     step_pressure_top_anchor_psia = float(q_cmd)
                 else:
                     step_condenser_duty_cmd_btu_per_h = float(q_cmd)
-                    if str(step_condenser_duty_mode).strip().lower() == "total-condense":
+                    if controllers_active and str(step_condenser_duty_mode).strip().lower() == "total-condense":
                         # Keep total-condense closure and apply PI as a duty trim.
                         ctrl_trim = float(q_cmd) - float(top_pressure_ctrl.bias)
                         base_trim = float(step_condenser_duty_trim_btu_per_h) if step_condenser_duty_trim_btu_per_h is not None else 0.0
@@ -1823,7 +3068,17 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                         if step_condenser_duty_trim_btu_per_h is not None
                         else None
                     ),
-                    reboiler_mode=base_inputs.reboiler_mode,
+                    reboiler_mode=str(step_reboiler_mode),
+                    reboiler_duty_btu_per_h=(
+                        float(step_reboiler_duty_btu_per_h)
+                        if step_reboiler_duty_btu_per_h is not None
+                        else None
+                    ),
+                    reboiler_duty_trim_btu_per_h=(
+                        float(step_reboiler_duty_trim_btu_per_h)
+                        if step_reboiler_duty_trim_btu_per_h is not None
+                        else None
+                    ),
                     reboiler_equilibrium=base_inputs.reboiler_equilibrium,
                     pressure_model=base_inputs.pressure_model,
                     pressure_top_anchor_psia=(
@@ -1831,6 +3086,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                         if step_pressure_top_anchor_psia is not None
                         else None
                     ),
+                    condenser_pressure_drop_psi=base_inputs.condenser_pressure_drop_psi,
+                    top_drum_vapor_volume_ft3=base_inputs.top_drum_vapor_volume_ft3,
+                    top_drum_total_volume_ft3=base_inputs.top_drum_total_volume_ft3,
                     vapor_flow_model=base_inputs.vapor_flow_model,
                     dry_tray_K=base_inputs.dry_tray_K,
                     vapor_holdup_relaxation_sec=base_inputs.vapor_holdup_relaxation_sec,
@@ -1877,12 +3135,26 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                         if step_condenser_duty_trim_btu_per_h is not None
                         else None
                     ),
+                    reboiler_mode=str(step_reboiler_mode),
+                    reboiler_duty_btu_per_h=(
+                        float(step_reboiler_duty_btu_per_h)
+                        if step_reboiler_duty_btu_per_h is not None
+                        else None
+                    ),
+                    reboiler_duty_trim_btu_per_h=(
+                        float(step_reboiler_duty_trim_btu_per_h)
+                        if step_reboiler_duty_trim_btu_per_h is not None
+                        else None
+                    ),
                     pressure_model=base_inputs.pressure_model,
                     pressure_top_anchor_psia=(
                         float(step_pressure_top_anchor_psia)
                         if step_pressure_top_anchor_psia is not None
                         else None
                     ),
+                    condenser_pressure_drop_psi=base_inputs.condenser_pressure_drop_psi,
+                    top_drum_vapor_volume_ft3=base_inputs.top_drum_vapor_volume_ft3,
+                    top_drum_total_volume_ft3=base_inputs.top_drum_total_volume_ft3,
                     # Do not run energy-based V closure without live thermo refresh.
                     vapor_flow_model="profile",
                     dry_tray_K=base_inputs.dry_tray_K,
@@ -1923,11 +3195,84 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 and np.isfinite(float(step_pressure_top_anchor_cmd_psia))
             ):
                 diag["P_top_anchor_cmd_psia"] = np.array([float(step_pressure_top_anchor_cmd_psia)], dtype=float)
+            if step_distillate_comp_sp is not None and np.isfinite(float(step_distillate_comp_sp)):
+                diag["xD_comp_sp"] = np.array([float(step_distillate_comp_sp)], dtype=float)
+            if step_distillate_comp_pv is not None and np.isfinite(float(step_distillate_comp_pv)):
+                diag["xD_comp_pv"] = np.array([float(step_distillate_comp_pv)], dtype=float)
+            if step_reflux_ratio_cmd is not None and np.isfinite(float(step_reflux_ratio_cmd)):
+                diag["RR_comp_cmd"] = np.array([float(step_reflux_ratio_cmd)], dtype=float)
+            if step_reflux_cmd_lbmolph is not None and np.isfinite(float(step_reflux_cmd_lbmolph)):
+                diag["Reflux_cmd_lbmolph"] = np.array([float(step_reflux_cmd_lbmolph)], dtype=float)
+            if step_bottoms_comp_sp is not None and np.isfinite(float(step_bottoms_comp_sp)):
+                diag["xB_comp_sp"] = np.array([float(step_bottoms_comp_sp)], dtype=float)
+            if step_bottoms_comp_pv is not None and np.isfinite(float(step_bottoms_comp_pv)):
+                diag["xB_comp_pv"] = np.array([float(step_bottoms_comp_pv)], dtype=float)
+            if step_boilup_cmd_lbmolph is not None and np.isfinite(float(step_boilup_cmd_lbmolph)):
+                diag["Boilup_cmd_lbmolph"] = np.array([float(step_boilup_cmd_lbmolph)], dtype=float)
+            if (
+                step_reboiler_duty_cmd_btu_per_h is not None
+                and np.isfinite(float(step_reboiler_duty_cmd_btu_per_h))
+            ):
+                diag["Q_reb_cmd_BTUph"] = np.array([float(step_reboiler_duty_cmd_btu_per_h)], dtype=float)
+
+            # Global mass-closure diagnostics (diagnostic-only; no correction).
+            try:
+                m_total_lbmol = _total_inventory_lbmol(layout, y)
+                dM_total_dt_lbmolps = _total_inventory_rate_lbmolps(layout, dydt)
+                dM_total_dt_lbmolph = float(dM_total_dt_lbmolps) * 3600.0
+
+                F_flow = float(feed_tag.flow_lbmolph) if feed_tag.flow_lbmolph is not None else np.nan
+                D_flow = np.nan
+                B_flow = np.nan
+                if step_boundary.distillate_lbmolph is not None:
+                    D_flow = float(step_boundary.distillate_lbmolph)
+                elif step_dist_tag.flow_lbmolph is not None:
+                    D_flow = float(step_dist_tag.flow_lbmolph)
+                if step_boundary.bottoms_lbmolph is not None:
+                    B_flow = float(step_boundary.bottoms_lbmolph)
+                elif step_bots_tag.flow_lbmolph is not None:
+                    B_flow = float(step_bots_tag.flow_lbmolph)
+
+                net_in_minus_out_lbmolph = np.nan
+                if np.isfinite(F_flow) and np.isfinite(D_flow) and np.isfinite(B_flow):
+                    net_in_minus_out_lbmolph = float(F_flow - D_flow - B_flow)
+
+                closure_error_lbmolph = np.nan
+                if np.isfinite(dM_total_dt_lbmolph) and np.isfinite(net_in_minus_out_lbmolph):
+                    closure_error_lbmolph = float(dM_total_dt_lbmolph - net_in_minus_out_lbmolph)
+                    if step > 0 and np.isfinite(closure_error_lbmolph):
+                        global_mass_closure_cum_lbmol += float(closure_error_lbmolph) * float(dt) / 3600.0
+
+                stage_mass_resid_sum_lbmolps = np.nan
+                if "mass_balance_resid_lbmolps_tray" in diag:
+                    try:
+                        mr = np.asarray(diag["mass_balance_resid_lbmolps_tray"], dtype=float).reshape((-1,))
+                        if mr.size > 0:
+                            stage_mass_resid_sum_lbmolps = float(np.nansum(mr))
+                    except Exception:
+                        stage_mass_resid_sum_lbmolps = np.nan
+
+                diag["M_total_lbmol"] = np.array([float(m_total_lbmol)], dtype=float)
+                diag["dM_total_dt_lbmolps"] = np.array([float(dM_total_dt_lbmolps)], dtype=float)
+                diag["dM_total_dt_lbmolph"] = np.array([float(dM_total_dt_lbmolph)], dtype=float)
+                diag["net_F_minus_D_minus_B_lbmolph"] = np.array([float(net_in_minus_out_lbmolph)], dtype=float)
+                diag["global_mass_closure_error_lbmolph"] = np.array([float(closure_error_lbmolph)], dtype=float)
+                diag["global_mass_closure_cum_lbmol"] = np.array([float(global_mass_closure_cum_lbmol)], dtype=float)
+                diag["stage_mass_resid_sum_lbmolps"] = np.array([float(stage_mass_resid_sum_lbmolps)], dtype=float)
+            except Exception:
+                pass
 
             # Pressure-controller PV source (prefer hydraulic top pressure).
-            p_ctrl_idx = 1 if int(getattr(col, "n_stages", 1)) > 1 else 0
+            p_ctrl_idx = 0
             p_top_pv = None
-            if "P_psia_hyd" in diag:
+            if "P_top_drum_psia" in diag:
+                try:
+                    p_top = float(np.asarray(diag["P_top_drum_psia"], dtype=float).reshape((-1,))[0])
+                    if np.isfinite(p_top) and p_top > 0.0:
+                        p_top_pv = float(p_top)
+                except Exception:
+                    p_top_pv = None
+            if p_top_pv is None and "P_psia_hyd" in diag:
                 try:
                     p_h = np.asarray(diag["P_psia_hyd"], dtype=float).reshape((col.n_stages,))
                     if np.isfinite(float(p_h[p_ctrl_idx])) and float(p_h[p_ctrl_idx]) > 0.0:
@@ -2153,6 +3498,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--reb-neighbor-vflow-hi-ratio", dest="reboiler_neighbor_vflow_hi_ratio", type=float, default=None)
     p.add_argument("--reb-neighbor-vflow-lo-ratio", dest="reboiler_neighbor_vflow_lo_ratio", type=float, default=None)
     p.add_argument("--use-excel-vapor-holdup", dest="use_excel_vapor_holdup", action="store_true")
+    p.add_argument("--vapor-holdup-relaxation-sec", dest="vapor_holdup_relaxation_sec", type=float, default=None)
+    p.add_argument("--vapor-flow-relaxation-sec", dest="vapor_flow_relaxation_sec", type=float, default=None)
 
     # Boundary overrides
     p.add_argument("--reflux", dest="reflux_lbmolph", type=float, default=None)
@@ -2191,6 +3538,36 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--top-pressure-anchor-max", dest="top_pressure_anchor_max_psia", type=float, default=None)
     p.add_argument("--condenser-duty-min-btuph", dest="condenser_duty_min_btu_per_h", type=float, default=None)
     p.add_argument("--condenser-duty-max-btuph", dest="condenser_duty_max_btu_per_h", type=float, default=None)
+    p.add_argument("--condenser-pressure-drop-psi", dest="condenser_pressure_drop_psi", type=float, default=None)
+    p.add_argument("--top-drum-vapor-volume-ft3", dest="top_drum_vapor_volume_ft3", type=float, default=None)
+    p.add_argument("--top-drum-total-volume-ft3", dest="top_drum_total_volume_ft3", type=float, default=None)
+    p.add_argument("--enable-distillate-composition-control", dest="enable_distillate_composition_control", action="store_true")
+    p.add_argument("--distillate-comp-component", dest="distillate_composition_component", default="C4")
+    p.add_argument("--distillate-comp-sp", dest="distillate_composition_sp_molfrac", type=float, default=None)
+    p.add_argument("--distillate-comp-kc", dest="distillate_composition_kc", type=float, default=None)
+    p.add_argument("--distillate-comp-ti", dest="distillate_composition_ti_sec", type=float, default=None)
+    p.add_argument("--reflux-cmd-min", dest="reflux_cmd_min_lbmolph", type=float, default=None)
+    p.add_argument("--reflux-cmd-max", dest="reflux_cmd_max_lbmolph", type=float, default=None)
+    p.add_argument("--enable-bottoms-composition-control", dest="enable_bottoms_composition_control", action="store_true")
+    p.add_argument("--bottoms-comp-component", dest="bottoms_composition_component", default="C5")
+    p.add_argument("--bottoms-comp-sp", dest="bottoms_composition_sp_molfrac", type=float, default=None)
+    p.add_argument("--bottoms-comp-kc", dest="bottoms_composition_kc", type=float, default=None)
+    p.add_argument("--bottoms-comp-ti", dest="bottoms_composition_ti_sec", type=float, default=None)
+    p.add_argument(
+        "--bottoms-comp-mv",
+        dest="bottoms_composition_mv",
+        choices=["boilup", "reboiler-duty"],
+        default="boilup",
+    )
+    p.add_argument("--boilup-cmd-min", dest="boilup_cmd_min_lbmolph", type=float, default=None)
+    p.add_argument("--boilup-cmd-max", dest="boilup_cmd_max_lbmolph", type=float, default=None)
+    p.add_argument("--reboiler-duty-cmd-min-btuph", dest="reboiler_duty_cmd_min_btu_per_h", type=float, default=None)
+    p.add_argument("--reboiler-duty-cmd-max-btuph", dest="reboiler_duty_cmd_max_btu_per_h", type=float, default=None)
+    p.add_argument("--reboiler-duty-btuph", dest="reboiler_duty_btu_per_h", type=float, default=None)
+    # Backward-compatible aliases. These are converted to flow clamps using
+    # current distillate flow if reflux-cmd min/max are not provided.
+    p.add_argument("--reflux-ratio-min", dest="reflux_ratio_min", type=float, default=None)
+    p.add_argument("--reflux-ratio-max", dest="reflux_ratio_max", type=float, default=None)
 
     p.add_argument("--logs-dir", dest="logs_dir", default="logs")
     p.add_argument("--no-write-logs", dest="write_logs", action="store_false")
@@ -2217,6 +3594,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         thermo_table_path=args.thermo_table_path,
         reboiler_neighbor_vflow_hi_ratio=args.reboiler_neighbor_vflow_hi_ratio,
         reboiler_neighbor_vflow_lo_ratio=args.reboiler_neighbor_vflow_lo_ratio,
+        vapor_holdup_relaxation_sec=args.vapor_holdup_relaxation_sec,
+        vapor_flow_relaxation_sec=args.vapor_flow_relaxation_sec,
         reflux_lbmolph=args.reflux_lbmolph,
         boilup_lbmolph=args.boilup_lbmolph,
         condenser_duty_mode=str(args.condenser_duty_mode),
@@ -2238,6 +3617,29 @@ def main(argv: Optional[List[str]] = None) -> int:
         top_pressure_anchor_max_psia=args.top_pressure_anchor_max_psia,
         condenser_duty_min_btu_per_h=args.condenser_duty_min_btu_per_h,
         condenser_duty_max_btu_per_h=args.condenser_duty_max_btu_per_h,
+        condenser_pressure_drop_psi=args.condenser_pressure_drop_psi,
+        top_drum_vapor_volume_ft3=args.top_drum_vapor_volume_ft3,
+        top_drum_total_volume_ft3=args.top_drum_total_volume_ft3,
+        enable_distillate_composition_control=bool(args.enable_distillate_composition_control),
+        distillate_composition_component=str(args.distillate_composition_component),
+        distillate_composition_sp_molfrac=args.distillate_composition_sp_molfrac,
+        distillate_composition_kc=args.distillate_composition_kc,
+        distillate_composition_ti_sec=args.distillate_composition_ti_sec,
+        reflux_cmd_min_lbmolph=args.reflux_cmd_min_lbmolph,
+        reflux_cmd_max_lbmolph=args.reflux_cmd_max_lbmolph,
+        reflux_ratio_min=args.reflux_ratio_min,
+        reflux_ratio_max=args.reflux_ratio_max,
+        enable_bottoms_composition_control=bool(args.enable_bottoms_composition_control),
+        bottoms_composition_component=str(args.bottoms_composition_component),
+        bottoms_composition_sp_molfrac=args.bottoms_composition_sp_molfrac,
+        bottoms_composition_kc=args.bottoms_composition_kc,
+        bottoms_composition_ti_sec=args.bottoms_composition_ti_sec,
+        bottoms_composition_mv=str(args.bottoms_composition_mv),
+        boilup_cmd_min_lbmolph=args.boilup_cmd_min_lbmolph,
+        boilup_cmd_max_lbmolph=args.boilup_cmd_max_lbmolph,
+        reboiler_duty_cmd_min_btu_per_h=args.reboiler_duty_cmd_min_btu_per_h,
+        reboiler_duty_cmd_max_btu_per_h=args.reboiler_duty_cmd_max_btu_per_h,
+        reboiler_duty_btu_per_h=args.reboiler_duty_btu_per_h,
         logs_dir=str(args.logs_dir),
         write_logs=bool(args.write_logs),
         thermo_cache_path=args.thermo_cache_path,

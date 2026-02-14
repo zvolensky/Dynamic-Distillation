@@ -14,10 +14,13 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from dynamic_distillation.dynamic_run_scaffold_v1 import (
     RunnerConfig,
+    _component_index_by_name,
     _clip_temperature_states_to_provider_bounds,
+    build_inputs_for_runner,
     run_smoke_simulation,
 )
 from dynamic_distillation.column_rhs_v1 import column_rhs
@@ -124,7 +127,7 @@ def test_level_control_writes_dynamic_draws_to_summary_log(tmp_path: Path):
 
     cfg = RunnerConfig(
         excel_path=str(excel),
-        n_steps=0,
+        n_steps=1,
         dt_sec=0.1,
         log_every_n_steps=1,
         include_temperature=True,
@@ -147,14 +150,32 @@ def test_level_control_writes_dynamic_draws_to_summary_log(tmp_path: Path):
     with summary_csv.open("r", encoding="utf-8", newline="") as f:
         rows = list(csv.DictReader(f))
     assert rows, "summary log is empty"
+    assert len(rows) >= 2
 
     r0 = rows[0]
+    r1 = rows[1]
     d = float(r0["D_lbmolph"])
     b = float(r0["B_lbmolph"])
     assert np.isfinite(d) and np.isfinite(b)
-    # With setpoints far below initial inventories, both product draws should increase.
-    assert d > 2380.99
-    assert b > 4761.98
+    assert "Q_reb_used_BTUph" in r0
+    assert np.isfinite(float(r0["Q_reb_used_BTUph"]))
+    assert "M_total_lbmol" in r0
+    assert "dM_total_dt_lbmolph" in r0
+    assert "net_F_minus_D_minus_B_lbmolph" in r0
+    assert "global_mass_closure_error_lbmolph" in r0
+    assert "global_mass_closure_cum_lbmol" in r0
+    assert np.isfinite(float(r0["M_total_lbmol"]))
+    assert np.isfinite(float(r0["dM_total_dt_lbmolph"]))
+    assert np.isfinite(float(r0["net_F_minus_D_minus_B_lbmolph"]))
+    assert np.isfinite(float(r0["global_mass_closure_error_lbmolph"]))
+    assert np.isfinite(float(r0["global_mass_closure_cum_lbmol"]))
+    # Controller output is held at initialization row.
+    assert d == pytest.approx(2380.99)
+    assert b == pytest.approx(4761.98)
+    # With setpoints far below initial inventories, both product draws should increase
+    # on the first actionable timestep.
+    assert float(r1["D_lbmolph"]) > 2380.99
+    assert float(r1["B_lbmolph"]) > 4761.98
 
 
 def test_clip_temperature_states_to_provider_bounds():
@@ -190,3 +211,180 @@ def test_clip_temperature_states_to_provider_bounds():
     y2 = _clip_temperature_states_to_provider_bounds(y, layout, Provider())
     assert np.allclose(y2[sl["tray_T_f"]], np.array([95.0, 115.0, 150.0], dtype=float))
     assert np.allclose(y2[sl["bottom_T_f"]], np.array([150.0], dtype=float))
+
+
+def test_component_index_by_name_handles_c_number_alias():
+    class TinyCol:
+        n_components = 3
+        components_excel = ["C3H8", "C4H10", "C5H12"]
+        components_dwsim = ["Propane", "n-Butane", "n-Pentane"]
+
+    assert _component_index_by_name(TinyCol(), "C4") == 1
+    assert _component_index_by_name(TinyCol(), "c4h10") == 1
+    assert _component_index_by_name(TinyCol(), "n-Butane") == 1
+
+
+def test_distillate_composition_control_logs_command(tmp_path: Path):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+    thermo_table = Path("cache/thermo_table.json")
+    if not thermo_table.exists():
+        return
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=0,
+        dt_sec=0.2,
+        log_every_n_steps=1,
+        include_temperature=True,
+        include_energy=True,
+        enable_equilibrium_relaxation=True,
+        thermo_mode="table",
+        thermo_table_path=str(thermo_table),
+        logs_dir=str(tmp_path),
+        write_logs=True,
+        enable_level_control=True,
+        top_level_sp_lbmol=397.0,
+        bottom_level_sp_lbmol=794.0,
+        enable_distillate_composition_control=True,
+        distillate_composition_component="C4",
+        distillate_composition_sp_molfrac=0.05,
+    )
+
+    out = run_smoke_simulation(cfg)
+    summary_csv = Path(str(out["summary_csv"]))
+    assert summary_csv.exists()
+
+    import csv
+
+    with summary_csv.open("r", encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert rows, "summary log is empty"
+
+    r0 = rows[0]
+    assert "xD_comp_sp" in r0
+    assert "xD_comp_pv" in r0
+    assert "RR_comp_cmd" in r0
+    assert np.isfinite(float(r0["xD_comp_sp"]))
+    assert np.isfinite(float(r0["RR_comp_cmd"]))
+
+
+def test_build_inputs_reads_and_overrides_condenser_pressure_drop():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Condenser Pressure Drop (psi)"] = 2.0
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert abs(float(inputs.condenser_pressure_drop_psi) - 2.0) < 1e-12
+
+    cfg_override = RunnerConfig(excel_path=str(excel), thermo_mode="stub", condenser_pressure_drop_psi=1.25)
+    inputs_override, _ = build_inputs_for_runner(case, col, cfg_override)
+    assert abs(float(inputs_override.condenser_pressure_drop_psi) - 1.25) < 1e-12
+
+
+def test_build_inputs_computes_top_drum_vapor_volume_from_geometry():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Top Drum Vapor Volume (ft3)"] = None
+    specs["Top Drum Total Volume (ft3)"] = None
+    specs["Top Drum Diameter (ft)"] = 10.0
+    specs["Top Drum Length (ft)"] = 40.0
+    specs["Top Drum Liquid Fraction (-)"] = 0.60
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+
+    total_vol = float(np.pi * 0.25 * 10.0 * 10.0 * 40.0)
+    expected_vapor = total_vol * (1.0 - 0.60)
+    assert inputs.top_drum_total_volume_ft3 is not None
+    assert abs(float(inputs.top_drum_total_volume_ft3) - total_vol) < 1e-9
+    assert inputs.top_drum_vapor_volume_ft3 is not None
+    assert abs(float(inputs.top_drum_vapor_volume_ft3) - expected_vapor) < 1e-9
+
+
+def test_build_inputs_infers_top_drum_total_volume_from_holdup_and_vapor_volume():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Top Drum Total Volume (ft3)"] = None
+    specs["Top Drum Liquid Fraction (-)"] = None
+    specs["Top Drum Vapor Volume (ft3)"] = 900.0
+    specs["Top Accumulator Holdup (lbmol)"] = 397.0
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+
+    assert inputs.top_drum_vapor_volume_ft3 is not None
+    assert abs(float(inputs.top_drum_vapor_volume_ft3) - 900.0) < 1e-12
+    assert inputs.top_drum_total_volume_ft3 is not None
+    assert float(inputs.top_drum_total_volume_ft3) > 900.0
+
+
+def test_bottoms_composition_control_logs_command(tmp_path: Path):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=0,
+        dt_sec=0.2,
+        log_every_n_steps=1,
+        include_temperature=True,
+        include_energy=False,
+        enable_equilibrium_relaxation=True,
+        thermo_mode="stub",
+        logs_dir=str(tmp_path),
+        write_logs=True,
+        enable_bottoms_composition_control=True,
+        bottoms_composition_component="C5",
+        bottoms_composition_sp_molfrac=0.20,
+    )
+
+    out = run_smoke_simulation(cfg)
+    summary_csv = Path(str(out["summary_csv"]))
+    assert summary_csv.exists()
+
+    import csv
+
+    with summary_csv.open("r", encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert rows, "summary log is empty"
+
+    r0 = rows[0]
+    assert "xB_comp_sp" in r0
+    assert "xB_comp_pv" in r0
+    assert "Boilup_cmd_lbmolph" in r0
+    assert np.isfinite(float(r0["xB_comp_sp"]))
+    assert np.isfinite(float(r0["Boilup_cmd_lbmolph"]))

@@ -166,7 +166,16 @@ class StateVectorLayout:
         y = np.zeros(self.n_states(), dtype=float)
 
         ML0 = np.asarray(_get_first_attr(col, ["M_L_lbmol", "ML0_lbmol"]), dtype=float).reshape((N,))
-        MV0 = np.asarray(_get_first_attr(col, ["M_V_lbmol", "MV0_lbmol"]), dtype=float).reshape((N,))
+
+        # Vapor holdup input is optional in the Excel template.
+        # If absent/invalid, start from zero vapor holdup and let startup initialization
+        # (e.g., pressure-based MV initialization) set a consistent profile.
+        MV_raw = _get_first_attr(col, ["M_V_lbmol", "MV0_lbmol"])
+        try:
+            MV0 = np.asarray(MV_raw, dtype=float).reshape((N,))
+        except Exception:
+            MV0 = np.zeros(N, dtype=float)
+        MV0 = np.where(np.isfinite(MV0), MV0, 0.0)
 
         x0 = np.asarray(_get_first_attr(col, ["x0"]), dtype=float).reshape((N, Nc))
         y0v = np.asarray(_get_first_attr(col, ["y0"]), dtype=float).reshape((N, Nc))

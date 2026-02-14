@@ -44,9 +44,9 @@ def _make_zero_flow_column() -> ColumnSpec:
     )
 
 
-def test_equilibrium_relaxation_adds_equal_and_opposite_transfer_terms():
+def test_equilibrium_relaxation_relaxes_to_flash_targets_with_net_phase_change():
     col = _make_zero_flow_column()
-    layout = StateVectorLayout(n_stages=2, n_components=2, include_top=True, include_bottom=True, include_vapor=True)
+    layout = StateVectorLayout(n_stages=2, n_components=2, include_top=False, include_bottom=False, include_vapor=True)
     y0_vec = layout.pack_y0(col)
 
     K = np.array([2.0, 0.5], dtype=float)
@@ -67,21 +67,18 @@ def test_equilibrium_relaxation_adds_equal_and_opposite_transfer_terms():
     dL = dydt[sl["tray_L"]].reshape((col.n_stages, col.n_components))
     dV = dydt[sl["tray_V"]].reshape((col.n_stages, col.n_components))
 
-    # expected transfer = (MV/tau) * (y_eq - y)
-    x = col.x0
-    y = col.y0
-    y_eq_raw = (K[None, :] * x)
-    y_eq = y_eq_raw / np.sum(y_eq_raw, axis=1, keepdims=True)
-    MV = col.M_V_lbmol.reshape((col.n_stages, 1))
-    expected = (MV / tau) * (y_eq - y)
+    # Transfer is equal-and-opposite between phases per component.
+    assert np.allclose(dL + dV, 0.0, atol=1e-12)
+    transfer = np.asarray(diag["eq_transfer_lbmolps_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+    assert np.allclose(dV, transfer, atol=1e-12)
+    assert np.allclose(dL, -transfer, atol=1e-12)
 
-    assert np.allclose(dV, expected, atol=1e-12)
-    assert np.allclose(dL, -expected, atol=1e-12)
-
-    # Each phase total should be unchanged by the transfer (sums to ~0 per stage)
-    assert np.allclose(np.sum(dV, axis=1), 0.0, atol=1e-12)
-    assert np.allclose(np.sum(dL, axis=1), 0.0, atol=1e-12)
+    # Net phase change is allowed and expected from flash-target relaxation.
+    phase_change = np.asarray(diag["eq_phase_change_lbmolps_tray"], dtype=float).reshape((col.n_stages,))
+    assert np.any(np.abs(phase_change) > 1e-12)
 
     # Diagnostics present
+    assert "x_eq_tray" in diag
     assert "y_eq_tray" in diag
+    assert "beta_eq_tray" in diag
     assert "eq_transfer_lbmolps_tray" in diag

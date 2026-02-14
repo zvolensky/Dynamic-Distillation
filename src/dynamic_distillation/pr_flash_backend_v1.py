@@ -517,6 +517,48 @@ def liquid_density_lbmol_ft3(T_F: float, P_psia: float, x) -> Optional[float]:
     return None
 
 
+def component_mw_lbm_per_lbmol(T_F: float = 60.0, P_psia: float = 14.7) -> Optional[np.ndarray]:
+    """Return component molecular weights (lbm/lbmol) using DWSIM CalcProp."""
+    _init_dwsim()
+    from System import Array, String  # type: ignore
+
+    if not _component_ids:
+        raise RuntimeError("Call set_component_ids([...]) before requesting component MWs.")
+
+    T_K = F_to_K(T_F)
+    P_Pa = float(P_psia) * PSIA_TO_PA
+
+    n = len(_component_ids)
+    _carray = Array[String](_component_ids)
+    mw = np.full(n, np.nan, dtype=float)
+
+    for i in range(n):
+        z = np.zeros(n, dtype=float)
+        z[i] = 1.0
+        z_array = Array[float](list(z))
+
+        val = None
+        for _mwname in ("molecularweight", "molecular weight", "mw"):
+            try:
+                _mv = _dtlc.CalcProp(_prop_package, _mwname, "Mole", "Liquid", _carray, T_K, P_Pa, z_array)
+                val = float(_mv[0])
+                break
+            except Exception:
+                continue
+        if val is None or (not np.isfinite(val)) or val <= 0.0:
+            return None
+
+        # Heuristic: if MW looks like kg/mol (< 1), convert to kg/kmol.
+        if val < 1.0:
+            val = val * 1000.0
+
+        mw[i] = float(val)
+
+    if not np.all(np.isfinite(mw)):
+        return None
+    return mw
+
+
 def _flash_TP_F_psia_thermo(T_F: float, P_psia: float, z) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float, float]:
     """
     Fallback TP flash using the `thermo` Python library (PR EOS).
@@ -686,5 +728,6 @@ __all__ = [
     "pr_flash_TP_F_psia",
     "flash_TP_full_F_psia",
     "get_thermo_coefficients",
+    "component_mw_lbm_per_lbmol",
     "silence_console",
 ]

@@ -1,5 +1,6 @@
 import numpy as np
 
+import dynamic_distillation.column_rhs_v1 as rhs_module
 from dynamic_distillation.column_spec_builder_v1 import (
     ColumnSpec,
     ColumnGeometry,
@@ -16,6 +17,7 @@ from dynamic_distillation.column_rhs_v1 import (
     _feed_component_rates_lbmolps,
     _feed_enthalpy_rate_btu_per_s,
     _bubble_point_T_F,
+    _condenser_mass_split_from_duty,
     _pressure_profile_hydraulic_psia,
     _resolve_condenser_duty_btu_per_h,
 )
@@ -172,16 +174,20 @@ def test_total_condenser_top_drum_balance():
 
     u0 = layout.unpack(y0)
     y_in0 = u0["y_tray"][1, :]
+    x_cond0 = u0["x_tray"][0, :]
 
     reflux_s = 6.0 / 3600.0
     boilup_s = 12.0 / 3600.0
 
-    expected_d_top = boilup_s * y_in0 - reflux_s * x_topL
+    # Condensed liquid first fills condenser tray state and is then transferred
+    # to reflux-drum liquid with condenser-tray composition.
+    expected_d_top = boilup_s * x_cond0 - reflux_s * x_topL
     d_top = dydt[sl["top_L"]].reshape((2,))
     assert np.allclose(d_top, expected_d_top, atol=1e-12)
 
     d_tray_L = dydt[sl["tray_L"]].reshape((2, 2))
-    assert np.allclose(d_tray_L[0, :], d_top, atol=1e-12)
+    expected_d_cond = boilup_s * (y_in0 - x_cond0)
+    assert np.allclose(d_tray_L[0, :], expected_d_cond, atol=1e-12)
 
 
 def test_hydraulics_uses_thermo_density():
@@ -476,6 +482,85 @@ def test_specified_mode_ignores_duty_trim():
     assert q_calc is None
     assert t_bub is None
     assert abs(float(q_used) + 100.0) < 1e-12
+
+
+def test_total_condense_mass_split_responds_to_positive_trim(monkeypatch):
+    col = _make_tiny_column()
+    N = int(col.n_stages)
+    Nc = int(col.n_components)
+    tray_T = np.asarray(col.T_f, dtype=float).reshape((N,))
+    P_tray = np.asarray(col.P_psia, dtype=float).reshape((N,))
+    V_in = np.array([1.0, 0.0], dtype=float)
+    y_in = np.full((N, Nc), 1.0 / max(Nc, 1), dtype=float)
+    top_V = np.array([0.2, 0.2], dtype=float)
+
+    def _fake_total_cond_duty(**kwargs):
+        # Full condensation of 1 lbmol/s requires -3600 BTU/h here.
+        return -3600.0, 100.0
+
+    monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _fake_total_cond_duty)
+
+    v_cond_in, v_to_top, v_cond_top, q_used, q_req, mode = _condenser_mass_split_from_duty(
+        col=col,
+        inputs=ColumnInputs(
+            condenser_duty_mode="total-condense",
+            condenser_duty_btu_per_h=-100.0,
+            condenser_duty_trim_btu_per_h=+1800.0,  # less cooling than full-condense requirement
+            thermo_provider=object(),
+        ),
+        tray_T_F=tray_T,
+        P_tray_psia=P_tray,
+        V_in_lbmolps=V_in,
+        y_in=y_in,
+        top_V=top_V,
+        epsilon_lbmol=1e-12,
+    )
+
+    assert mode == "total-condense"
+    assert abs(float(q_req) + 3600.0) < 1e-12
+    assert abs(float(q_used) + 1800.0) < 1e-12
+    assert abs(float(v_cond_in) - 0.5) < 1e-12
+    assert abs(float(v_to_top) - 0.5) < 1e-12
+    assert abs(float(v_cond_top) - 0.0) < 1e-12
+
+
+def test_total_condense_mass_split_can_condense_top_vapor_with_extra_duty(monkeypatch):
+    col = _make_tiny_column()
+    N = int(col.n_stages)
+    Nc = int(col.n_components)
+    tray_T = np.asarray(col.T_f, dtype=float).reshape((N,))
+    P_tray = np.asarray(col.P_psia, dtype=float).reshape((N,))
+    V_in = np.array([1.0, 0.0], dtype=float)
+    y_in = np.full((N, Nc), 1.0 / max(Nc, 1), dtype=float)
+    top_V = np.array([0.2, 0.2], dtype=float)  # 0.4 lbmol in top vapor holdup
+
+    def _fake_total_cond_duty(**kwargs):
+        return -3600.0, 100.0
+
+    monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _fake_total_cond_duty)
+
+    v_cond_in, v_to_top, v_cond_top, q_used, q_req, mode = _condenser_mass_split_from_duty(
+        col=col,
+        inputs=ColumnInputs(
+            condenser_duty_mode="total-condense",
+            condenser_duty_btu_per_h=-100.0,
+            condenser_duty_trim_btu_per_h=-1800.0,  # extra cooling beyond full-condense requirement
+            thermo_provider=object(),
+        ),
+        tray_T_F=tray_T,
+        P_tray_psia=P_tray,
+        V_in_lbmolps=V_in,
+        y_in=y_in,
+        top_V=top_V,
+        epsilon_lbmol=1e-12,
+    )
+
+    assert mode == "total-condense"
+    assert abs(float(q_req) + 3600.0) < 1e-12
+    assert abs(float(q_used) + 5400.0) < 1e-12
+    assert abs(float(v_cond_in) - 1.0) < 1e-12
+    assert abs(float(v_to_top) - 0.0) < 1e-12
+    assert abs(float(v_cond_top) - 0.4) < 1e-12
 
 
 def test_temperature_uses_provider_cp():
@@ -1502,3 +1587,124 @@ def test_bubble_point_respects_provider_temperature_bounds():
 
     assert abs(float(T_low) - 95.0) < 1e-9
     assert abs(float(T_high) - 150.0) < 1e-9
+
+
+def test_no_holdup_reboiler_sump_temperature_uses_energy_balance_not_bubblepoint_relaxation():
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            # Trigger no-holdup reboiler mode on stage N.
+            "M_L_lbmol": np.array([5.0, 0.0], dtype=float),
+            "streams": {},
+        }
+    )
+    object.__setattr__(col2, "bottom_L0_lbmol", np.array([4.0, 1.0], dtype=float))
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col2)
+
+    class FlatKProvider:
+        # Constant K => bubble-point fallback would return ~T_guess and force dT_sump ~ 0
+        # if bubblepoint relaxation were incorrectly applied.
+        def flash_TP_full_F_psia(self, T_F, P_psia, z):
+            z = np.asarray(z, dtype=float).reshape((-1,))
+            z = z / max(float(np.sum(z)), 1e-300)
+            K = np.full_like(z, 0.8)
+            return z, z, K, -1000.0, -500.0
+
+    thermo = ConstantCpThermo(
+        cp_liq_components=np.array([30.0, 25.0]),
+        cp_vap_components=np.array([20.0, 18.0]),
+        tref_f=60.0,
+    )
+
+    base_inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=20.0, boilup_lbmolph=10.0, bottoms_lbmolph=5.0),
+        thermo=thermo,
+        condenser_duty_mode="specified",
+        condenser_duty_btu_per_h=0.0,
+    )
+    _dydt_base, diag_base = column_rhs(0.0, y0, col2, layout, inputs=base_inputs)
+    dT_base = float(diag_base["dT_sump_F_per_s"])
+
+    prov_inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=20.0, boilup_lbmolph=10.0, bottoms_lbmolph=5.0),
+        thermo=thermo,
+        thermo_provider=FlatKProvider(),
+        condenser_duty_mode="specified",
+        condenser_duty_btu_per_h=0.0,
+    )
+    _dydt_prov, diag_prov = column_rhs(0.0, y0, col2, layout, inputs=prov_inputs)
+    dT_prov = float(diag_prov["dT_sump_F_per_s"])
+
+    # Provider presence can slightly perturb reboiler flash composition, but sump
+    # dT should remain energy-driven (nonzero, same sign, similar magnitude) and
+    # not collapse to a bubblepoint-relaxation target.
+    assert np.isfinite(dT_base)
+    assert np.isfinite(dT_prov)
+    assert abs(dT_prov) > 1e-4
+    assert np.sign(dT_base) == np.sign(dT_prov)
+    rel = abs(dT_base - dT_prov) / max(abs(dT_base), 1e-12)
+    assert rel < 0.2
+
+
+def test_hydraulic_pressure_profile_applies_fixed_condenser_pressure_drop():
+    n = 3
+    area = math.pi * (10.0 * 0.5) ** 2
+    geom = ColumnGeometry(
+        sections=[ColumnGeometrySection(start_stage_1based=1, end_stage_1based=3, diameter_ft=10.0, tray_spacing_ft=1.0, gas_void_frac=0.7)],
+        diameter_ft_per_stage=np.full(n, 10.0, dtype=float),
+        tray_spacing_ft_per_stage=np.full(n, 1.0, dtype=float),
+        gas_void_frac_per_stage=np.full(n, 0.7, dtype=float),
+        area_ft2_per_stage=np.full(n, area, dtype=float),
+        vapor_volume_ft3_per_stage=np.full(n, area * 0.7, dtype=float),
+        active_area_frac_per_stage=np.full(n, 0.7, dtype=float),
+        active_area_ft2_per_stage=np.full(n, area * 0.7, dtype=float),
+    )
+
+    T_F = np.array([120.0, 130.0, 140.0], dtype=float)
+    V_in = np.zeros(n, dtype=float)
+    y = np.full((n, 2), 0.5, dtype=float)
+    x = np.full((n, 2), 0.5, dtype=float)
+    Z = np.ones(n, dtype=float)
+
+    p_no_drop = _pressure_profile_hydraulic_psia(
+        P_bottom_psia=232.0,
+        T_F=T_F,
+        V_in_lbmolps=V_in,
+        y_tray=y,
+        x_tray=x,
+        Z_vap=Z,
+        geom=geom,
+        h_ow_ft=np.zeros(n, dtype=float),
+        rhoL_lbmol_ft3=None,
+        mw_components=None,
+        dry_tray_K=0.0,
+        condenser_pressure_drop_psi=None,
+    )
+    p_with_drop = _pressure_profile_hydraulic_psia(
+        P_bottom_psia=232.0,
+        T_F=T_F,
+        V_in_lbmolps=V_in,
+        y_tray=y,
+        x_tray=x,
+        Z_vap=Z,
+        geom=geom,
+        h_ow_ft=np.zeros(n, dtype=float),
+        rhoL_lbmol_ft3=None,
+        mw_components=None,
+        dry_tray_K=0.0,
+        condenser_pressure_drop_psi=2.0,
+    )
+
+    assert abs(float(p_no_drop[1]) - float(p_no_drop[0])) < 1e-12
+    assert abs((float(p_with_drop[1]) - float(p_with_drop[0])) - 2.0) < 1e-9

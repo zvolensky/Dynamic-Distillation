@@ -60,6 +60,7 @@ class ThermoProviderV1:
         self._rhoL_cache_max = 2000
         self._cp_cache: dict[tuple, tuple[Optional[float], Optional[float]]] = {}
         self._cp_cache_max = 2000
+        self._mw_components_cache: Optional[np.ndarray] = None
 
     def configure_backend(self) -> None:
         backend.set_component_ids(self.component_ids_dwsim)
@@ -184,5 +185,24 @@ class ThermoProviderV1:
                 if len(self._rhoL_cache) > self._rhoL_cache_max:
                     self._rhoL_cache.clear()
             return rho
+        except Exception:
+            return None
+
+    def component_mw_lbm_per_lbmol(self) -> Optional[np.ndarray]:
+        """Return component molecular weights (lbm/lbmol) from backend, cached."""
+        if self._mw_components_cache is not None:
+            return self._mw_components_cache
+
+        self.configure_backend()
+        try:
+            with backend.silence_console(self.silence_backend_console):
+                mw = backend.component_mw_lbm_per_lbmol(T_F=60.0, P_psia=14.7)
+            if mw is None:
+                return None
+            mw = np.asarray(mw, dtype=float).reshape((len(self.component_ids_dwsim),))
+            if not np.all(np.isfinite(mw)) or np.any(mw <= 0.0):
+                return None
+            self._mw_components_cache = mw
+            return mw
         except Exception:
             return None

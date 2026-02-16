@@ -1,15 +1,53 @@
-"""dwsim_compounds.py
+"""
+dwsim_compounds_v2.py
 
-Auto-generated list of available compounds in the DWSIM compound database.
+Dynamic Distillation - DWSIM Compound Database Reference
 
-Source: List_of_Available_Compounds_in_DWSIM_Database_complete.txt
+PURPOSE
+-------
+Provide the complete list of compounds available in the DWSIM thermodynamic
+database. Used for compound name validation and canonicalization.
 
-Notes
------
-- The strings in DWSIM_COMPOUNDS are the compound IDs/names exactly as provided by the DWSIM database list.
-- Use DWSIM_COMPOUND_SET for fast membership checks (case-sensitive).
-- If you want case-insensitive matching, normalize the input before calling.
+INPUTS
+------
+(None - this is a static data reference module)
 
+OUTPUTS
+-------
+DWSIM_COMPOUNDS : List[str]
+    Ordered list of all available compound names in DWSIM database
+DWSIM_COMPOUND_SET : Set[str]
+    Set version for fast O(1) membership checks (case-sensitive)
+
+DEPENDENCIES
+------------
+(None - standard library only)
+
+NOTES / KEY FEATURES
+--------------------
+- Ordered list as provided in original DWSIM database source
+- Use DWSIM_COMPOUND_SET for membership checks (much faster than list search)
+- Case-sensitive matching; normalize input before calling
+- Source: List_of_Available_Compounds_in_DWSIM_Database_complete.txt
+
+PERFORMANCE NOTES
+-----------------
+- DWSIM_COMPOUND_SET: O(1) membership check vs. O(N) for list scan
+- Load time: ~1 ms (one-time module import)
+
+EXAMPLE USAGE
+-------------
+    from dynamic_distillation.dwsim_compounds_v2 import DWSIM_COMPOUNDS, DWSIM_COMPOUND_SET
+    
+    # Enumerate all compounds
+    print(f"Total compounds available: {len(DWSIM_COMPOUNDS)}")
+    
+    # Fast membership check
+    if "Propane" in DWSIM_COMPOUND_SET:
+        print("Propane is available")
+    
+    # Case-sensitive; "propane" (lowercase) != "Propane"
+    assert "propane" not in DWSIM_COMPOUND_SET
 """
 
 from __future__ import annotations

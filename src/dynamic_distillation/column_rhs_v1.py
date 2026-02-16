@@ -1,24 +1,120 @@
 """
 column_rhs_v1.py
 
-Dynamic Distillation - Column RHS (v1)
+Dynamic Distillation - Right-Hand Side (RHS) function for column ODE integration.
 
+PURPOSE
+-------
+Compute time derivatives (dy/dt) for the distillation column state vector.
+Implements mass and energy balances for all stages, hydraulic dynamics, 
+thermo diagnostics, and optional equilibrium relaxation.
+
+INPUTS
+------
+t : float
+    Current simulation time (s).
+y : np.ndarray
+    State vector (packed by StateVectorLayout): component holdups,
+    optional vapor holdups, optional temperatures, optional energy holdups.
+column_inputs : ColumnInputs
+    Boundary conditions: reflux/boilup rates, distillate/bottoms rates,
+    feed conditions, optional thermo provider.
+column_spec : ColumnSpec
+    Column geometry and specifications (stages, components, feeds, etc.).
+layout : StateVectorLayout
+    Describes how state vector is packed/unpacked.
+thermo_provider : Optional[ThermoProvider]
+    Optional provider for flash calculations and diagnostics.
+
+OUTPUTS
+-------
+dy : np.ndarray
+    Time derivatives matching the shape of state vector y.
+diag : Dict[str, Any]
+    Diagnostic outputs for logging/monitoring:
+        - Pressures (P_spec, P_diag), compositions (x, y)
+        - Thermo properties (K, HL, HV, Z) when available
+        - Flow rates, holdups, etc.
+
+DEPENDENCIES
+------------
+from dynamic_distillation.column_spec_builder_v1 : ColumnSpec, ColumnGeometry
+from dynamic_distillation.state_vector_layout_v1 : StateVectorLayout
+from dynamic_distillation.thermo_model_v1 : ThermoModel, ConstantCpThermo
+from dynamic_distillation.stage_thermo_v1 : flash_TP_full_F_psia
+from dynamic_distillation.stage_hydraulics_francis_v1 : compute_francis_weir_liquid_outflow
+
+ASSUMPTIONS & CONSTRAINTS
+--------------------------
+- State vector y is already unpacked; caller manages layout
+- All stage pressures must be positive; column_spec.P_psia is spec/operating pressure
+- Thermo provider (if used) must support simultaneous multi-stage flash calls
+- Energy balance requires consistent reference temperature (T_ref) across modules
+- Stage index 0 = condenser; Stage N-1 = reboiler (may have zero vapor)
+
+SIDE EFFECTS / STATE MUTATIONS
+-------------------------------
+- Modifies diag dict in-place (caller owns dict; this module populates it)
+- Does not modify y, column_spec, layout, or column_inputs
+- Calls to thermo_provider may cache thermo results (cached state internal to provider)
+
+PERFORMANCE NOTES
+-----------------
+- Typical cost per RHS call: 0.1–1 ms (depends on stage count, thermo mode)
+- Main bottleneck: Thermo provider flash calls (can be 10-50 ms if full calculations)
+- When thermo throttled (e.g., --thermo-every N): intermediate steps ~0.1 ms
+- Pressure diagnostic (Module 8A) uses PV equation of state: fast, no flash needed
+- Energy balance (Option B1): adds ~5% overhead vs. temperature-only
+
+ERROR HANDLING
+--------------
+- Raises ColumnRHSError if:
+    * Invalid state vector size (shape mismatch with layout)
+    * Invalid composition (NaN, negative, or non-normalized)
+    * Invalid pressures (≤0 psia)
+    * Required thermo provider unavailable when equilibrium_relaxation=True
+    * Hydraulics computation fails (e.g., zero/negative densities)
+
+VERSION / COMPATIBILITY
+-----------------------
+v1.0 (current):
+    - Explicit Euler time-stepping compatible
+    - Backward compatible with legacy temperature-state energy (layout.include_temperature)
+    - Module 8B (equilibrium relaxation) optional; defaults to disabled
+    - Module 8A (real-gas Z) optional; defaults to Z=1.0
+
+NOTES / KEY FEATURES
+--------------------
+Created: 2026-01-11 (America/New_York)
 Updated: 2026-01-12 16:40 (America/New_York)
 
-Notes
------
 - Mass balances on component holdups (liquid + optional vapor)
 - Optional energy balances:
     * Legacy temperature-state energy (layout.include_temperature)
     * Option B1 enthalpy-holdup energy (layout.include_energy)
-- Pressure diagnostic derived from vapor holdup + volume model
-    * Module 8A: supports real-gas Z when available: P = n Z R T / V
-- Module 7: Optional thermo diagnostics hook (K, HL, HV) via thermo_provider
-- Module 8B: Optional relaxed equilibrium closure using K:
-    * When enabled, applies an internal interphase relaxation term that drives
-      vapor composition toward y_eq computed from K and x.
-    * Time constant is tau_eq_sec (seconds). If ColumnInputs.tau_eq_sec is None,
-      we fall back to ColumnSpec.tau_eq_sec when available, else default 10 s.
+- Pressure diagnostic derived from vapor holdup + volume model (Module 8A):
+    * Supports real-gas Z when available: P = n Z R T / V
+- Optional thermo diagnostics hook: K, HL, HV via thermo_provider (Module 7)
+- Optional relaxed equilibrium closure using K (Module 8B):
+    * Applies internal interphase relaxation driving vapor composition 
+      toward y_eq computed from K and x
+    * Time constant tau_eq_sec (seconds); defaults to 10 s if not specified
+
+EXAMPLE USAGE
+-------------
+    layout = StateVectorLayout(n_stages=20, n_components=3, 
+                               include_vapor=True, include_temperature=True)
+    y0 = layout.pack_state(ML, MV, T, ...)
+    
+    inputs = ColumnInputs(reflux_lbmolph=50.0, boilup_lbmolph=60.0,
+                          volume_model=VolumeModel.TOTAL)
+    
+    dy, diag = column_rhs(t=0.0, y=y0, column_inputs=inputs, 
+                          column_spec=col_spec, layout=layout,
+                          thermo_provider=provider)
+    
+    print(f"dML/dt = {diag['dML_dt']}")
+    print(f"P_diagnostic = {diag['P_psia_diag']}")
 """
 
 from __future__ import annotations

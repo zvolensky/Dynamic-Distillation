@@ -1,41 +1,135 @@
-"""dynamic_run_scaffold_v1.py
+"""
+dynamic_run_scaffold_v1.py
 
+Dynamic Distillation - Smoke-Test Runner and CLI Interface
+
+PURPOSE
+-------
+High-level runner for dynamic distillation simulations using explicit Euler
+time integration. Orchestrates case loading, model initialization, ODE solving,
+logging, and experiment tracking.
+
+INPUTS
+------
+RunnerConfig (dataclass with CLI args):
+    excel_path : str - Excel case file path
+    n_steps : int - Number of simulation steps
+    dt : float - Time step (seconds)
+    thermo_mode : str - 'dwsim', 'surrogate', or 'python'
+    include_temperature : bool - Include temperature states
+    include_energy : bool - Include energy (enthalpy) balance
+    no_equilibrium : bool - Disable equilibrium closure
+    reflux_lbmolph : Optional[float] - Override reflux (lbmol/h)
+    boilup_lbmolph : Optional[float] - Override boilup (lbmol/h)
+    (... and other CLI options)
+
+OUTPUTS
+-------
+Profile CSV: logs/column_profile_<YYYYMMdd_HHMMSS>.csv
+    Per-timestep simulation results (compositions, temperatures, pressures, etc.)
+Summary CSV: logs/column_summary_<YYYYMMdd_HHMMSS>.csv
+    Final and initial states, key metrics
+Run Registry: logs/run_registry.csv
+    Auto-updated with command, timestamps, metrics
+
+DEPENDENCIES
+------------
+from dynamic_distillation.excel_case_loader_v1 : load_case_from_excel, CaseData
+from dynamic_distillation.column_spec_builder_v1 : build_column_spec_from_case, ColumnSpec
+from dynamic_distillation.excel_case_validator_v1 : validate_loaded_case
+from dynamic_distillation.state_vector_layout_v1 : StateVectorLayout
+from dynamic_distillation.column_rhs_v1 : column_rhs, ColumnInputs, BoundaryFlows, VolumeModel
+from dynamic_distillation.experiment_ledger_v1 : append_run_registry_entry, compose_cli_command
+from dynamic_distillation.thermo_provider_v1 : ThermoProviderV1
+from dynamic_distillation.thermo_surrogate_v1 : ThermoSurrogateProviderV1
+from dynamic_distillation.pr_flash_backend_v1 : (flash backend)
+from dynamic_distillation.thermo_cache_v1 : load_thermo_cache
+
+ASSUMPTIONS & CONSTRAINTS
+--------------------------
+- Excel case file exists and is valid (validated before use)
+- Time step dt is positive and reasonable (typically 0.01–1.0 s)
+- Explicit Euler: stability requires Courant-like condition (dt small enough for stiffness)
+- N_steps is positive; typical range 100–100,000 steps
+- Boundary flows (reflux, boilup) non-negative; must satisfy overall balances
+- Stage index 0 = condenser; does not hold vapor initially (MV[0] may be zero)
+- Temperature range: 32 °F to 600 °F (typical for hydrocarbon distillation)
+
+SIDE EFFECTS / STATE MUTATIONS
+-------------------------------
+- Creates and appends to logs/run_registry.csv (auto-initializes if missing)
+- Writes logs/column_profile_<YYYYMMdd_HHMMSS>.csv (per-timestep results)
+- Writes logs/column_summary_<YYYYMMdd_HHMMSS>.csv (initial/final states)
+- Regenerates docs/experiment_ledger.csv and docs/experiment_ledger.md
+- Prints to stdout during simulation (progress, diagnostics)
+- Creates default thermo provider (DWSIM or surrogate) on first call
+- Does NOT modify the Excel file or input case data
+
+PERFORMANCE NOTES
+-----------------
+- RHS cost per step: ~0.1-1 ms (depends on stage count, thermo throttling)
+- Wallclock time: typically 10-100 ms per step for N=20 stages
+- Thermo provider (DWSIM full flash): 10-50 ms per call
+- With --thermo-every 10: significant speedup (9/10 steps skip flash)
+- Total wallclock for 10,000 steps (N=20): ~10-100 seconds typical
+- Memory: O(N_stages × N_components) state vectors + logs in RAM
+
+ERROR HANDLING
+--------------
+- Raises ValueError if:
+    * Excel case file not found
+    * RunnerConfig validation fails
+    * Case validation reports critical errors (not warnings)
+    * Time step dt ≤ 0 or exceeds reasonable bounds
+    * N_steps ≤ 0
+- Warns if:
+    * Case validation reports warnings
+    * Thermo provider fails to initialize; falls back to ConstantCpThermo
+    * Equilibrium relaxation disabled (logs message)
+- Continues despite warnings; use --allow-repeat-command to suppress idempotency checks
+
+VERSION / COMPATIBILITY
+-----------------------
+v1.0 (current):
+    - Explicit Euler time integration (simple, stable, but not high-order)
+    - CLI backward compatible with legacy flag names
+    - Thermo throttling supported (--thermo-every N)
+    - CSV output format stable (columns added but never removed)
+
+NOTES / KEY FEATURES
+--------------------
 Created: 2026-01-11 (America/New_York)
 Updated: 2026-01-13 (America/New_York)
 
-Smoke-test runner for the dynamic distillation model.
+- Explicit Euler time integration (development scaffold only)
+- Backward-compatible CLI with multiple option aliases
+- Optional thermo throttling: compute thermo every N steps (default: every step)
+- Boundary flow overrides (reflux, boilup)
+- Terminal progress reporting (simulation time, wall time)
+- Vapor holdup initialization from pressure diagnostic
+- Carries forward thermo results between refresh cycles (avoids NaNs)
+- Profile/Summary CSV logging with diagnostics
+- Auto-appends to run_registry.csv for experiment tracking
 
-Key features
-------------
-- Explicit Euler time integration (development scaffold only).
-- Backward-compatible CLI:
-    * --n-steps (original) and --steps (alias)
-    * --no-temperature (original) and --no-temp (alias)
-    * --include-energy (original) and --energy (alias)
-    * --no-equilibrium (original) and --no-eq (alias)
-    * --no-write-logs (original) and --no-logs (alias)
-- Optional thermo throttling: --thermo-every N (1 = every step).
-- Optional boundary overrides: --reflux, --boilup (lbmol/h).
-- Terminal progress: simulation time and wall time.
-- Log files include wall_clock_iso and wall_elapsed_s.
-- Between thermo refreshes, carries forward last computed Z (and y_eq if present)
-  so intermediate log rows do not show NaNs.
-- Initializes tray vapor holdup MV from the specified pressure profile when
-  possible (P = n Z R T / V), so the initial PV diagnostic pressure starts
-  near the spec.
-
-New in this update
-------------------
-- Adds CSV columns for feed/distillate/bottoms flow rates (lbmol/h):
-    * Profile CSV: F_lbmolph, D_lbmolph, B_lbmolph (nonzero only on their stages)
-    * Summary CSV: F_lbmolph, D_lbmolph, B_lbmolph (overall scalars)
-
-Notes
------
-- ColumnSpec.P_psia is treated as the operating/spec pressure profile.
-- P_psia_diag is a *diagnostic* PV pressure implied by the vapor holdup states.
-- Model stage index 0 is the condenser; it may have MV=0.
-  For reporting clarity, we pin P_psia_diag[0] to P_spec[0] if available.
+EXAMPLE USAGE
+-------------
+    # Via CLI
+    python -m dynamic_distillation.dynamic_run_scaffold_v1 \\
+        --excel-path case.xlsx --n-steps 1000 --dt 0.1 \\
+        --thermo-mode dwsim --include-energy
+    
+    # Via Python API
+    from dynamic_distillation.dynamic_run_scaffold_v1 import RunnerConfig, run_smoke_simulation
+    
+    cfg = RunnerConfig(
+        excel_path="case.xlsx",
+        n_steps=1000,
+        dt=0.1,
+        thermo_mode="dwsim",
+        include_energy=True
+    )
+    summary, logs_dir = run_smoke_simulation(cfg)
+    print(f"Final top composition: {summary['xD_pv_final']}")
 """
 
 from __future__ import annotations
@@ -59,6 +153,13 @@ from dynamic_distillation.column_rhs_v1 import (
     ColumnInputs,
     VolumeModel,
     column_rhs,
+)
+from dynamic_distillation.experiment_ledger_v1 import (
+    append_run_registry_entry,
+    compose_cli_command,
+    compose_cli_command_identity,
+    find_exact_command_matches,
+    rebuild_experiment_ledger,
 )
 
 
@@ -408,6 +509,7 @@ class RunnerConfig:
     bottom_level_ti_sec: Optional[float] = None
     enable_pressure_control: bool = False
     pressure_control_mv: str = "auto"  # auto|condenser-duty|top-anchor
+    allow_coupled_pressure_duty: bool = False
     top_pressure_sp_psia: Optional[float] = None
     top_pressure_kc: Optional[float] = None
     top_pressure_ti_sec: Optional[float] = None
@@ -422,6 +524,7 @@ class RunnerConfig:
     distillate_composition_ti_sec: Optional[float] = None
     reflux_cmd_min_lbmolph: Optional[float] = None
     reflux_cmd_max_lbmolph: Optional[float] = None
+    enable_reflux_feasibility_cap: bool = True
     reflux_ratio_min: Optional[float] = None
     reflux_ratio_max: Optional[float] = None
     enable_bottoms_composition_control: bool = False
@@ -1284,14 +1387,14 @@ def _build_pressure_controller(
     *,
     col: ColumnSpec,
     cfg: RunnerConfig,
-) -> Tuple[bool, Optional[PIController], Optional[float], str]:
+) -> Tuple[bool, Optional[PIController], Optional[float], str, Optional[str]]:
     specs = getattr(col, "specs_raw", None) or {}
     enabled = bool(cfg.enable_pressure_control)
     if not enabled:
         b = _as_bool(_spec_get(specs, "Enable Pressure Control", "Pressure Control Enabled"))
         enabled = bool(b) if b is not None else False
     if not enabled:
-        return False, None, None, "off"
+        return False, None, None, "off", None
 
     sp = cfg.top_pressure_sp_psia
     if sp is None:
@@ -1303,8 +1406,9 @@ def _build_pressure_controller(
         except Exception:
             sp = None
     if sp is None or (not np.isfinite(float(sp))) or float(sp) <= 0.0:
-        return False, None, None, "off"
+        return False, None, None, "off", None
 
+    pressure_mode_note: Optional[str] = None
     mv_mode = str(cfg.pressure_control_mv or "auto").strip().lower().replace("_", "-")
     if mv_mode in ("", "auto"):
         mv_mode = str(_spec_get(specs, "Pressure Control MV", "Pressure Controller MV", "Pressure MV") or "auto").strip().lower().replace("_", "-")
@@ -1319,6 +1423,19 @@ def _build_pressure_controller(
         mv_mode = "top-anchor"
     else:
         mv_mode = "top-anchor"
+
+    # Avoid hidden pressure/composition coupling by default:
+    # condenser-duty MV with total-condense drives condenser mass-split authority.
+    if (
+        mv_mode == "condenser-duty"
+        and str(cfg.condenser_duty_mode or "").strip().lower() == "total-condense"
+        and (not bool(getattr(cfg, "allow_coupled_pressure_duty", False)))
+    ):
+        mv_mode = "top-anchor"
+        pressure_mode_note = (
+            "pressure-control-mv=condenser-duty with condenser-duty-mode=total-condense "
+            "was auto-switched to top-anchor; use --allow-coupled-pressure-duty to keep coupled duty control."
+        )
 
     kc = cfg.top_pressure_kc
     if kc is None:
@@ -1354,7 +1471,7 @@ def _build_pressure_controller(
             out_max=float(q_max),
             integ=0.0,
         )
-        return True, ctrl, float(sp), mv_mode
+        return True, ctrl, float(sp), mv_mode, pressure_mode_note
 
     # top-anchor pressure control mode
     p_ctrl_idx = 0
@@ -1384,7 +1501,7 @@ def _build_pressure_controller(
         out_max=float(p_max),
         integ=0.0,
     )
-    return True, ctrl, float(sp), mv_mode
+    return True, ctrl, float(sp), mv_mode, pressure_mode_note
 
 
 def _build_level_controllers(
@@ -2660,11 +2777,19 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             "[Control] Level control enabled  "
             f"top_SP={float(top_level_sp):.3f} lbmol  bottom_SP={float(bot_level_sp):.3f} lbmol"
         )
-    pressure_control_enabled, top_pressure_ctrl, top_pressure_sp, pressure_control_mv = _build_pressure_controller(
+    (
+        pressure_control_enabled,
+        top_pressure_ctrl,
+        top_pressure_sp,
+        pressure_control_mv,
+        pressure_mode_note,
+    ) = _build_pressure_controller(
         col=col,
         cfg=cfg,
     )
     if pressure_control_enabled and top_pressure_ctrl is not None and top_pressure_sp is not None:
+        if pressure_mode_note:
+            print(f"[Warn] {pressure_mode_note}")
         print(
             "[Control] Pressure control enabled  "
             f"MV={str(pressure_control_mv)}  "
@@ -2685,6 +2810,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             f"Kc={float(dist_comp_ctrl.kc):.3g}  Ti={float(dist_comp_ctrl.ti_sec):.3g} s  "
             f"MV=reflux_lbmolph  limits=({float(dist_comp_ctrl.out_min):.3f}, {float(dist_comp_ctrl.out_max):.3f})"
         )
+        if not bool(getattr(cfg, "enable_reflux_feasibility_cap", True)):
+            print("[Control] Distillate reflux feasibility cap disabled")
     (
         bot_comp_control_enabled,
         bot_comp_mv_mode,
@@ -2889,21 +3016,22 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     vin0_est_lbmolph = 0.0
 
                 reflux_max_feasible = float(dist_comp_ctrl.out_max)
-                if np.isfinite(top_total):
-                    # Keep top inventory moving toward its level setpoint so the
-                    # composition loop cannot pin operation at D=0 while draining
-                    # (or holding low) reflux-drum holdup.
-                    top_sp = float(top_level_sp) if top_level_sp is not None and np.isfinite(float(top_level_sp)) else top_total
-                    recover_tau_sec = 120.0
-                    if top_level_ctrl is not None and np.isfinite(float(top_level_ctrl.ti_sec)):
-                        recover_tau_sec = max(float(top_level_ctrl.ti_sec), 30.0)
-                    desired_dM_top_lbmolph = (float(top_sp) - float(top_total)) * 3600.0 / max(recover_tau_sec, 1e-9)
-                    sustainable_lbmolph = float(vin0_est_lbmolph) - float(d_cmd_lbmolph)
-                    reflux_max_feasible = min(
-                        float(dist_comp_ctrl.out_max),
-                        max(0.0, sustainable_lbmolph - desired_dM_top_lbmolph),
-                    )
-                reflux_max_feasible = max(float(dist_comp_ctrl.out_min), float(reflux_max_feasible))
+                if bool(getattr(cfg, "enable_reflux_feasibility_cap", True)):
+                    if np.isfinite(top_total):
+                        # Keep top inventory moving toward its level setpoint so the
+                        # composition loop cannot pin operation at D=0 while draining
+                        # (or holding low) reflux-drum holdup.
+                        top_sp = float(top_level_sp) if top_level_sp is not None and np.isfinite(float(top_level_sp)) else top_total
+                        recover_tau_sec = 120.0
+                        if top_level_ctrl is not None and np.isfinite(float(top_level_ctrl.ti_sec)):
+                            recover_tau_sec = max(float(top_level_ctrl.ti_sec), 30.0)
+                        desired_dM_top_lbmolph = (float(top_sp) - float(top_total)) * 3600.0 / max(recover_tau_sec, 1e-9)
+                        sustainable_lbmolph = float(vin0_est_lbmolph) - float(d_cmd_lbmolph)
+                        reflux_max_feasible = min(
+                            float(dist_comp_ctrl.out_max),
+                            max(0.0, sustainable_lbmolph - desired_dM_top_lbmolph),
+                        )
+                    reflux_max_feasible = max(float(dist_comp_ctrl.out_min), float(reflux_max_feasible))
 
                 if controllers_active:
                     reflux_cmd = _pi_update(
@@ -3464,6 +3592,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
 
 def main(argv: Optional[List[str]] = None) -> int:
     import argparse
+    import sys
 
     p = argparse.ArgumentParser(description="Dynamic distillation smoke-test runner")
 
@@ -3531,6 +3660,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         choices=["auto", "condenser-duty", "top-anchor"],
         default="auto",
     )
+    p.add_argument(
+        "--allow-coupled-pressure-duty",
+        dest="allow_coupled_pressure_duty",
+        action="store_true",
+        help=(
+            "Allow pressure-control-mv=condenser-duty to remain coupled with "
+            "condenser-duty-mode=total-condense. Default behavior auto-switches to top-anchor."
+        ),
+    )
     p.add_argument("--top-pressure-sp", dest="top_pressure_sp_psia", type=float, default=None)
     p.add_argument("--top-pressure-kc", dest="top_pressure_kc", type=float, default=None)
     p.add_argument("--top-pressure-ti", dest="top_pressure_ti_sec", type=float, default=None)
@@ -3548,6 +3686,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--distillate-comp-ti", dest="distillate_composition_ti_sec", type=float, default=None)
     p.add_argument("--reflux-cmd-min", dest="reflux_cmd_min_lbmolph", type=float, default=None)
     p.add_argument("--reflux-cmd-max", dest="reflux_cmd_max_lbmolph", type=float, default=None)
+    p.add_argument(
+        "--disable-reflux-feasibility-cap",
+        dest="enable_reflux_feasibility_cap",
+        action="store_false",
+        help="Disable reflux max-feasibility cap in distillate composition control.",
+    )
     p.add_argument("--enable-bottoms-composition-control", dest="enable_bottoms_composition_control", action="store_true")
     p.add_argument("--bottoms-comp-component", dest="bottoms_composition_component", default="C5")
     p.add_argument("--bottoms-comp-sp", dest="bottoms_composition_sp_molfrac", type=float, default=None)
@@ -3572,11 +3716,52 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--logs-dir", dest="logs_dir", default="logs")
     p.add_argument("--no-write-logs", dest="write_logs", action="store_false")
     p.add_argument("--no-logs", dest="write_logs", action="store_false")
+    p.add_argument(
+        "--allow-repeat-command",
+        dest="allow_repeat_command",
+        action="store_true",
+        help=(
+            "Allow running even when this exact CLI command already exists in "
+            "docs/experiment_ledger.csv."
+        ),
+    )
 
-    args = p.parse_args(argv)
+    raw_argv: List[str] = list(argv) if argv is not None else list(sys.argv[1:])
+    args = p.parse_args(raw_argv)
 
     if args.n_steps is None:
         args.n_steps = 600
+
+    module_name = "dynamic_distillation.dynamic_run_scaffold_v1"
+    project_root = Path(__file__).resolve().parents[2]
+    ledger_csv = project_root / "docs" / "experiment_ledger.csv"
+    candidate_cmd = compose_cli_command(module_name, raw_argv)
+    candidate_identity = compose_cli_command_identity(module_name, raw_argv)
+    cmd_matches = find_exact_command_matches(
+        ledger_csv_path=ledger_csv,
+        module_name=module_name,
+        argv=raw_argv,
+    )
+    if cmd_matches and (not bool(args.allow_repeat_command)):
+        n_ok = sum(1 for m in cmd_matches if str(m.status).lower() == "ok")
+        n_not_ok = len(cmd_matches) - n_ok
+        print("[Abort] Exact command already exists in experiment ledger.")
+        print(f"Candidate: {candidate_cmd}")
+        print(f"Identity:  {candidate_identity}")
+        print(f"Matches: total={len(cmd_matches)}, ok={n_ok}, not_ok={n_not_ok}")
+        print("Recent matching runs:")
+        for m in cmd_matches[:8]:
+            p_txt = m.P_top_pv_psia_final if m.P_top_pv_psia_final else "NA"
+            xd_txt = m.xD_pv_final if m.xD_pv_final else "NA"
+            xb_txt = m.xB_pv_final if m.xB_pv_final else "NA"
+            print(
+                f"  - run_id={m.run_id} status={m.status} t_final={m.t_final_s} "
+                f"P_top={p_txt} xD={xd_txt} xB={xb_txt} src={m.command_source}"
+            )
+        print("Pass --allow-repeat-command to run this command again intentionally.")
+        return 2
+    if cmd_matches and bool(args.allow_repeat_command):
+        print(f"[Warn] Repeating known command (matches={len(cmd_matches)}).")
 
     cfg = RunnerConfig(
         excel_path=str(args.excel_path),
@@ -3610,6 +3795,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         bottom_level_ti_sec=args.bottom_level_ti_sec,
         enable_pressure_control=bool(args.enable_pressure_control),
         pressure_control_mv=str(args.pressure_control_mv),
+        allow_coupled_pressure_duty=bool(args.allow_coupled_pressure_duty),
         top_pressure_sp_psia=args.top_pressure_sp_psia,
         top_pressure_kc=args.top_pressure_kc,
         top_pressure_ti_sec=args.top_pressure_ti_sec,
@@ -3627,6 +3813,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         distillate_composition_ti_sec=args.distillate_composition_ti_sec,
         reflux_cmd_min_lbmolph=args.reflux_cmd_min_lbmolph,
         reflux_cmd_max_lbmolph=args.reflux_cmd_max_lbmolph,
+        enable_reflux_feasibility_cap=bool(args.enable_reflux_feasibility_cap),
         reflux_ratio_min=args.reflux_ratio_min,
         reflux_ratio_max=args.reflux_ratio_max,
         enable_bottoms_composition_control=bool(args.enable_bottoms_composition_control),
@@ -3647,6 +3834,22 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
 
     out = run_smoke_simulation(cfg)
+
+    # Auto-register exact CLI command and refresh experiment ledger after each
+    # run that produces log files.
+    if out.get("summary_csv"):
+        try:
+            append_run_registry_entry(
+                logs_dir=Path(str(out.get("logs_dir", cfg.logs_dir))),
+                module_name=module_name,
+                argv=raw_argv,
+                summary_csv_path=out.get("summary_csv"),
+                profile_csv_path=out.get("profile_csv"),
+            )
+            rebuild_experiment_ledger(project_root=project_root)
+        except Exception as exc:
+            print(f"[Warn] Failed to update experiment ledger: {exc}")
+
     if out.get("profile_csv"):
         print(f"Wrote: {out['profile_csv']}")
     if out.get("summary_csv"):

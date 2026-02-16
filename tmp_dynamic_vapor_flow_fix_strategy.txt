@@ -1,0 +1,232 @@
+
+
+--- PAGE 1 ---
+Dynamic Vapor Flow: Fix Strategy
+Problem Summary
+The energy-based vapor flow model (vapor_flow_model="energy" ) is theoretically correct but numerically
+unstable due to:
+1. Zero temperature target (dT_target = 0) forces the model to increase vapor flow when ANY energy
+enters
+2. Very slow relaxation (60 seconds) allows errors to accumulate before correction
+3. Large clamp limits (5× nominal) permit huge deviations before intervention
+4. Feed thermal shock at stage 12 creates massive energy imbalance
+Root Cause Analysis
+The Energy Balance Equation (Line 782-789)
+With dT_target = 0 → dE_target = 0, this becomes:
+Problem: At the feed stage (12):
+Feed adds 7,143 lbmol/h × hF ≈ huge energy input
+To maintain dT/dt = 0, must generate MORE vapor
+But generating vapor REQUIRES heat, which INCREASES temperature
+This creates positive feedback
+Why It Grows Without Bound
+t=0: ChemSep steady state, V_out = 7,345 lbmol/h at stage 12 t=1: Feed energy imbalance → energy wants
+V_out = 15,000 t=1: Relaxation (α=0.017) → V_out = 7,345 + 0.017×(15,000-7,345) = 7,475 t=2: Higher
+V_out generates vapor → T increases slightly → enthalpies change t=2: Energy balance recalculates with new
+python
+V_out = (L_in*(hL_in - hL_out) + V_in*(hV_in - hL_out) + q_feed 
+         - F_total*hL_out + Q - dE_target) / (hV_out - hL_out)
+python
+V_out = (energy_in + q_feed + Q) / latent_heat
+
+--- PAGE 2 ---
+T → wants V_out = 15,500 (even higher!) t=3: V_out = 7,475 + 0.017×(15,500-7,475) = 7,612 ... t=30: V_out
+has grown to 12,056 lbmol/h, temperature up 40°F, energy wants 21,371
+The relaxation SLOWS the growth but doesn't STOP it because the target keeps increasing.
+Solution 1: Set Appropriate dT_target (RECOMMENDED)
+Concept
+Instead of forcing dT/dt = 0 (impossible at steady state with energy inputs), allow small temperature drift that
+balances energy naturally.
+Implementation
+Better approach: Let temperature float naturally
+Expected Result
+Energy balance will target smaller vapor flow changes
+Temperature can drift slightly to absorb feed energy
+Positive feedback loop broken
+python
+inputs = ColumnInputs(
+    vapor_flow_model="energy",
+    dT_tray_target_F_per_s=np.zeros(20),  # Start with zeros
+    # ... other settings
+)
+# But compute dT_target from steady-state energy balance
+# At each stage: dT/dt should be whatever maintains energy balance
+# For steady state: dT/dt ≈ 0 but ALLOW small drift to absorb disturbances
+python
+# Option A: Allow 0.1°F/min drift (absorbs small disturbances)
+dT_target = np.full(20, 0.1 / 60.0)  # 0.1°F per minute = 0.00167 F/s
+# Option B: Compute from residual (more advanced)
+# dT_target[i] = residual_energy[i] / heat_capacity[i]
+# This allows temperature to change as needed to close energy balance
+
+--- PAGE 3 ---
+Solution 2: Faster Relaxation with Tighter Limits
+Current Settings (Lines 692-694)
+Recommended Changes
+AND reduce relaxation time:
+Effect:
+α = dt/5.0 ≈ 0.04 (4% per step instead of 1.7%)
+Vapor flow clamped to ±20% per timestep
+Cannot exceed 1.5× ChemSep steady-state value
+Responds faster but with tighter control
+Solution 3: Feed Stage Special Handling
+Concept
+The feed stage has fundamentally different energy balance than other stages. Bypass energy calculation there.
+python
+vflow_prev_up_ratio = 2.0         # Can double in one relaxation cycle
+vflow_nominal_abs_ratio = 5.0     # Can grow to 5× ChemSep value
+python
+# In column_rhs_v1.py, lines 692-694:
+vflow_prev_up_ratio = 1.2         # Max 20% increase per cycle (was 2.0)
+vflow_prev_down_ratio = 0.8       # Max 20% decrease per cycle (was 0.2)
+vflow_nominal_abs_ratio = 1.5     # Max 50% deviation from ChemSep (was 5.0)
+python
+inputs = ColumnInputs(
+    vapor_flow_relaxation_sec=5.0,  # Faster response (was 60)
+    # ...
+)
+
+--- PAGE 4 ---
+Implementation
+Add this check in the energy loop (around line 696):
+Effect:
+Stage 12 vapor stays at 7,345 lbmol/h (ChemSep value)
+Prevents feed thermal shock from destabilizing system
+Other stages still respond dynamically
+Trade-off:
+Less rigorous at feed (but feed is inherently difficult)
+Stage 12 won't respond to disturbances (acceptable for most cases)
+Solution 4: Use Feed Enthalpy Correctly
+Current Issue (Lines 726-733)
+This assumes feed enters at its supply temperature. But physically:
+python
+for i in range(N - 2, 0, -1):
+    # FEED STAGE BYPASS
+    if i == feed_stage0:
+        # Use ChemSep profile at feed stage - don't try to compute from energy
+        V_out[i] = float(V_out_profile[i])
+        vflow_ok[i] = 1.0
+        vflow_calc[i] = float(V_out[i]) * 3600.0
+        vflow_used[i] = float(V_out[i]) * 3600.0
+        continue
+    
+    # Normal energy balance for non-feed stages
+    V_in_i = float(V_out[i + 1])
+    # ... (existing code)
+python
+if feed_stage0 == i:
+    # Computes feed enthalpy but may not account for flash/mixing properly
+    q_feed = Ft_L * hF_L + Ft_V * hF_V
+
+--- PAGE 5 ---
+1. Feed enters at T_feed (say 120°F)
+2. Mixes with tray liquid at T_tray (say 180°F)
+3. May flash if T_feed < bubble point at P_tray
+4. Final state depends on flash calculation
+Better Approach
+Currently q_feed is added as absolute energy, which double-counts the reference state.
+Solution 5: Enable Hydraulic Pressure Model (Long-term)
+Why It Helps
+Hydraulic pressure provides negative feedback:
+1. Higher vapor flow → higher pressure drop
+2. Higher ΔP → lower upstream pressure
+3. Lower P → higher latent heat required
+4. Higher latent heat → lower vapor flow (for same energy)
+This natural throttling prevents runaway.
+Implementation
+Fix the reboiler pressure bug first (line 1722):
+python
+if feed_stage0 == i:
+    # Energy required to bring feed to tray conditions
+    # Reference to tray liquid enthalpy (already in denominator)
+    q_feed = Ft_L * (hF_L - hL_out) + Ft_V * (hF_V - hL_out)
+    
+    # This way, if feed is at tray temperature, q_feed ≈ 0
+    # If feed is cold, q_feed < 0 (removes energy, reduces vapor)
+    # If feed is hot, q_feed > 0 (adds energy, increases vapor)
+python
+
+--- PAGE 6 ---
+Then enable:
+Recommended Action Plan
+Phase 1: Quick Stabilization (Do This First)
+A. Tighten vapor flow limits (column_rhs_v1.py lines 692-694):
+B. Faster relaxation (in your run script):
+C. Bypass feed stage (column_rhs_v1.py around line 696):
+# BEFORE:
+if i == 0 or i == (N - 1):
+    dp_psia = 0.0
+# AFTER:
+if i == 0:  # Only condenser
+    dp_psia = 0.0
+python
+inputs = ColumnInputs(
+    pressure_model="hydraulic",
+    component_mw_lbm_per_lbmol=np.array([44.1, 58.1, 72.2]),  # C3, C4, C5
+    # ...
+)
+python
+vflow_prev_up_ratio = 1.2
+vflow_prev_down_ratio = 0.8  
+vflow_nominal_abs_ratio = 1.5
+python
+inputs = ColumnInputs(
+    vapor_flow_relaxation_sec=5.0,  # Instead of 60
+    # ...
+)
+python
+
+--- PAGE 7 ---
+Expected result:
+Simulation runs to completion without crash
+Vapor flows stay within ±50% of ChemSep
+Temperatures stable
+Dynamic response preserved (except at feed stage)
+Phase 2: Better Energy Balance
+D. Allow temperature drift (in your run script):
+E. Fix feed enthalpy (column_rhs_v1.py line 733):
+Phase 3: Full Hydraulic Model
+F. Fix reboiler pressure bug G. Enable hydraulic pressure model H. Add vapor holdup relaxation
+for i in range(N - 2, 0, -1):
+    if i == feed_stage0:
+        V_out[i] = float(V_out_profile[i])
+        vflow_ok[i] = 1.0
+        vflow_calc[i] = vflow_used[i] = float(V_out[i]) * 3600.0
+        continue
+    # ... rest of loop
+python
+dT_target = np.full(20, 0.05 / 60.0)  # 0.05°F per minute
+inputs = ColumnInputs(
+    dT_tray_target_F_per_s=dT_target,
+    # ...
+)
+python
+q_feed = Ft_L * (hF_L - hL_out) + Ft_V * (hF_V - hL_out)
+
+--- PAGE 8 ---
+Expected Behavior After Phase 1 Fixes
+At Steady State (t=60s)
+Stage V_out (lbmol/h) vs ChemSep Temperature
+2 8,300 - 8,400 ±1% 120-122°F
+11 7,350 - 7,500 ±1% 171-174°F
+12 7,345 (fixed) Exact 174-177°F
+13 11,000 - 11,300 ±2% 180-183°F
+19 11,500 - 12,200 ±4% 215-220°F
+20 11,744 (boundary) Exact 221-224°F
+During Disturbances
+Vapor flows will adjust dynamically (except stage 12)
+Temperature may drift ±5°F over 5 minutes
+System returns to new steady state
+No crashes or numerical failures
+Bottom Line for Dynamic Response
+You want dynamic vapor flows → Energy model is correct choice
+But it needs stabilization:
+1. ✓  Tighter clamp limits (±20% per step, max 1.5× nominal)
+2. ✓  Faster relaxation (5s instead of 60s)
+3. ✓  Bypass feed stage (prevents worst instability)
+4. ○ Allow small temperature drift (optional but recommended)
+5. ○ Enable hydraulic pressure (future enhancement)
+This gives you 95% of the dynamic response capability while maintaining stability.
+The feed stage will stay at ChemSep's value (7,345 lbmol/h), but all other stages will respond to composition
+changes, pressure changes, and thermal disturbances.
+
+--- PAGE 9 ---

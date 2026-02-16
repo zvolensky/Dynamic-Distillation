@@ -1,30 +1,99 @@
 """
 column_spec_builder_v1.py
 
-Dynamic Distillation - ColumnSpec builder
+Dynamic Distillation - Column Specification Builder
 
-Created: 2026-01-11  (America/New_York)
-Updated: 2026-01-12  (America/New_York)
-
-Purpose
+PURPOSE
 -------
-Convert CaseData (loaded from Excel) into a model-ready ColumnSpec.
+Convert Excel-loaded CaseData into a model-ready ColumnSpec dataclass.
+Parses and validates specifications, feeds, initial conditions, and 
+optional geometry data.
 
-Module 8B
----------
-Reads optional "Stage time constant [tau] (sec)" from CaseData.specs and stores as col.tau_eq_sec.
+INPUTS
+------
+case : CaseData
+    Loaded from Excel via excel_case_loader_v1; contains:
+        - components (DWSIM IDs)
+        - specs (dict of parameters from Excel Specs sheet)
+        - initial_conditions (DataFrame with stage composition/temperature)
+        - streams (dict of feed/product specifications)
 
-Geometry support (new)
-----------------------
-Reads optional "Geometry Sections" from CaseData.specs (created by the Excel loader).
-Expands it to per-stage arrays and computes a geometry-based vapor volume per stage:
+OUTPUTS
+-------
+col : ColumnSpec
+    Frozen dataclass with:
+        - n_stages, n_components, component names
+        - M_L, M_V (liquid/vapor holdups per stage)
+        - x0 (initial liquid composition)
+        - Feed specs (stage, composition, temperature, pressure)
+        - Column geometry (optional)
+        - Pressure profile, heat duties, simulation settings
 
+DEPENDENCIES
+------------
+(Indirect via CaseData from excel_case_loader_v1)
+
+ASSUMPTIONS & CONSTRAINTS
+--------------------------
+- CaseData contains valid DWSIM compound IDs (canonicalized by excel_case_loader_v1)
+- Specs sheet uses standard parameter names (case-insensitive)
+- Initial Conditions sheet has one row per stage (stages in order)
+- Optional Geometry Sections sheet referenced by name in specs if present
+- All required specs exist: "Number of Stages", "Number of Components"
+- Stage numbering: 1-indexed in Excel; converted to 0-indexed internally
+
+SIDE EFFECTS / STATE MUTATIONS
+-------------------------------
+- Does NOT modify input CaseData
+- Returns immutable frozen ColumnSpec dataclass
+- No file I/O or external state changes
+
+PERFORMANCE NOTES
+-----------------
+- Typical build time: < 10 ms (O(N_stages × N_components) data expansion)
+- Geometry expansion (if present): adds O(N_stages) time
+- Pressure profile vector creation: O(N_stages)
+
+ERROR HANDLING
+--------------
+- Raises ColumnSpecError if:
+    * Required specs missing (N_STAGES, N_COMPONENTS, etc.)
+    * Invalid initial conditions (out-of-bounds stage numbers)
+    * Composition sums not close to 1.0 (after normalization attempt)
+    * Invalid pressure/temperature ranges
+    * Geometry data malformed (NaN, negative areas, etc.)
+
+VERSION / COMPATIBILITY
+-----------------------
+v1.0 (current):
+    - Backward compatible with legacy M_L0_lbmol naming (if present)
+    - Geometry support mandatory (Stage 1 back-filled if omitted)
+    - tau_eq_sec (Module 8B) read if present; optional
+
+NOTES / KEY FEATURES
+--------------------
+Created: 2026-01-11 (America/New_York)
+Updated: 2026-01-12 (America/New_York)
+
+- Geometry support: reads optional "Geometry Sections" from CaseData.specs
+  Expands to per-stage arrays and computes vapor volume:
     V_stage_ft3 = A_cross_section_ft2 * tray_spacing_ft * gas_void_frac
+  (Stage 1 back-filled from Stage 2 for stability)
 
-Notes:
-- Stage 1 is the condenser in your convention; geometry table may omit it.
-  We back-fill Stage 1 with Stage 2 geometry to keep pressure diagnostics stable.
-- Gas void fraction accepts both fraction (0..1) and percent (0..100) and is normalized to (0..1].
+- Module 8B: reads optional "Stage time constant [tau] (sec)" -> col.tau_eq_sec
+
+- Gas void fraction accepts fraction (0..1) or percent (0..100), normalized to (0..1]
+
+EXAMPLE USAGE
+-------------
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+    
+    case = load_case_from_excel("my_case.xlsx")
+    col_spec = build_column_spec_from_case(case)
+    
+    print(f"Column has {col_spec.n_stages} stages, {col_spec.n_components} components")
+    print(f"Initial liquid holdups: {col_spec.M_L_lbmol}")
 """
 
 from __future__ import annotations

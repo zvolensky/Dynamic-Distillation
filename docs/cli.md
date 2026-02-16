@@ -45,7 +45,8 @@ For detailed surrogate table workflow, see `docs/thermo_surrogate_tables.md`.
 | `--bottom-level-kc` | float | `None` | Bottom level PI proportional gain. Default `8.0` when omitted. |
 | `--bottom-level-ti` | float | `None` | Bottom level PI integral time (sec). Default `120` when omitted. |
 | `--enable-pressure-control` | flag | `False` | Enables top-pressure PI loop (MV chosen by `--pressure-control-mv`). |
-| `--pressure-control-mv` | `auto` \| `condenser-duty` \| `top-anchor` | `auto` | Pressure-control manipulated variable. `auto` selects `top-anchor` for `total-condense`, else `condenser-duty`. In `total-condense`, choosing `condenser-duty` applies PI trim to condenser mass-split/condensation capacity (not only energy logging). |
+| `--pressure-control-mv` | `auto` \| `condenser-duty` \| `top-anchor` | `auto` | Pressure-control manipulated variable. `auto` selects `top-anchor` for `total-condense`, else `condenser-duty`. If `condenser-duty` is requested with `total-condense`, runner auto-switches to `top-anchor` unless `--allow-coupled-pressure-duty` is set. |
+| `--allow-coupled-pressure-duty` | flag | `False` | Keeps `--pressure-control-mv condenser-duty` coupled with `--condenser-duty-mode total-condense` (pressure PI trim affects condenser mass split). Default behavior prevents this coupling. |
 | `--top-pressure-sp` | float | `None` | Top pressure setpoint (psia) for pressure PI loop. Defaults to stage-1 pressure spec. |
 | `--top-pressure-kc` | float | `None` | Top pressure PI gain (Btu/h per psia). |
 | `--top-pressure-ti` | float | `None` | Top pressure PI integral time (sec). |
@@ -63,6 +64,7 @@ For detailed surrogate table workflow, see `docs/thermo_surrogate_tables.md`.
 | `--distillate-comp-ti` | float | `None` | Distillate composition PI integral time in seconds (default `240`). |
 | `--reflux-cmd-min` | float | `None` | Lower clamp for reflux-flow command (`lbmol/h`, default `0`). |
 | `--reflux-cmd-max` | float | `None` | Upper clamp for reflux-flow command (`lbmol/h`, default `max(2.5*bias, bias+5000)`). |
+| `--disable-reflux-feasibility-cap` | flag | `False` | Disables the reflux max-feasibility cap that protects top-drum inventory while distillate composition control is active. |
 | `--enable-bottoms-composition-control` | flag | `False` | Enables bottoms-composition PI control (MV selectable: boilup flow or reboiler duty). |
 | `--bottoms-comp-component` | string | `C5` | Controlled bottoms component name/alias (`C5`, `C5H12`, `n-Pentane`, etc.). |
 | `--bottoms-comp-sp` | float | `None` | Bottoms liquid mole-fraction setpoint for selected component. |
@@ -79,6 +81,7 @@ For detailed surrogate table workflow, see `docs/thermo_surrogate_tables.md`.
 | `--logs-dir` | path | `logs` | Directory for CSV outputs. |
 | `--no-write-logs` | flag | `False` | Disables CSV output (default is enabled). |
 | `--no-logs` | flag | `False` | Alias for `--no-write-logs`. |
+| `--allow-repeat-command` | flag | `False` | Override the pre-run ledger guard and allow rerunning an exact CLI command that already exists in `docs/experiment_ledger.csv`. |
 
 **Current Behavior Notes**
 
@@ -90,6 +93,7 @@ For detailed surrogate table workflow, see `docs/thermo_surrogate_tables.md`.
 - Pressure control uses top pressure PV in this order: `P_top_drum_psia` (if available), then `P_psia_hyd` at stage 1, then `P_psia_diag` at stage 1.
 - `--pressure-control-mv top-anchor` manipulates the hydraulic top-pressure anchor directly (`P_top_anchor_cmd_psia`).
 - `--pressure-control-mv condenser-duty` manipulates condenser duty command (`Q_cond_cmd_BTUph`).
+- With `--condenser-duty-mode total-condense`, duty-MV pressure control is auto-switched to `top-anchor` unless `--allow-coupled-pressure-duty` is explicitly set.
 - Distillate composition control writes:
   - `xD_comp_pv`: measured distillate liquid composition (selected component)
   - `xD_comp_sp`: composition setpoint
@@ -115,6 +119,17 @@ For detailed surrogate table workflow, see `docs/thermo_surrogate_tables.md`.
   - `V_top_drum_vapor_ft3`: dynamic top-drum vapor-space volume
   - `V_top_drum_liquid_ft3`: inferred top-drum liquid volume
   - `rho_top_drum_liq_lbmol_ft3`: inferred top-drum liquid density used in holdup-to-volume conversion
+- Experiment ledger automation:
+  - Each successful logged run auto-appends exact CLI metadata to `logs/run_registry.csv`.
+  - Ledger files are auto-refreshed at run end:
+    - `docs/experiment_ledger.csv`
+    - `docs/experiment_ledger.md`
+  - Feasibility search runs from `tools/feasibility_trim_search.py` are also registered and included in the ledger.
+  - Before each run, the runner checks `docs/experiment_ledger.csv` for an exact CLI command match and aborts on duplicates by default.
+  - Duplicate command identity ignores the guard flag itself (`--allow-repeat-command`).
+  - Use `--allow-repeat-command` to bypass this guard intentionally.
+  - Manual refresh is available via:
+    - `python tools/update_experiment_ledger.py`
 - Composition logging semantics at column top:
   - `x_Distillate_<comp>` / `y_Distillate_<comp>`: stage-1 condenser tray liquid/vapor compositions.
   - `Distillate_x_<comp>`: reflux-drum liquid composition (`top_L` holdup state).
@@ -232,3 +247,25 @@ For detailed surrogate table workflow, see `docs/thermo_surrogate_tables.md`.
   --boilup-cmd-min 3000 `
   --boilup-cmd-max 9000
 ```
+
+**Feasibility Trim Search**
+
+Use this when you need to answer whether the current model equations can hit
+`xD/xB` targets at all (without PI-loop interactions):
+
+```powershell
+$env:PYTHONPATH='src'; python tools/feasibility_trim_search.py `
+  --excel distillation_column_template.xlsx `
+  --thermo table `
+  --thermo-table cache/thermo_table.json `
+  --include-energy `
+  --n-steps 1200 `
+  --dt 0.2 `
+  --n-random 24 `
+  --distillate-comp-component C4 `
+  --bottoms-comp-component C5 `
+  --tol-xd 0.002 `
+  --tol-xb 0.002
+```
+
+The script writes a ranked result CSV in `logs/feasibility_trim_search_*.csv`.

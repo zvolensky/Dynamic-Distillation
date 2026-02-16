@@ -1,0 +1,242 @@
+
+
+--- PAGE 1 ---
+Vapor Flow Discrepancy Analysis: Dynamic Model vs ChemSep
+Problem Statement
+The dynamic distillation model produces vapor flows that are 40-60% higher than ChemSep above the feed
+(stages 2-12), even though it was initialized with ChemSep's steady-state values.
+Quantitative Comparison at t=3.0s
+Above Feed (Stages 2-12)
+Region Dynamic Model ChemSep Difference
+Average vapor flow 12,006 lbmol/h 7,677 lbmol/h +4,329 lbmol/h (+56%)
+Stage 12 (feed) 14,169 lbmol/h 7,345 lbmol/h +6,824 lbmol/h (+93%)
+Below Feed (Stages 13-20)
+Region Dynamic Model ChemSep Difference
+Average vapor flow 11,920 lbmol/h 11,443 lbmol/h +477 lbmol/h (+4.2%)
+The issue is concentrated above the feed, suggesting a problem with how the feed affects the vapor profile.
+Root Cause: Feed Flashing Not Accounted for in Profile Reconstruction
+ChemSep Steady-State Behavior
+From the ChemSep image, the feed enters at stage 12 as:
+7,142.98 lbmol/h of liquid (listed as "7142.98 L")
+Feed temperature: ~174°F (interpolated)
+Stage 12 pressure: ~227 psia
+Stage 12 temperature: ~180°F
+Vapor flow step change at feed:
+
+--- PAGE 2 ---
+Stage 12 vapor out: 7,345 lbmol/h
+Stage 13 vapor out: 11,123 lbmol/h
+Step increase: 3,778 lbmol/h
+This means the feed liquid flashes when it enters stage 12, generating 3,778 lbmol/h of vapor. The liquid feed
+composition and thermal state cause it to partially vaporize upon contact with the lower-pressure tray.
+Dynamic Model's Profile Reconstruction (Lines 354-369)
+When a feed is present, the code rebuilds the internal vapor profile:
+This assumes:
+1. Constant molar overflow - vapor flow is constant in each section
+2. Feed vapor component Ft_V = vf * Fk where vf = s.vapor_fraction
+3. If vapor_fraction = 0.0 (liquid feed), then Ft_V = 0.0, so no vapor added at feed
+The problem:
+Feed is specified as 100% liquid (vapor_fraction = 0.0)
+Code adds Ft_V = 0.0 at the feed stage
+But the feed SHOULD flash and generate 3,778 lbmol/h of vapor!
+Since this flashing isn't captured in the initial profile, the model starts with:
+This is exactly backwards from ChemSep!
+python
+if feed_stage0 is not None and (Ft_L > 0.0 or Ft_V > 0.0):
+    V_out = np.zeros(N, dtype=float)
+    
+    # Vapor: seed at bottom with boilup; add feed vapor at the feed stage.
+    V_out[-1] = boilup_s
+    for i in range(N - 2, -1, -1):
+        V_out[i] = V_out[i + 1] + (Ft_V if i == feed_stage0 else 0.0)
+Above feed: V ≈ boilup + 0 = 11,743.5 lbmol/h (WRONG - should be ~7,400)
+Below feed: V ≈ boilup + 0 = 11,743.5 lbmol/h (CORRECT)
+
+--- PAGE 3 ---
+Why the Discrepancy Persists
+Energy Balance is Trying to Correct
+Looking at vflow_energy_calc  at t=3.0s:
+Stage 11: wants 13,293 lbmol/h (using 11,954)
+Stage 12: wants 22,840 lbmol/h (using 14,169)
+Stage 13: wants 12,891 lbmol/h (using 11,938)
+The energy balance recognizes something is wrong and wants to increase vapor flows even more, especially at
+stage 12. This suggests the thermal state is confused - the model thinks it needs MORE vapor to balance the
+energy, when actually it needs LESS.
+Why Energy Balance Can't Fix It
+The energy balance vapor flow calculation (lines 627+) computes:
+This assumes:
+Liquid enthalpy is known and correct
+Vapor enthalpy is known and correct
+The target dT/dt  is appropriate
+But if the composition is wrong (because mass balances used the wrong vapor flow), then:
+Enthalpies are wrong
+K-values are wrong
+Everything drifts further from steady state
+Relaxation is Damping the Correction
+The model has vapor_flow_relaxation_sec  enabled, which blends:
+This prevents wild oscillations, but also prevents the model from correcting the fundamental profile error.
+The Correct Fix: Account for Feed Thermal State
+V_out[i] = (energy_in - energy_out + Q - dE_target) / (HV_out - HL_out)
+V_used = alpha * V_energy + (1 - alpha) * V_prev
+
+--- PAGE 4 ---
+Option 1: Use ChemSep's Internal V/L Profiles Directly (RECOMMENDED)
+Change line 367 behavior:
+Rationale:
+ChemSep's steady-state profiles ALREADY account for feed flashing/condensing
+They ALREADY include non-equimolar overflow effects
+By using them directly, we start from the correct steady state
+Feed component balances (Fk_L, Fk_V in the RHS) still work correctly with these profiles
+Impact:
+Above feed: V_out ≈ 7,400-8,300 lbmol/h (matches ChemSep)
+Below feed: V_out ≈ 11,100-11,700 lbmol/h (matches ChemSep)
+Feed stage discontinuity preserved
+Option 2: Flash the Feed to Determine Vapor Fraction (Complex)
+Compute the feed's vapor fraction based on its thermal state:
+python
+if feed_stage0 is not None and (Ft_L > 0.0 or Ft_V > 0.0):
+    # DON'T rebuild profiles - use ChemSep's values which already include feed effects
+    L_out = L_out_profile  
+    V_out = V_out_profile
+else:
+    # Only use simple reconstruction when there's no feed
+    # ... (existing code)
+python
+
+--- PAGE 5 ---
+Problem: This requires:
+Feed temperature to be specified
+Thermo provider with flash capability
+Assumes feed instantly equilibrates with tray (may not be true for kinetic effects)
+Option 3: Hybrid - Profile Below Feed, Constant Above
+Use ChemSep profile below the feed (where it's working), reconstruct above:
+Problem: Still doesn't capture the gradual vapor flow variation in the rectifying section.
+Secondary Issue: Constant Molar Overflow Assumption
+Even without the feed issue, ChemSep shows:
+if feed_stage0 is not None and (Ft_L > 0.0 or Ft_V > 0.0):
+    # Get feed temperature and stage pressure
+    T_feed = s.temperature_F if hasattr(s, 'temperature_F') else None
+    P_stage = P_tray[feed_stage0]
+    
+    if T_feed is not None and inputs.thermo_provider is not None:
+        # Flash the feed at stage conditions
+        z_feed = Fk / Ft
+        flash_result = flash_TP(T_feed, P_stage, z_feed)
+        vf_actual = flash_result.vapor_fraction
+        
+        # Use actual vapor fraction from flash
+        Ft_V = vf_actual * Fk
+        Ft_L = (1 - vf_actual) * Fk
+python
+if feed_stage0 is not None:
+    # Below feed: use ChemSep profile (accounts for feed effects)
+    V_out[feed_stage0:] = V_out_profile[feed_stage0:]
+    
+    # Above feed: work backward from feed stage
+    V_out[feed_stage0] = V_out_profile[feed_stage0]  # Use ChemSep's feed stage value
+    for i in range(feed_stage0 - 1, -1, -1):
+        V_out[i] = V_out[i+1]  # Constant molar overflow above feed
+
+--- PAGE 6 ---
+Rectifying section (stages 2-11): V increases from 7,406 → 8,333 lbmol/h (~13% variation)
+Stripping section (stages 13-20): V increases from 11,123 → 11,743 lbmol/h (~5% variation)
+This violates constant molar overflow because:
+Different components have different latent heats
+Propane (more volatile): 7,960 BTU/lbmol
+Butane (medium): 9,320 BTU/lbmol
+Pentane (heavier): 10,500 BTU/lbmol
+As composition changes up the column:
+More propane at top → less heat per mole vaporized → need more moles
+More pentane at bottom → more heat per mole vaporized → need fewer moles
+The energy-based vapor flow model (vapor_flow_model="energy" ) SHOULD capture this, but it's starting from
+the wrong initial condition.
+Impact on Simulation
+Why the Model Seems to "Work"
+The simulation doesn't immediately blow up because:
+1. Energy balance sees the mismatch and tries to adjust V_out
+2. Relaxation prevents wild swings
+3. Below feed (~4% error) is close enough to maintain stability
+Why It Will Eventually Drift
+Over time:
+1. Composition drift: Wrong vapor flows → wrong component splits → compositions drift from steady
+state
+2. Temperature drift: Energy balance can't maintain correct temperatures with wrong flows
+3. Pressure errors: Hydraulic model uses vapor flows to calculate pressure drops
+4. Accumulation/depletion: Mass balance errors accumulate as holdup changes
+At t=3.0s, we already see:
+
+--- PAGE 7 ---
+Stage 12 trying to increase V from 14,169 → 22,840 lbmol/h
+This will cause composition swings that ripple through the column
+Recommendation
+Implement Option 1: Use ChemSep profiles directly when feed is present
+Code Change Required
+In column_rhs_v1.py, lines 354-369:
+BEFORE:
+AFTER:
+python
+if feed_stage0 is not None and (Ft_L > 0.0 or Ft_V > 0.0):
+    L_out = np.zeros(N, dtype=float)
+    V_out = np.zeros(N, dtype=float)
+    
+    # Liquid: seed at top with reflux; add feed liquid at the feed stage.
+    L_out[0] = reflux_s
+    for i in range(1, N):
+        L_out[i] = L_out[i - 1] + (Ft_L if i == feed_stage0 else 0.0)
+    
+    # Vapor: seed at bottom with boilup; add feed vapor at the feed stage.
+    V_out[-1] = boilup_s
+    for i in range(N - 2, -1, -1):
+        V_out[i] = V_out[i + 1] + (Ft_V if i == feed_stage0 else 0.0)
+else:
+    L_out = L_out_profile
+    V_out = V_out_profile
+python
+# ALWAYS use ChemSep/Excel profiles - they already include feed effects and non-equimolar overflow
+L_out = L_out_profile
+V_out = V_out_profile
+# Feed component balances (Fk_L, Fk_V) will still be applied in the RHS equations
+# The profile discontinuity at the feed stage is preserved in the input data
+
+--- PAGE 8 ---
+Testing the Fix
+After implementing, verify at t=0:
+V_out[1] (stage 2) ≈ 8,333 lbmol/h (not 11,743)
+V_out[11] (stage 12) ≈ 7,345 lbmol/h (not 14,169)
+V_out[12] (stage 13) ≈ 11,123 lbmol/h (matches)
+V_out[19] (stage 20) ≈ 11,743 lbmol/h (matches)
+Then run for t=10s and confirm vapor flows remain stable near ChemSep values.
+Additional Notes
+Why This Wasn't Caught Earlier
+The comments at lines 211-219 actually EXPLAIN this issue:
+"If an explicit Feed stream is present, the steady-state internal L/V profiles loaded from Excel/ChemSep
+typically already include the feed effect (step changes at the feed stage). If we ALSO add feed as an explicit
+source term, we double-count it..."
+But then the code DOES rebuild the profiles anyway when feed_stage0 is not None ! This is contradictory.
+The reconstruction was probably added to handle cases where:
+No internal profiles provided
+Profiles don't sum correctly with boundary conditions
+Simplified constant-overflow model desired
+But it breaks for real columns with feed flashing.
+Why "vapor_fraction=0" in Feed Spec
+ChemSep shows the feed as "7142.98 L", meaning it enters as saturated/subcooled liquid. The vapor_fraction
+field in your feed spec correctly reflects this as 0.0 or near-zero.
+The flashing occurs ON the tray, not in the feed pipe. This is a tray phenomenon, not a feed specification issue.
+Alternative: Disable Profile Reconstruction
+If you want to keep the profile reconstruction logic for other use cases, add a flag:
+python
+
+--- PAGE 9 ---
+Summary Table
+Issue Dynamic Model ChemSep Fix
+Feed vapor added 2,231 lbmol/h 3,778 lbmol/h Use ChemSep profile
+Vapor above feed (avg)12,006 lbmol/h 7,677 lbmol/h Use ChemSep profile
+Vapor below feed (avg)11,920 lbmol/h 11,443 lbmol/h Small error, will improve
+Profile reconstruction Constant molar overflowNon-equimolar + flashingUse ChemSep profile
+Bottom line: Trust ChemSep's steady-state profiles. They're correct. Don't rebuild them.
+use_input_profiles: bool = True  # In ColumnInputs
+if use_input_profiles:
+    L_out = L_out_profile
+    V_out = V_out_profile
+elif feed_stage0 is not None and (Ft_L > 0.0 or Ft_V > 0.0):
+    # Reconstruction logic...

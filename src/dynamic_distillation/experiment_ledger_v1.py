@@ -1,101 +1,35 @@
 """
 experiment_ledger_v1.py
 
-Dynamic Distillation - Experiment Run Ledger and Tracking
+Dynamic Distillation - Run Registry and Ledger Management
 
 PURPOSE
 -------
-Auto-maintain a run registry (logs/run_registry.csv) with exact CLI invocations
-and key metrics for every simulation. Also regenerate summary documents
-(docs/experiment_ledger.csv, docs/experiment_ledger.md).
+Track run provenance and command identity, append run metadata, and regenerate
+human-readable and CSV experiment ledgers from run artifacts.
 
 INPUTS
 ------
-run_record : RunRecord
-    Run metadata (run_id, timestamp, status, CLI command, output files, final metrics)
-logs_dir : Path
-    Base logs directory where profile/summary CSVs are written
+- module name + argv command context
+- run summary/profile CSV paths
+- project/log directory paths
 
 OUTPUTS
 -------
-run_registry.csv : Appended with new run record
-experiment_ledger.csv : Regenerated from logs/ directory
-experiment_ledger.md : Regenerated human-readable summary
+- appended/updated `logs/run_registry.csv`
+- regenerated `docs/experiment_ledger.csv`
+- regenerated `docs/experiment_ledger.md`
+- exact-command match records for duplicate guard logic
 
-DEPENDENCIES
-------------
-(None - standard library only)
+KEY DEPENDENCIES
+----------------
+- csv/pathlib utilities
+- runner-produced summary/profile schemas
 
 ASSUMPTIONS & CONSTRAINTS
---------------------------
-- logs/ directory exists or can be created
-- docs/ directory exists for ledger output files
-- CSV run_registry.csv is created on first run (if missing)
-- run_id format: YYYYMMdd_HHMMSS (strict formatting)
-- Profile/Summary CSV files follow naming convention: column_profile_<run_id>.csv, etc.
-- Experiment flags are stable (no new flags added without updating _NON_EXPERIMENT_FLAGS)
-
-SIDE EFFECTS / STATE MUTATIONS
--------------------------------
-- Appends rows to logs/run_registry.csv (creates if missing)
-- Truncates and regenerates docs/experiment_ledger.csv and .md (complete rewrite)
-- Reads all CSV files in logs/ to discover experiments
-- No modifications to input RunRecord; treats as immutable
-
-PERFORMANCE NOTES
------------------
-- Registry append: O(1) per run (just writes one row)
-- Ledger regeneration: O(N_runs) where N_runs = number of runs discovered
-- Disk I/O: 10-100 ms per regeneration (depends on number of files)
-- Memory: O(N_runs) to hold all run records in memory during regeneration
-
-ERROR HANDLING
---------------
-- Raises IOError if:
-    * logs/ directory cannot be created/accessed
-    * run_registry.csv or ledger CSV cannot be written
-- Non-blocking warnings logged if:
-    * Profile/Summary CSV file not found for a run
-    * run_id parsing fails on unexpected filenames
-
-VERSION / COMPATIBILITY
------------------------
-v1.0 (current):
-    - CSV format stable; columns fixed
-    - Ledger regeneration idempotent (safe to run multiple times)
-    - Backward compatible with existing run_registry.csv
-
-NOTES / KEY FEATURES
---------------------
-Created: (implied from structure)
-
-- Captures exact CLI command for experiment reproducibility
-- Tracks simulation metrics: compositions, pressures, time, wall clock
-- Auto-discovers profile/summary CSVs by filename pattern
-- Regenerates experiments ledger on each run
-- Excludes non-experiment flags from comparison
-- Supports both stdout/stderr capture and registry writing
-
-EXAMPLE USAGE
--------------
-    from dynamic_distillation.experiment_ledger_v1 import (
-        RunRecord, append_run_registry_entry, regenerate_ledgers
-    )
-    
-    run_record = RunRecord(
-        run_id="20260215_145230",
-        run_datetime_local="2026-02-15 14:52:30",
-        status="completed",
-        command_source="cli",
-        cli_command="python -m ... --steps 1000",
-        summary_csv="logs/column_summary_20260215_145230.csv",
-        profile_csv="logs/column_profile_20260215_145230.csv",
-        t_final_s="100.0",
-        # ... other metrics
-    )
-    
-    append_run_registry_entry(run_record, logs_dir="logs")
-    regenerate_ledgers("logs", "docs")
+-------------------------
+- Command identity normalization intentionally ignores guard-only flags.
+- Ledger regeneration tolerates partial/missing artifacts where possible.
 """
 
 from __future__ import annotations

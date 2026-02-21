@@ -1,3 +1,25 @@
+"""
+test_stage_thermo_v1.py
+
+Dynamic Distillation - Stage Thermo Adapter Tests
+
+PURPOSE
+-------
+Validate adapter behavior in `stage_thermo_v1.flash_TP_full_F_psia`,
+including provider call-through and defensive normalization.
+
+SCOPE
+-----
+- fake-provider tuple paths
+- composition normalization and returned result fields
+
+KEY DEPENDENCIES
+----------------
+- stage_thermo_v1
+- numpy/pytest
+"""
+
+
 import numpy as np
 import pytest
 

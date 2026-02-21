@@ -1,6 +1,24 @@
-# tests/test_pr_flash_backend_v1.py
-#
-# Unit tests for pr_flash_backend_v1 liquid density computation without DWSIM.
+"""
+test_pr_flash_backend_v1.py
+
+Dynamic Distillation - PR Backend Unit Tests
+
+PURPOSE
+-------
+Test selected `pr_flash_backend_v1` behaviors (notably density fallback paths)
+without requiring a full DWSIM runtime.
+
+SCOPE
+-----
+- monkeypatched backend paths and conversion expectations
+- deterministic fallback behavior for mocked CalcProp calls
+
+KEY DEPENDENCIES
+----------------
+- dynamic_distillation.pr_flash_backend_v1
+- numpy and lightweight fake backend classes
+"""
+
 
 from __future__ import annotations
 

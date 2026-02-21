@@ -5,95 +5,36 @@ Dynamic Distillation - Column Specification Builder
 
 PURPOSE
 -------
-Convert Excel-loaded CaseData into a model-ready ColumnSpec dataclass.
-Parses and validates specifications, feeds, initial conditions, and 
-optional geometry data.
+Transform loader CaseData into validated immutable ColumnSpec used by runner
+and RHS. Handles stage profiles, streams normalization, duties, simulation
+settings, optional geometry expansion, and consistency checks.
 
 INPUTS
 ------
-case : CaseData
-    Loaded from Excel via excel_case_loader_v1; contains:
-        - components (DWSIM IDs)
-        - specs (dict of parameters from Excel Specs sheet)
-        - initial_conditions (DataFrame with stage composition/temperature)
-        - streams (dict of feed/product specifications)
+build_column_spec_from_case(case):
+- CaseData from excel_case_loader_v1
+- specifications dict, initial-condition profiles, optional stream data
 
 OUTPUTS
 -------
-col : ColumnSpec
-    Frozen dataclass with:
-        - n_stages, n_components, component names
-        - M_L, M_V (liquid/vapor holdups per stage)
-        - x0 (initial liquid composition)
-        - Feed specs (stage, composition, temperature, pressure)
-        - Column geometry (optional)
-        - Pressure profile, heat duties, simulation settings
+ColumnSpec dataclass with:
+- dimensions/components
+- tray initial profiles and compositions
+- stream definitions and feed stage
+- optional geometry model
+- simulation and duty defaults
+- normalized specs_raw dictionary
 
-DEPENDENCIES
-------------
-(Indirect via CaseData from excel_case_loader_v1)
+KEY DEPENDENCIES
+----------------
+- numpy/pandas
+- excel_case_loader_v1.CaseData
 
 ASSUMPTIONS & CONSTRAINTS
---------------------------
-- CaseData contains valid DWSIM compound IDs (canonicalized by excel_case_loader_v1)
-- Specs sheet uses standard parameter names (case-insensitive)
-- Initial Conditions sheet has one row per stage (stages in order)
-- Optional Geometry Sections sheet referenced by name in specs if present
-- All required specs exist: "Number of Stages", "Number of Components"
-- Stage numbering: 1-indexed in Excel; converted to 0-indexed internally
-
-SIDE EFFECTS / STATE MUTATIONS
--------------------------------
-- Does NOT modify input CaseData
-- Returns immutable frozen ColumnSpec dataclass
-- No file I/O or external state changes
-
-PERFORMANCE NOTES
------------------
-- Typical build time: < 10 ms (O(N_stages × N_components) data expansion)
-- Geometry expansion (if present): adds O(N_stages) time
-- Pressure profile vector creation: O(N_stages)
-
-ERROR HANDLING
---------------
-- Raises ColumnSpecError if:
-    * Required specs missing (N_STAGES, N_COMPONENTS, etc.)
-    * Invalid initial conditions (out-of-bounds stage numbers)
-    * Composition sums not close to 1.0 (after normalization attempt)
-    * Invalid pressure/temperature ranges
-    * Geometry data malformed (NaN, negative areas, etc.)
-
-VERSION / COMPATIBILITY
------------------------
-v1.0 (current):
-    - Backward compatible with legacy M_L0_lbmol naming (if present)
-    - Geometry support mandatory (Stage 1 back-filled if omitted)
-    - tau_eq_sec (Module 8B) read if present; optional
-
-NOTES / KEY FEATURES
---------------------
-Created: 2026-01-11 (America/New_York)
-Updated: 2026-01-12 (America/New_York)
-
-- Geometry support: reads optional "Geometry Sections" from CaseData.specs
-  Expands to per-stage arrays and computes vapor volume:
-    V_stage_ft3 = A_cross_section_ft2 * tray_spacing_ft * gas_void_frac
-  (Stage 1 back-filled from Stage 2 for stability)
-
-- Module 8B: reads optional "Stage time constant [tau] (sec)" -> col.tau_eq_sec
-
-- Gas void fraction accepts fraction (0..1) or percent (0..100), normalized to (0..1]
-
-EXAMPLE USAGE
--------------
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
-    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
-    
-    case = load_case_from_excel("my_case.xlsx")
-    col_spec = build_column_spec_from_case(case)
-    
-    print(f"Column has {col_spec.n_stages} stages, {col_spec.n_components} components")
-    print(f"Initial liquid holdups: {col_spec.M_L_lbmol}")
+-------------------------
+- Stage indices must be contiguous 1..N.
+- Composition matrices must align with component count.
+- Geometry expansion requires valid section bounds and dimensions.
 """
 
 from __future__ import annotations
@@ -146,6 +87,7 @@ class ColumnGeometrySection:
     weir_height_in: Optional[float] = None
     weir_length_ft: Optional[float] = None
     active_area_frac: Optional[float] = None
+    hydraulic_c_factor: Optional[float] = None
 
 
 @dataclass(frozen=True)
@@ -160,6 +102,7 @@ class ColumnGeometry:
     weir_length_ft_per_stage: Optional[np.ndarray] = None
     active_area_frac_per_stage: Optional[np.ndarray] = None
     active_area_ft2_per_stage: Optional[np.ndarray] = None
+    hydraulic_c_factor_per_stage: Optional[np.ndarray] = None
 
 
 @dataclass(frozen=True)
@@ -234,6 +177,7 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
             wh = row.get("weir_height_in", None)
             wl = row.get("weir_length_ft", None)
             aa = row.get("active_area_frac", None)
+            cf = row.get("hydraulic_c_factor", row.get("system_factor", None))
         except Exception as exc:
             raise ColumnSpecError("Geometry Sections row contains invalid values.") from exc
 
@@ -241,12 +185,15 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
         wh = None if wh is None else float(wh)
         wl = None if wl is None else float(wl)
         aa = None if aa is None else _coerce_fraction(float(aa))
+        cf = None if cf is None else float(cf)
         if wh is not None and (not np.isfinite(wh) or wh < 0.0):
             raise ColumnSpecError("Geometry: weir height (in) must be >= 0 if provided.")
         if wl is not None and (not np.isfinite(wl) or wl <= 0.0):
             raise ColumnSpecError("Geometry: weir length (ft) must be > 0 if provided.")
         if aa is not None and (not np.isfinite(aa) or aa <= 0.0 or aa > 1.0):
             raise ColumnSpecError("Geometry: active area fraction must be in (0, 1] if provided.")
+        if cf is not None and (not np.isfinite(cf) or cf <= 0.0):
+            raise ColumnSpecError("Geometry: hydraulic/system factor must be > 0 if provided.")
 
         sections.append(
             ColumnGeometrySection(
@@ -258,6 +205,7 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
                 weir_height_in=wh,
                 weir_length_ft=wl,
                 active_area_frac=aa,
+                hydraulic_c_factor=cf,
             )
         )
 
@@ -268,6 +216,7 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
     weir_h = np.full(N, np.nan, dtype=float)
     weir_L = np.full(N, np.nan, dtype=float)
     aaf = np.full(N, np.nan, dtype=float)
+    cfac = np.full(N, np.nan, dtype=float)
 
     for s in sections:
         if s.start_stage_1based < 1 or s.end_stage_1based > N or s.end_stage_1based < s.start_stage_1based:
@@ -291,6 +240,8 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
             weir_L[i0:i1] = float(s.weir_length_ft)
         if s.active_area_frac is not None:
             aaf[i0:i1] = float(s.active_area_frac)
+        if s.hydraulic_c_factor is not None:
+            cfac[i0:i1] = float(s.hydraulic_c_factor)
 
     # Fill gaps:
     # - If Stage 1 missing (common, condenser), back-fill from Stage 2 / first defined stage.
@@ -301,7 +252,7 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
     # Find first finite index
     first = int(np.argmax(np.isfinite(diam)))
 
-    for arr in (diam, spacing, void, weir_h, weir_L, aaf):
+    for arr in (diam, spacing, void, weir_h, weir_L, aaf, cfac):
         # Back-fill leading NaNs with first finite value
         for i in range(0, first):
             arr[i] = arr[first]
@@ -309,6 +260,9 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
         for i in range(first + 1, N):
             if not np.isfinite(arr[i]):
                 arr[i] = arr[i - 1]
+
+    # Default hydraulic factor to 1.0 when absent.
+    cfac = np.where(np.isfinite(cfac) & (cfac > 0.0), cfac, 1.0)
 
     # Derived geometry
     area = math.pi * (0.5 * diam) ** 2
@@ -326,6 +280,7 @@ def _build_geometry_from_specs(specs_raw: Dict[str, Any], n_stages: int) -> Opti
         weir_length_ft_per_stage=weir_L,
         active_area_frac_per_stage=aaf,
         active_area_ft2_per_stage=active_area,
+        hydraulic_c_factor_per_stage=cfac,
     )
 
 

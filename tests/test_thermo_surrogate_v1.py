@@ -1,3 +1,25 @@
+"""
+test_thermo_surrogate_v1.py
+
+Dynamic Distillation - Tabular Surrogate Tests
+
+PURPOSE
+-------
+Validate interpolation/blending behavior of `TabularThermoProviderV1` from
+synthetic table documents.
+
+SCOPE
+-----
+- anchor blending and bilinear interpolation consistency
+- flash/property output shape and numeric expectations
+
+KEY DEPENDENCIES
+----------------
+- thermo_surrogate_v1
+- numpy/pytest/json fixtures
+"""
+
+
 from __future__ import annotations
 
 import json

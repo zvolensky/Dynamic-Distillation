@@ -2,111 +2,39 @@
 """
 state_vector_layout_v1.py
 
-Dynamic Distillation - State Vector Layout and Packing/Unpacking
+Dynamic Distillation - State Vector Layout and Packing
 
 PURPOSE
 -------
-Define canonical packing order and unpacking methods for the ODE state vector y.
-Abstracts state variable layout to support multiple configuration options
-(liquid holdups, vapor holdups, temperatures, energy holdups).
+Define deterministic state-vector layout for all model variants and provide
+pack/unpack helpers used by runner and RHS.
 
 INPUTS
 ------
-StateVectorLayout constructor parameters:
-    n_stages, n_components : Geometry
-    include_top, include_bottom : bool - Boundary holdups
-    include_vapor : bool - Vapor holdup states
-    include_temperature : bool - Temperature states (legacy)
-    include_energy : bool - Energy (enthalpy) holdup states
+StateVectorLayout configuration:
+- n_stages, n_components
+- include_top / include_bottom / include_vapor
+- include_temperature / include_energy
+- epsilon settings for safe normalization
 
-y : np.ndarray - Packed state vector to unpack
+pack_y0(ColumnSpec):
+- Initial tray/top/bottom holdup and optional temperature/energy data
 
 OUTPUTS
 -------
-Unpacked state variables as Dict[str, np.ndarray]:
-    - ML, MV : Component holdups (lbmol)
-    - T, TB : Temperatures (°F) if include_temperature
-    - EL, EV : Energy holdups (Btu) if include_energy
-    - ML_tot_tray, MV_tot_tray : Total holdups per stage
+- Total state length and named slices for each block
+- Packed initial state vector
+- Unpacked state dict views from a packed vector
 
-DEPENDENCIES
-------------
-(None - internal module)
+KEY DEPENDENCIES
+----------------
+- numpy
+- ColumnSpec from column_spec_builder_v1
 
 ASSUMPTIONS & CONSTRAINTS
---------------------------
-- State vector y is strictly ordered per layout definition (not interleaved)
-- State variable indices must match layout configuration (fixed at initialization)
-- Component composition vectors (x, y) internally normalized to sum = 1.0
-- All stages present; no sparse/ragged state vectors
-- State indices are contiguous (no gaps)
-
-SIDE EFFECTS / STATE MUTATIONS
--------------------------------
-- Does NOT modify input state vector y
-- pack/unpack operations defensive (re-normalize compositions)
-- Returns fresh numpy arrays; does not share memory with y
-
-PERFORMANCE NOTES
------------------
-- pack_state: O(N_states) ≈ 0.1-0.5 ms
-- unpack_state: O(N_states) ≈ 0.1-0.5 ms
-- Index computation: O(1) dict lookup
-- Memory: O(N_stages × N_components) state vector
-
-ERROR HANDLING
---------------
-- Raises ValueError if:
-    * State vector size mismatch (y.size != expected size)
-    * Invalid index ranges
-    * NaN or Inf in state (checked on unpack)
-- Silently normalizes compositions during pack/unpack
-
-VERSION / COMPATIBILITY
------------------------
-v1.0 (current):
-    - State packing order fixed; no future changes planned
-    - Backward compatible with legacy ML0_lbmol/MV0_lbmol attribute names
-
-NOTES / KEY FEATURES
---------------------
-Created: 2026-01-11 (America/New_York)
-Updated: 2026-01-13 (America/New_York)
-
-- Always includes liquid component holdups (N_stages × N_components)
-- Optional vapor component holdups
-- Optional boundary/bottom holdups
-- Optional per-stage temperature states
-- Optional energy (enthalpy × holdup) states for energy balance
-- Backward-compatible with legacy ML0_lbmol/MV0_lbmol naming
-- Computes sub-totals (ML_tot, MV_tot, etc.) for convenience
-
-EXAMPLE USAGE
--------------
-    from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
-    import numpy as np
-    
-    layout = StateVectorLayout(
-        n_stages=20, n_components=3,
-        include_vapor=True, include_temperature=True,
-        include_energy=False
-    )
-    
-    # Pack state
-    ML = np.random.rand(20, 3) * 100  # Liquid holdups
-    MV = np.random.rand(20, 3) * 10   # Vapor holdups
-    T = np.ones(20) * 120.0            # Temperatures
-    
-    y0 = layout.pack_state(ML=ML, MV=MV, T=T)
-    print(f"State vector size: {y0.size}")
-    
-    # Unpack
-    unpacked = layout.unpack_state(y0)
-    print(f"Liquid totals: {unpacked['ML_tot_tray']}")
-    
-    # Index lookup
-    idx_T = layout.indices("T")
-    print(f"Temperature indices: {idx_T}")
+-------------------------
+- Layout must remain consistent across runner/RHS interactions.
+- Optional blocks are conditionally present based on include_* flags.
 """
 
 from __future__ import annotations

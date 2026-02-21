@@ -1,3 +1,26 @@
+"""
+test_column_spec_builder_v1.py
+
+Dynamic Distillation - ColumnSpec Builder Tests
+
+PURPOSE
+-------
+Validate that Excel case inputs are transformed into a consistent
+`ColumnSpec`, including dimensions, initialization arrays, and optional
+geometry/simulation metadata.
+
+SCOPE
+-----
+- smoke validation against template workbook
+- expected defaults and optional geometry normalization checks
+
+KEY DEPENDENCIES
+----------------
+- excel_case_loader_v1
+- column_spec_builder_v1
+"""
+
+
 from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
 from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
 

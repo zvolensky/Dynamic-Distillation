@@ -1,26 +1,35 @@
 #!/usr/bin/env python3
 """
-thermo_bridge.py (plain text protocol)
-Generated: 2026-01-19 (America/New_York)
+thermo_bridge.py
 
-Usage:
-  python thermo_bridge.py thermo_request.txt thermo_response.txt
+Dynamic Distillation - File-Based Thermo Bridge
 
-Request format (lines):
-  EXCEL_PATH=...
-  N=...
-  NC=...
-  T_F=comma,separated,list
-  P_PSIA=comma,separated,list
-  ZROW=comma,separated,list   (repeated N times)
+PURPOSE
+-------
+Bridge plain-text request/response thermo calls from external tools into the
+Python thermo provider stack.
 
-Response format (lines):
-  COMPONENTS_EXCEL=...
-  COMPONENT_IDS_DWSIM=...
-  HL=...
-  HV=...
-  Y_STAGE1=...
-  (plus optional)
+INPUTS
+------
+CLI:
+- request file path
+- response file path
+
+Request file provides stage-level T/P/composition rows and case metadata.
+
+OUTPUTS
+-------
+Response file with thermo results (enthalpy/composition diagnostics and
+component identifiers) for downstream non-Python tooling.
+
+KEY DEPENDENCIES
+----------------
+- dynamic_distillation imports via configured src path
+
+ASSUMPTIONS & CONSTRAINTS
+-------------------------
+- Protocol is line-oriented `KEY=VALUE` text.
+- Composition rows are normalized defensively before flash calls.
 """
 
 from __future__ import annotations

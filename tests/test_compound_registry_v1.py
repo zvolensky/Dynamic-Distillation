@@ -1,5 +1,24 @@
-# test_compound_registry_v1.py
-# Last updated: 2026-01-11 15:xx ET
+"""
+test_compound_registry_v1.py
+
+Dynamic Distillation - Compound Registry Tests
+
+PURPOSE
+-------
+Confirm alias-to-canonical mapping behavior and error reporting for unknown
+compound names in `compound_registry_v1`.
+
+SCOPE
+-----
+- known alias canonicalization
+- clean failure path for unmapped compounds
+
+KEY DEPENDENCIES
+----------------
+- pytest
+- dynamic_distillation.compound_registry_v1
+"""
+
 
 import pytest
 

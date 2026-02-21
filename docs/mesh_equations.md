@@ -29,6 +29,10 @@ Boundary conditions always enforced:
 - `V_out[1] = 0` (total condenser)
 - `V_out[N] = boilup`
 Optional hydraulics: internal `L_out` (stages 2..N-1) can be overridden by Francis-weir outflow when geometry is available.
+Runner preset note (`dynamic_run_scaffold_v1`):
+- `--runtime-mode parity` (default CLI mode) forces `pressure_model="spec"`, `vapor_flow_model="profile"`, and disables liquid-hydraulic override.
+- `--runtime-mode hydraulic` forces `pressure_model="hydraulic"`, `vapor_flow_model="energy"`, and enables liquid-hydraulic override.
+- `--runtime-mode legacy` keeps spec/CLI-driven model selection and is the only mode where startup hydraulic sequencing is active.
 
 **Generic Tray Component Balances (All Stages)**
 ```
@@ -52,6 +56,7 @@ d(M_topL,k)/dt = L_cond_to_top * x_cond,k
 d(M_topV,k)/dt = V_to_top * y_in[1,k]
               - V_cond_top * y_top,k
               - D_vap,k
+              - V_psv_top * y_top,k
 
 // Condenser tray liquid is independent from drum liquid
 d(ML_1,k)/dt = V_cond_in * y_in[1,k]
@@ -66,8 +71,14 @@ Where:
 - `V_cond_in`: condensed portion of incoming stage-2 vapor.
 - `V_to_top`: uncondensed portion routed to top vapor holdup.
 - `V_cond_top`: top-vapor holdup condensed to liquid.
+- `V_psv_top`: optional PSV vent flow from top vapor holdup.
 - `L_cond_to_top`: condenser-liquid transfer to reflux drum (`V_cond_in + V_cond_top`, plus feed to stage 1 if present).
 - `x_cond`: condenser-tray liquid composition.
+
+When top-drum PSV is enabled:
+```
+V_psv_top = clamp(gain * max(P_top_drum - P_set, 0), 0, V_psv_max)
+```
 
 Distillate draw uses component breakdown if provided; otherwise draws total with `x_top` and `y_top`.
 `D_k` can be dynamically overridden by runner-level control (top holdup PI -> total distillate draw).
@@ -177,6 +188,7 @@ Stage-level thermo flash refresh can be gated by per-stage thresholds:
 - `thermo_refresh_dP_psia`: refresh only if `|P_i - P_i,prev|` exceeds threshold
 - `thermo_refresh_dx`: refresh only if `max_k |z_i,k - z_i,k,prev|` exceeds threshold
 If all configured criteria are below threshold for a stage, that stage reuses cached thermo values.
+If the active provider exposes `flash_TP_full_batch(T, P, z_rows)`, refreshed stages are solved in one batch path; otherwise flashes are solved one stage at a time.
 
 **Pressure Model**
 - `pressure_model="spec"`: use `col.P_psia`.

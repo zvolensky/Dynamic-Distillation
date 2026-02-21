@@ -1,0 +1,35 @@
+Stage Residual Breakdown Report
+excel: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\distillation_column_template.xlsx
+thermo_mode: table-pool
+scenario: default
+pressure_model: hydraulic
+vapor_flow_model: energy
+flash_feed_at_stage_conditions: True
+include_temperature: True
+include_energy: False
+
+feed_stage_1based: 12
+feed_total_lbmolph: 7142.974000
+feed_vf_effective: 0.03883186727762224
+
+max_abs_tray_residual_lbmolph: 2529.917121
+rms_tray_residual_lbmolph: 796.379228
+worst_stage_1based: 16
+top_pool_rate_lbmolph: -11.912745
+bottom_pool_rate_lbmolph: 2654.299267
+total_state_inventory_rate_lbmolph: -0.002212
+global_mass_closure_error_lbmolph: nan
+
+Top stages by |dM_tray|:
+  stage 16: dM=-2529.917 lbmol/h, conv=-2551.115, feed= 0.000, other= 21.198
+  stage 18: dM=-1211.982 lbmol/h, conv=-1181.665, feed= 0.000, other=-30.317
+  stage  2: dM= 1201.625 lbmol/h, conv= 1995.801, feed= 0.000, other=-794.177
+  stage 19: dM=-1139.663 lbmol/h, conv=-1052.846, feed= 0.000, other=-86.818
+  stage 15: dM= 885.220 lbmol/h, conv= 810.554, feed= 0.000, other= 74.666
+  stage 12: dM= 855.380 lbmol/h, conv=-6360.707, feed= 7142.974, other= 73.113
+  stage 17: dM= 561.995 lbmol/h, conv= 580.540, feed= 0.000, other=-18.546
+  stage 13: dM=-217.943 lbmol/h, conv=-286.847, feed= 0.000, other= 68.903
+  stage 14: dM=-217.158 lbmol/h, conv=-282.714, feed= 0.000, other= 65.556
+  stage  5: dM=-200.283 lbmol/h, conv=-271.158, feed= 0.000, other= 70.875
+
+csv: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs\stage_residual_breakdown_20260216_183736.csv

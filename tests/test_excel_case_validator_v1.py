@@ -1,3 +1,25 @@
+"""
+test_excel_case_validator_v1.py
+
+Dynamic Distillation - Preflight Validator Tests
+
+PURPOSE
+-------
+Validate warning/error classification behavior of
+`excel_case_validator_v1.validate_loaded_case` for nominal and perturbed
+case inputs.
+
+SCOPE
+-----
+- nominal pass behavior
+- stream and spec perturbation warning/error checks
+
+KEY DEPENDENCIES
+----------------
+- excel_case_loader_v1 / column_spec_builder_v1 / excel_case_validator_v1
+"""
+
+
 from dataclasses import replace
 from pathlib import Path
 

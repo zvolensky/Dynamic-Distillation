@@ -1,3 +1,25 @@
+"""
+test_module8b_equilibrium_relaxation.py
+
+Dynamic Distillation - Module 8B Equilibrium Relaxation Tests
+
+PURPOSE
+-------
+Verify equilibrium-relaxation behavior in RHS using deterministic fake
+K-value providers and zero-flow baseline fixtures.
+
+SCOPE
+-----
+- relaxation source term activation and expected directional behavior
+- compatibility with minimal column fixtures and boundary settings
+
+KEY DEPENDENCIES
+----------------
+- column_rhs_v1 / StateVectorLayout / ColumnSpec fixtures
+- numpy
+"""
+
+
 import numpy as np
 
 from dynamic_distillation.column_spec_builder_v1 import ColumnSpec, HeatDuties, SimulationSettings

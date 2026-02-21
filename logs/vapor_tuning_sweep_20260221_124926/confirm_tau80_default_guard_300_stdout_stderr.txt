@@ -1,0 +1,95 @@
+[Milestone] start  wall=    0.00 s  clock=2026-02-21T13:41:02
+[Milestone] loaded case from Excel  wall=    0.29 s  clock=2026-02-21T13:41:02
+[Milestone] built column spec  wall=    0.29 s  clock=2026-02-21T13:41:02
+[Validation] PASS  errors=0  warnings=0
+[Milestone] validated Excel input  wall=    0.29 s  clock=2026-02-21T13:41:02
+[Milestone] built state vector layout  wall=    0.29 s  clock=2026-02-21T13:41:02
+[Milestone] built inputs and thermo provider  wall=    0.30 s  clock=2026-02-21T13:41:02
+[Init] Runtime mode active: hydraulic
+[Milestone] packed initial state  wall=    0.30 s  clock=2026-02-21T13:41:02
+[Init] Thermo startup conditioning  eq_phase: +3.11828->+1.1675 lbmol/s  max_dx=0.0414  max_dy=2.22e-16  iters=2  success=True
+[Init] Top-drum startup steadying  dL: -0.118837->-0.118837 lbmol/s  dV: +0.11835->+0.11835 lbmol/s  iters=1  success=False
+[Milestone] initialized vapor holdup from spec pressure  wall=    2.32 s  clock=2026-02-21T13:41:04
+[Milestone] resolved logging stream placement  wall=    2.32 s  clock=2026-02-21T13:41:04
+[Milestone] ensured logs directory: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs  wall=    2.32 s  clock=2026-02-21T13:41:04
+[Milestone] opened log files  wall=    2.32 s  clock=2026-02-21T13:41:04
+
+[Progress] step=     0  sim_t=      0.00 s  wall=      0.22 s  sim/wall=   0.000
+[Progress] step=    20  sim_t=      4.00 s  wall=      5.00 s  sim/wall=   0.800
+[Progress] step=    40  sim_t=      8.00 s  wall=      9.78 s  sim/wall=   0.818
+[Progress] step=    60  sim_t=     12.00 s  wall=     13.79 s  sim/wall=   0.870
+[Progress] step=    80  sim_t=     16.00 s  wall=     17.79 s  sim/wall=   0.899
+[Progress] step=   100  sim_t=     20.00 s  wall=     21.77 s  sim/wall=   0.919
+[Progress] step=   120  sim_t=     24.00 s  wall=     25.72 s  sim/wall=   0.933
+[Progress] step=   140  sim_t=     28.00 s  wall=     30.49 s  sim/wall=   0.918
+[Progress] step=   160  sim_t=     32.00 s  wall=     35.36 s  sim/wall=   0.905
+[Progress] step=   180  sim_t=     36.00 s  wall=     40.23 s  sim/wall=   0.895
+[Progress] step=   200  sim_t=     40.00 s  wall=     44.95 s  sim/wall=   0.890
+[Progress] step=   220  sim_t=     44.00 s  wall=     49.67 s  sim/wall=   0.886
+[Progress] step=   240  sim_t=     48.00 s  wall=     54.36 s  sim/wall=   0.883
+[Progress] step=   260  sim_t=     52.00 s  wall=     59.13 s  sim/wall=   0.879
+[Progress] step=   280  sim_t=     56.00 s  wall=     63.88 s  sim/wall=   0.877
+[Progress] step=   300  sim_t=     60.00 s  wall=     68.58 s  sim/wall=   0.875
+[Progress] step=   320  sim_t=     64.00 s  wall=     73.36 s  sim/wall=   0.872
+[Progress] step=   340  sim_t=     68.00 s  wall=     78.21 s  sim/wall=   0.869
+[Progress] step=   360  sim_t=     72.00 s  wall=     83.06 s  sim/wall=   0.867
+[Progress] step=   380  sim_t=     76.00 s  wall=     87.94 s  sim/wall=   0.864
+[Progress] step=   400  sim_t=     80.00 s  wall=     92.79 s  sim/wall=   0.862
+[Progress] step=   420  sim_t=     84.00 s  wall=     97.64 s  sim/wall=   0.860
+[Progress] step=   440  sim_t=     88.00 s  wall=    102.46 s  sim/wall=   0.859
+[Progress] step=   460  sim_t=     92.00 s  wall=    107.13 s  sim/wall=   0.859
+[Progress] step=   480  sim_t=     96.00 s  wall=    111.70 s  sim/wall=   0.859
+[Progress] step=   500  sim_t=    100.00 s  wall=    116.36 s  sim/wall=   0.859
+[Progress] step=   520  sim_t=    104.00 s  wall=    121.10 s  sim/wall=   0.859
+[Progress] step=   540  sim_t=    108.00 s  wall=    125.84 s  sim/wall=   0.858
+[Progress] step=   560  sim_t=    112.00 s  wall=    130.60 s  sim/wall=   0.858
+[Progress] step=   580  sim_t=    116.00 s  wall=    135.39 s  sim/wall=   0.857
+[Progress] step=   600  sim_t=    120.00 s  wall=    140.20 s  sim/wall=   0.856
+[Progress] step=   620  sim_t=    124.00 s  wall=    144.96 s  sim/wall=   0.855
+[Progress] step=   640  sim_t=    128.00 s  wall=    149.68 s  sim/wall=   0.855
+[Progress] step=   660  sim_t=    132.00 s  wall=    154.40 s  sim/wall=   0.855
+[Progress] step=   680  sim_t=    136.00 s  wall=    159.19 s  sim/wall=   0.854
+[Progress] step=   700  sim_t=    140.00 s  wall=    163.96 s  sim/wall=   0.854
+[Progress] step=   720  sim_t=    144.00 s  wall=    168.73 s  sim/wall=   0.853
+[Progress] step=   740  sim_t=    148.00 s  wall=    173.50 s  sim/wall=   0.853
+[Progress] step=   760  sim_t=    152.00 s  wall=    178.26 s  sim/wall=   0.853
+[Progress] step=   780  sim_t=    156.00 s  wall=    182.98 s  sim/wall=   0.853
+[Progress] step=   800  sim_t=    160.00 s  wall=    187.75 s  sim/wall=   0.852
+[Progress] step=   820  sim_t=    164.00 s  wall=    192.45 s  sim/wall=   0.852
+[Progress] step=   840  sim_t=    168.00 s  wall=    197.21 s  sim/wall=   0.852
+[Progress] step=   860  sim_t=    172.00 s  wall=    202.10 s  sim/wall=   0.851
+[Progress] step=   880  sim_t=    176.00 s  wall=    206.99 s  sim/wall=   0.850
+[Progress] step=   900  sim_t=    180.00 s  wall=    211.91 s  sim/wall=   0.849
+[Progress] step=   920  sim_t=    184.00 s  wall=    216.86 s  sim/wall=   0.848
+[Progress] step=   940  sim_t=    188.00 s  wall=    222.31 s  sim/wall=   0.846
+[Progress] step=   960  sim_t=    192.00 s  wall=    228.17 s  sim/wall=   0.841
+[Progress] step=   980  sim_t=    196.00 s  wall=    233.68 s  sim/wall=   0.839
+[Progress] step=  1000  sim_t=    200.00 s  wall=    239.32 s  sim/wall=   0.836
+[Progress] step=  1020  sim_t=    204.00 s  wall=    245.12 s  sim/wall=   0.832
+[Progress] step=  1040  sim_t=    208.00 s  wall=    251.18 s  sim/wall=   0.828
+[Progress] step=  1060  sim_t=    212.00 s  wall=    256.85 s  sim/wall=   0.825
+[Progress] step=  1080  sim_t=    216.00 s  wall=    262.42 s  sim/wall=   0.823
+[Progress] step=  1100  sim_t=    220.00 s  wall=    267.83 s  sim/wall=   0.821
+[Progress] step=  1120  sim_t=    224.00 s  wall=    273.46 s  sim/wall=   0.819
+[Progress] step=  1140  sim_t=    228.00 s  wall=    278.94 s  sim/wall=   0.817
+[Progress] step=  1160  sim_t=    232.00 s  wall=    284.57 s  sim/wall=   0.815
+[Progress] step=  1180  sim_t=    236.00 s  wall=    290.06 s  sim/wall=   0.814
+[Progress] step=  1200  sim_t=    240.00 s  wall=    295.74 s  sim/wall=   0.812
+[Progress] step=  1220  sim_t=    244.00 s  wall=    301.13 s  sim/wall=   0.810
+[Progress] step=  1240  sim_t=    248.00 s  wall=    306.48 s  sim/wall=   0.809
+[Progress] step=  1260  sim_t=    252.00 s  wall=    311.94 s  sim/wall=   0.808
+[Progress] step=  1280  sim_t=    256.00 s  wall=    317.45 s  sim/wall=   0.806
+[Progress] step=  1300  sim_t=    260.00 s  wall=    322.86 s  sim/wall=   0.805
+[Progress] step=  1320  sim_t=    264.00 s  wall=    328.78 s  sim/wall=   0.803
+[Progress] step=  1340  sim_t=    268.00 s  wall=    334.65 s  sim/wall=   0.801
+[Progress] step=  1360  sim_t=    272.00 s  wall=    340.14 s  sim/wall=   0.800
+[Progress] step=  1380  sim_t=    276.00 s  wall=    345.58 s  sim/wall=   0.799
+[Progress] step=  1400  sim_t=    280.00 s  wall=    351.03 s  sim/wall=   0.798
+[Progress] step=  1420  sim_t=    284.00 s  wall=    356.64 s  sim/wall=   0.796
+[Progress] step=  1440  sim_t=    288.00 s  wall=    362.33 s  sim/wall=   0.795
+[Progress] step=  1460  sim_t=    292.00 s  wall=    367.78 s  sim/wall=   0.794
+[Progress] step=  1480  sim_t=    296.00 s  wall=    373.24 s  sim/wall=   0.793
+[Progress] step=  1500  sim_t=    300.00 s  wall=    378.83 s  sim/wall=   0.792
+Wrote: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs\column_profile_20260221_134104.csv
+Wrote: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs\column_summary_20260221_134104.csv
+

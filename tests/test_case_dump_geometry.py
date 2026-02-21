@@ -1,18 +1,24 @@
-# tests/test_case_dump_geometry.py
-#
-# Updated: 2026-01-20
-#
-# Purpose:
-#   Unit test for Stage Geometry parsing + range expansion in case_dump.py.
-#
-# Why this import style:
-#   Your project isn't necessarily installed as a package, so `import case_dump`
-#   may fail under pytest. We load case_dump.py by absolute path.
-#
-# IMPORTANT:
-#   We must insert the module into sys.modules BEFORE exec_module() so that
-#   dataclasses (with future annotations) can resolve string annotations
-#   during @dataclass decoration (Python 3.13 behavior).
+"""
+test_case_dump_geometry.py
+
+Dynamic Distillation - Geometry Case-Dump Tests
+
+PURPOSE
+-------
+Verify geometry parsing and stage-range expansion behavior used by
+`case_dump.py`, including compatibility with runtime module loading in tests.
+
+SCOPE
+-----
+- Geometry-table extraction from workbook-like inputs
+- Expanded per-stage geometry vectors and expected normalization behavior
+
+KEY DEPENDENCIES
+----------------
+- openpyxl workbook fixtures
+- dynamic import path for `case_dump.py`
+"""
+
 
 import sys
 import tempfile

@@ -1,80 +1,31 @@
 """
 compound_registry_v1.py
 
-Dynamic Distillation - Compound Name Canonicalization
+Dynamic Distillation - Compound Canonicalization
 
 PURPOSE
 -------
-Convert Excel-provided component names to canonical DWSIM compound IDs.
-Apply name aliases, validate against DWSIM database, and fail fast on
-unrecognized compounds.
+Normalize user/Excel compound labels and map them to canonical DWSIM
+compound IDs used by thermo backends.
 
 INPUTS
 ------
-name : str
-    Excel or user-provided component name
-extra_aliases : Optional[Dict[str, str]]
-    Additional name mappings to apply (merged with defaults)
+- Single compound names or ordered component lists
+- Optional extra alias mapping
 
 OUTPUTS
 -------
-dwsim_id : str
-    Canonical DWSIM compound ID (exact name from DWSIM database)
+- Canonical DWSIM ID (single) or canonicalized component list
+- Exceptions on unknown/unmappable compounds
 
-DEPENDENCIES
-------------
-from dynamic_distillation.dwsim_compounds_v2 : DWSIM_COMPOUNDS, DWSIM_COMPOUND_SET
+KEY DEPENDENCIES
+----------------
+- dwsim_compounds_v2 reference list
 
 ASSUMPTIONS & CONSTRAINTS
---------------------------
-- DWSIM_COMPOUNDS list is available and immutable
-- Input names are strings or convertible to strings
-- Aliases are applied before DWSIM database lookup
-- Case-insensitive alias matching; DWSIM returns exact case
-- No compound IDs contain spaces or special characters (DWSIM standard)
-
-SIDE EFFECTS / STATE MUTATIONS
--------------------------------
-- No state modifications; pure function (deterministic, repeatable)
-- No file I/O or external calls
-
-PERFORMANCE NOTES
------------------
-- Alias lookup: O(1) dict lookup per name
-- DWSIM set lookup: O(1) membership check
-- Total per-compound: < 1 µs
-
-ERROR HANDLING
---------------
-- Raises ValueError if compound not found in DWSIM database after alias resolution
-- Provides helpful error message with available DWSIM compounds nearby (edit distance match)
-
-VERSION / COMPATIBILITY
------------------------
-v1.0 (current):
-    - Default aliases hardcoded (gas naming conventions only)
-    - Case-insensitive matching; DWSIM case preserved in output
-
-NOTES / KEY FEATURES
---------------------
-Updated: 2026-01-11 15:xx ET
-
-- Default aliases handle common naming variants:
-  n-propane -> Propane, i-butane -> Isobutane, etc.
-- Case-insensitive keying; preserves DWSIM case
-- Fails fast if compound not in DWSIM database
-
-EXAMPLE USAGE
--------------
-    dwsim_id = canonicalize_to_dwsim_id("n-propane")
-    # Returns: "Propane"
-    
-    custom_aliases = {"nC4": "N-butane", "nC5": "N-pentane"}
-    dwsim_id = canonicalize_to_dwsim_id("nC4", extra_aliases=custom_aliases)
-    # Returns: "N-butane"
-    
-    # Raises ValueError with helpful message:
-    # canonicalize_to_dwsim_id("xylyne")  # NOT in DWSIM database
+-------------------------
+- Alias map is intentionally strict to avoid silent wrong-component mapping.
+- Canonicalization preserves list order from caller input.
 """
 from __future__ import annotations
 

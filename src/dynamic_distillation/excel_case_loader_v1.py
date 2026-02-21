@@ -5,100 +5,43 @@ Dynamic Distillation - Excel Case Loader
 
 PURPOSE
 -------
-Load a distillation "case" from an Excel .xlsx file matching the provided
-template format. Validates and canonicalizes component names against the
-DWSIM compound list.
+Load workbook input data into immutable CaseData for downstream model build.
+Parses recognized specification keys, initial-condition profiles, optional
+components sheet, optional stream data, and optional geometry sections.
 
 INPUTS
 ------
-excel_path : str
-    Path to .xlsx file with sheets: Specs, Initial Conditions, Streams
-    (and optional Geometry Sections sheet)
+load_case_from_excel(excel_path):
+- Excel `.xlsx` path (or file-picker selection when path omitted)
+- Expected workbook structure:
+  - required sheets: Specifications, Initial Conditions
+  - optional sheets: Components, Streams
 
 OUTPUTS
 -------
-case : CaseData (frozen dataclass)
-    Components (Excel names and DWSIM IDs), specs dict, initial conditions
-    DataFrame, and streams dict
-    
-Functions also provide:
-    pick_excel_file() -> Optional[str] : Windows file picker dialog
+CaseData dataclass:
+- excel_path
+- components (Excel labels)
+- component_ids_dwsim (canonicalized IDs)
+- specs (recognized spec keys)
+- initial_conditions DataFrame
+- streams dict (best-effort parse)
 
-DEPENDENCIES
-------------
-from dynamic_distillation.compound_registry_v1 : canonicalize_components
+KEY DEPENDENCIES
+----------------
+- pandas/openpyxl
+- compound_registry_v1.canonicalize_components
 
 ASSUMPTIONS & CONSTRAINTS
---------------------------
-- Excel file has required sheets: "Specs", "Initial Conditions", "Streams"
-- Specs sheet format: Column A = parameter name (case-insensitive), Column B = value
-- Initial Conditions sheet: one row per stage; columns are component names (matching Specs)
-- Streams sheet: each stream has columns for Stage, Temperature, Pressure, component flows
-- Component names in Excel must be recognizable or aliasable to DWSIM IDs
-- Excel numbers are parsed as floats; text component names are strings
-- No circular dependencies or self-referential streams
+-------------------------
+- Loader keeps recognized specification keys; free-form rows are not preserved.
+- Streams parsing is best-effort and may return empty dict on malformed input.
+- Component count and required IC columns are validated during load.
 
-SIDE EFFECTS / STATE MUTATIONS
--------------------------------
-- Does NOT modify Excel file
-- Reads file from disk (I/O operation)
-- May display file picker dialog if requested (Windows-only feature)
-- Returns immutable frozen CaseData dataclass
-
-PERFORMANCE NOTES
------------------
-- File read time: 50-200 ms (depending on file size and disk I/O)
-- Parsing and validation: 10-50 ms
-- Total load_case_from_excel(): 100-300 ms typical
-- Memory: O(N_stages × N_components + N_streams) = typically < 1 MB
-
-ERROR HANDLING
---------------
-- Raises ValueError if:
-    * Excel file not found or not readable
-    * Required sheets missing
-    * Required specs missing (Number of Stages, Number of Components)
-    * Component names not recognizable as DWSIM compounds (fail-fast)
-    * Initial Conditions dataframe wrong shape or NaN in required fields
-    * Stream specifications invalid (stage out of bounds, negative flows, etc.)
-- pick_excel_file() returns None if user cancels file picker dialog
-
-VERSION / COMPATIBILITY
------------------------
-v1.0 (current):
-    - Excel .xlsx format only (not .xls)
-    - Backward compatible with legacy stream naming conventions
-    - Optional Geometry Sections sheet (if present, read; if absent, defaults applied)
-
-NOTES / KEY FEATURES
---------------------
-Updated: 2026-01-12 21:29 ET
-
-- File picker option for Windows compatibility
-- Early validation and canonicalization (fail-fast on unknown compounds)
-- Reads Specs sheet (parameter/value pairs)
-- Reads Initial Conditions sheet (per-stage composition/temperature)
-- Reads Streams sheet (feed/product specifications)
-- Optional Geometry Sections sheet (cross-section area, tray spacing, void fraction)
-
-EXAMPLE USAGE
--------------
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel, pick_excel_file
-    
-    # Load from known path
-    case = load_case_from_excel("distillation_column_template.xlsx")
-    print(f"Loaded {case.n_components} components: {case.components}")
-    
-    # Or use file picker (Windows)
-    excel_path = pick_excel_file()
-    if excel_path:
-        case = load_case_from_excel(excel_path)
-    else:
-        print("User canceled file picker")
-    
-    # Access case data
-    print(f"Feed specifications: {case.streams}")
-    print(f"Number of stages: {len(case.initial_conditions)}")
+NOTES
+-----
+- Geometry section parsing supports diameter/spacing plus optional weir/active-area fields.
+- Reflux-drum geometry aliases are normalized into canonical spec keys.
 """
 from __future__ import annotations
 
@@ -216,7 +159,7 @@ def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[
 
     header_row = None
     col_start = col_end = col_diam = col_space = col_void = None
-    col_weir_h = col_weir_L = col_active = None
+    col_weir_h = col_weir_L = col_active = col_sys = None
 
     # Find header row containing both "Start Stage" and "End Stage"
     for r in range(n_rows):
@@ -245,6 +188,11 @@ def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[
                     col_weir_L = c
                 if col_active is None and "active" in h and "area" in h:
                     col_active = c
+                if col_sys is None and (
+                    ("system" in h and "factor" in h)
+                    or ("hydraulic" in h and "factor" in h)
+                ):
+                    col_sys = c
             break
 
     if header_row is None or col_diam is None or col_space is None:
@@ -265,6 +213,7 @@ def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[
         v_wh = specs_df.iloc[r, col_weir_h] if col_weir_h is not None else None
         v_wl = specs_df.iloc[r, col_weir_L] if col_weir_L is not None else None
         v_aa = specs_df.iloc[r, col_active] if col_active is not None else None
+        v_cf = specs_df.iloc[r, col_sys] if col_sys is not None else None
 
         try:
             start_stage = int(float(v_start))
@@ -291,6 +240,11 @@ def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[
                 isinstance(v_aa, str) and not v_aa.strip()
             ):
                 active_area_frac = _coerce_void_fraction(float(v_aa))
+            hydraulic_c_factor = None
+            if v_cf is not None and not (isinstance(v_cf, float) and pd.isna(v_cf)) and not (
+                isinstance(v_cf, str) and not v_cf.strip()
+            ):
+                hydraulic_c_factor = float(v_cf)
         except Exception:
             break
 
@@ -304,6 +258,7 @@ def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[
                 "weir_height_in": weir_height_in,
                 "weir_length_ft": weir_length_ft,
                 "active_area_frac": active_area_frac,
+                "hydraulic_c_factor": hydraulic_c_factor,
             }
         )
 
@@ -484,6 +439,8 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     specs["Log Frequency (timesteps)"] = _get_required_int(specs_df, "Log Frequency (timesteps)")
     specs["Top Accumulator Holdup (lbmol)"] = _get_optional_float(specs_df, "Top Accumulator Holdup (lbmol)")
     specs["Bottom Holdup (lbmol)"] = _get_optional_float(specs_df, "Bottom Holdup (lbmol)")
+    specs["Pressure Model"] = _get_optional_str(specs_df, "Pressure Model")
+    specs["Vapor Flow Model"] = _get_optional_str(specs_df, "Vapor Flow Model")
 
     # Optional reflux-drum geometry to infer top vapor-space volume.
     specs["Top Drum Vapor Volume (ft3)"] = _first_optional_float(

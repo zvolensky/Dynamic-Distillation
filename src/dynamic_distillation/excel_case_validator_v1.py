@@ -1,90 +1,36 @@
 """
 excel_case_validator_v1.py
 
-Dynamic Distillation - Excel Case Validation
+Dynamic Distillation - Preflight Case Validation
 
 PURPOSE
 -------
-Perform preflight validation on loaded Excel case inputs. Detects data
-consistency issues, invalid ranges, and misconfigurations before simulation.
+Run pre-integration validation checks on loaded case/spec content and produce
+structured blocking/non-blocking diagnostics for CLI and API workflows.
 
 INPUTS
 ------
-case : CaseData
-    Loaded from excel_case_loader_v1
-col : ColumnSpec
-    Converted from case via column_spec_builder_v1
+validate_loaded_case(case, col):
+- CaseData from loader
+- ColumnSpec from builder
 
 OUTPUTS
 -------
-report : ExcelValidationReport (frozen dataclass)
-    errors : List[str] - Critical issues (simulation-blocking)
-    warnings : List[str] - Non-critical issues (informational)
-    ok : bool - True if no errors
+ExcelValidationReport:
+- errors (blocking)
+- warnings (non-blocking)
+- ok flag
 
-DEPENDENCIES
-------------
-from dynamic_distillation.excel_case_loader_v1 : CaseData
-from dynamic_distillation.column_spec_builder_v1 : ColumnSpec
+print_validation_report(report): formatted console summary helper.
+
+KEY DEPENDENCIES
+----------------
+- excel_case_loader_v1 / column_spec_builder_v1 data contracts
 
 ASSUMPTIONS & CONSTRAINTS
---------------------------
-- CaseData and ColumnSpec are both provided and valid (already parsed)
-- Stream stage numbers are 1-indexed in Excel but validated against 0-indexed ColumnSpec
-- Feed compositions must sum to approximately 1.0 (normalized within 5% tolerance)
-- Pressures must be positive; temperatures within reasonable range (32–600 °F typical)
-- Stream total flow (if provided) must match component sum
-
-SIDE EFFECTS / STATE MUTATIONS
--------------------------------
-- No modifications to case or col
-- Pure validation function; returns report
-- No file I/O
-
-PERFORMANCE NOTES
------------------
-- Validation time: O(N_stages + N_streams) ≈ 1-10 ms typical
-- No external calls or disk I/O
-
-ERROR HANDLING
---------------
-- No exceptions raised; errors collected in ExcelValidationReport.errors
-- Report.ok property is False if any errors present
-- Warnings collected separately; non-blocking but informational
-- Missing optional parameters result in warnings, not errors
-
-VERSION / COMPATIBILITY
------------------------
-v1.0 (current):
-    - Error/warning thresholds fixed (not configurable)
-    - Report format stable (columns and structure)
-
-NOTES / KEY FEATURES
---------------------
-Created: (implied from structure)
-
-- Validates stream stage numbers are within column range
-- Checks feed composition sums to 1.0
-- Validates initial composition and temperature values
-- Reports duplicate feed names or specifications
-- Provides human-readable error/warning messages
-
-EXAMPLE USAGE
--------------
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
-    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
-    from dynamic_distillation.excel_case_validator_v1 import validate_loaded_case
-    
-    case = load_case_from_excel("case.xlsx")
-    col_spec = build_column_spec_from_case(case)
-    report = validate_loaded_case(case, col_spec)
-    
-    if not report.ok:
-        print(f"Validation errors: {report.errors}")
-        for warning in report.warnings:
-            print(f"Warning: {warning}")
-    else:
-        print("Case validation passed!")
+-------------------------
+- Validation checks focus on actionable startup correctness, not optimization.
+- Warnings preserve run permissiveness while highlighting likely issues.
 """
 
 from __future__ import annotations

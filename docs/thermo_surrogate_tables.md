@@ -1,51 +1,58 @@
 **Thermo Surrogate Tables (PR-Based)**
 
-This document describes the tabular thermo surrogate workflow added in `thermo_surrogate_v1`:
+This document describes the tabular thermo surrogate workflow in:
+- `src/dynamic_distillation/thermo_surrogate_v1.py`
+- `src/dynamic_distillation/thermo_table_pool_v1.py`
+- `src/dynamic_distillation/dynamic_run_scaffold_v1.py`
 
-- Build thermo tables offline from Peng-Robinson flash calls.
-- Run the dynamic simulation using `--thermo table` to avoid expensive live EOS calls at each step.
-
-Files involved:
-
-- Builder/provider module: `src/dynamic_distillation/thermo_surrogate_v1.py`
-- Runner flag integration: `src/dynamic_distillation/dynamic_run_scaffold_v1.py`
-- Lightweight runner integration: `src/dynamic_run_scaffold_v1.py`
+It covers both single-process table evaluation (`--thermo table`) and
+process-pool table evaluation (`--thermo table-pool`).
 
 ---
 
-**What Problem This Solves**
+**What This Solves**
 
-Live PR flash at every stage and step can dominate runtime.  
-The surrogate table approach precomputes `K`, `HL`, `HV` (optional `Z`, `rhoL`) over `(T, P)` for representative compositions ("anchors"), then interpolates quickly at runtime.
+Live PR flash across all stages can dominate runtime.
+The surrogate workflow precomputes thermo surfaces and interpolates at runtime.
 
 Tradeoff:
-
-- Faster simulation
-- Some loss of thermodynamic fidelity versus live EOS
+- Faster runs
+- Some loss of fidelity vs full live EOS calls
 
 ---
 
-**How Interpolation Works**
+**How Runtime Uses the Table**
 
-Two interpolation layers are used:
+At each thermo-refresh step, the RHS computes stage flashes from table data.
+If the active provider implements `flash_TP_full_batch(...)`, the RHS uses batch mode.
+Otherwise it falls back to stage-by-stage flash calls.
+
+For `--thermo table-pool`:
+- Stage flash rows are chunked and submitted to a process pool.
+- Failed/timed-out chunk tasks fall back to local tabular evaluation.
+- Scalar thermo calls (e.g., Cp/density helpers) use the local tabular provider.
+
+---
+
+**Interpolation Model**
+
+Two interpolation layers:
 
 1. Intra-anchor interpolation in `(T, P)`
-- Bilinear interpolation on each anchor surface:
+- Bilinear interpolation on each anchor surface for:
   - `K(T,P,component)`
   - `HL(T,P)`
   - `HV(T,P)`
   - optional `Z(T,P)`, `rhoL(T,P)`
 
 2. Inter-anchor interpolation in composition space
-- Compute distances from current composition `z` to each `z_ref`.
-- Select nearest anchors and compute inverse-distance weights.
-- Blend properties across anchors:
-  - `HL/HV/Z/rhoL`: linear weighted blend
-  - `K`: blend in `ln(K)` space, then exponentiate
+- Nearest anchors are blended with inverse-distance weights.
+- `HL/HV/Z/rhoL`: linear weighted blend
+- `K`: blend in `ln(K)` space, then exponentiate
 
 Why `ln(K)` blending:
 - Keeps `K > 0`
-- More numerically stable for strong volatility contrast
+- Improves numerical stability for large volatility contrast
 
 ---
 
@@ -54,17 +61,12 @@ Why `ln(K)` blending:
 An anchor is a reference composition vector `z_ref` with full `(T, P)` property surfaces.
 
 Builder supports:
-
 - Stage anchors from `x0[i,:]` (`include_stage_anchors=True`)
 - Pure-component anchors `e_i` (`include_pure_anchors=True`)
-
-Pure anchors explicitly extend composition coverage to component fraction `1.0`.
 
 ---
 
 **Build a Table**
-
-Use the builder CLI:
 
 ```powershell
 $env:PYTHONPATH='src'
@@ -76,22 +78,18 @@ python -m dynamic_distillation.thermo_surrogate_v1 `
   --max-stage-anchors 6
 ```
 
-Important options:
-
-- `--n-t`, `--n-p`: grid density in temperature/pressure
-- `--t-margin`, `--p-margin`: expansion beyond case min/max T,P
-- `--max-stage-anchors`: subsample stage anchors for speed
+Main builder options:
+- `--n-t`, `--n-p`: grid density
+- `--t-margin`, `--p-margin`: expand beyond case min/max
+- `--max-stage-anchors`: subsample stage anchors
 - `--no-stage-anchors`: disable stage anchors
 - `--no-pure-anchors`: disable pure anchors
-- `--no-rho`: skip liquid density table
-
-Practical note:
-- Build time scales with `n_anchors * n_t * n_p` PR calls.
-- Start with a smaller grid/anchor set, then refine.
+- `--no-rho`: skip liquid-density table
+- `--verbose-backend`: print backend details while building
 
 ---
 
-**Run Using Table Thermo**
+**Run With Single-Process Table Thermo**
 
 ```powershell
 $env:PYTHONPATH='src'
@@ -101,39 +99,31 @@ python -m dynamic_distillation.dynamic_run_scaffold_v1 `
   --thermo-table cache\thermo_table.json
 ```
 
-Same option works for the lightweight runner:
+---
+
+**Run With Parallel Table Thermo**
 
 ```powershell
 $env:PYTHONPATH='src'
-python -m dynamic_run_scaffold_v1 `
+python -m dynamic_distillation.dynamic_run_scaffold_v1 `
   --excel distillation_column_template.xlsx `
-  --thermo table `
-  --thermo-table cache\thermo_table.json
+  --thermo table-pool `
+  --thermo-table cache\thermo_table.json `
+  --thermo-pool-workers 6 `
+  --thermo-pool-chunk-size 8 `
+  --thermo-pool-timeout-sec 5
 ```
 
----
-
-**Current Example Table in This Repo**
-
-Generated table:
-
-- `cache/thermo_table.json`
-
-Resulting coverage:
-
-- `n_components = 3`
-- `n_stages = 20`
-- `n_anchors = 20` (stage anchors `stage_1` through `stage_20`)
-- `T_grid_F` spans `95.556` to `243.772` (9 points)
-- `P_grid_psia` spans `199.44` to `252.06` (9 points)
-- `mw_lbm_per_lbmol` is included for hydraulic pressure-drop calculations
+Pool tuning knobs:
+- `--thermo-pool-workers`: worker count (`None` => `max(cpu_count-1,1)`)
+- `--thermo-pool-chunk-size`: rows per submitted task (default `4`)
+- `--thermo-pool-timeout-sec`: per-task timeout (optional)
 
 ---
 
 **Table JSON Structure**
 
 Top-level keys:
-
 - `format_version`
 - `created_at`
 - `source`
@@ -145,10 +135,9 @@ Top-level keys:
 - `T_grid_F`
 - `P_grid_psia`
 - `anchors`
-- `mw_lbm_per_lbmol` (optional component MW vector used by runners when available)
+- `mw_lbm_per_lbmol` (optional)
 
 Each `anchors[]` item:
-
 - `name`
 - `z_ref`
 - `K` with shape `(nT, nP, Nc)`
@@ -159,16 +148,30 @@ Each `anchors[]` item:
 
 ---
 
+**Refresh Gating Interaction**
+
+Runner thermo cadence and thresholds still apply in table modes:
+- `--thermo-every`
+- `--thermo-refresh-dt`
+- `--thermo-refresh-dp`
+- `--thermo-refresh-dx`
+
+Stages below thresholds reuse cached thermo values.
+
+---
+
 **Accuracy / Maintenance Guidance**
 
-- Rebuild tables when:
-  - feed composition changes materially
-  - operating pressure profile changes
-  - expected tray temperature range changes
-  - component set changes
-- Use denser anchors first, then denser `(T,P)` grids.
-- Keep pure anchors on unless there is a specific reason to remove them.
-- Runtime interpolation clips `T` and `P` to grid bounds; if operation leaves the tabulated range, results may degrade.
+Rebuild tables when any of these change materially:
+- feed composition
+- operating pressure profile
+- expected tray temperature range
+- component list/order
+
+Practical guidance:
+- Keep pure anchors enabled unless you have a specific reason to remove them.
+- Expand margins and/or increase anchor density before increasing grid density aggressively.
+- Runtime clips `T/P` to table bounds; extended out-of-range operation degrades fidelity.
 
 ---
 
@@ -176,7 +179,9 @@ Each `anchors[]` item:
 
 - `thermo_mode='table' requires RunnerConfig.thermo_table_path`
   - Provide `--thermo-table <path>`.
-- component mismatch errors
-  - Table was built for a different component ordering; rebuild with current case.
-- poor accuracy at extremes
-  - Add anchors (especially near expected compositions), widen margins, or increase grid density.
+- `thermo_mode='table-pool' requires RunnerConfig.thermo_table_path`
+  - Provide `--thermo-table <path>`.
+- Component mismatch errors
+  - Table component ordering/names do not match case; rebuild table.
+- Poor accuracy near edges
+  - Add anchors, increase margins, or increase grid density.

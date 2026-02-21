@@ -1,3 +1,27 @@
+"""
+test_column_rhs_v1.py
+
+Dynamic Distillation - Column RHS Unit Tests
+
+PURPOSE
+-------
+Exercise `column_rhs_v1` derivative and diagnostic behavior across mass,
+pressure, thermo, condenser/reboiler, and controller-facing signal paths.
+
+SCOPE
+-----
+- ColumnInputs/BoundaryFlows handling and helper utilities
+- Condenser/reboiler closures, hydraulics, feed handling, and diagnostics
+- Regression checks for optional model features and edge cases
+
+KEY DEPENDENCIES
+----------------
+- dynamic_distillation.column_rhs_v1
+- ColumnSpec fixtures and StateVectorLayout
+- numpy/math test utilities
+"""
+
+
 import numpy as np
 
 import dynamic_distillation.column_rhs_v1 as rhs_module
@@ -190,6 +214,55 @@ def test_total_condenser_top_drum_balance():
     assert np.allclose(d_tray_L[0, :], expected_d_cond, atol=1e-12)
 
 
+def test_top_drum_psv_relief_removes_vapor_and_reports_diagnostics():
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "V_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "L_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "streams": {},
+        }
+    )
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=False,
+        include_vapor=True,
+    )
+    y0 = layout.pack_y0(col2)
+    sl = layout.slices()
+
+    y0[sl["top_L"]] = np.array([1.0, 0.0], dtype=float)
+    y0[sl["top_V"]] = np.array([10.0, 0.0], dtype=float)
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        pressure_model="spec",
+        top_drum_vapor_volume_ft3=240.5,
+        enable_top_drum_psv=True,
+        top_drum_psv_setpoint_psia=200.0,
+        top_drum_psv_gain_lbmolps_per_psi=0.1,
+        top_drum_psv_max_vent_lbmolps=0.2,
+    )
+    dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+    d_top_V = np.asarray(dydt[sl["top_V"]], dtype=float).reshape((2,))
+
+    # With no feed/condensation/draw terms active, top-vapor derivative should be
+    # exactly the PSV vent term.
+    assert np.allclose(d_top_V, np.array([-0.2, 0.0], dtype=float), atol=1e-12)
+    assert "V_psv_top_lbmolph" in diag
+    assert "PSV_open_flag" in diag
+    assert "PSV_setpoint_psia" in diag
+    assert "PSV_pv_psia" in diag
+    assert abs(float(np.asarray(diag["V_psv_top_lbmolph"], dtype=float).reshape((-1,))[0]) - 720.0) < 1e-9
+    assert float(np.asarray(diag["PSV_open_flag"], dtype=float).reshape((-1,))[0]) == 1.0
+    assert abs(float(np.asarray(diag["PSV_setpoint_psia"], dtype=float).reshape((-1,))[0]) - 200.0) < 1e-12
+    assert float(np.asarray(diag["PSV_pv_psia"], dtype=float).reshape((-1,))[0]) > 200.0
+
+
 def test_hydraulics_uses_thermo_density():
     # 3-stage, 1-component column with weir hydraulics enabled.
     N, Nc = 3, 1
@@ -290,6 +363,95 @@ def test_hydraulics_uses_thermo_density():
 
     # With zero reflux, L_in at stage 2 is 0, so dML/dt = -L_out.
     assert np.isclose(-float(d_tray_L[1, 0]), expected_L_out_s, rtol=1e-6, atol=1e-12)
+
+
+def test_hydraulic_pressure_relaxation_blends_with_previous_profile(monkeypatch):
+    N, Nc = 3, 1
+    x0 = np.ones((N, Nc), dtype=float)
+    y0 = np.ones((N, Nc), dtype=float)
+
+    area_ft2 = np.ones(N, dtype=float)
+    geom = ColumnGeometry(
+        sections=[
+            ColumnGeometrySection(
+                start_stage_1based=1,
+                end_stage_1based=N,
+                diameter_ft=2.0,
+                tray_spacing_ft=1.0,
+                gas_void_frac=0.5,
+                weir_height_in=0.0,
+                weir_length_ft=1.0,
+                active_area_frac=1.0,
+            )
+        ],
+        diameter_ft_per_stage=np.full(N, 2.0, dtype=float),
+        tray_spacing_ft_per_stage=np.full(N, 1.0, dtype=float),
+        gas_void_frac_per_stage=np.full(N, 0.5, dtype=float),
+        area_ft2_per_stage=area_ft2,
+        vapor_volume_ft3_per_stage=np.full(N, 1.0, dtype=float),
+        weir_height_in_per_stage=np.zeros(N, dtype=float),
+        weir_length_ft_per_stage=np.full(N, 1.0, dtype=float),
+        active_area_frac_per_stage=np.full(N, 1.0, dtype=float),
+        active_area_ft2_per_stage=area_ft2,
+    )
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A"],
+        components_dwsim=["A"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2, 3], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Number of Stages": 3, "Number of Components": 1, "Timestep (sec)": 1.0, "Simulation Length (min)": 0.1, "Log Frequency (timesteps)": 1},
+        T_f=np.array([100.0, 110.0, 120.0], dtype=float),
+        P_psia=np.array([200.0, 205.0, 210.0], dtype=float),
+        V_lbmolph=np.array([0.0, 0.0, 0.0], dtype=float),
+        L_lbmolph=np.array([0.0, 0.0, 0.0], dtype=float),
+        M_L_lbmol=np.array([4.0, 4.0, 4.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+        geometry=geom,
+    )
+
+    layout = StateVectorLayout(
+        n_stages=N,
+        n_components=Nc,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y0_state = layout.pack_y0(col)
+
+    p_raw = np.array([230.0, 220.0, 210.0], dtype=float)
+
+    def _fake_pressure_profile(**_kwargs):
+        return p_raw.copy()
+
+    monkeypatch.setattr(rhs_module, "_pressure_profile_hydraulic_psia", _fake_pressure_profile)
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        pressure_model="hydraulic",
+        vapor_holdup_relaxation_sec=4.0,
+        P_tray_prev=np.array([200.0, 200.0, 200.0], dtype=float),
+    )
+    _dydt, diag = column_rhs(0.0, y0_state, col, layout, inputs=inputs)
+
+    p_used = np.asarray(diag["P_psia_hyd"], dtype=float).reshape((N,))
+    p_logged_raw = np.asarray(diag["P_psia_hyd_raw"], dtype=float).reshape((N,))
+    alpha = float(np.asarray(diag["P_psia_hyd_relax_alpha"], dtype=float).reshape((-1,))[0])
+
+    # Hydraulic pressure blending preserves the current top anchor while
+    # low-passing tray-to-tray increments.
+    expected = np.array([230.0, 227.5, 225.0], dtype=float)
+    assert np.allclose(p_logged_raw, p_raw, atol=1e-12)
+    assert np.isclose(alpha, 0.25, atol=1e-12)
+    assert np.allclose(p_used, expected, atol=1e-12)
 
 
 def test_hydraulic_pressure_profile_respects_top_floor():
@@ -519,8 +681,9 @@ def test_total_condense_mass_split_responds_to_positive_trim(monkeypatch):
     assert mode == "total-condense"
     assert abs(float(q_req) + 3600.0) < 1e-12
     assert abs(float(q_used) + 1800.0) < 1e-12
-    assert abs(float(v_cond_in) - 0.5) < 1e-12
-    assert abs(float(v_to_top) - 0.5) < 1e-12
+    # Strict total condenser: no vapor slip to the top drum.
+    assert abs(float(v_cond_in) - 1.0) < 1e-12
+    assert abs(float(v_to_top) - 0.0) < 1e-12
     assert abs(float(v_cond_top) - 0.0) < 1e-12
 
 
@@ -560,7 +723,222 @@ def test_total_condense_mass_split_can_condense_top_vapor_with_extra_duty(monkey
     assert abs(float(q_used) + 5400.0) < 1e-12
     assert abs(float(v_cond_in) - 1.0) < 1e-12
     assert abs(float(v_to_top) - 0.0) < 1e-12
-    assert abs(float(v_cond_top) - 0.4) < 1e-12
+    assert abs(float(v_cond_top) - 0.0) < 1e-12
+
+
+def test_top_drum_pressure_gate_blocks_reverse_vapor_slip(monkeypatch):
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "V_lbmolph": np.array([0.0, 3600.0], dtype=float),  # 1 lbmol/s vapor from stage 2 to condenser
+            "L_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "streams": {},
+        }
+    )
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y0 = layout.pack_y0(col2)
+    sl = layout.slices()
+    y0[sl["top_V"]] = np.array([10.0, 0.0], dtype=float)  # high top-vapor holdup -> high drum pressure
+
+    def _fake_total_cond_duty(**_kwargs):
+        # Full condensation of 1 lbmol/s requires -3600 BTU/h.
+        return -3600.0, 100.0
+
+    monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _fake_total_cond_duty)
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=3600.0),
+        condenser_duty_mode="specified",
+        condenser_duty_btu_per_h=-1800.0,  # 50% condense capacity before pressure gate
+        thermo_provider=object(),
+        pressure_model="spec",
+        top_drum_vapor_volume_ft3=1.0,
+        enforce_top_drum_pressure_gate=True,
+        top_drum_pressure_gate_soft_psi=None,  # hard gate for deterministic behavior
+    )
+    _dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+
+    v_to_top_lbmolph = float(np.asarray(diag["V_to_top_drum_lbmolph"], dtype=float).reshape((-1,))[0])
+    v_cond_in_lbmolph = float(np.asarray(diag["V_condensed_in_lbmolph"], dtype=float).reshape((-1,))[0])
+    v_blocked_lbmolph = float(np.asarray(diag["V_to_top_drum_blocked_lbmolph"], dtype=float).reshape((-1,))[0])
+    dp_drive = float(np.asarray(diag["dP_stage2_to_top_drum_psia"], dtype=float).reshape((-1,))[0])
+    gate_scale = float(np.asarray(diag["V_to_top_drum_pressure_gate_scale"], dtype=float).reshape((-1,))[0])
+
+    assert np.isfinite(dp_drive)
+    assert dp_drive < 0.0
+    assert abs(gate_scale - 0.0) < 1e-12
+    assert abs(v_to_top_lbmolph - 0.0) < 1e-9
+    assert abs(v_cond_in_lbmolph - 3600.0) < 1e-6
+    assert abs(v_blocked_lbmolph - 1800.0) < 1e-6
+
+
+def test_hydraulic_top_pressure_ordering_prevents_stage1_below_drum(monkeypatch):
+    col = _make_tiny_column()
+    N = col.n_stages
+    area = np.ones(N, dtype=float)
+    geom = ColumnGeometry(
+        sections=[
+            ColumnGeometrySection(
+                start_stage_1based=1,
+                end_stage_1based=N,
+                diameter_ft=2.0,
+                tray_spacing_ft=1.0,
+                gas_void_frac=0.5,
+                weir_height_in=0.0,
+                weir_length_ft=1.0,
+                active_area_frac=1.0,
+            )
+        ],
+        diameter_ft_per_stage=np.full(N, 2.0, dtype=float),
+        tray_spacing_ft_per_stage=np.full(N, 1.0, dtype=float),
+        gas_void_frac_per_stage=np.full(N, 0.5, dtype=float),
+        area_ft2_per_stage=area,
+        vapor_volume_ft3_per_stage=np.full(N, 1.0, dtype=float),
+        weir_height_in_per_stage=np.zeros(N, dtype=float),
+        weir_length_ft_per_stage=np.full(N, 1.0, dtype=float),
+        active_area_frac_per_stage=np.full(N, 1.0, dtype=float),
+        active_area_ft2_per_stage=area,
+    )
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "geometry": geom,
+            "V_lbmolph": np.array([0.0, 3600.0], dtype=float),
+            "L_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "streams": {},
+        }
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y0 = layout.pack_y0(col2)
+    sl = layout.slices()
+    # Large top-vapor holdup to force high drum pressure.
+    y0[sl["top_V"]] = np.array([20.0, 0.0], dtype=float)
+
+    def _fake_pressure_profile(**_kwargs):
+        # Deliberately returns stage-1 below likely drum pressure.
+        return np.array([150.0, 152.0], dtype=float)
+
+    monkeypatch.setattr(rhs_module, "_pressure_profile_hydraulic_psia", _fake_pressure_profile)
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=3600.0),
+        pressure_model="hydraulic",
+        condenser_pressure_drop_psi=2.0,
+        top_drum_vapor_volume_ft3=1.0,
+        enforce_top_pressure_ordering=True,
+    )
+    _dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+
+    p_h = np.asarray(diag["P_psia_hyd"], dtype=float).reshape((2,))
+    p_drum = float(np.asarray(diag["P_top_drum_psia"], dtype=float).reshape((-1,))[0])
+    p_lift = float(np.asarray(diag["P_top_ordering_lift_psia"], dtype=float).reshape((-1,))[0])
+
+    assert p_lift > 0.0
+    assert p_h[0] >= p_drum - 1e-12
+    assert abs((p_h[1] - p_h[0]) - 2.0) < 1e-9
+
+
+def test_top_drum_pressure_uses_lagged_stage1_temperature():
+    col = _make_tiny_column()
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+    )
+    y0 = layout.pack_y0(col)
+    sl = layout.slices()
+
+    tray_T = y0[sl["tray_T_f"]].reshape((2,)).copy()
+    tray_T[0] = 300.0
+    y0[sl["tray_T_f"]] = tray_T
+    y0[sl["top_V"]] = np.array([10.0, 0.0], dtype=float)
+
+    inputs = ColumnInputs(
+        pressure_model="spec",
+        top_drum_vapor_volume_ft3=100.0,
+        top_drum_pressure_temperature_relaxation_sec=10.0,
+        vapor_holdup_relaxation_sec=10.0,
+        T_tray_prev_F=np.array([100.0, 120.0], dtype=float),
+    )
+    _dydt, diag = column_rhs(0.0, y0, col, layout, inputs=inputs)
+
+    t_raw = float(np.asarray(diag["T_top_drum_pressure_raw_F"], dtype=float).reshape((-1,))[0])
+    t_used = float(np.asarray(diag["T_top_drum_pressure_used_F"], dtype=float).reshape((-1,))[0])
+    alpha = float(np.asarray(diag["T_top_drum_pressure_relax_alpha"], dtype=float).reshape((-1,))[0])
+    p_top = float(np.asarray(diag["P_top_drum_psia"], dtype=float).reshape((-1,))[0])
+
+    assert abs(t_raw - 300.0) < 1e-12
+    assert abs(alpha - 0.1) < 1e-12
+    assert abs(t_used - 120.0) < 1e-12
+
+    expected_p = 10.0 * 10.7316 * (t_used + 459.67) / 100.0
+    assert abs(p_top - expected_p) < 1e-9
+
+
+def test_top_drum_pressure_temperature_lag_uses_filtered_memory_state():
+    col = _make_tiny_column()
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+    )
+    y0 = layout.pack_y0(col)
+    sl = layout.slices()
+    y0[sl["top_V"]] = np.array([10.0, 0.0], dtype=float)
+
+    y_step1 = y0.copy()
+    tray_T1 = y_step1[sl["tray_T_f"]].reshape((2,)).copy()
+    tray_T1[0] = 300.0
+    y_step1[sl["tray_T_f"]] = tray_T1
+    inputs1 = ColumnInputs(
+        pressure_model="spec",
+        top_drum_vapor_volume_ft3=100.0,
+        top_drum_pressure_temperature_relaxation_sec=10.0,
+        top_drum_pressure_T_prev_F=100.0,
+        T_tray_prev_F=np.array([100.0, 120.0], dtype=float),
+    )
+    _dydt1, diag1 = column_rhs(0.0, y_step1, col, layout, inputs=inputs1)
+    t_used_1 = float(np.asarray(diag1["T_top_drum_pressure_used_F"], dtype=float).reshape((-1,))[0])
+    assert abs(t_used_1 - 120.0) < 1e-12
+
+    y_step2 = y0.copy()
+    tray_T2 = y_step2[sl["tray_T_f"]].reshape((2,)).copy()
+    tray_T2[0] = 100.0
+    y_step2[sl["tray_T_f"]] = tray_T2
+    inputs2 = ColumnInputs(
+        pressure_model="spec",
+        top_drum_vapor_volume_ft3=100.0,
+        top_drum_pressure_temperature_relaxation_sec=10.0,
+        top_drum_pressure_T_prev_F=t_used_1,
+        T_tray_prev_F=np.array([300.0, 120.0], dtype=float),
+    )
+    _dydt2, diag2 = column_rhs(0.0, y_step2, col, layout, inputs=inputs2)
+    t_used_2 = float(np.asarray(diag2["T_top_drum_pressure_used_F"], dtype=float).reshape((-1,))[0])
+
+    assert abs(t_used_2 - 118.0) < 1e-12
+    assert t_used_2 < 150.0
 
 
 def test_temperature_uses_provider_cp():
@@ -813,9 +1191,9 @@ def test_vapor_flow_energy_reboiler_neighbor_guard_caps_stage_above_reboiler():
     _dydt, diag = column_rhs(0.0, y0_state, col, layout, inputs=inputs)
     v_out = np.asarray(diag["V_out_lbmolph"], dtype=float).reshape((N,))
 
-    # Reboiler-neighbor guard is +/-2% around boilup for stage N-1.
-    # boilup = 3600 lbmol/h => upper cap = 3672 lbmol/h.
-    assert np.isclose(v_out[2], 3672.0, rtol=1e-9, atol=1e-9)
+    # Reboiler-neighbor guard defaults to +/-20% around boilup for stage N-1.
+    # boilup = 3600 lbmol/h => upper cap = 4320 lbmol/h.
+    assert np.isclose(v_out[2], 4320.0, rtol=1e-9, atol=1e-9)
 
 
 def test_vapor_flow_energy_reboiler_neighbor_guard_is_configurable():
@@ -1411,6 +1789,27 @@ def test_include_energy_total_condenser_routes_duty_to_liquid_energy():
     assert "dEV_BTU_per_s" in diag
 
 
+def test_include_energy_reports_scalar_energy_residual_diagnostic():
+    col = _make_tiny_column()
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=True,
+    )
+    y0 = layout.pack_y0(col)
+    _dydt, diag = column_rhs(0.0, y0, col, layout, inputs=ColumnInputs())
+
+    assert "energy_balance_resid_BTUps_tray" in diag
+    assert "resid_energy_btups" in diag
+    resid_scalar = float(np.asarray(diag["resid_energy_btups"], dtype=float).reshape((-1,))[0])
+    assert np.isfinite(resid_scalar)
+    assert resid_scalar >= 0.0
+
+
 def test_include_energy_stays_finite_with_tiny_vapor_holdup_and_huge_ev():
     col = _make_tiny_column()
     col2 = ColumnSpec(
@@ -1487,6 +1886,64 @@ def test_include_energy_uses_specified_condenser_duty_override():
     assert "Q_cond_used_BTUph" in diag
     assert abs(float(np.asarray(diag["Q_cond_used_BTUph"], dtype=float).reshape((-1,))[0]) + 7200.0) < 1e-12
     assert "Q_cond_calc_BTUph" not in diag
+
+
+def test_include_energy_adds_feed_enthalpy_only_on_feed_stage():
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "V_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "L_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "streams": {
+                "Feed": StreamSpecNormalized(
+                    name="Feed",
+                    stage_1based=2,  # stage index 1
+                    temperature_f=120.0,
+                    vapor_fraction=0.0,
+                    total_molar_flow_lbmolph=3600.0,  # 1 lbmol/s
+                    component_molar_flows_lbmolph={"A": 3600.0, "B": 0.0},
+                )
+            },
+        }
+    )
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=True,
+    )
+    y0 = layout.pack_y0(col2)
+
+    class FlatThermo:
+        def h_liq_btu_per_lbmol(self, T_f, P_psia, x):
+            return 10.0
+
+        def h_vap_btu_per_lbmol(self, T_f, P_psia, y):
+            return 20.0
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo=FlatThermo(),
+    )
+    dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+
+    sl = layout.slices()
+    dEL = dydt[sl["tray_EL_BTU"]].reshape((2,))
+    dEV = dydt[sl["tray_EV_BTU"]].reshape((2,))
+
+    # Feed liquid enthalpy source is 1 lbmol/s * 10 BTU/lbmol = 10 BTU/s at stage 2 only.
+    assert abs(float(dEL[0])) < 1e-12
+    assert abs(float(dEL[1]) - 10.0) < 1e-12
+    assert np.max(np.abs(dEV)) < 1e-12
+
+    assert "Q_feed_BTUps_tray" in diag
+    q_feed = np.asarray(diag["Q_feed_BTUps_tray"], dtype=float).reshape((2,))
+    assert np.allclose(q_feed, np.array([0.0, 10.0], dtype=float), atol=1e-12)
 
 
 def test_temperature_stage1_uses_specified_condenser_duty_without_bubble_closure():

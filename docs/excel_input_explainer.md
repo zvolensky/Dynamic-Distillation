@@ -55,8 +55,8 @@ If `Streams` is missing or malformed, the loader continues with `streams={}`.
 | `Vapor Holdup Relaxation (sec)` | float | Dynamic vapor holdup relaxation |
 | `Vapor Flow Relaxation (sec)` | float | Dynamic vapor flow relaxation |
 | `Condenser Pressure Drop (psi)` | float | Fixed pressure drop from stage 2 to stage 1 in hydraulic pressure mode |
-| `Reboiler Neighbor Vapor Hi Ratio` | float | Upper ratio bound for stage `N-1` vapor flow vs boilup in `vapor_flow_model="energy"` (default `1.02`) |
-| `Reboiler Neighbor Vapor Lo Ratio` | float | Lower ratio bound for stage `N-1` vapor flow vs boilup in `vapor_flow_model="energy"` (default `0.98`) |
+| `Reboiler Neighbor Vapor Hi Ratio` | float | Upper ratio bound for stage `N-1` vapor flow vs boilup in `vapor_flow_model="energy"` (runner fallback default `1.20`) |
+| `Reboiler Neighbor Vapor Lo Ratio` | float | Lower ratio bound for stage `N-1` vapor flow vs boilup in `vapor_flow_model="energy"` (runner fallback default `0.80`) |
 | `Thermo Refresh dT (F)` | float | Per-stage thermo refresh threshold |
 | `Thermo Refresh dP (psia)` | float | Per-stage thermo refresh pressure threshold |
 | `Thermo Refresh dX` | float | Per-stage thermo refresh composition threshold (`max(abs(dz_k))`) |
@@ -64,7 +64,7 @@ If `Streams` is missing or malformed, the loader continues with `streams={}`.
 | `Thermo Refresh Delta (F)` | float | Alias for `Thermo Refresh dT (F)` |
 | `Thermo Refresh ΔT (F)` | float | Alias for `Thermo Refresh dT (F)` |
 
-### Level-control spec keys (runner support vs loader support)
+### Control-related spec keys (runner support vs loader support)
 
 The runner supports these keys in `col.specs_raw`:
 - `Enable Level Control` / `Level Control Enabled`
@@ -72,11 +72,19 @@ The runner supports these keys in `col.specs_raw`:
 - `Bottom Level SP (lbmol)` / `Bottom Sump Level SP (lbmol)`
 - `Top Level Kc`, `Top Level Ti (sec)`
 - `Bottom Level Kc`, `Bottom Level Ti (sec)`
+- `Enable Pressure Control` / `Pressure Control Enabled`
+- `Top Pressure SP (psia)` / `Condenser Pressure SP (psia)`
+- `Top Pressure Kc`, `Top Pressure Ti (sec)`
+- `Pressure Control MV` / `Pressure Controller MV` / `Pressure MV`
+- `Enable Top PSV` / `Top PSV Enabled` / `Top Drum PSV Enabled`
+- `Top PSV SP (psia)` / `Top PSV Setpoint (psia)`
+- `Top PSV Gain (lbmol/s/psi)` / `Top PSV Gain (lbmolps/psi)`
+- `Top PSV Max Vent (lbmol/s)` / `Top PSV Max (lbmol/s)`
 
 Current limitation:
 - `excel_case_loader_v1.py` currently persists only the explicitly listed spec keys in this document.
-- The level-control keys above are therefore not reliably available from Excel yet.
-- For now, use CLI flags (`--enable-level-control`, `--top-level-sp`, `--bottom-level-sp`, etc.) to configure these loops.
+- Many control keys above (level/pressure/PSV) are therefore not reliably available from Excel yet.
+- For now, use CLI flags (`--enable-level-control`, `--enable-pressure-control`, `--enable-top-psv`, etc.) to configure these loops.
 
 ### Geometry table (optional block in Specifications)
 
@@ -89,6 +97,7 @@ The loader looks for a table header containing both `Start Stage` and `End Stage
 - `Weir Height` column (optional)
 - `Weir Length` column (optional)
 - `Active Area` column (optional)
+- `System Factor` / `Hydraulic Factor` column (optional; used as tray hydraulic C multiplier)
 
 Notes:
 - `Gas Void Fraction` and `Active Area` accept either fraction (`0..1`) or percent (`0..100`).
@@ -126,11 +135,13 @@ Component names are canonicalized to DWSIM IDs during load.
 
 ### Important current behavior
 
-At present, the loader only persists the keys listed above. Free-form spec rows are not automatically retained.
-That means fields like `Pressure Model` or `Vapor Flow Model` are only available if code is updated to read/store them in the loader.
-Current runner defaults when these are not specified:
-- `pressure_model` defaults to `hydraulic` when geometry is present, otherwise `spec`.
-- `vapor_flow_model` defaults to `energy` when `pressure_model=hydraulic`, otherwise `profile`.
+At present, the loader persists explicitly supported keys (including `Pressure Model` and `Vapor Flow Model`), but most arbitrary free-form spec rows are not retained automatically.
+Runtime precedence for pressure/vapor model selection is:
+- `--runtime-mode parity` (CLI default): forces `pressure_model=spec`, `vapor_flow_model=profile`, and liquid-hydraulic override off.
+- `--runtime-mode hydraulic`: forces `pressure_model=hydraulic`, `vapor_flow_model=energy`, and liquid-hydraulic override on.
+- `--runtime-mode legacy`: uses Excel/CLI behavior; `Pressure Model` and `Vapor Flow Model` are honored when valid.
+- In `legacy`, if no valid model strings are provided, defaults are: `pressure_model=hydraulic` when geometry exists (else `spec`), then `vapor_flow_model=energy` when pressure is hydraulic (else `profile`).
+- Startup hydraulic sequencing flags apply only in `legacy`; they are ignored in `parity` and `hydraulic`.
 
 ## Initial Conditions Sheet
 

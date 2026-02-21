@@ -1,53 +1,27 @@
 """
 dwsim_compounds_v2.py
 
-Dynamic Distillation - DWSIM Compound Database Reference
+Dynamic Distillation - DWSIM Compound Reference
 
 PURPOSE
 -------
-Provide the complete list of compounds available in the DWSIM thermodynamic
-database. Used for compound name validation and canonicalization.
+Provide authoritative DWSIM compound names used for component validation
+and canonicalization paths.
 
 INPUTS
 ------
-(None - this is a static data reference module)
+- None (static reference module)
 
 OUTPUTS
 -------
-DWSIM_COMPOUNDS : List[str]
-    Ordered list of all available compound names in DWSIM database
-DWSIM_COMPOUND_SET : Set[str]
-    Set version for fast O(1) membership checks (case-sensitive)
+- DWSIM_COMPOUNDS ordered list
+- DWSIM_COMPOUND_SET membership set
+- simple helper lookups for validation/diagnostics
 
-DEPENDENCIES
-------------
-(None - standard library only)
-
-NOTES / KEY FEATURES
---------------------
-- Ordered list as provided in original DWSIM database source
-- Use DWSIM_COMPOUND_SET for membership checks (much faster than list search)
-- Case-sensitive matching; normalize input before calling
-- Source: List_of_Available_Compounds_in_DWSIM_Database_complete.txt
-
-PERFORMANCE NOTES
------------------
-- DWSIM_COMPOUND_SET: O(1) membership check vs. O(N) for list scan
-- Load time: ~1 ms (one-time module import)
-
-EXAMPLE USAGE
--------------
-    from dynamic_distillation.dwsim_compounds_v2 import DWSIM_COMPOUNDS, DWSIM_COMPOUND_SET
-    
-    # Enumerate all compounds
-    print(f"Total compounds available: {len(DWSIM_COMPOUNDS)}")
-    
-    # Fast membership check
-    if "Propane" in DWSIM_COMPOUND_SET:
-        print("Propane is available")
-    
-    # Case-sensitive; "propane" (lowercase) != "Propane"
-    assert "propane" not in DWSIM_COMPOUND_SET
+ASSUMPTIONS & CONSTRAINTS
+-------------------------
+- Names are case/format sensitive at the source list level.
+- Alias handling is implemented in compound_registry_v1.
 """
 
 from __future__ import annotations

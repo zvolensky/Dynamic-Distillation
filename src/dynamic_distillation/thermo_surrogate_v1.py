@@ -1,125 +1,39 @@
 """
 thermo_surrogate_v1.py
 
-Dynamic Distillation - Tabular Thermo Surrogate Provider
+Dynamic Distillation - Tabular Thermo Surrogate
 
 PURPOSE
 -------
-Provide fast thermo lookups via precomputed Peng-Robinson flash tables over
-(T, P) at multiple reference compositions ("anchors"). Interpolates between
-anchors during simulation for speed without sacrificing accuracy.
+Build and serve anchor-based tabular thermo surfaces used by `table` runner
+mode for faster flash/property evaluation.
 
 INPUTS
 ------
-build_surrogate_tables():
-    excel_path : str - Case specification
-    anchor_specs : List[Dict] - Composition specs for anchor creation
-    T_range, P_range : Tuple[float, float] - Override temperature/pressure bounds
+Builder paths:
+- case Excel path
+- grid controls (T/P ranges and density)
+- anchor controls (stage anchors, pure anchors, blend settings)
 
-ThermoSurrogateProviderV1.flash_TP_full():
-    T_F, P_psia, z : Current stage conditions
-    (internally blends nearby anchors and interpolates)
+Provider paths:
+- table JSON file
+- stage query conditions (T, P, z)
 
 OUTPUTS
 -------
-result : FlashResult
-    x, y, K, HL, HV, Z (all interpolated from surrogate tables)
+- JSON surrogate tables
+- TabularThermoProviderV1 flash/property results (FlashResult-compatible)
 
-Storage format (JSON):
-    {
-        'components': [...],
-        'anchors': [
-            {
-                'composition': [...],
-                'K_table': {...},    # (T, P) -> K values
-                'HL_table': {...},   # (T, P) -> HL
-                ...
-            }
-        ]
-    }
-
-DEPENDENCIES
-------------
-from dynamic_distillation.column_spec_builder_v1 : build_column_spec_from_case
-from dynamic_distillation.excel_case_loader_v1 : load_case_from_excel
-from dynamic_distillation.thermo_provider_v1 : FlashResult, ThermoProviderV1
+KEY DEPENDENCIES
+----------------
+- excel_case_loader_v1 / column_spec_builder_v1
+- thermo_provider_v1 (for table generation flashes)
+- numpy/json
 
 ASSUMPTIONS & CONSTRAINTS
---------------------------
-- Anchor compositions cover the relevant process range
-- Interpolation within anchor (T, P) bounds assumed valid
-- Outside bounds: extrapolates (risky; may be inaccurate)
-- Blending weight function: inverse-distance in composition space
-- Multiple anchors required for reliable interpolation (recommend N_anchors >= 3)
-
-SIDE EFFECTS / STATE MUTATIONS
--------------------------------
-- build_surrogate_tables() writes JSON file
-- Does NOT modify Excel case or column spec
-- Cache is immutable after loading
-
-PERFORMANCE NOTES
------------------
-- build_surrogate_tables(): 1-10 seconds (precomputes PR flashes at all anchors + (T,P) grid)
-  * Cost: O(N_anchors × N_grid_T × N_grid_P × flash_cost)
-  * Typical: 10 anchors × 10 T × 10 P × 20 ms = 20 seconds
-- Runtime flash (interpolation): 0.1-1 ms per call (10-100× faster than DWSIM)
-- Memory: O(N_anchors × N_T × N_P) table storage
-
-ERROR HANDLING
---------------
-- Raises ValueError if:
-    * Anchor composition out of bounds (T/P)
-    * Interpolation point outside all anchor bounds
-- Logs warnings if:
-    * Too few anchors (recommend >= 2 for blending)
-    * Large extrapolation requested
-
-VERSION / COMPATIBILITY
------------------------
-v1.0 (current):
-    - Bilinear interpolation within each anchor
-    - Inverse-distance composition blending
-    - JSON storage format stable
-
-NOTES / KEY FEATURES
---------------------
-Created: (implied from structure)
-
-- Precomputed Peng-Robinson flash surfaces at anchor compositions
-- Bilinear interpolation in (T, P) within each anchor
-- Weighted blending in composition space for off-anchor conditions
-- Stores K(T, P), HL(T, P), HV(T, P), Z(T, P), rhoL(T, P) as tables
-- Significant speedup vs. real-time flash calculations
-- Suitable for real-time or high-throughput simulations
-
-EXAMPLE USAGE
--------------
-    from dynamic_distillation.thermo_surrogate_v1 import (
-        build_surrogate_tables, ThermoSurrogateProviderV1
-    )
-    
-    # Build tables (one-time)
-    cache_file = build_surrogate_tables(
-        excel_path="case.xlsx",
-        anchor_specs=[
-            {"composition": [0.5, 0.3, 0.2]},
-            {"composition": [0.3, 0.5, 0.2]},
-            {"composition": [0.2, 0.3, 0.5]},
-        ],
-        out_path="surrogate_case.json",
-        T_range=(80.0, 200.0),
-        P_range=(50.0, 200.0)
-    )
-    
-    # Runtime use
-    provider = ThermoSurrogateProviderV1.load(cache_file)
-    
-    T_F, P_psia = 120.0, 150.0
-    z = [0.4, 0.4, 0.2]  # Off-anchor composition
-    
-    result = provider.flash_TP_full(T_F, P_psia, z)
-    print(f"K-values (interpolated): {result.K}")  # ~0.1 ms compute time
+-------------------------
+- Accuracy depends on anchor coverage and T/P grid range.
+- Runtime interpolation clips to table bounds.
 """
 
 from __future__ import annotations

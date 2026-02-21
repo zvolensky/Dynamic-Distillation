@@ -1,0 +1,35 @@
+Stage Energy Residual Breakdown Report
+excel: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\distillation_column_template.xlsx
+thermo_mode: table-pool
+scenario: default
+pressure_model: hydraulic
+vapor_flow_model: energy
+flash_feed_at_stage_conditions: True
+include_temperature: True
+include_energy: True
+
+feed_stage_1based: 12
+feed_total_lbmolph: 7142.974000
+Q_cond_used_BTUph: -53959549.95699539
+Q_reb_used_BTUph: 79124000.0
+
+max_abs_dE_model_BTUps: 9949.562978
+rms_dE_model_BTUps: 2225.255068
+worst_stage_1based: 12
+max_abs_feed_enthalpy_est_BTUps: 9524.190788
+worst_feed_stage_1based: 12
+max_abs_closure_error_BTUps: 9656.93
+
+Top stages by |dE_model|:
+  stage 12: dE=-9949.563 BTU/s, (L=-491.896, V= 199.262, duty= 0.000, feed_est=-9524.191)
+  stage 16: dE=-150.036 BTU/s, (L=-177.309, V= 27.273, duty= 0.000, feed_est= 0.000)
+  stage 18: dE=-76.689 BTU/s, (L=-99.311, V= 22.622, duty= 0.000, feed_est= 0.000)
+  stage  2: dE= 74.749 BTU/s, (L= 65.714, V= 9.034, duty= 0.000, feed_est= 0.000)
+  stage 19: dE=-69.470 BTU/s, (L=-89.666, V= 20.196, duty= 0.000, feed_est= 0.000)
+  stage 15: dE= 34.982 BTU/s, (L= 7.712, V= 27.270, duty= 0.000, feed_est= 0.000)
+  stage 17: dE= 22.106 BTU/s, (L=-2.863, V= 24.968, duty= 0.000, feed_est= 0.000)
+  stage 14: dE=-21.183 BTU/s, (L=-47.271, V= 26.088, duty= 0.000, feed_est= 0.000)
+  stage 13: dE=-18.215 BTU/s, (L=-41.418, V= 23.203, duty= 0.000, feed_est= 0.000)
+  stage  6: dE=-5.459 BTU/s, (L=-14.979, V= 9.520, duty= 0.000, feed_est= 0.000)
+
+csv: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs\stage_energy_residual_breakdown_default_20260219_090332.csv

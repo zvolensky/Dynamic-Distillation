@@ -1,17 +1,25 @@
 """
-tests/test_state_vector_layout_v1.py
+test_state_vector_layout_v1.py
 
-Updated: 2026-01-12  (America/New_York)
+Dynamic Distillation - State Vector Layout Tests
 
-Rationale
----------
-If a stage has essentially zero vapor holdup (e.g., condenser stage 0 in the template),
-the vapor composition y is physically undefined. The unpack() convention in
-StateVectorLayout is to return a row of zeros for such stages.
+PURPOSE
+-------
+Verify pack/unpack invariants and edge-case conventions in
+`state_vector_layout_v1`, especially around near-zero vapor-holdup stages.
 
-Therefore, we only require y_tray to match ColumnSpec.y0 on stages where MV_tot_tray
-is meaningfully > 0.
+SCOPE
+-----
+- roundtrip consistency against template-derived ColumnSpec
+- behavior expectations for undefined vapor composition rows
+
+KEY DEPENDENCIES
+----------------
+- state_vector_layout_v1
+- excel_case_loader_v1 / column_spec_builder_v1
+- numpy
 """
+
 
 from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
 from dynamic_distillation.column_spec_builder_v1 import (

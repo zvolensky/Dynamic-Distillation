@@ -1,104 +1,39 @@
 """
 thermo_cache_v1.py
 
-Dynamic Distillation - Thermodynamic Cache Management
+Dynamic Distillation - Thermo Cache Build/Load Utilities
 
 PURPOSE
 -------
-Precompute and persist per-stage thermo properties (K, HL, HV, Z) from an
-Excel case. Enables fast startup by avoiding flash calculations on first call.
-Can be loaded and passed to the runner for use during simulation.
+Create and load JSON thermo snapshots used to warm-start runner thermo state.
+Cache stores per-stage thermo quantities (K, HL, HV, Z, tray temperature) for
+faster startup and reduced first-step flash overhead.
 
 INPUTS
 ------
-build_thermo_cache():
-    excel_path : str - Path to Excel case file
-    thermo_mode : str - 'dwsim', 'surrogate', etc.
-    out_path : Optional[str] - Override output JSON path
+build_thermo_cache(...):
+- excel_path
+- thermo_mode (stub/dwsim/table/table-pool)
+- optional thermo table path and output path
 
-load_thermo_cache():
-    cache_path : str - Path to cache JSON file
+load_thermo_cache(cache_path):
+- JSON cache file path
 
 OUTPUTS
 -------
-Cache JSON file (or in-memory dict) with structure:
-    {
-        'components': [...],
-        'n_stages': N,
-        'thermo_data': {
-            'stage_0': {'K': [...], 'HL': ..., 'HV': ..., 'Z': ...},
-            ...
-        }
-    }
+- In-memory cache dict with stage/component dimensions and thermo arrays
+- Optional persisted cache JSON on disk
 
-DEPENDENCIES
-------------
-from dynamic_distillation.column_spec_builder_v1 : build_column_spec_from_case
-from dynamic_distillation.dynamic_run_scaffold_v1 : RunnerConfig, build_inputs_for_runner
-from dynamic_distillation.excel_case_loader_v1 : load_case_from_excel
-from dynamic_distillation.state_vector_layout_v1 : StateVectorLayout
-from dynamic_distillation.column_rhs_v1 : column_rhs
+KEY DEPENDENCIES
+----------------
+- excel_case_loader_v1 / column_spec_builder_v1
+- dynamic_run_scaffold_v1.build_inputs_for_runner
+- column_rhs_v1 (for initial thermo extraction)
 
 ASSUMPTIONS & CONSTRAINTS
---------------------------
-- Excel case is valid and loadable
-- Initial state (temperature, composition) suitable for cache precomputation
-- Cache JSON file is readable and parseable (if loading from existing file)
-- Column specification stable (not changed between cache creation and use)
-
-SIDE EFFECTS / STATE MUTATIONS
--------------------------------
-- build_thermo_cache() writes thermo_cache_*.json file
-- Does NOT modify Excel case or column spec
-- Cache file is created/overwritten if output path specified
-
-PERFORMANCE NOTES
------------------
-- build_thermo_cache(): 100 ms – 10 seconds (depends on N_stages, thermo_mode)
-  * DWSIM flash per stage: 10-50 ms
-  * Total for N=20 stages: 200-1000 ms typical
-- load_thermo_cache(): 10-50 ms (JSON parsing + data structure creation)
-- Runtime savings: entire column avoids first-step thermo latency
-
-ERROR HANDLING
---------------
-- Raises IOError if:
-    * Excel case file not found
-    * Cache output path not writable
-    * load_thermo_cache() file not found or corrupted
-- Logs warnings if thermo computation fails for any stage (partial cache created)
-
-VERSION / COMPATIBILITY
------------------------
-v1.0 (current):
-    - Cache JSON format stable
-    - Backward compatible with legacy thermo provider naming
-
-NOTES / KEY FEATURES
---------------------
-Created: (implied from structure)
-
-- Precomputes thermo at initial conditions from Excel
-- Saves as JSON for fast reload
-- Integrates with dynamic_run_scaffold for runtime use
-- Avoids first-step thermo latency
-
-EXAMPLE USAGE
--------------
-    from dynamic_distillation.thermo_cache_v1 import build_thermo_cache, load_thermo_cache
-    
-    # Build cache
-    cache_file = build_thermo_cache(
-        excel_path="case.xlsx",
-        thermo_mode="dwsim",
-        out_path="thermo_cache_my_case.json"
-    )
-    print(f"Cache written to: {cache_file}")
-    
-    # Load cache for later use
-    cache = load_thermo_cache("thermo_cache_my_case.json")
-    print(f"Cached components: {cache['components']}")
-    print(f"Stage 0 K-values: {cache['thermo_data']['stage_0']['K']}")
+-------------------------
+- Cache dimensions must match active column spec before use.
+- Cache is a startup optimization; runtime can proceed without it.
 """
 
 from __future__ import annotations

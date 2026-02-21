@@ -1,13 +1,25 @@
 # tests/test_thermo_provider_v1.py
 """
-Header:
-  Created: 2026-01-11 15:xx (America/New_York)
-  Updated: 2026-01-11 (America/New_York)
-  Purpose: Unit tests for ThermoProviderV1 without requiring DWSIM installed.
+test_thermo_provider_v1.py
 
-Strategy:
-  - monkeypatch dynamic_distillation.thermo_provider_v1.backend with a fake backend
+Dynamic Distillation - Thermo Provider Tests
+
+PURPOSE
+-------
+Validate `ThermoProviderV1` API behavior using backend monkeypatching so tests
+remain independent of local DWSIM availability.
+
+SCOPE
+-----
+- component setup calls, flash return handling, and derived-property helpers
+- deterministic behavior under fake backend responses
+
+KEY DEPENDENCIES
+----------------
+- thermo_provider_v1
+- pytest monkeypatch + numpy fixtures
 """
+
 
 from __future__ import annotations
 

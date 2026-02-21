@@ -1,38 +1,37 @@
 #!/usr/bin/env python3
 """
 case_dump.py
-Export a dynamic distillation "case dump" from the Excel template into a simple key=value text file.
 
-Updated: 2026-01-20  (America/New_York)
+Dynamic Distillation - Excel Case Dump Export
 
-Writes a FULL dump (required by Scilab):
-  - N, NC
-  - COMPONENTS_EXCEL=...
-  - P_PSIA=... (N values)
-  - T0_F=...   (N values)
-  - ML0_LBMOL=... (N values)
-  - X0ROW=... repeated N times (each has NC values)
-  - ZROW=...  repeated N times (same as X0ROW)
-  - FEED_STAGE=...
-  - F_LBMOLPH=...
-  - D_LBMOLPH=...
-  - B_LBMOLPH=...
-  - ZF=... (NC values)
+PURPOSE
+-------
+Export workbook case data into a plain key/value dump used by Scilab scripts.
+Includes tray profiles, composition rows, stream totals, geometry vectors,
+and molecular-weight vectors derived from component labels.
 
-Also writes tray geometry vectors (N values):
-  - TRAY_DIAM_FT
-  - TRAY_SPACING_FT
-  - GAS_VOID_FRAC
-  - WEIR_HEIGHT_IN
-  - WEIR_LENGTH_FT
-  - ACTIVE_AREA_FRACTION
+INPUTS
+------
+CLI:
+- excel_path: source workbook
+- out_path: target text dump file
 
-And MW info:
-  - MW_COMP=... (NC values) (best-effort lookup from component names)
-  - MW_LIQ=...  (N values) computed from X0ROW and MW_COMP
+OUTPUTS
+-------
+Text dump containing stage/component dimensions and model-ready vectors:
+- pressure/temperature/holdup profiles
+- x/z composition rows
+- feed/distillate/bottoms boundary values
+- geometry and MW vectors
 
-Usage:
-  python case_dump.py <excel_path> <out_path>
+KEY DEPENDENCIES
+----------------
+- openpyxl
+
+ASSUMPTIONS & CONSTRAINTS
+-------------------------
+- Expects workbook structure matching project template conventions.
+- Output format is consumed by existing Scilab utilities.
 """
 
 import sys

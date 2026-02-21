@@ -1,5 +1,23 @@
-# test_excel_case_loader_v1.py
-# Last updated: 2026-01-11 15:xx ET
+"""
+test_excel_case_loader_v1.py
+
+Dynamic Distillation - Excel Loader Tests
+
+PURPOSE
+-------
+Verify that `excel_case_loader_v1` reads template inputs into expected case
+structures and preserves recognized spec keys used downstream.
+
+SCOPE
+-----
+- component canonicalization and base shape checks
+- presence/parse behavior for optional thermo/geometry/drum keys
+
+KEY DEPENDENCIES
+----------------
+- excel_case_loader_v1
+"""
+
 
 from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
 

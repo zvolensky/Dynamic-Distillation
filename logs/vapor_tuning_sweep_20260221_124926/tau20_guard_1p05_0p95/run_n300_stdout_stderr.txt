@@ -1,0 +1,35 @@
+[Milestone] start  wall=    0.00 s  clock=2026-02-21T13:00:17
+[Milestone] loaded case from Excel  wall=    0.31 s  clock=2026-02-21T13:00:17
+[Milestone] built column spec  wall=    0.31 s  clock=2026-02-21T13:00:17
+[Validation] PASS  errors=0  warnings=0
+[Milestone] validated Excel input  wall=    0.31 s  clock=2026-02-21T13:00:17
+[Milestone] built state vector layout  wall=    0.31 s  clock=2026-02-21T13:00:17
+[Milestone] built inputs and thermo provider  wall=    0.32 s  clock=2026-02-21T13:00:17
+[Init] Runtime mode active: hydraulic
+[Milestone] packed initial state  wall=    0.32 s  clock=2026-02-21T13:00:17
+[Init] Thermo startup conditioning  eq_phase: +3.11828->+1.1675 lbmol/s  max_dx=0.0414  max_dy=2.22e-16  iters=2  success=True
+[Init] Top-drum startup steadying  dL: -0.119572->-0.119572 lbmol/s  dV: +0.117616->+0.117616 lbmol/s  iters=1  success=False
+[Milestone] initialized vapor holdup from spec pressure  wall=    3.35 s  clock=2026-02-21T13:00:20
+[Milestone] resolved logging stream placement  wall=    3.35 s  clock=2026-02-21T13:00:20
+[Milestone] ensured logs directory: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs  wall=    3.35 s  clock=2026-02-21T13:00:20
+[Milestone] opened log files  wall=    3.35 s  clock=2026-02-21T13:00:20
+
+[Progress] step=     0  sim_t=      0.00 s  wall=      0.48 s  sim/wall=   0.000
+[Progress] step=    20  sim_t=      4.00 s  wall=      9.67 s  sim/wall=   0.414
+[Progress] step=    40  sim_t=      8.00 s  wall=     17.79 s  sim/wall=   0.450
+[Progress] step=    60  sim_t=     12.00 s  wall=     24.84 s  sim/wall=   0.483
+[Progress] step=    80  sim_t=     16.00 s  wall=     32.10 s  sim/wall=   0.498
+[Progress] step=   100  sim_t=     20.00 s  wall=     38.73 s  sim/wall=   0.516
+[Progress] step=   120  sim_t=     24.00 s  wall=     43.76 s  sim/wall=   0.548
+[Progress] step=   140  sim_t=     28.00 s  wall=     50.32 s  sim/wall=   0.556
+[Progress] step=   160  sim_t=     32.00 s  wall=     56.66 s  sim/wall=   0.565
+[Progress] step=   180  sim_t=     36.00 s  wall=     62.93 s  sim/wall=   0.572
+[Progress] step=   200  sim_t=     40.00 s  wall=     68.96 s  sim/wall=   0.580
+[Progress] step=   220  sim_t=     44.00 s  wall=     75.09 s  sim/wall=   0.586
+[Progress] step=   240  sim_t=     48.00 s  wall=     81.14 s  sim/wall=   0.592
+[Progress] step=   260  sim_t=     52.00 s  wall=     87.20 s  sim/wall=   0.596
+[Progress] step=   280  sim_t=     56.00 s  wall=     93.52 s  sim/wall=   0.599
+[Progress] step=   300  sim_t=     60.00 s  wall=     99.63 s  sim/wall=   0.602
+Wrote: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs\column_profile_20260221_130020.csv
+Wrote: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs\column_summary_20260221_130020.csv
+

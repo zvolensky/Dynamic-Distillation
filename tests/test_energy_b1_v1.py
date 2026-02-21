@@ -1,10 +1,25 @@
 # tests/test_energy_b1_v1.py
 """
-Header:
-  Created: 2026-01-11 15:xx (America/New_York)
-Purpose:
-  Smoke tests for Module 6 Option B1 energy holdup states.
+test_energy_b1_v1.py
+
+Dynamic Distillation - Energy Option B1 Tests
+
+PURPOSE
+-------
+Smoke-test state-layout behavior for energy-holdup state blocks used by the
+Option B1 energy model paths.
+
+SCOPE
+-----
+- pack/unpack shape and consistency checks with energy enabled
+- minimal-column fixture compatibility
+
+KEY DEPENDENCIES
+----------------
+- state_vector_layout_v1
+- numpy
 """
+
 
 from __future__ import annotations
 

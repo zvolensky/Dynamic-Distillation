@@ -1,3 +1,25 @@
+"""
+test_module8a_zfactor_pressure.py
+
+Dynamic Distillation - Module 8A Z-Factor Pressure Tests
+
+PURPOSE
+-------
+Check pressure-diagnostic behavior when thermo flashes provide explicit
+real-gas Z-factor values.
+
+SCOPE
+-----
+- fake thermo-provider integration with Z return path
+- pressure diagnostic consistency under controlled fixtures
+
+KEY DEPENDENCIES
+----------------
+- column_rhs_v1, ColumnSpec fixtures, StateVectorLayout
+- numpy
+"""
+
+
 import numpy as np
 
 from dynamic_distillation.column_spec_builder_v1 import ColumnSpec, HeatDuties, SimulationSettings

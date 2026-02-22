@@ -604,6 +604,50 @@ def test_startup_hydraulic_sequence_disabled_uses_base_modes():
     assert ph == "base"
 
 
+def test_startup_hydraulic_sequence_supports_conductance_vapor_mode():
+    base = ColumnInputs(
+        pressure_model="hydraulic",
+        vapor_flow_model="conductance",
+        enable_liquid_hydraulic_override=True,
+        liquid_hydraulic_override_alpha=1.0,
+    )
+    p0, v0, a0, ph0 = _resolve_startup_hydraulic_sequence_step(
+        t_s=0.0,
+        dt_sec=1.0,
+        base_inputs=base,
+        enable_sequence=True,
+        energy_on_sec=10.0,
+        liquid_on_sec=20.0,
+        liquid_ramp_sec=40.0,
+        liquid_resid_gate_lbmolph=250.0,
+        liquid_backoff_sec=None,
+        liquid_alpha_state=1.0,
+        last_mass_resid_max_lbmolph=None,
+    )
+    assert p0 == "hydraulic"
+    assert v0 == "profile"
+    assert a0 == pytest.approx(0.0)
+    assert ph0 == "pressure_only"
+
+    p1, v1, a1, ph1 = _resolve_startup_hydraulic_sequence_step(
+        t_s=12.0,
+        dt_sec=1.0,
+        base_inputs=base,
+        enable_sequence=True,
+        energy_on_sec=10.0,
+        liquid_on_sec=20.0,
+        liquid_ramp_sec=40.0,
+        liquid_resid_gate_lbmolph=250.0,
+        liquid_backoff_sec=None,
+        liquid_alpha_state=a0,
+        last_mass_resid_max_lbmolph=25.0,
+    )
+    assert p1 == "hydraulic"
+    assert v1 == "conductance"
+    assert a1 == pytest.approx(0.0)
+    assert ph1 == "pressure_energy"
+
+
 def test_top_drum_dynamic_steady_initializer_with_mocked_rhs(monkeypatch):
     class TinyCol:
         n_stages = 2
@@ -987,6 +1031,59 @@ def test_build_inputs_hydraulic_energy_stability_defaults_allow_cfg_overrides():
     assert abs(float(inputs.thermo_refresh_dx) - 1.0e-3) < 1e-12
     assert bool(inputs.enforce_top_pressure_ordering) is False
     assert abs(float(inputs.top_pressure_ordering_margin_psi) - 0.15) < 1e-12
+
+
+def test_build_inputs_accepts_conductance_vapor_flow_model():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Pressure Model"] = "hydraulic"
+    specs["Vapor Flow Model"] = "conductance"
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+
+    assert str(inputs.pressure_model).lower() == "hydraulic"
+    assert str(inputs.vapor_flow_model).lower() == "conductance"
+
+
+def test_build_inputs_conductance_nominal_hi_ratio_spec_and_cfg_override():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Pressure Model"] = "hydraulic"
+    specs["Vapor Flow Model"] = "conductance"
+    specs["Conductance Vapor Nominal Hi Ratio"] = 1.3
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg_from_spec = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
+    inputs_spec, _ = build_inputs_for_runner(case, col, cfg_from_spec)
+    assert abs(float(inputs_spec.conductance_vflow_nominal_hi_ratio) - 1.3) < 1.0e-12
+
+    cfg_override = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        conductance_vflow_nominal_hi_ratio=1.15,
+    )
+    inputs_cfg, _ = build_inputs_for_runner(case, col, cfg_override)
+    assert abs(float(inputs_cfg.conductance_vflow_nominal_hi_ratio) - 1.15) < 1.0e-12
 
 
 def test_bottoms_composition_control_logs_command(tmp_path: Path):

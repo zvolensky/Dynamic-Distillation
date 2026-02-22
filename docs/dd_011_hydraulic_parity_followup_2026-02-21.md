@@ -318,6 +318,122 @@ Interpretation:
 2. This improvement does not rely on unrealistic vapor-flow relaxation constants.
 3. Remaining tray-residual issues persist and should be addressed separately in vapor/energy closure.
 
+## Conductance-Mode Follow-Up (Pressure-Flow Prototype)
+
+Objective: test whether a pressure-conductance vapor-flow closure can replace the energy-based `V_out` closure without catastrophic pressure escalation.
+
+Implementation notes:
+1. Added `vapor_flow_model="conductance"` path in `column_rhs` and scaffold validation/input normalization.
+2. Initial conductance runs (`20260221_152752`, `20260221_153331`) were unstable under full hydraulic coupling.
+3. Additional stabilization test disabled vapor-holdup relaxation (`--vapor-holdup-relaxation-sec 0`) but still showed long-horizon runaway before code fix (`20260221_155309`).
+4. Updated top-gate blocked-vapor handling for conductance mode in `src/dynamic_distillation/column_rhs_v1.py`:
+   - old behavior: blocked slip was forced into `V_condensed_in` (instantaneous extra condensation),
+   - new behavior (conductance mode only): blocked slip reduces stage-2 vapor outflow (`V_out[2]`), applying back-pressure at the source.
+5. Added regression test:
+   - `tests/test_column_rhs_v1.py::test_top_drum_pressure_gate_conductance_reduces_stage2_vapor_outflow`.
+
+Comparison artifact:
+- `logs/conductance_mode_ab_20260221_post_gate_fix.csv`
+
+Key 300 s results:
+
+| Case | Run ID | Top pressure `Delta P` (`psia`) | Max tray residual 0..300 s (`lbmol/h`) | Final Distillate holdup (`lbmol`) |
+|---|---|---:|---:|---:|
+| Conductance default gate (pre) | `20260221_152752` | `+4.18e9` | `8.92e233` | `2822.81` |
+| Conductance hard gate + `tau_vflow=10` (pre) | `20260221_153331` | `-218.39` | `5.93e257` | `11803.01` |
+| Conductance hard gate + `tau_vflow=10` + `tau_v=0` (pre-patch) | `20260221_155309` | `+5.32e5` | `2.83e6` | `40688.58` |
+| Conductance hard gate + `tau_vflow=10` + `tau_v=0` (post-patch) | `20260221_160831` | `+10.81` | `27775.54` | `1285.85` |
+
+Interpretation:
+1. The conductance source-coupling fix removed catastrophic top-pressure runaway in the tested 300 s case.
+2. Global mass closure remained near machine precision (order `1e-2 lbmol/h`) in both pre/post patched runs.
+3. Tray residuals are still materially above parity/hydraulic baseline targets, so conductance closure is now bounded but not yet parity-grade.
+
+Additional cap refinement (same day):
+1. Added a conductance clamp refinement so internal vapor-flow upper limits are constrained by both:
+   - previous-step growth bound, and
+   - nominal-profile absolute cap (`1.5 * V_profile`), when profile data are available.
+2. This prevents previous-step ratcheting from allowing long-horizon drift above profile scale.
+3. Regression test added:
+   - `tests/test_column_rhs_v1.py::test_vapor_flow_conductance_caps_to_nominal_when_prev_is_high`
+
+New 300 s result after cap refinement:
+
+| Case | Run ID | Top pressure `Delta P` (`psia`) | Max tray residual 0..60 s (`lbmol/h`) | Max tray residual 0..300 s (`lbmol/h`) |
+|---|---|---:|---:|---:|
+| Conductance + hard gate + `tau_vflow=10` + `tau_v=0` (post gate-fix only) | `20260221_160831` | `+10.81` | `27775.54` | `27775.54` |
+| Conductance + hard gate + `tau_vflow=10` + `tau_v=0` (post gate+cap refinement) | `20260221_165045` | `-5.98` | `19331.91` | `19992.47` |
+| Conductance + hard gate + `tau_vflow=10` + `tau_v=0` + nominal-hi ratio `1.1` | `20260221_171049` | `-8.59` | `12331.41` | `14537.15` |
+
+Updated comparison artifact:
+- `logs/conductance_mode_ab_20260221_cap_fix.csv`
+
+Interpretation update:
+1. Cap refinement further reduced conductance residual magnitude (about 28% reduction in 300 s max residual vs post gate-fix only).
+2. Pressure remains bounded over 300 s without artificial `tau_vflow` in the 80-120 s range.
+3. Tightening the nominal cap from default (`1.5`) to `1.1` in a full 300 s run reduced 300 s max tray residual by another ~27% (`19992.47 -> 14537.15 lbmol/h`) while remaining bounded.
+4. Conductance mode still does not reach parity residual levels, but the failure mode has shifted from blow-up to bounded mismatch.
+
+Composition-control check (same hydraulics, 300 s):
+1. Baseline (no composition loop): `20260221_171049`
+2. Distillate C4 composition loop enabled (`x_SP=0.050938`, `Kc=500`, `Ti=600 s`, reflux MV): `20260221_172535`
+
+| Case | Run ID | Top pressure `Delta P` (`psia`) | Max tray residual 0..300 s (`lbmol/h`) | `Distillate_x_n_Butane` at 300 s | `x_Distillate_n_Butane` at 300 s |
+|---|---|---:|---:|---:|---:|
+| No distillate composition control | `20260221_171049` | `-8.59` | `14537.15` | `0.10048` | `0.17500` |
+| Distillate composition control enabled | `20260221_172535` | `+2.08` | `18258.96` | `0.10281` | `0.21107` |
+
+Notes:
+1. In this scaffold, distillate composition PI uses top-drum liquid composition (`Distillate_x_*`) as PV.
+2. Over this 300 s window, enabling the distillate composition loop did not improve C4 behavior for this operating case.
+
+Extended controller A/B (same hydraulics, 300 s):
+1. Added full-stack tests with level + pressure + distillate composition.
+2. Distillate composition setpoint aligned to controller PV at `t=0`: `x_SP=0.057907`.
+3. Reflux-feasibility-cap sensitivity was tested because cap-on behavior reduced reflux when C4 increased.
+
+| Case | Run ID | `P_top Delta` (`psia`) | `Distillate_x_n_Butane` at 300 s | `x_Distillate_n_Butane` at 300 s | Max tray residual 0..300 s (`lbmol/h`) |
+|---|---|---:|---:|---:|---:|
+| Control off | `20260221_171049` | `-8.59` | `0.10048` | `0.17500` | `14537.15` |
+| Level + pressure + xD control, cap ON (`Kc=500`, `Ti=600`) | `20260221_175133` | `+1.99` | `0.10425` | `0.22850` | `17281.04` |
+| Level + pressure + xD control, cap OFF (`Kc=500`, `Ti=600`) | `20260221_175912` | `+1.41` | `0.10023` | `0.19168` | `15678.07` |
+| Level + pressure + xD control, cap OFF (`Kc=5000`, `Ti=240`) | `20260221_180607` | `+2.87` | `0.10014` | `0.18812` | `15674.32` |
+
+Interpretation (controller A/B):
+1. The reflux-feasibility cap materially constrained the distillate composition loop in this case.
+2. Disabling the cap restored expected reflux directionality and improved composition behavior versus cap-on runs.
+3. Even with stronger `Kc`, distillate C4 remained near the control-off trajectory over 300 s; composition control did not yet deliver a clear improvement.
+
+Controller A/B artifact:
+- `logs/controller_ab_20260221.csv`
+
+ChemSep warmer-feed input realignment (late update):
+1. The active hydraulic test workbook (`logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx`) was re-aligned to:
+   - `ChemSep Depropanizer_warmer_feed.xls` stage profiles (`T`, `P`, `L`, `V`, `x`, `y`).
+2. Verification after patching showed profile parity at machine precision:
+   - `max_abs_dT=0`, `max_abs_dP=0`, `max_abs_dL_finite=0`, `max_abs_dV_finite=0`,
+   - `max_abs_dx_row~5.6e-17`, `max_abs_dy_row~5.6e-17`.
+3. Distillate composition setpoint was aligned to ChemSep target:
+   - `Distillate Composition SP = 0.0951`.
+4. Loader update:
+   - `src/dynamic_distillation/excel_case_loader_v1.py` now persists `Distillate Composition SP` and `Bottoms Composition SP` from Excel specs, so CLI overrides are no longer required just to use these sheet values.
+
+600 s full-dynamic composition-control check (corrected ChemSep-aligned input, `xD_SP=0.0951`):
+1. Both runs used the same dynamic stack (`legacy`, conductance-cap `1.1`, level+pressure+distillate-composition control), with only reflux-feasibility-cap toggled.
+
+| Case | Run ID | `P_top Delta` (`psia`) | `Distillate_x_n_Butane` start -> 600 s | `x_Distillate_n_Butane` start -> 600 s | Max tray residual 0..600 s (`lbmol/h`) |
+|---|---|---:|---:|---:|---:|
+| Reflux feasibility cap ON | `20260221_185207` | `-0.63` | `0.13543 -> 0.28029` | `0.09513 -> 0.49080` | `16918.18` |
+| Reflux feasibility cap OFF | `20260221_190448` | `+9.44` | `0.13543 -> 0.22376` | `0.09513 -> 0.42625` | `14956.53` |
+
+Interpretation (600 s, corrected input):
+1. Correcting initialization and setpoint alignment did not eliminate long-horizon composition drift in full dynamic mode.
+2. Cap OFF improved composition/residual behavior versus cap ON, but worsened top-pressure drift.
+3. The remaining problem appears structural/coupling-dominant rather than a simple setpoint mismatch.
+
+Controller 600 s artifact:
+- `logs/controller_ab_20260221_600s.csv`
+
 ## Interpretation
 
 1. DD-011 root cause remains valid: profile-vs-hydraulics internal flow mismatch is the primary parity-break mechanism.

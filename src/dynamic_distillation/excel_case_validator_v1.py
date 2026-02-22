@@ -261,7 +261,7 @@ def validate_loaded_case(case: CaseData, col: ColumnSpec) -> ExcelValidationRepo
 
     vapor_raw = str(norm_map.get("vaporflowmodel", "")).strip().lower()
     vapor_default = "energy" if pressure_effective == "hydraulic" else "profile"
-    vapor_effective = vapor_raw if vapor_raw in ("profile", "energy") else vapor_default
+    vapor_effective = vapor_raw if vapor_raw in ("profile", "energy", "conductance") else vapor_default
 
     if "pressuremodel" not in norm_keys:
         warnings.append(

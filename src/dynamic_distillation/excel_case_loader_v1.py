@@ -536,6 +536,25 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     if thermo_refresh_dx is None:
         thermo_refresh_dx = _get_optional_float(specs_df, "Thermo Refresh Delta X")
     specs["Thermo Refresh dX"] = thermo_refresh_dx
+    # Optional composition-control setpoints.
+    # These keys are consumed by runner/controller wiring when CLI overrides
+    # are not provided.
+    dist_x_sp = _first_optional_float(
+        [
+            "Distillate Composition SP",
+            "Distillate C4 SP",
+            "Distillate x SP",
+        ]
+    )
+    specs["Distillate Composition SP"] = dist_x_sp
+    bot_x_sp = _first_optional_float(
+        [
+            "Bottoms Composition SP",
+            "Bottoms C5 SP",
+            "Bottoms x SP",
+        ]
+    )
+    specs["Bottoms Composition SP"] = bot_x_sp
 
     # Geometry (optional): stage geometry sections for vapor volume estimation
     specs["Geometry Sections"] = _read_stage_geometry_sections(specs_df)

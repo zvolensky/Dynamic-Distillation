@@ -86,7 +86,7 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 | `--top-psv-max-lbmolps` | float | `None` | Top PSV max vent rate (`lbmol/s`). |
 | `--enable-distillate-composition-control` | flag | `False` | Enable distillate-composition PI control (MV = reflux flow). |
 | `--distillate-comp-component` | string | `C4` | Controlled distillate component alias/name. |
-| `--distillate-comp-sp` | float | `None` | Distillate liquid mole-fraction setpoint. |
+| `--distillate-comp-sp` | float | `None` | Distillate liquid mole-fraction setpoint. If omitted, runner can fall back to Excel specs (`Distillate Composition SP` / aliases) when available. |
 | `--distillate-comp-kc` | float | `None` | Distillate composition PI gain (default `10000`). |
 | `--distillate-comp-ti` | float | `None` | Distillate composition PI integral time (sec, default `240`). |
 | `--reflux-cmd-min` | float | `None` | Lower clamp for reflux command (`lbmol/h`, default `0`). |
@@ -94,7 +94,7 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 | `--disable-reflux-feasibility-cap` | flag | `False` | Disable dynamic reflux feasibility cap during distillate composition control. |
 | `--enable-bottoms-composition-control` | flag | `False` | Enable bottoms-composition PI control. |
 | `--bottoms-comp-component` | string | `C5` | Controlled bottoms component alias/name. |
-| `--bottoms-comp-sp` | float | `None` | Bottoms liquid mole-fraction setpoint. |
+| `--bottoms-comp-sp` | float | `None` | Bottoms liquid mole-fraction setpoint. If omitted, runner can fall back to Excel specs (`Bottoms Composition SP` / aliases) when available. |
 | `--bottoms-comp-kc` | float | `None` | Bottoms composition PI gain (units depend on MV choice). |
 | `--bottoms-comp-ti` | float | `None` | Bottoms composition PI integral time (sec, default `240`). |
 | `--bottoms-comp-mv` | `boilup` \| `reboiler-duty` | `boilup` | Bottoms composition controller manipulated variable. |

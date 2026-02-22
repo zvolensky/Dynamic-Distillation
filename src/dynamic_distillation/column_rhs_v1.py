@@ -158,12 +158,16 @@ class ColumnInputs:
     # Vapor flow model
     # "profile" = use Excel V profile (or feed-adjusted profile)
     # "energy"  = compute V_out from energy balance with dT/dt target
+    # "conductance" = compute V_out from tray-to-tray pressure conductance
     vapor_flow_model: str = "profile"
     dry_tray_K: float = 1.0
     vapor_holdup_relaxation_sec: Optional[float] = None
     component_mw_lbm_per_lbmol: Optional[np.ndarray] = None
     P_tray_prev: Optional[np.ndarray] = None
     vapor_flow_relaxation_sec: Optional[float] = None
+    # Conductance-mode vapor-flow nominal-profile high clamp ratio.
+    # If None, default internal value is used.
+    conductance_vflow_nominal_hi_ratio: Optional[float] = None
     V_out_prev_lbmolph: Optional[np.ndarray] = None
     dT_tray_target_F_per_s: Optional[np.ndarray] = None
     thermo_refresh_dT_F: Optional[float] = None
@@ -788,8 +792,211 @@ def column_rhs(
         }
 
     vflow_diag = None
+    vflow_model = (inputs.vapor_flow_model or "").strip().lower()
+
+    # Vapor flows via tray-to-tray pressure conductance.
+    if vflow_model == "conductance":
+        alpha_v = None
+        if inputs.vapor_flow_relaxation_sec is not None:
+            try:
+                tau_vflow = float(inputs.vapor_flow_relaxation_sec)
+            except Exception:
+                tau_vflow = None
+            if tau_vflow is not None and np.isfinite(tau_vflow) and tau_vflow > 0.0:
+                dt = getattr(getattr(col, "sim", None), "dt_sec", None)
+                try:
+                    dt = float(dt)
+                except Exception:
+                    dt = None
+                if dt is not None and np.isfinite(dt) and dt > 0.0:
+                    alpha_v = min(dt / tau_vflow, 1.0)
+
+        vflow_ok = np.full(N, np.nan, dtype=float)
+        vflow_denom = np.full(N, np.nan, dtype=float)
+        vflow_calc = np.full(N, np.nan, dtype=float)
+        vflow_used = np.full(N, np.nan, dtype=float)
+        vflow_clamped = np.full(N, np.nan, dtype=float)
+        vflow_limit_hi = np.full(N, np.nan, dtype=float)
+        vflow_limit_lo = np.full(N, np.nan, dtype=float)
+        vflow_alpha = np.full(N, np.nan, dtype=float)
+        if alpha_v is not None:
+            vflow_alpha[1 : max(N - 1, 1)] = float(alpha_v)
+
+        V_prev = None
+        if inputs.V_out_prev_lbmolph is not None:
+            try:
+                V_prev = np.asarray(inputs.V_out_prev_lbmolph, dtype=float).reshape((N,)) / 3600.0
+            except Exception:
+                V_prev = None
+        if V_prev is None:
+            V_prev = V_out.copy()
+
+        V_out[0] = 0.0
+        V_out[-1] = boilup_s
+
+        if inputs.P_tray_prev is not None:
+            try:
+                P_tray_cond = np.asarray(inputs.P_tray_prev, dtype=float).reshape((N,))
+            except Exception:
+                P_tray_cond = np.asarray(getattr(col, "P_psia", np.full(N, 200.0)), dtype=float).reshape((N,))
+        else:
+            P_tray_cond = np.asarray(getattr(col, "P_psia", np.full(N, 200.0)), dtype=float).reshape((N,))
+        if not np.all(np.isfinite(P_tray_cond)):
+            P_tray_cond = np.asarray(getattr(col, "P_psia", np.full(N, 200.0)), dtype=float).reshape((N,))
+        P_tray_cond = np.where(~np.isfinite(P_tray_cond) | (P_tray_cond <= 0.0), 200.0, P_tray_cond)
+
+        if "tray_T_f" in u:
+            T_tray_for_v = np.asarray(u["tray_T_f"], dtype=float).reshape((N,))
+        elif hasattr(col, "T_f"):
+            T_tray_for_v = np.asarray(col.T_f, dtype=float).reshape((N,))
+        else:
+            T_tray_for_v = np.full(N, 100.0, dtype=float)
+
+        if inputs.Zfac_prev is not None:
+            try:
+                Z_for_v = np.asarray(inputs.Zfac_prev, dtype=float).reshape((N,))
+            except Exception:
+                Z_for_v = np.ones(N, dtype=float)
+        else:
+            Z_for_v = np.ones(N, dtype=float)
+        Z_for_v = np.where(~np.isfinite(Z_for_v) | (Z_for_v <= 0.0), 1.0, Z_for_v)
+
+        V_calc_all = None
+        geom = getattr(col, "geometry", None)
+        if geom is not None:
+            try:
+                V_calc_all = _vapor_outflow_hydraulic_lbmolps(
+                    P_profile_psia=P_tray_cond,
+                    T_F=T_tray_for_v,
+                    y_tray=y_tray,
+                    x_tray=x_tray,
+                    Z_vap=Z_for_v,
+                    geom=geom,
+                    h_ow_ft=h_ow_ft,
+                    rhoL_lbmol_ft3=rhoL_tray,
+                    mw_components=inputs.component_mw_lbm_per_lbmol,
+                    dry_tray_K=float(inputs.dry_tray_K),
+                )
+            except Exception:
+                V_calc_all = None
+        if V_calc_all is None:
+            V_calc_all = np.asarray(V_out_profile, dtype=float).reshape((N,)).copy()
+        else:
+            V_calc_all = np.asarray(V_calc_all, dtype=float).reshape((N,))
+        V_calc_all = np.where(~np.isfinite(V_calc_all) | (V_calc_all < 0.0), 0.0, V_calc_all)
+        V_calc_all[0] = 0.0
+        V_calc_all[-1] = boilup_s
+
+        # Conservative hard limits prevent single-step numerical spikes.
+        vflow_prev_up_ratio = 1.2
+        vflow_prev_down_ratio = 0.8
+        vflow_nominal_abs_ratio = 1.5
+        try:
+            v_nom_cfg = inputs.conductance_vflow_nominal_hi_ratio
+            if v_nom_cfg is not None:
+                v_nom_cfg = float(v_nom_cfg)
+                if np.isfinite(v_nom_cfg) and v_nom_cfg > 0.0:
+                    vflow_nominal_abs_ratio = v_nom_cfg
+        except Exception:
+            pass
+        # Keep the stage above the reboiler tightly coupled to boilup.
+        # This suppresses slow upward drift in lower-column vapor rates.
+        vflow_reb_neighbor_up_ratio = 1.02
+        vflow_reb_neighbor_down_ratio = 0.98
+        try:
+            up_cfg = float(inputs.reboiler_neighbor_vflow_hi_ratio)
+            if np.isfinite(up_cfg) and up_cfg > 0.0:
+                vflow_reb_neighbor_up_ratio = up_cfg
+        except Exception:
+            pass
+        try:
+            dn_cfg = float(inputs.reboiler_neighbor_vflow_lo_ratio)
+            if np.isfinite(dn_cfg) and dn_cfg > 0.0:
+                vflow_reb_neighbor_down_ratio = dn_cfg
+        except Exception:
+            pass
+        if vflow_reb_neighbor_down_ratio > vflow_reb_neighbor_up_ratio:
+            vflow_reb_neighbor_down_ratio = vflow_reb_neighbor_up_ratio
+
+        vflow_dp = np.full(N, np.nan, dtype=float)
+        for i in range(1, N - 1):
+            if np.isfinite(P_tray_cond[i]) and np.isfinite(P_tray_cond[i - 1]):
+                vflow_dp[i] = float(P_tray_cond[i] - P_tray_cond[i - 1])
+
+        for i in range(N - 2, 0, -1):
+            V_calc = float(V_calc_all[i])
+            ok = bool(np.isfinite(V_calc) and (V_calc >= 0.0))
+            if not ok:
+                V_calc = float(V_prev[i]) if V_prev is not None else float(V_out[i])
+            if not np.isfinite(V_calc) or V_calc < 0.0:
+                V_calc = 0.0
+                ok = False
+
+            # Hard clamp relative to previous and nominal profile values.
+            # For conductance closure, enforce a nominal-profile ceiling to
+            # prevent long-horizon drift from ratcheting V_out upward.
+            V_prev_i = max(float(V_prev[i]), 0.0)
+            V_nom_i = max(float(V_out_profile[i]), 0.0)
+
+            V_hi_prev = vflow_prev_up_ratio * V_prev_i
+            if V_nom_i > layout.epsilon_lbmol:
+                V_hi_nom = vflow_nominal_abs_ratio * V_nom_i
+                if V_prev_i > layout.epsilon_lbmol:
+                    V_hi = min(V_hi_prev, V_hi_nom)
+                else:
+                    V_hi = V_hi_nom
+            else:
+                # If no reliable nominal is available, fall back to previous-step
+                # growth limit and keep a conservative boilup floor.
+                V_hi = max(V_hi_prev, float(boilup_s))
+            V_hi = max(float(V_hi), 0.0)
+            V_lo = 0.0
+            if V_prev_i > layout.epsilon_lbmol and V_nom_i > layout.epsilon_lbmol:
+                V_lo = min(vflow_prev_down_ratio * V_prev_i, vflow_prev_down_ratio * V_nom_i)
+
+            # Reboiler-neighbor guard: keep tray N-1 near reboiler boilup to
+            # avoid non-physical long-horizon growth in lower-section vapor flow.
+            if i == (N - 2):
+                V_hi = min(V_hi, vflow_reb_neighbor_up_ratio * float(boilup_s))
+                if float(boilup_s) > layout.epsilon_lbmol:
+                    V_lo = max(V_lo, vflow_reb_neighbor_down_ratio * float(boilup_s))
+
+            vflow_limit_hi[i] = float(V_hi) * 3600.0
+            vflow_limit_lo[i] = float(V_lo) * 3600.0
+            clamped = False
+            if V_calc > V_hi:
+                V_calc = V_hi
+                clamped = True
+            elif V_calc < V_lo:
+                V_calc = V_lo
+                clamped = True
+            vflow_clamped[i] = 1.0 if clamped else 0.0
+
+            vflow_ok[i] = 1.0 if ok else 0.0
+            vflow_calc[i] = float(V_calc) * 3600.0
+
+            if alpha_v is not None and V_prev is not None:
+                V_out[i] = float(V_prev[i] + alpha_v * (V_calc - V_prev[i]))
+            else:
+                V_out[i] = float(V_calc)
+            vflow_used[i] = float(V_out[i]) * 3600.0
+
+        # Keep legacy vflow_energy_* diagnostics populated for backward compatibility
+        # even when using conductance closure.
+        vflow_diag = {
+            "vflow_energy_ok": vflow_ok,
+            "vflow_energy_denom_BTU_per_lbmol": vflow_denom,
+            "vflow_energy_calc_lbmolph": vflow_calc,
+            "vflow_energy_used_lbmolph": vflow_used,
+            "vflow_energy_clamped": vflow_clamped,
+            "vflow_energy_limit_hi_lbmolph": vflow_limit_hi,
+            "vflow_energy_limit_lo_lbmolph": vflow_limit_lo,
+            "vflow_conductance_dp_psia": vflow_dp,
+            "vflow_relax_alpha": vflow_alpha,
+        }
+
     # Vapor flows via energy balance (dynamic closure).
-    if (inputs.vapor_flow_model or "").strip().lower() == "energy":
+    if vflow_model == "energy":
         HL_cache = None
         HV_cache = None
         if inputs.HL_prev is not None:
@@ -1471,9 +1678,21 @@ def column_rhs(
             V_to_top_drum_pressure_gate_scale = float(gate_scale)
             blocked = max(float(v_to_top_old) - float(V_to_top_drum_lbmolps), 0.0)
             V_to_top_drum_blocked_lbmolps = float(blocked)
-            # No vapor holdup is modeled on the condenser tray, so blocked slip
-            # is routed into instantaneous in-condenser condensation.
-            V_condensed_in_lbmolps = float(V_condensed_in_lbmolps) + float(blocked)
+            if float(blocked) > float(layout.epsilon_lbmol):
+                if str(vflow_model).strip().lower() == "conductance" and N > 1:
+                    # In pressure-conductance mode, blocked top slip should feed
+                    # back to stage-2 vapor outflow instead of creating artificial
+                    # instantaneous condensation at the condenser boundary.
+                    v2_old = max(float(V_out[1]), 0.0)
+                    v2_new = max(v2_old - float(blocked), 0.0)
+                    blocked_eff = max(v2_old - v2_new, 0.0)
+                    V_out[1] = float(v2_new)
+                    V_in[0] = float(v2_new)
+                    V_to_top_drum_blocked_lbmolps = float(blocked_eff)
+                else:
+                    # No vapor holdup is modeled on the condenser tray, so blocked
+                    # slip is routed into instantaneous in-condenser condensation.
+                    V_condensed_in_lbmolps = float(V_condensed_in_lbmolps) + float(blocked)
 
     V_psv_top_lbmolps = 0.0
     psv_open_flag = 0.0

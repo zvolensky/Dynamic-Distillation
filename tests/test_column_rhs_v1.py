@@ -781,6 +781,65 @@ def test_top_drum_pressure_gate_blocks_reverse_vapor_slip(monkeypatch):
     assert abs(v_blocked_lbmolph - 1800.0) < 1e-6
 
 
+def test_top_drum_pressure_gate_conductance_reduces_stage2_vapor_outflow(monkeypatch):
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "V_lbmolph": np.array([0.0, 3600.0], dtype=float),  # 1 lbmol/s vapor from stage 2 to condenser
+            "L_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "streams": {},
+        }
+    )
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y0 = layout.pack_y0(col2)
+    sl = layout.slices()
+    y0[sl["top_V"]] = np.array([10.0, 0.0], dtype=float)  # high top-vapor holdup -> high drum pressure
+
+    def _fake_total_cond_duty(**_kwargs):
+        # Full condensation of 1 lbmol/s requires -3600 BTU/h.
+        return -3600.0, 100.0
+
+    monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _fake_total_cond_duty)
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=3600.0),
+        condenser_duty_mode="specified",
+        condenser_duty_btu_per_h=-1800.0,  # 50% condense capacity before pressure gate
+        thermo_provider=object(),
+        pressure_model="spec",
+        vapor_flow_model="conductance",
+        top_drum_vapor_volume_ft3=1.0,
+        enforce_top_drum_pressure_gate=True,
+        top_drum_pressure_gate_soft_psi=None,  # hard gate for deterministic behavior
+    )
+    _dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+
+    v_to_top_lbmolph = float(np.asarray(diag["V_to_top_drum_lbmolph"], dtype=float).reshape((-1,))[0])
+    v_cond_in_lbmolph = float(np.asarray(diag["V_condensed_in_lbmolph"], dtype=float).reshape((-1,))[0])
+    v_blocked_lbmolph = float(np.asarray(diag["V_to_top_drum_blocked_lbmolph"], dtype=float).reshape((-1,))[0])
+    v_out_stage2_lbmolph = float(np.asarray(diag["V_out_lbmolph"], dtype=float).reshape((-1,))[1])
+    dp_drive = float(np.asarray(diag["dP_stage2_to_top_drum_psia"], dtype=float).reshape((-1,))[0])
+    gate_scale = float(np.asarray(diag["V_to_top_drum_pressure_gate_scale"], dtype=float).reshape((-1,))[0])
+
+    assert np.isfinite(dp_drive)
+    assert dp_drive < 0.0
+    assert abs(gate_scale - 0.0) < 1e-12
+    assert abs(v_to_top_lbmolph - 0.0) < 1e-9
+    # Blocked flow is now applied at stage-2 outflow in conductance mode.
+    assert abs(v_cond_in_lbmolph - 1800.0) < 1e-6
+    assert abs(v_blocked_lbmolph - 1800.0) < 1e-6
+    assert abs(v_out_stage2_lbmolph - 1800.0) < 1e-6
+
+
 def test_hydraulic_top_pressure_ordering_prevents_stage1_below_drum(monkeypatch):
     col = _make_tiny_column()
     N = col.n_stages
@@ -1384,6 +1443,188 @@ def test_feed_stage_not_pinned_in_energy_vapor_flow_model():
 
     # Feed stage (stage 3 / index 2) should be free to deviate from profile.
     assert not np.isclose(v_out[2], 3000.0, rtol=1e-6, atol=1e-6)
+
+
+def test_vapor_flow_conductance_responds_to_pressure_gradient():
+    N, Nc = 4, 1
+    x0 = np.ones((N, Nc), dtype=float)
+    y0 = np.ones((N, Nc), dtype=float)
+
+    diam_ft = np.full(N, 2.0, dtype=float)
+    spacing_ft = np.full(N, 1.0, dtype=float)
+    void_frac = np.full(N, 0.5, dtype=float)
+    area_ft2 = math.pi * (0.5 * diam_ft) ** 2
+    vapor_vol = area_ft2 * spacing_ft * void_frac
+    weir_h_in = np.zeros(N, dtype=float)
+    weir_L_ft = np.full(N, 1.0, dtype=float)
+    aaf = np.full(N, 1.0, dtype=float)
+    active_area_ft2 = area_ft2 * aaf
+
+    geom = ColumnGeometry(
+        sections=[
+            ColumnGeometrySection(
+                start_stage_1based=1,
+                end_stage_1based=N,
+                diameter_ft=2.0,
+                tray_spacing_ft=1.0,
+                gas_void_frac=0.5,
+                weir_height_in=0.0,
+                weir_length_ft=1.0,
+                active_area_frac=1.0,
+            )
+        ],
+        diameter_ft_per_stage=diam_ft,
+        tray_spacing_ft_per_stage=spacing_ft,
+        gas_void_frac_per_stage=void_frac,
+        area_ft2_per_stage=area_ft2,
+        vapor_volume_ft3_per_stage=vapor_vol,
+        weir_height_in_per_stage=weir_h_in,
+        weir_length_ft_per_stage=weir_L_ft,
+        active_area_frac_per_stage=aaf,
+        active_area_ft2_per_stage=active_area_ft2,
+    )
+
+    def _make_column(P_profile_psia: np.ndarray) -> ColumnSpec:
+        return ColumnSpec(
+            excel_path="<unit-test>",
+            components_excel=["A"],
+            components_dwsim=["A"],
+            n_components=Nc,
+            n_stages=N,
+            stage_1based=np.array([1, 2, 3, 4], dtype=int),
+            sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+            duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+            specs_raw={"Number of Stages": 4, "Number of Components": 1, "Timestep (sec)": 1.0, "Simulation Length (min)": 0.1, "Log Frequency (timesteps)": 1},
+            T_f=np.array([100.0, 110.0, 120.0, 130.0], dtype=float),
+            P_psia=np.asarray(P_profile_psia, dtype=float),
+            V_lbmolph=np.array([0.0, 0.0, 0.0, 3600.0], dtype=float),
+            L_lbmolph=np.array([0.0, 0.0, 0.0, 0.0], dtype=float),
+            M_L_lbmol=np.array([2.0, 2.0, 2.0, 2.0], dtype=float),
+            M_V_lbmol=np.array([1.0, 1.0, 1.0, 1.0], dtype=float),
+            y0=y0,
+            x0=x0,
+            streams={},
+            geometry=geom,
+        )
+
+    layout = StateVectorLayout(
+        n_stages=N,
+        n_components=Nc,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=3600.0),
+        vapor_flow_model="conductance",
+        reboiler_neighbor_vflow_hi_ratio=10.0,
+        reboiler_neighbor_vflow_lo_ratio=1.0e-9,
+    )
+
+    col_hi_dp = _make_column(np.array([200.0, 210.0, 220.0, 230.0], dtype=float))
+    y_hi_dp = layout.pack_y0(col_hi_dp)
+    _dydt_hi, diag_hi = column_rhs(0.0, y_hi_dp, col_hi_dp, layout, inputs=inputs)
+    v_hi = np.asarray(diag_hi["V_out_lbmolph"], dtype=float).reshape((N,))
+
+    col_lo_dp = _make_column(np.array([200.0, 200.0, 200.0, 230.0], dtype=float))
+    y_lo_dp = layout.pack_y0(col_lo_dp)
+    _dydt_lo, diag_lo = column_rhs(0.0, y_lo_dp, col_lo_dp, layout, inputs=inputs)
+    v_lo = np.asarray(diag_lo["V_out_lbmolph"], dtype=float).reshape((N,))
+
+    # Internal vapor flow should increase with available tray-to-tray pressure drop.
+    assert v_hi[1] > v_lo[1] + 1.0e-9
+    assert v_hi[2] > v_lo[2] + 1.0e-9
+
+
+def test_vapor_flow_conductance_caps_to_nominal_when_prev_is_high():
+    N, Nc = 4, 1
+    x0 = np.ones((N, Nc), dtype=float)
+    y0 = np.ones((N, Nc), dtype=float)
+
+    diam_ft = np.full(N, 2.0, dtype=float)
+    spacing_ft = np.full(N, 1.0, dtype=float)
+    void_frac = np.full(N, 0.5, dtype=float)
+    area_ft2 = math.pi * (0.5 * diam_ft) ** 2
+    vapor_vol = area_ft2 * spacing_ft * void_frac
+    weir_h_in = np.zeros(N, dtype=float)
+    weir_L_ft = np.full(N, 1.0, dtype=float)
+    aaf = np.full(N, 1.0, dtype=float)
+    active_area_ft2 = area_ft2 * aaf
+
+    geom = ColumnGeometry(
+        sections=[
+            ColumnGeometrySection(
+                start_stage_1based=1,
+                end_stage_1based=N,
+                diameter_ft=2.0,
+                tray_spacing_ft=1.0,
+                gas_void_frac=0.5,
+                weir_height_in=0.0,
+                weir_length_ft=1.0,
+                active_area_frac=1.0,
+            )
+        ],
+        diameter_ft_per_stage=diam_ft,
+        tray_spacing_ft_per_stage=spacing_ft,
+        gas_void_frac_per_stage=void_frac,
+        area_ft2_per_stage=area_ft2,
+        vapor_volume_ft3_per_stage=vapor_vol,
+        weir_height_in_per_stage=weir_h_in,
+        weir_length_ft_per_stage=weir_L_ft,
+        active_area_frac_per_stage=aaf,
+        active_area_ft2_per_stage=active_area_ft2,
+    )
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A"],
+        components_dwsim=["A"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2, 3, 4], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Number of Stages": 4, "Number of Components": 1, "Timestep (sec)": 1.0, "Simulation Length (min)": 0.1, "Log Frequency (timesteps)": 1},
+        T_f=np.array([100.0, 110.0, 120.0, 130.0], dtype=float),
+        # Large tray-to-tray pressure gradients to drive high raw conductance flow.
+        P_psia=np.array([200.0, 260.0, 320.0, 380.0], dtype=float),
+        # Nominal internal profile used by conductance clamp.
+        V_lbmolph=np.array([0.0, 1000.0, 1200.0, 3600.0], dtype=float),
+        L_lbmolph=np.array([0.0, 0.0, 0.0, 0.0], dtype=float),
+        M_L_lbmol=np.array([2.0, 2.0, 2.0, 2.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0, 1.0, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+        geometry=geom,
+    )
+
+    layout = StateVectorLayout(
+        n_stages=N,
+        n_components=Nc,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y0_state = layout.pack_y0(col)
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=3600.0),
+        vapor_flow_model="conductance",
+        # Start from very large prior-step internal vapor flow; clamp should still
+        # enforce nominal-profile ceilings.
+        V_out_prev_lbmolph=np.array([0.0, 20000.0, 22000.0, 3600.0], dtype=float),
+        reboiler_neighbor_vflow_hi_ratio=10.0,
+        reboiler_neighbor_vflow_lo_ratio=1.0e-9,
+    )
+    _dydt, diag = column_rhs(0.0, y0_state, col, layout, inputs=inputs)
+    v_out = np.asarray(diag["V_out_lbmolph"], dtype=float).reshape((N,))
+
+    assert v_out[1] <= (1.5 * 1000.0 + 1.0e-9)
+    assert v_out[2] <= (1.5 * 1200.0 + 1.0e-9)
 
 
 def test_feed_split_can_use_tp_flash_when_provider_available():

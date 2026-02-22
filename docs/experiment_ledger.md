@@ -1,12 +1,12 @@
 # Experiment Ledger
 
-Updated: 2026-02-21 15:03:19 (local)
+Updated: 2026-02-22 10:47:58 (local)
 
 This file is auto-generated from `logs/column_summary_*.csv`, `logs/feasibility_trim_search_*.csv`, and `logs/run_registry.csv`.
 
-Total runs indexed: **464**  
-Runs with known CLI command: **147**  
-Runs with unknown CLI command: **317**
+Total runs indexed: **511**  
+Runs with known CLI command: **193**  
+Runs with unknown CLI command: **318**
 
 Primary searchable source: `docs/experiment_ledger.csv`.
 
@@ -14,68 +14,119 @@ Duplicate indicators in CSV: `exact_command_dup_group`, `exact_command_dup_count
 
 ## Duplicate Signals
 
-Exact-command duplicate groups: **15** (rows in groups: **31**)  
-Suspected-result duplicate groups: **38** (rows in groups: **93**)
+Exact-command duplicate groups: **20** (rows in groups: **44**)  
+Suspected-result duplicate groups: **42** (rows in groups: **117**)
 
 ### Exact Command Duplicates (Top 20)
 
 | Group | Count | Run IDs |
 |---|---:|---|
-| `CMDDUP001` | 2 | `20260221_120758`, `20260221_075704` |
-| `CMDDUP002` | 2 | `20260219_161009`, `20260219_085053` |
-| `CMDDUP003` | 2 | `20260218_190540`, `20260218_190058` |
-| `CMDDUP004` | 3 | `20260218_180612`, `20260218_180302`, `20260218_171946` |
-| `CMDDUP005` | 2 | `20260217_125800`, `20260217_114540` |
-| `CMDDUP006` | 2 | `20260217_124639`, `20260217_120223` |
-| `CMDDUP007` | 2 | `20260217_100458`, `20260217_093715` |
-| `CMDDUP008` | 2 | `20260217_091010`, `20260217_090125` |
-| `CMDDUP009` | 2 | `20260216_204605`, `20260216_203008` |
-| `CMDDUP010` | 2 | `20260216_102206`, `20260216_101825` |
-| `CMDDUP011` | 2 | `20260215_215224`, `20260215_214552` |
-| `CMDDUP012` | 2 | `20260215_185348`, `20260215_174906` |
-| `CMDDUP013` | 2 | `20260215_170604`, `20260215_160316` |
-| `CMDDUP014` | 2 | `20260215_162944`, `20260215_144747` |
-| `CMDDUP015` | 2 | `20260214_205627`, `20260214_150239` |
+| `CMDDUP001` | 3 | `20260222_103432`, `20260222_103029`, `20260222_102618` |
+| `CMDDUP002` | 2 | `20260222_103218`, `20260222_102839` |
+| `CMDDUP003` | 2 | `20260222_094219`, `20260222_094158` |
+| `CMDDUP004` | 3 | `20260221_165045`, `20260221_160831`, `20260221_155309` |
+| `CMDDUP005` | 3 | `20260221_164904`, `20260221_155110`, `20260221_154624` |
+| `CMDDUP006` | 2 | `20260221_120758`, `20260221_075704` |
+| `CMDDUP007` | 2 | `20260219_161009`, `20260219_085053` |
+| `CMDDUP008` | 2 | `20260218_190540`, `20260218_190058` |
+| `CMDDUP009` | 3 | `20260218_180612`, `20260218_180302`, `20260218_171946` |
+| `CMDDUP010` | 2 | `20260217_125800`, `20260217_114540` |
+| `CMDDUP011` | 2 | `20260217_124639`, `20260217_120223` |
+| `CMDDUP012` | 2 | `20260217_100458`, `20260217_093715` |
+| `CMDDUP013` | 2 | `20260217_091010`, `20260217_090125` |
+| `CMDDUP014` | 2 | `20260216_204605`, `20260216_203008` |
+| `CMDDUP015` | 2 | `20260216_102206`, `20260216_101825` |
+| `CMDDUP016` | 2 | `20260215_215224`, `20260215_214552` |
+| `CMDDUP017` | 2 | `20260215_185348`, `20260215_174906` |
+| `CMDDUP018` | 2 | `20260215_170604`, `20260215_160316` |
+| `CMDDUP019` | 2 | `20260215_162944`, `20260215_144747` |
+| `CMDDUP020` | 2 | `20260214_205627`, `20260214_150239` |
 
 ### Suspected Result Duplicates (Top 30)
 
 | Group | Count | Run IDs |
 |---|---:|---|
-| `SIGDUP001` | 2 | `20260221_130923`, `20260221_120758` |
-| `SIGDUP002` | 2 | `20260217_201510`, `20260217_201205` |
-| `SIGDUP003` | 2 | `20260217_134444`, `20260217_133957` |
-| `SIGDUP004` | 2 | `20260217_132858`, `20260217_124639` |
-| `SIGDUP005` | 3 | `20260217_125800`, `20260217_114540`, `20260217_111302` |
-| `SIGDUP006` | 2 | `20260216_192016`, `20260216_084710` |
-| `SIGDUP007` | 2 | `20260216_105516`, `20260216_101825` |
-| `SIGDUP008` | 4 | `20260215_185348`, `20260215_174906`, `20260215_170604`, `20260215_160316` |
-| `SIGDUP009` | 2 | `20260215_162944`, `20260215_144747` |
-| `SIGDUP010` | 2 | `20260215_121942`, `20260215_073241` |
-| `SIGDUP011` | 2 | `20260215_090609`, `20260215_083445` |
-| `SIGDUP012` | 2 | `20260215_071617`, `20260215_070444` |
-| `SIGDUP013` | 2 | `20260213_182007`, `20260213_181509` |
-| `SIGDUP014` | 2 | `20260213_120416`, `20260213_115343` |
-| `SIGDUP015` | 2 | `20260213_100128`, `20260213_095423` |
-| `SIGDUP016` | 2 | `20260212_181918`, `20260212_170629` |
-| `SIGDUP017` | 2 | `20260212_170232`, `20260212_170144` |
-| `SIGDUP018` | 2 | `20260211_163158`, `20260210_203220` |
-| `SIGDUP019` | 2 | `20260211_133239`, `20260211_131139` |
-| `SIGDUP020` | 2 | `20260211_132338`, `20260211_131717` |
-| `SIGDUP021` | 2 | `20260211_132015`, `20260211_131422` |
-| `SIGDUP022` | 2 | `20260211_120935`, `20260211_120515` |
-| `SIGDUP023` | 2 | `20260210_153246`, `20260210_150923` |
-| `SIGDUP024` | 2 | `20260210_122915`, `20260210_122641` |
-| `SIGDUP025` | 4 | `20260209_163210`, `20260209_162349`, `20260209_161327`, `20260209_093725` |
-| `SIGDUP026` | 2 | `20260209_150210`, `20260209_131146` |
-| `SIGDUP027` | 2 | `20260208_112403`, `20260208_091635` |
-| `SIGDUP028` | 3 | `20260208_112315`, `20260207_155904`, `20260207_150105` |
-| `SIGDUP029` | 2 | `20260208_081246`, `20260207_211337` |
-| `SIGDUP030` | 2 | `20260207_181205`, `20260207_173727` |
+| `SIGDUP001` | 3 | `20260222_103713`, `20260222_095818`, `20260222_084154` |
+| `SIGDUP002` | 17 | `20260222_103432`, `20260222_103218`, `20260222_103029`, `20260222_102839`, `20260222_102618`, `20260222_102407`, `20260222_102157`, `20260222_101916`, `20260222_101702`, `20260222_101448`, `20260222_095521`, `20260222_095303`, `20260222_095042`, `20260222_094831`, `20260222_094600`, `20260222_094219`, `20260222_094158` |
+| `SIGDUP003` | 2 | `20260221_183317`, `20260221_183203` |
+| `SIGDUP004` | 2 | `20260221_170328`, `20260221_164904` |
+| `SIGDUP005` | 2 | `20260221_130923`, `20260221_120758` |
+| `SIGDUP006` | 2 | `20260217_201510`, `20260217_201205` |
+| `SIGDUP007` | 2 | `20260217_134444`, `20260217_133957` |
+| `SIGDUP008` | 2 | `20260217_132858`, `20260217_124639` |
+| `SIGDUP009` | 3 | `20260217_125800`, `20260217_114540`, `20260217_111302` |
+| `SIGDUP010` | 2 | `20260216_192016`, `20260216_084710` |
+| `SIGDUP011` | 2 | `20260216_105516`, `20260216_101825` |
+| `SIGDUP012` | 4 | `20260215_185348`, `20260215_174906`, `20260215_170604`, `20260215_160316` |
+| `SIGDUP013` | 2 | `20260215_162944`, `20260215_144747` |
+| `SIGDUP014` | 2 | `20260215_121942`, `20260215_073241` |
+| `SIGDUP015` | 2 | `20260215_090609`, `20260215_083445` |
+| `SIGDUP016` | 2 | `20260215_071617`, `20260215_070444` |
+| `SIGDUP017` | 2 | `20260213_182007`, `20260213_181509` |
+| `SIGDUP018` | 2 | `20260213_120416`, `20260213_115343` |
+| `SIGDUP019` | 2 | `20260213_100128`, `20260213_095423` |
+| `SIGDUP020` | 2 | `20260212_181918`, `20260212_170629` |
+| `SIGDUP021` | 2 | `20260212_170232`, `20260212_170144` |
+| `SIGDUP022` | 2 | `20260211_163158`, `20260210_203220` |
+| `SIGDUP023` | 2 | `20260211_133239`, `20260211_131139` |
+| `SIGDUP024` | 2 | `20260211_132338`, `20260211_131717` |
+| `SIGDUP025` | 2 | `20260211_132015`, `20260211_131422` |
+| `SIGDUP026` | 2 | `20260211_120935`, `20260211_120515` |
+| `SIGDUP027` | 2 | `20260210_153246`, `20260210_150923` |
+| `SIGDUP028` | 2 | `20260210_122915`, `20260210_122641` |
+| `SIGDUP029` | 4 | `20260209_163210`, `20260209_162349`, `20260209_161327`, `20260209_093725` |
+| `SIGDUP030` | 2 | `20260209_150210`, `20260209_131146` |
 
 ## Known CLI Commands
 
 | Run ID | Date/Time | Source | Command | Final (P, xD, xB, R, Vb) |
 |---|---|---|---|---|
+| `20260222_103713` | 2026-02-22 10:37:13 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\thermo_table.json --thermo-pool-workers 15 --thermo-pool-chunk-size 11 --include-energy --condenser-duty-mode specified --n-steps 3000 --dt 0.2 --log-every 20 --allow-repeat-command` | P=0.376; xD=; xB=; R=; Vb= |
+| `20260222_103432` | 2026-02-22 10:34:32 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\\thermo_table.json --thermo-pool-workers 15 --thermo-pool-chunk-size 11 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_103218` | 2026-02-22 10:32:18 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\\thermo_table.json --thermo-pool-workers 2 --thermo-pool-chunk-size 4 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_103029` | 2026-02-22 10:30:29 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\\thermo_table.json --thermo-pool-workers 15 --thermo-pool-chunk-size 11 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_102839` | 2026-02-22 10:28:39 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\\thermo_table.json --thermo-pool-workers 2 --thermo-pool-chunk-size 4 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_102618` | 2026-02-22 10:26:18 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\\thermo_table.json --thermo-pool-workers 15 --thermo-pool-chunk-size 11 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_102407` | 2026-02-22 10:24:07 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\\thermo_table.json --thermo-pool-workers 15 --thermo-pool-chunk-size 8 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_102157` | 2026-02-22 10:21:57 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\\thermo_table.json --thermo-pool-workers 15 --thermo-pool-chunk-size 4 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_101916` | 2026-02-22 10:19:16 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\\thermo_table.json --thermo-pool-workers 8 --thermo-pool-chunk-size 11 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_101702` | 2026-02-22 10:17:02 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\\thermo_table.json --thermo-pool-workers 8 --thermo-pool-chunk-size 8 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_101448` | 2026-02-22 10:14:48 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\\thermo_table.json --thermo-pool-workers 8 --thermo-pool-chunk-size 4 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_095818` | 2026-02-22 09:58:18 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\thermo_table.json --thermo-pool-workers 2 --include-energy --condenser-duty-mode specified --n-steps 3000 --dt 0.2 --log-every 20 --allow-repeat-command` | P=0.376; xD=; xB=; R=; Vb= |
+| `20260222_095521` | 2026-02-22 09:55:21 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\thermo_table.json --thermo-pool-workers 15 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_095303` | 2026-02-22 09:53:03 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\thermo_table.json --thermo-pool-workers 8 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_095042` | 2026-02-22 09:50:42 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\thermo_table.json --thermo-pool-workers 4 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_094831` | 2026-02-22 09:48:31 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\thermo_table.json --thermo-pool-workers 2 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_094600` | 2026-02-22 09:46:00 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table-pool --thermo-table cache\thermo_table.json --thermo-pool-workers 1 --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_094219` | 2026-02-22 09:42:19 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_094158` | 2026-02-22 09:41:58 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --n-steps 600 --dt 0.2 --log-every 20 --allow-repeat-command` | P=324.106; xD=; xB=; R=; Vb= |
+| `20260222_084154` | 2026-02-22 08:41:54 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode parity --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --n-steps 3000 --dt 0.2 --log-every 20 --allow-repeat-command` | P=0.376; xD=; xB=; R=; Vb= |
+| `20260221_190448` | 2026-02-21 19:04:48 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.1 --enable-level-control --top-level-sp 1388.9 --bottom-level-sp 794 --enable-pressure-control --pressure-control-mv top-anchor --top-pressure-sp 220.44 --enable-distillate-composition-control --distillate-comp-component C4 --distillate-comp-sp 0.0951 --distillate-comp-kc 500 --distillate-comp-ti 600 --reflux-cmd-min 2000 --reflux-cmd-max 10000 --disable-reflux-feasibility-cap --n-steps 3000 --dt 0.2 --log-every 20 --allow-repeat-command` | P=229.878; xD=0.223761; xB=; R=6054.67; Vb= |
+| `20260221_185207` | 2026-02-21 18:52:07 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.1 --enable-level-control --top-level-sp 1388.9 --bottom-level-sp 794 --enable-pressure-control --pressure-control-mv top-anchor --top-pressure-sp 220.44 --enable-distillate-composition-control --distillate-comp-component C4 --distillate-comp-sp 0.0951 --distillate-comp-kc 500 --distillate-comp-ti 600 --reflux-cmd-min 2000 --reflux-cmd-max 10000 --n-steps 3000 --dt 0.2 --log-every 20 --allow-repeat-command` | P=219.808; xD=0.280291; xB=; R=4994.93; Vb= |
+| `20260221_183317` | 2026-02-21 18:33:17 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-distillate-composition-control --distillate-comp-component C4 --n-steps 1 --dt 0.2 --log-every 1 --allow-repeat-command` | P=220.040; xD=0.135422; xB=; R=5791.19; Vb= |
+| `20260221_183203` | 2026-02-21 18:32:03 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-distillate-composition-control --distillate-comp-component C4 --distillate-comp-sp 0.0951 --n-steps 1 --dt 0.2 --log-every 1 --allow-repeat-command` | P=220.040; xD=0.135422; xB=; R=5791.19; Vb= |
+| `20260221_182250` | 2026-02-21 18:22:50 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.1 --enable-level-control --top-level-sp 1388.9 --bottom-level-sp 794 --enable-pressure-control --pressure-control-mv top-anchor --top-pressure-sp 220.44 --enable-distillate-composition-control --distillate-comp-component C4 --distillate-comp-sp 0.0951 --distillate-comp-kc 500 --distillate-comp-ti 600 --reflux-cmd-min 2000 --reflux-cmd-max 10000 --disable-reflux-feasibility-cap --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=220.240; xD=0.171900; xB=; R=6005.36; Vb= |
+| `20260221_182151` | 2026-02-21 18:21:51 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.1 --enable-distillate-composition-control --distillate-comp-component C4 --n-steps 1 --dt 0.2 --log-every 1 --allow-repeat-command` | P=220.016; xD=; xB=; R=; Vb= |
+| `20260221_180607` | 2026-02-21 18:06:07 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.1 --enable-level-control --top-level-sp 1388.9 --bottom-level-sp 794 --enable-pressure-control --pressure-control-mv top-anchor --top-pressure-sp 218.44 --enable-distillate-composition-control --distillate-comp-component C4 --distillate-comp-sp 0.05790708320650483 --distillate-comp-kc 5000 --distillate-comp-ti 240 --reflux-cmd-min 2000 --reflux-cmd-max 10000 --disable-reflux-feasibility-cap --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=221.308; xD=0.100143; xB=; R=6285.61; Vb= |
+| `20260221_175912` | 2026-02-21 17:59:12 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.1 --enable-level-control --top-level-sp 1388.9 --bottom-level-sp 794 --enable-pressure-control --pressure-control-mv top-anchor --top-pressure-sp 218.44 --enable-distillate-composition-control --distillate-comp-component C4 --distillate-comp-sp 0.05790708320650483 --distillate-comp-kc 500 --distillate-comp-ti 600 --reflux-cmd-min 2000 --reflux-cmd-max 10000 --disable-reflux-feasibility-cap --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=219.854; xD=0.100229; xB=; R=5978.52; Vb= |
+| `20260221_175133` | 2026-02-21 17:51:33 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.1 --enable-level-control --top-level-sp 1388.9 --bottom-level-sp 794 --enable-pressure-control --pressure-control-mv top-anchor --top-pressure-sp 218.44 --enable-distillate-composition-control --distillate-comp-component C4 --distillate-comp-sp 0.05790708320650483 --distillate-comp-kc 500 --distillate-comp-ti 600 --reflux-cmd-min 2000 --reflux-cmd-max 10000 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=220.434; xD=0.104253; xB=; R=4828.38; Vb= |
+| `20260221_172535` | 2026-02-21 17:25:35 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.1 --enable-distillate-composition-control --distillate-comp-component C4 --distillate-comp-sp 0.05093829648525754 --distillate-comp-kc 500 --distillate-comp-ti 600 --reflux-cmd-min 2000 --reflux-cmd-max 10000 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=220.520; xD=0.102810; xB=; R=4996.29; Vb= |
+| `20260221_171049` | 2026-02-21 17:10:49 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.1 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=209.852; xD=; xB=; R=; Vb= |
+| `20260221_170739` | 2026-02-21 17:07:39 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.1 --n-steps 300 --dt 0.2 --log-every 20 --allow-repeat-command` | P=217.164; xD=; xB=; R=; Vb= |
+| `20260221_170609` | 2026-02-21 17:06:09 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.2 --n-steps 300 --dt 0.2 --log-every 20 --allow-repeat-command` | P=217.492; xD=; xB=; R=; Vb= |
+| `20260221_170447` | 2026-02-21 17:04:47 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.3 --n-steps 300 --dt 0.2 --log-every 20 --allow-repeat-command` | P=216.047; xD=; xB=; R=; Vb= |
+| `20260221_170328` | 2026-02-21 17:03:28 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --conductance-vflow-nominal-hi-ratio 1.5 --n-steps 300 --dt 0.2 --log-every 20 --allow-repeat-command` | P=216.770; xD=; xB=; R=; Vb= |
+| `20260221_165045` | 2026-02-21 16:50:45 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=212.460; xD=; xB=; R=; Vb= |
+| `20260221_164904` | 2026-02-21 16:49:04 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --n-steps 300 --dt 0.2 --log-every 20 --allow-repeat-command` | P=216.770; xD=; xB=; R=; Vb= |
+| `20260221_160831` | 2026-02-21 16:08:31 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=229.253; xD=; xB=; R=; Vb= |
+| `20260221_160007` | 2026-02-21 16:00:07 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --enable-level-control --top-level-sp 1388.9 --bottom-level-sp 794 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=1.622e+06; xD=; xB=; R=; Vb= |
+| `20260221_155309` | 2026-02-21 15:53:09 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=5.325e+05; xD=; xB=; R=; Vb= |
+| `20260221_155110` | 2026-02-21 15:51:10 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --n-steps 300 --dt 0.2 --log-every 20 --allow-repeat-command` | P=233.581; xD=; xB=; R=; Vb= |
+| `20260221_154948` | 2026-02-21 15:49:48 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --n-steps 300 --dt 0.2 --log-every 20 --allow-repeat-command` | P=220.095; xD=; xB=; R=; Vb= |
+| `20260221_154828` | 2026-02-21 15:48:28 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --n-steps 300 --dt 0.2 --log-every 20 --allow-repeat-command` | P=201.355; xD=; xB=; R=; Vb= |
+| `20260221_154624` | 2026-02-21 15:46:24 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs/tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --vapor-holdup-relaxation-sec 0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --n-steps 300 --dt 0.2 --log-every 20 --allow-repeat-command` | P=0.210; xD=; xB=; R=; Vb= |
+| `20260221_153331` | 2026-02-21 15:33:31 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs\tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --top-drum-pressure-gate-soft-psi 0 --vapor-flow-relaxation-sec 10 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=0.055; xD=; xB=; R=; Vb= |
+| `20260221_152752` | 2026-02-21 15:27:52 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs\tmp_pressure_hydraulic_conductance_20260221_152741.xlsx --runtime-mode legacy --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=4.181e+09; xD=; xB=; R=; Vb= |
 | `20260221_145638` | 2026-02-21 14:56:38 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel distillation_column_template.xlsx --runtime-mode hydraulic --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --vapor-flow-relaxation-sec 10 --top-drum-pressure-gate-soft-psi 0 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=242.797; xD=; xB=; R=; Vb= |
 | `20260221_144950` | 2026-02-21 14:49:50 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel distillation_column_template.xlsx --runtime-mode hydraulic --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --top-drum-pressure-gate-soft-psi 0 --n-steps 1500 --dt 0.2 --log-every 20 --allow-repeat-command` | P=243.497; xD=; xB=; R=; Vb= |
 | `20260221_144320` | 2026-02-21 14:43:20 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel distillation_column_template.xlsx --runtime-mode hydraulic --thermo table --thermo-table cache\thermo_table.json --include-energy --condenser-duty-mode specified --vapor-flow-relaxation-sec 10 --n-steps 1200 --dt 0.05 --log-every 80 --allow-repeat-command` | P=244.943; xD=; xB=; R=; Vb= |
@@ -228,6 +279,53 @@ Suspected-result duplicate groups: **38** (rows in groups: **93**)
 
 | Run ID | Status | CLI Known | t_final(s) | P_top | xD | xB | Reflux | Boilup | D | B | Summary CSV |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| `20260222_103713` | `ok` | Yes | 600.0 | 0.376 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_103713.csv` |
+| `20260222_103432` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_103432.csv` |
+| `20260222_103218` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_103218.csv` |
+| `20260222_103029` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_103029.csv` |
+| `20260222_102839` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_102839.csv` |
+| `20260222_102618` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_102618.csv` |
+| `20260222_102407` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_102407.csv` |
+| `20260222_102157` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_102157.csv` |
+| `20260222_101916` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_101916.csv` |
+| `20260222_101702` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_101702.csv` |
+| `20260222_101448` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_101448.csv` |
+| `20260222_095818` | `ok` | Yes | 600.0 | 0.376 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_095818.csv` |
+| `20260222_095521` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_095521.csv` |
+| `20260222_095303` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_095303.csv` |
+| `20260222_095042` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_095042.csv` |
+| `20260222_094831` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_094831.csv` |
+| `20260222_094600` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_094600.csv` |
+| `20260222_094219` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_094219.csv` |
+| `20260222_094158` | `ok` | Yes | 120.0 | 324.106 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_094158.csv` |
+| `20260222_084154` | `ok` | Yes | 600.0 | 0.376 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260222_084154.csv` |
+| `20260221_190448` | `ok` | Yes | 600.0 | 229.878 | 0.223761 |  | 6054.67 |  | 549.19 | 8456.06 | `logs/column_summary_20260221_190448.csv` |
+| `20260221_185207` | `ok` | Yes | 600.0 | 219.808 | 0.280291 |  | 4994.93 |  | 2420.76 | 8138.11 | `logs/column_summary_20260221_185207.csv` |
+| `20260221_183317` | `ok` | Yes | 0.2 | 220.040 | 0.135422 |  | 5791.19 |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_183317.csv` |
+| `20260221_183203` | `ok` | Yes | 0.2 | 220.040 | 0.135422 |  | 5791.19 |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_183203.csv` |
+| `20260221_182250` | `ok` | Yes | 300.0 | 220.240 | 0.171900 |  | 6005.36 |  | 1449.77 | 7025.44 | `logs/column_summary_20260221_182250.csv` |
+| `20260221_182151` | `ok` | Yes | 0.2 | 220.016 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_182151.csv` |
+| `20260221_180607` | `ok` | Yes | 300.0 | 221.308 | 0.100143 |  | 6285.61 |  | 1756.15 | 3927.78 | `logs/column_summary_20260221_180607.csv` |
+| `20260221_175912` | `ok` | Yes | 300.0 | 219.854 | 0.100229 |  | 5978.52 |  | 1826.56 | 3908.18 | `logs/column_summary_20260221_175912.csv` |
+| `20260221_175133` | `ok` | Yes | 300.0 | 220.434 | 0.104253 |  | 4828.38 |  | 2384.02 | 3755.05 | `logs/column_summary_20260221_175133.csv` |
+| `20260221_172535` | `ok` | Yes | 300.0 | 220.520 | 0.102810 |  | 4996.29 |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_172535.csv` |
+| `20260221_171049` | `ok` | Yes | 300.0 | 209.852 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_171049.csv` |
+| `20260221_170739` | `ok` | Yes | 60.0 | 217.164 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_170739.csv` |
+| `20260221_170609` | `ok` | Yes | 60.0 | 217.492 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_170609.csv` |
+| `20260221_170447` | `ok` | Yes | 60.0 | 216.047 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_170447.csv` |
+| `20260221_170328` | `ok` | Yes | 60.0 | 216.770 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_170328.csv` |
+| `20260221_165045` | `ok` | Yes | 300.0 | 212.460 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_165045.csv` |
+| `20260221_164904` | `ok` | Yes | 60.0 | 216.770 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_164904.csv` |
+| `20260221_160831` | `ok` | Yes | 300.0 | 229.253 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_160831.csv` |
+| `20260221_160007` | `ok` | Yes | 300.0 | 1.622e+06 |  |  |  |  | 7380.99 | 3387.84 | `logs/column_summary_20260221_160007.csv` |
+| `20260221_155309` | `ok` | Yes | 300.0 | 5.325e+05 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_155309.csv` |
+| `20260221_155110` | `ok` | Yes | 60.0 | 233.581 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_155110.csv` |
+| `20260221_154948` | `ok` | Yes | 60.0 | 220.095 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_154948.csv` |
+| `20260221_154828` | `ok` | Yes | 60.0 | 201.355 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_154828.csv` |
+| `20260221_154624` | `ok` | Yes | 0.0 | 0.210 |  |  |  |  |  |  | `logs/column_summary_20260221_154624.csv` |
+| `20260221_154308` | `ok` | No | 220.5 | 0.089 |  |  |  |  |  |  | `logs/column_summary_20260221_154308.csv` |
+| `20260221_153331` | `ok` | Yes | 300.0 | 0.055 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_153331.csv` |
+| `20260221_152752` | `ok` | Yes | 300.0 | 4.181e+09 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_152752.csv` |
 | `20260221_145638` | `ok` | Yes | 300.0 | 242.797 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_145638.csv` |
 | `20260221_144950` | `ok` | Yes | 300.0 | 243.497 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_144950.csv` |
 | `20260221_144320` | `ok` | Yes | 60.0 | 244.943 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_144320.csv` |
@@ -241,50 +339,3 @@ Suspected-result duplicate groups: **38** (rows in groups: **93**)
 | `20260221_133446` | `ok` | Yes | 300.0 | 235.046 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_133446.csv` |
 | `20260221_132849` | `ok` | Yes | 300.0 | 307.283 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_132849.csv` |
 | `20260221_132239` | `ok` | Yes | 300.0 | 344.414 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_132239.csv` |
-| `20260221_131629` | `ok` | Yes | 300.0 | 455.471 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_131629.csv` |
-| `20260221_130923` | `ok` | Yes | 300.0 | 341.733 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_130923.csv` |
-| `20260221_130205` | `ok` | Yes | 300.0 | 329.421 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_130205.csv` |
-| `20260221_130020` | `ok` | Yes | 60.0 | 221.077 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_130020.csv` |
-| `20260221_125845` | `ok` | Yes | 60.0 | 221.077 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_125845.csv` |
-| `20260221_125711` | `ok` | Yes | 60.0 | 221.077 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_125711.csv` |
-| `20260221_125540` | `ok` | Yes | 60.0 | 222.013 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_125540.csv` |
-| `20260221_125407` | `ok` | Yes | 60.0 | 221.077 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_125407.csv` |
-| `20260221_125235` | `ok` | Yes | 60.0 | 220.890 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_125235.csv` |
-| `20260221_125103` | `ok` | Yes | 60.0 | 229.787 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_125103.csv` |
-| `20260221_124929` | `ok` | Yes | 60.0 | 220.725 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_124929.csv` |
-| `20260221_123434` | `ok` | Yes | 300.0 | 252.040 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_123434.csv` |
-| `20260221_122721` | `ok` | Yes | 300.0 | 251.333 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_122721.csv` |
-| `20260221_121857` | `ok` | Yes | 300.0 | 334.206 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_121857.csv` |
-| `20260221_120758` | `ok` | Yes | 300.0 | 341.733 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_120758.csv` |
-| `20260221_120047` | `ok` | Yes | 300.0 | 219.446 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_120047.csv` |
-| `20260221_115307` | `ok` | Yes | 300.0 | 219.262 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_115307.csv` |
-| `20260221_115250` | `ok` | Yes | 0.2 | 209.925 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_115250.csv` |
-| `20260221_111729` | `ok` | Yes | 300.0 | 219.262 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_111729.csv` |
-| `20260221_111700` | `ok` | Yes | 0.2 | 209.925 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_111700.csv` |
-| `20260221_105557` | `ok` | Yes | 0.2 | 210.242 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_105557.csv` |
-| `20260221_104202` | `ok` | Yes | 0.2 | 209.720 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_104202.csv` |
-| `20260221_102826` | `ok` | Yes | 300.0 | 219.263 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_102826.csv` |
-| `20260221_101846` | `ok` | Yes | 300.0 | 219.445 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_101846.csv` |
-| `20260221_080401` | `ok` | Yes | 300.0 | 219.215 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_080401.csv` |
-| `20260221_075704` | `ok` | Yes | 300.0 | 345.430 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_075704.csv` |
-| `20260221_074900` | `ok` | Yes | 300.0 | 209.673 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260221_074900.csv` |
-| `20260220_212636` | `ok` | Yes | 325.0 | 219.303 |  |  |  |  | 2403.71 | 4762.00 | `logs/column_summary_20260220_212636.csv` |
-| `20260220_212101` | `ok` | Yes | 325.0 | 219.439 |  |  |  |  | 2411.28 | 4762.00 | `logs/column_summary_20260220_212101.csv` |
-| `20260220_211652` | `ok` | Yes | 200.0 | 218.456 |  |  |  |  | 2376.84 | 4761.99 | `logs/column_summary_20260220_211652.csv` |
-| `20260220_211346` | `ok` | Yes | 200.0 | 218.725 |  |  |  |  | 2375.32 | 4761.99 | `logs/column_summary_20260220_211346.csv` |
-| `20260219_171000` | `ok` | Yes | 300.0 | 223.929 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260219_171000.csv` |
-| `20260219_161009` | `ok` | Yes | 300.0 | 242.942 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260219_161009.csv` |
-| `20260219_160620` | `ok` | No | 88.0 | 221.809 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260219_160620.csv` |
-| `20260219_151540` | `ok` | Yes | 0.2 | 218.467 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260219_151540.csv` |
-| `20260219_085053` | `ok` | Yes | 300.0 | 241.262 |  |  |  |  | 2380.99 | 4761.98 | `logs/column_summary_20260219_085053.csv` |
-| `20260218_212103` | `ok` | Yes | 1200.0 | 218.773 | 0.292774 | 0.010334 | 6207.54 |  | 1333.05 | 5369.09 | `logs/column_summary_20260218_212103.csv` |
-| `20260218_203653` | `ok` | Yes | 1200.0 | 219.177 |  |  |  |  | 806.89 | 5986.67 | `logs/column_summary_20260218_203653.csv` |
-| `20260218_201606` | `ok` | No | 1072.0 | 215.110 |  |  |  |  | 1369.55 | 5593.40 | `logs/column_summary_20260218_201606.csv` |
-| `20260218_200400` | `ok` | Yes | 300.0 | 214.828 |  |  |  |  | 2894.14 | 6856.06 | `logs/column_summary_20260218_200400.csv` |
-| `20260218_195728` | `ok` | Yes | 300.0 | 214.828 |  |  |  |  | 2894.14 | 6780.32 | `logs/column_summary_20260218_195728.csv` |
-| `20260218_194927` | `ok` | Yes | 300.0 | 214.828 |  |  |  |  | 2894.14 | 6790.43 | `logs/column_summary_20260218_194927.csv` |
-| `20260218_193433` | `ok` | Yes | 300.0 | 214.828 |  |  |  |  | 2894.14 | 6396.62 | `logs/column_summary_20260218_193433.csv` |
-| `20260218_191246` | `ok` | Yes | 300.0 | 214.828 |  |  |  |  | 2894.14 | 5506.06 | `logs/column_summary_20260218_191246.csv` |
-| `20260218_190540` | `ok` | Yes | 60.0 | 219.070 |  |  |  |  | 2374.17 | 4827.62 | `logs/column_summary_20260218_190540.csv` |
-| `20260218_190058` | `ok` | Yes | 60.0 | 219.122 |  |  |  |  | 2374.22 | 4826.16 | `logs/column_summary_20260218_190058.csv` |
-| `20260218_183237` | `ok` | Yes | 300.0 | 214.368 |  |  |  |  | 2886.01 | 5510.74 | `logs/column_summary_20260218_183237.csv` |

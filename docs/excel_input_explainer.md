@@ -63,6 +63,12 @@ If `Streams` is missing or malformed, the loader continues with `streams={}`.
 | `Thermo Refresh Delta T (F)` | float | Alias for `Thermo Refresh dT (F)` |
 | `Thermo Refresh Delta (F)` | float | Alias for `Thermo Refresh dT (F)` |
 | `Thermo Refresh ΔT (F)` | float | Alias for `Thermo Refresh dT (F)` |
+| `Distillate Composition SP` | float | Optional distillate composition setpoint read into `col.specs_raw` for distillate-composition control fallback |
+| `Distillate C4 SP` | float | Alias for `Distillate Composition SP` |
+| `Distillate x SP` | float | Alias for `Distillate Composition SP` |
+| `Bottoms Composition SP` | float | Optional bottoms composition setpoint read into `col.specs_raw` for bottoms-composition control fallback |
+| `Bottoms C5 SP` | float | Alias for `Bottoms Composition SP` |
+| `Bottoms x SP` | float | Alias for `Bottoms Composition SP` |
 
 ### Control-related spec keys (runner support vs loader support)
 
@@ -80,10 +86,13 @@ The runner supports these keys in `col.specs_raw`:
 - `Top PSV SP (psia)` / `Top PSV Setpoint (psia)`
 - `Top PSV Gain (lbmol/s/psi)` / `Top PSV Gain (lbmolps/psi)`
 - `Top PSV Max Vent (lbmol/s)` / `Top PSV Max (lbmol/s)`
+- `Distillate Composition SP` / `Distillate C4 SP` / `Distillate x SP`
+- `Bottoms Composition SP` / `Bottoms C5 SP` / `Bottoms x SP`
 
 Current limitation:
 - `excel_case_loader_v1.py` currently persists only the explicitly listed spec keys in this document.
-- Many control keys above (level/pressure/PSV) are therefore not reliably available from Excel yet.
+- Distillate/bottom composition setpoints are now persisted from Excel aliases listed above.
+- Many control enable/tuning keys above (level/pressure/PSV and most PI knobs) are still not reliably available from Excel yet.
 - For now, use CLI flags (`--enable-level-control`, `--enable-pressure-control`, `--enable-top-psv`, etc.) to configure these loops.
 
 ### Geometry table (optional block in Specifications)

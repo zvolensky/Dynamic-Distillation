@@ -481,6 +481,7 @@ class RunnerConfig:
     hydraulic_pressure_relaxation_sec: Optional[float] = None
     top_drum_pressure_temperature_relaxation_sec: Optional[float] = None
     vapor_flow_relaxation_sec: Optional[float] = None
+    conductance_vflow_nominal_hi_ratio: Optional[float] = None
     enable_liquid_hydraulic_override: Optional[bool] = None
     liquid_hydraulic_override_alpha: Optional[float] = None
 
@@ -706,7 +707,7 @@ def _resolve_startup_hydraulic_sequence_step(
     if p_base not in ("spec", "hydraulic"):
         p_base = "spec"
     v_base = str(base_inputs.vapor_flow_model or "profile").strip().lower()
-    if v_base not in ("profile", "energy"):
+    if v_base not in ("profile", "energy", "conductance"):
         v_base = "profile"
 
     liq_enabled = bool(base_inputs.enable_liquid_hydraulic_override)
@@ -727,7 +728,7 @@ def _resolve_startup_hydraulic_sequence_step(
 
     p_eff = "hydraulic"
     v_eff = v_base
-    if v_base == "energy" and t_now < t_energy:
+    if v_base in ("energy", "conductance") and t_now < t_energy:
         v_eff = "profile"
 
     if (not liq_enabled) or liq_alpha_max <= 0.0:
@@ -836,7 +837,7 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     vapor_flow_model = str(_spec_get(specs, "Vapor Flow Model") or "").strip().lower()
     if not vapor_flow_model:
         vapor_flow_model = "energy" if pressure_model == "hydraulic" else "profile"
-    if vapor_flow_model not in ("profile", "energy"):
+    if vapor_flow_model not in ("profile", "energy", "conductance"):
         vapor_flow_model = "profile"
 
     runtime_mode = _normalize_runtime_mode(getattr(cfg, "runtime_mode", None), default="legacy")
@@ -893,6 +894,20 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         tau_vflow = float(cfg.vapor_flow_relaxation_sec)
     if tau_vflow is not None and (not np.isfinite(tau_vflow) or tau_vflow <= 0.0):
         tau_vflow = None
+
+    conductance_vflow_nominal_hi_ratio = _spec_float(
+        specs,
+        "Conductance Vapor Nominal Hi Ratio",
+        "Conductance Vflow Nominal Hi Ratio",
+        "Conductance Vapor Profile Hi Ratio",
+    )
+    if cfg.conductance_vflow_nominal_hi_ratio is not None:
+        conductance_vflow_nominal_hi_ratio = float(cfg.conductance_vflow_nominal_hi_ratio)
+    if (
+        conductance_vflow_nominal_hi_ratio is not None
+        and (not np.isfinite(conductance_vflow_nominal_hi_ratio) or conductance_vflow_nominal_hi_ratio <= 0.0)
+    ):
+        conductance_vflow_nominal_hi_ratio = None
 
     reb_nbr_hi = _spec_float(
         specs,
@@ -1339,6 +1354,11 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             float(tau_top_pT) if tau_top_pT is not None else None
         ),
         vapor_flow_relaxation_sec=(float(tau_vflow) if tau_vflow is not None else None),
+        conductance_vflow_nominal_hi_ratio=(
+            float(conductance_vflow_nominal_hi_ratio)
+            if conductance_vflow_nominal_hi_ratio is not None
+            else None
+        ),
         enforce_top_pressure_ordering=bool(cfg.enforce_top_pressure_ordering),
         top_pressure_ordering_margin_psi=float(top_pressure_ordering_margin_psi),
         reboiler_neighbor_vflow_hi_ratio=(float(reb_nbr_hi) if reb_nbr_hi is not None else 1.20),
@@ -4480,6 +4500,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     ),
                     top_drum_pressure_T_prev_F=last_top_drum_pressure_T,
                     vapor_flow_relaxation_sec=base_inputs.vapor_flow_relaxation_sec,
+                    conductance_vflow_nominal_hi_ratio=(
+                        base_inputs.conductance_vflow_nominal_hi_ratio
+                    ),
                     reboiler_neighbor_vflow_hi_ratio=base_inputs.reboiler_neighbor_vflow_hi_ratio,
                     reboiler_neighbor_vflow_lo_ratio=base_inputs.reboiler_neighbor_vflow_lo_ratio,
                     thermo_refresh_dT_F=base_inputs.thermo_refresh_dT_F,
@@ -4553,7 +4576,12 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     top_drum_psv_gain_lbmolps_per_psi=base_inputs.top_drum_psv_gain_lbmolps_per_psi,
                     top_drum_psv_max_vent_lbmolps=base_inputs.top_drum_psv_max_vent_lbmolps,
                     # Do not run energy-based V closure without live thermo refresh.
-                    vapor_flow_model="profile",
+                    # Pressure-conductance closure does not require fresh thermo.
+                    vapor_flow_model=(
+                        "profile"
+                        if str(vapor_flow_model_step).strip().lower() == "energy"
+                        else str(vapor_flow_model_step)
+                    ),
                     dry_tray_K=base_inputs.dry_tray_K,
                     vapor_holdup_relaxation_sec=base_inputs.vapor_holdup_relaxation_sec,
                     hydraulic_pressure_relaxation_sec=base_inputs.hydraulic_pressure_relaxation_sec,
@@ -4562,6 +4590,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     ),
                     top_drum_pressure_T_prev_F=last_top_drum_pressure_T,
                     vapor_flow_relaxation_sec=base_inputs.vapor_flow_relaxation_sec,
+                    conductance_vflow_nominal_hi_ratio=(
+                        base_inputs.conductance_vflow_nominal_hi_ratio
+                    ),
                     reboiler_neighbor_vflow_hi_ratio=base_inputs.reboiler_neighbor_vflow_hi_ratio,
                     reboiler_neighbor_vflow_lo_ratio=base_inputs.reboiler_neighbor_vflow_lo_ratio,
                     thermo_refresh_dT_F=base_inputs.thermo_refresh_dT_F,
@@ -5047,6 +5078,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     p.add_argument("--vapor-flow-relaxation-sec", dest="vapor_flow_relaxation_sec", type=float, default=None)
     p.add_argument(
+        "--conductance-vflow-nominal-hi-ratio",
+        dest="conductance_vflow_nominal_hi_ratio",
+        type=float,
+        default=None,
+        help=(
+            "Conductance-mode clamp: max internal vapor outflow as ratio of "
+            "nominal profile V (e.g., 1.5)."
+        ),
+    )
+    p.add_argument(
         "--disable-startup-thermo-conditioning",
         dest="enable_startup_thermo_conditioning",
         action="store_false",
@@ -5325,6 +5366,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         hydraulic_pressure_relaxation_sec=args.hydraulic_pressure_relaxation_sec,
         top_drum_pressure_temperature_relaxation_sec=args.top_drum_pressure_temperature_relaxation_sec,
         vapor_flow_relaxation_sec=args.vapor_flow_relaxation_sec,
+        conductance_vflow_nominal_hi_ratio=args.conductance_vflow_nominal_hi_ratio,
         enable_liquid_hydraulic_override=args.enable_liquid_hydraulic_override,
         liquid_hydraulic_override_alpha=args.liquid_hydraulic_override_alpha,
         reflux_lbmolph=args.reflux_lbmolph,

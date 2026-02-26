@@ -42,6 +42,8 @@ def test_load_case_from_excel_smoke():
     assert "Top Drum Diameter (ft)" in c.specs
     assert "Top Drum Length (ft)" in c.specs
     assert "Top Drum Liquid Fraction (-)" in c.specs
+    assert "Overhead Vapor Line Volume (ft3)" in c.specs
+    assert "Condenser Vapor Volume (ft3)" in c.specs
     if c.specs["Thermo Refresh dT (F)"] is not None:
         assert float(c.specs["Thermo Refresh dT (F)"]) > 0.0
     # Geometry table is optional. If present, loader should parse and normalize void fraction.

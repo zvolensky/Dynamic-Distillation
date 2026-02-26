@@ -2,9 +2,75 @@
 
 Date: 2026-02-19 (local)
 
+Status addendum: 2026-02-23 (local)
+
 ## Problem Statement
 
 The dynamic model deviates strongly from the ChemSep-provided steady-state initialization, even when initialized with matching stage temperatures, pressures, compositions, and internal flow profiles. A representative symptom is upper-column vapor composition drift (for example, stage-2 `y_n_Butane` trending toward feed-like values), which should not occur under a parity-consistent startup.
+
+## Executive Summary (2026-02-23)
+
+This is the current high-level DD-011 status.
+
+Current status:
+1. The model no longer shows an immediate startup blow-up in the corrected overhead-capacitance case.
+2. It remains off parity over time; dominant divergence appears later, not at `t=0`.
+3. The highest-impact instability window is in stages 16-18 around `~90-112 s`, followed by late pressure-loop chatter.
+
+Most recent evidence run:
+1. Case/workbook: `distillation_column_template_overhead_caps.xlsx`
+2. Runtime: `legacy`, `dt=0.2 s`, `300 s`, `log-every=1`
+3. Controllers ON: level + pressure (`MV=condenser-duty`) + distillate composition + bottoms composition
+4. Logs:
+   - `logs/overhead_totalcond_ctrl_on/column_summary_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/column_profile_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/overall_derivative_metrics_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/stage_derivative_metrics_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/startup_t_p_l_v_ml_mv_derivatives_20260223_133146.csv`
+
+Key numbers:
+1. Max tray mass residual (0..300 s): `7263.26 lbmol/h` (stage 18, `t~94.6 s`).
+2. Top pressure drift: `220.44 -> 236.92 psia` (`+16.48 psia` in 300 s).
+3. Peak hydraulic-rate derivatives:
+   - `|dL_out_hyd/dt|`: `2818.70 lbmol/h/s` (stage 16, `t~89.4 s`)
+   - `|dV_out/dt|`: `334.66 lbmol/h/s` (stage 18, `t~112.2 s`)
+4. Startup derivatives are elevated but moderate on a relative basis:
+   - `t=0.0 s`: max `|dL/dt|=819.84`, max `|dV/dt|=129.13`
+   - `0.0->0.2 s` relative change: liquid max about `1.01%`, vapor max about `0.34%`
+
+Interpretation:
+1. Startup mismatch is no longer the main failure signal.
+2. The root mechanism remains structural hydraulic/pressure/vapor coupling.
+3. Controllers contribute but are not the sole driver.
+4. Startup sequence testing exists historically, but not yet as an apples-to-apples re-test on the corrected 2026-02-23 case.
+
+## Current State Addendum (2026-02-23)
+
+Latest high-frequency diagnostics (corrected ChemSep-aligned case, controllers on, `dt=0.2 s`, `log-every=1`) are in:
+
+1. `logs/overhead_totalcond_ctrl_on/column_summary_20260223_133146.csv`
+2. `logs/overhead_totalcond_ctrl_on/column_profile_20260223_133146.csv`
+3. `logs/overhead_totalcond_ctrl_on/overall_derivative_metrics_20260223_133146.csv`
+4. `logs/overhead_totalcond_ctrl_on/stage_derivative_metrics_20260223_133146.csv`
+5. `logs/overhead_totalcond_ctrl_on/startup_t_p_l_v_ml_mv_derivatives_20260223_133146.csv`
+
+Key updates:
+
+1. Startup rates are elevated but not catastrophic relative to profile scale:
+   - At `t=0.0 s`, max `|dL/dt| ~= 819.84 lbmol/h/s` (stage 19), max `|dV/dt| ~= 129.13 lbmol/h/s` (stage 12).
+   - Startup relative flow change (`0.0 -> 0.2 s`) is modest: liquid max about `1.01%` and vapor max about `0.34%`.
+2. The larger divergence develops later (not at startup):
+   - Max tray mass residual (0..300 s) about `7263.26 lbmol/h` at stage 18 around `94.6 s`.
+   - Peak hydraulic slew occurs around stages 16-18:
+     - max `|dL_out_hyd/dt| ~= 2818.70 lbmol/h/s` (stage 16, `~89.4 s`)
+     - max `|dV_out/dt| ~= 334.66 lbmol/h/s` (stage 18, `~112.2 s`)
+3. Pressure-loop interaction remains a late amplifier:
+   - `P_top` drifts from `220.44` to `236.92 psia` (`+16.48 psia` in 300 s).
+   - Late-window condenser-duty chatter is large (`~ -50.8` to `-54.2 MMBtu/h`, 290-300 s).
+4. Interpretation update:
+   - The root-cause statement remains valid (hydraulic-mode structural coupling dominates).
+   - Current evidence indicates the main destabilizing window is mid-run hydraulic acceleration and pressure-MV chatter, not a gross `t=0` initialization shock.
+5. Startup hydraulic sequencing was previously tested, but those tests were on older workbook/sign settings; it has not yet been re-run apples-to-apples on the corrected 2026-02-23 case.
 
 ## Primary Symptoms Observed
 

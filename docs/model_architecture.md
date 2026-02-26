@@ -122,6 +122,12 @@ Implication:
 - Pressure-vapor coupling is effectively one-step lagged in explicit time marching.
 - This is a key reason stiff `P/V` interactions can require damping or additional safeguards.
 
+Optional mitigation now available in runner:
+- inner fixed-point `P/V` coupling per timestep (`--pv-inner-max-iter` with
+  `--pv-inner-p-tol-psia` and `--pv-inner-v-tol-lbmolph`).
+- this is applied only when pressure mode is hydraulic and vapor-flow mode is
+  energy or conductance.
+
 ## 7) Runtime Modes
 
 Configured via `--runtime-mode` in `dynamic_run_scaffold_v1.py`.
@@ -194,9 +200,5 @@ Duplicate command identity:
 
 ## 12) Future Architecture Options
 
-Pragmatic near-term option:
-- add an inner `P-V` coupled iteration per timestep to reduce one-step lag effects.
-
 Larger refactor option:
 - move to a broader implicit simultaneous solve (DAE/NL system across pressure, vapor flow, energy, and phase terms).
-

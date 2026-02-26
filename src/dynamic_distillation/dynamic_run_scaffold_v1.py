@@ -482,6 +482,9 @@ class RunnerConfig:
     top_drum_pressure_temperature_relaxation_sec: Optional[float] = None
     vapor_flow_relaxation_sec: Optional[float] = None
     conductance_vflow_nominal_hi_ratio: Optional[float] = None
+    pv_inner_max_iter: int = 1
+    pv_inner_p_tol_psia: Optional[float] = 0.05
+    pv_inner_v_tol_lbmolph: Optional[float] = 25.0
     enable_liquid_hydraulic_override: Optional[bool] = None
     liquid_hydraulic_override_alpha: Optional[float] = None
 
@@ -1042,6 +1045,44 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     ):
         top_psv_max_vent_lbmolps = None
 
+    overhead_line_vapor_volume_ft3 = _spec_float(
+        specs,
+        "Overhead Vapor Line Volume (ft3)",
+        "Overhead Vapour Line Volume (ft3)",
+        "Overhead Line Vapor Volume (ft3)",
+        "Overhead Line Volume (ft3)",
+    )
+    if (
+        overhead_line_vapor_volume_ft3 is not None
+        and ((not np.isfinite(overhead_line_vapor_volume_ft3)) or overhead_line_vapor_volume_ft3 < 0.0)
+    ):
+        overhead_line_vapor_volume_ft3 = None
+
+    condenser_vapor_volume_ft3 = _spec_float(
+        specs,
+        "Condenser Vapor Volume (ft3)",
+        "Condenser Vapour Volume (ft3)",
+        "Condenser Vapor Space (ft3)",
+        "Condenser Vapour Space (ft3)",
+    )
+    if (
+        condenser_vapor_volume_ft3 is not None
+        and ((not np.isfinite(condenser_vapor_volume_ft3)) or condenser_vapor_volume_ft3 < 0.0)
+    ):
+        condenser_vapor_volume_ft3 = None
+
+    overhead_vapor_adders_ft3 = 0.0
+    if overhead_line_vapor_volume_ft3 is not None:
+        overhead_vapor_adders_ft3 += float(overhead_line_vapor_volume_ft3)
+    if condenser_vapor_volume_ft3 is not None:
+        overhead_vapor_adders_ft3 += float(condenser_vapor_volume_ft3)
+    condenser_type_txt = str(
+        _spec_get(specs, "Condenser Type")
+        or getattr(getattr(col, "duties", None), "condenser_type", "")
+        or ""
+    ).strip().lower()
+    is_total_condenser = condenser_type_txt.startswith("total")
+
     top_drum_total_volume_ft3 = cfg.top_drum_total_volume_ft3
     if top_drum_total_volume_ft3 is None:
         top_drum_total_volume_ft3 = _spec_float(
@@ -1238,6 +1279,21 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         (not np.isfinite(top_drum_total_volume_ft3)) or top_drum_total_volume_ft3 <= 0.0
     ):
         top_drum_total_volume_ft3 = None
+    if overhead_vapor_adders_ft3 > 0.0:
+        if is_total_condenser:
+            # For total condensers, pressure-side vapor capacitance is overhead
+            # line + condenser space; downstream drum vapor is decoupled.
+            top_drum_total_volume_ft3 = None
+            top_drum_vapor_volume_ft3 = float(overhead_vapor_adders_ft3)
+        else:
+            # For non-total condenser representations, add vapor-only capacitance
+            # on top of any drum-derived vapor-space volume.
+            if top_drum_total_volume_ft3 is not None:
+                top_drum_total_volume_ft3 = float(top_drum_total_volume_ft3) + float(overhead_vapor_adders_ft3)
+            if top_drum_vapor_volume_ft3 is not None:
+                top_drum_vapor_volume_ft3 = float(top_drum_vapor_volume_ft3) + float(overhead_vapor_adders_ft3)
+            elif top_drum_total_volume_ft3 is None:
+                top_drum_vapor_volume_ft3 = float(overhead_vapor_adders_ft3)
     if (
         top_drum_total_volume_ft3 is not None
         and top_drum_vapor_volume_ft3 is not None
@@ -1529,6 +1585,160 @@ def _pressure_diag_psia(
         pass
 
     return P
+
+
+def _as_stage_vector(
+    arr: Optional[np.ndarray],
+    n_stages: int,
+    *,
+    positive_only: bool = False,
+) -> Optional[np.ndarray]:
+    if arr is None:
+        return None
+    try:
+        out = np.asarray(arr, dtype=float).reshape((int(n_stages),)).copy()
+    except Exception:
+        return None
+    if out.size != int(n_stages):
+        return None
+    valid = np.isfinite(out)
+    if positive_only:
+        valid = valid & (out > 0.0)
+    if not np.any(valid):
+        return None
+    return out
+
+
+def _diag_stage_vector(
+    diag: Dict[str, np.ndarray],
+    key: str,
+    n_stages: int,
+    *,
+    positive_only: bool = False,
+) -> Optional[np.ndarray]:
+    if key not in diag:
+        return None
+    return _as_stage_vector(diag.get(key), n_stages, positive_only=positive_only)
+
+
+def _max_abs_delta(a: Optional[np.ndarray], b: Optional[np.ndarray], *, positive_only: bool = False) -> float:
+    if a is None or b is None:
+        return float("nan")
+    try:
+        aa = np.asarray(a, dtype=float).reshape((-1,))
+        bb = np.asarray(b, dtype=float).reshape((-1,))
+    except Exception:
+        return float("nan")
+    if aa.size != bb.size or aa.size == 0:
+        return float("nan")
+    mask = np.isfinite(aa) & np.isfinite(bb)
+    if positive_only:
+        mask = mask & (aa > 0.0) & (bb > 0.0)
+    if not np.any(mask):
+        return float("nan")
+    return float(np.max(np.abs(aa[mask] - bb[mask])))
+
+
+def _column_rhs_with_inner_pv_coupling(
+    *,
+    t_s: float,
+    y: np.ndarray,
+    col: ColumnSpec,
+    layout: StateVectorLayout,
+    inputs: ColumnInputs,
+    max_iter: int,
+    p_tol_psia: Optional[float],
+    v_tol_lbmolph: Optional[float],
+) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
+    """
+    Fixed-point inner coupling for pressure and vapor flow within one timestep.
+
+    This iterates RHS evaluation by feeding the newly computed tray pressure and
+    vapor outflow back as `P_tray_prev` and `V_out_prev_lbmolph` before the next
+    inner pass. It is intentionally lightweight and keeps the outer integrator
+    explicit.
+    """
+    try:
+        n_iter_req = int(max_iter)
+    except Exception:
+        n_iter_req = 1
+    n_iter_req = max(n_iter_req, 1)
+
+    if p_tol_psia is not None:
+        try:
+            p_tol_psia = float(p_tol_psia)
+        except Exception:
+            p_tol_psia = None
+        if p_tol_psia is not None and ((not np.isfinite(p_tol_psia)) or p_tol_psia <= 0.0):
+            p_tol_psia = None
+    if v_tol_lbmolph is not None:
+        try:
+            v_tol_lbmolph = float(v_tol_lbmolph)
+        except Exception:
+            v_tol_lbmolph = None
+        if v_tol_lbmolph is not None and ((not np.isfinite(v_tol_lbmolph)) or v_tol_lbmolph <= 0.0):
+            v_tol_lbmolph = None
+
+    n_stages = int(getattr(col, "n_stages", 0))
+    inputs_iter = inputs
+    p_prev = _as_stage_vector(inputs.P_tray_prev, n_stages, positive_only=True)
+    v_prev = _as_stage_vector(inputs.V_out_prev_lbmolph, n_stages, positive_only=False)
+
+    converged = False
+    dp_last = float("nan")
+    dv_last = float("nan")
+    iter_count = 0
+    dydt = np.zeros_like(np.asarray(y, dtype=float))
+    diag: Dict[str, np.ndarray] = {}
+
+    for it in range(n_iter_req):
+        dydt, diag = column_rhs(t_s, y, col, layout, inputs=inputs_iter)
+        iter_count = int(it + 1)
+
+        p_next = _diag_stage_vector(diag, "P_psia_hyd", n_stages, positive_only=True)
+        if p_next is None:
+            p_next = _diag_stage_vector(diag, "P_psia_diag", n_stages, positive_only=True)
+        v_next = _diag_stage_vector(diag, "V_out_lbmolph", n_stages, positive_only=False)
+
+        dp_last = _max_abs_delta(p_next, p_prev, positive_only=True)
+        dv_last = _max_abs_delta(v_next, v_prev, positive_only=False)
+
+        if it >= 1:
+            p_ok = True if p_tol_psia is None else (np.isfinite(dp_last) and dp_last <= float(p_tol_psia))
+            v_ok = True if v_tol_lbmolph is None else (np.isfinite(dv_last) and dv_last <= float(v_tol_lbmolph))
+            if p_ok and v_ok:
+                converged = True
+                break
+
+        if it >= (n_iter_req - 1):
+            break
+
+        updates: Dict[str, Any] = {}
+        if p_next is not None:
+            updates["P_tray_prev"] = np.asarray(p_next, dtype=float).copy()
+            p_prev = np.asarray(p_next, dtype=float).copy()
+        if v_next is not None:
+            updates["V_out_prev_lbmolph"] = np.asarray(v_next, dtype=float).copy()
+            v_prev = np.asarray(v_next, dtype=float).copy()
+        z_next = _diag_stage_vector(diag, "Z_tray", n_stages, positive_only=True)
+        if z_next is not None:
+            updates["Zfac_prev"] = np.asarray(z_next, dtype=float).copy()
+        if "T_top_drum_pressure_used_F" in diag:
+            try:
+                top_t = float(np.asarray(diag["T_top_drum_pressure_used_F"], dtype=float).reshape((-1,))[0])
+                if np.isfinite(top_t):
+                    updates["top_drum_pressure_T_prev_F"] = float(top_t)
+            except Exception:
+                pass
+        if not updates:
+            break
+        inputs_iter = replace(inputs_iter, **updates)
+
+    diag["pv_inner_iter_count"] = np.array([float(iter_count)], dtype=float)
+    diag["pv_inner_converged"] = np.array([1.0 if converged else 0.0], dtype=float)
+    diag["pv_inner_dp_max_psia"] = np.array([float(dp_last)], dtype=float)
+    diag["pv_inner_dv_max_lbmolph"] = np.array([float(dv_last)], dtype=float)
+    return dydt, diag
 
 
 def _initialize_vapor_holdup_from_spec_pressure(
@@ -3106,6 +3316,30 @@ def _profile_rows(
             stage_mass_resid_sum_lbmolps = float(np.asarray(diag["stage_mass_resid_sum_lbmolps"], dtype=float).reshape((-1,))[0])
         except Exception:
             stage_mass_resid_sum_lbmolps = np.nan
+    pv_inner_iter_count = np.nan
+    if "pv_inner_iter_count" in diag:
+        try:
+            pv_inner_iter_count = float(np.asarray(diag["pv_inner_iter_count"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            pv_inner_iter_count = np.nan
+    pv_inner_converged = np.nan
+    if "pv_inner_converged" in diag:
+        try:
+            pv_inner_converged = float(np.asarray(diag["pv_inner_converged"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            pv_inner_converged = np.nan
+    pv_inner_dp_max_psia = np.nan
+    if "pv_inner_dp_max_psia" in diag:
+        try:
+            pv_inner_dp_max_psia = float(np.asarray(diag["pv_inner_dp_max_psia"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            pv_inner_dp_max_psia = np.nan
+    pv_inner_dv_max_lbmolph = np.nan
+    if "pv_inner_dv_max_lbmolph" in diag:
+        try:
+            pv_inner_dv_max_lbmolph = float(np.asarray(diag["pv_inner_dv_max_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            pv_inner_dv_max_lbmolph = np.nan
     T_sump = None
     if layout.include_bottom and "bottom_T_f" in u:
         try:
@@ -3558,6 +3792,30 @@ def _summary_row(
             stage_mass_resid_sum_lbmolps = float(np.asarray(diag["stage_mass_resid_sum_lbmolps"], dtype=float).reshape((-1,))[0])
         except Exception:
             stage_mass_resid_sum_lbmolps = np.nan
+    pv_inner_iter_count = np.nan
+    if "pv_inner_iter_count" in diag:
+        try:
+            pv_inner_iter_count = float(np.asarray(diag["pv_inner_iter_count"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            pv_inner_iter_count = np.nan
+    pv_inner_converged = np.nan
+    if "pv_inner_converged" in diag:
+        try:
+            pv_inner_converged = float(np.asarray(diag["pv_inner_converged"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            pv_inner_converged = np.nan
+    pv_inner_dp_max_psia = np.nan
+    if "pv_inner_dp_max_psia" in diag:
+        try:
+            pv_inner_dp_max_psia = float(np.asarray(diag["pv_inner_dp_max_psia"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            pv_inner_dp_max_psia = np.nan
+    pv_inner_dv_max_lbmolph = np.nan
+    if "pv_inner_dv_max_lbmolph" in diag:
+        try:
+            pv_inner_dv_max_lbmolph = float(np.asarray(diag["pv_inner_dv_max_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            pv_inner_dv_max_lbmolph = np.nan
 
     if "P_psia_diag" in diag:
         P_diag = np.asarray(diag["P_psia_diag"], dtype=float).reshape((N,))
@@ -3668,6 +3926,10 @@ def _summary_row(
         "global_mass_closure_error_lbmolph": float(global_mass_closure_error_lbmolph) if np.isfinite(global_mass_closure_error_lbmolph) else np.nan,
         "global_mass_closure_cum_lbmol": float(global_mass_closure_cum_lbmol) if np.isfinite(global_mass_closure_cum_lbmol) else np.nan,
         "stage_mass_resid_sum_lbmolps": float(stage_mass_resid_sum_lbmolps) if np.isfinite(stage_mass_resid_sum_lbmolps) else np.nan,
+        "pv_inner_iter_count": float(pv_inner_iter_count) if np.isfinite(pv_inner_iter_count) else np.nan,
+        "pv_inner_converged": float(pv_inner_converged) if np.isfinite(pv_inner_converged) else np.nan,
+        "pv_inner_dp_max_psia": float(pv_inner_dp_max_psia) if np.isfinite(pv_inner_dp_max_psia) else np.nan,
+        "pv_inner_dv_max_lbmolph": float(pv_inner_dv_max_lbmolph) if np.isfinite(pv_inner_dv_max_lbmolph) else np.nan,
         # New: overall stream flow scalars
         "F_lbmolph": float(feed_tag.flow_lbmolph) if feed_tag.flow_lbmolph is not None else np.nan,
         "D_lbmolph": float(dist_tag.flow_lbmolph) if dist_tag.flow_lbmolph is not None else np.nan,
@@ -4617,7 +4879,21 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     reb_beta_prev=last_reb_beta,
                 )
 
-            dydt, diag = column_rhs(t_s, y, col, layout, inputs=inputs)
+            pv_inner_iters = int(getattr(cfg, "pv_inner_max_iter", 1))
+            if str(pressure_model_step).strip().lower() != "hydraulic":
+                pv_inner_iters = 1
+            if str(vapor_flow_model_step).strip().lower() not in ("energy", "conductance"):
+                pv_inner_iters = 1
+            dydt, diag = _column_rhs_with_inner_pv_coupling(
+                t_s=float(t_s),
+                y=y,
+                col=col,
+                layout=layout,
+                inputs=inputs,
+                max_iter=int(pv_inner_iters),
+                p_tol_psia=getattr(cfg, "pv_inner_p_tol_psia", None),
+                v_tol_lbmolph=getattr(cfg, "pv_inner_v_tol_lbmolph", None),
+            )
             if (
                 step_condenser_duty_cmd_btu_per_h is not None
                 and np.isfinite(float(step_condenser_duty_cmd_btu_per_h))
@@ -5088,6 +5364,30 @@ def main(argv: Optional[List[str]] = None) -> int:
         ),
     )
     p.add_argument(
+        "--pv-inner-max-iter",
+        dest="pv_inner_max_iter",
+        type=int,
+        default=1,
+        help=(
+            "Inner fixed-point iterations per timestep for pressure-vapor coupling "
+            "(applied only when pressure=hydraulic and vapor-flow=energy/conductance)."
+        ),
+    )
+    p.add_argument(
+        "--pv-inner-p-tol-psia",
+        dest="pv_inner_p_tol_psia",
+        type=float,
+        default=0.05,
+        help="Convergence tolerance for inner pressure iteration (psia).",
+    )
+    p.add_argument(
+        "--pv-inner-v-tol-lbmolph",
+        dest="pv_inner_v_tol_lbmolph",
+        type=float,
+        default=25.0,
+        help="Convergence tolerance for inner vapor-flow iteration (lbmol/h).",
+    )
+    p.add_argument(
         "--disable-startup-thermo-conditioning",
         dest="enable_startup_thermo_conditioning",
         action="store_false",
@@ -5367,6 +5667,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         top_drum_pressure_temperature_relaxation_sec=args.top_drum_pressure_temperature_relaxation_sec,
         vapor_flow_relaxation_sec=args.vapor_flow_relaxation_sec,
         conductance_vflow_nominal_hi_ratio=args.conductance_vflow_nominal_hi_ratio,
+        pv_inner_max_iter=int(args.pv_inner_max_iter),
+        pv_inner_p_tol_psia=args.pv_inner_p_tol_psia,
+        pv_inner_v_tol_lbmolph=args.pv_inner_v_tol_lbmolph,
         enable_liquid_hydraulic_override=args.enable_liquid_hydraulic_override,
         liquid_hydraulic_override_alpha=args.liquid_hydraulic_override_alpha,
         reflux_lbmolph=args.reflux_lbmolph,

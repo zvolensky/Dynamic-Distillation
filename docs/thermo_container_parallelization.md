@@ -35,6 +35,7 @@ This document summarizes what is implemented today and what is still exploratory
 - Use `--thermo table` for simplest stable tabular runs.
 - Use `--thermo table-pool` when stage flash work dominates and CPU parallelism is needed.
 - Keep `--thermo dwsim` for highest parity path when performance is secondary.
+- Empirical tuning notes for pool settings are documented in `docs/thermo_pool_workers_chunks_findings_2026-02-22.md`.
 
 **Future direction (if needed)**
 

@@ -51,6 +51,9 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 | `--hydraulic-pressure-relaxation-sec` | float | `None` | Override hydraulic tray-pressure relaxation time constant; `<= 0` disables hydraulic pressure low-pass. |
 | `--top-drum-pressure-temperature-relaxation-sec` | float | `None` | Override top-drum pressure temperature lag time constant; `<= 0` disables this lag, `None` uses case/default behavior. |
 | `--vapor-flow-relaxation-sec` | float | `None` | Override vapor-flow relaxation time constant; `<= 0` disables relaxation. |
+| `--pv-inner-max-iter` | int | `1` | Inner fixed-point iterations per timestep for pressure-vapor coupling; active only when `pressure=hydraulic` and `vapor-flow=energy/conductance`. |
+| `--pv-inner-p-tol-psia` | float | `0.05` | Convergence tolerance for inner pressure iteration (`psia`). |
+| `--pv-inner-v-tol-lbmolph` | float | `25.0` | Convergence tolerance for inner vapor-flow iteration (`lbmol/h`). |
 | `--reflux` | float | `None` | Override reflux (`lbmol/h`); if omitted uses case value. |
 | `--boilup` | float | `None` | Override boilup (`lbmol/h`); if omitted uses case value. |
 | `--condenser-duty-mode` | `total-condense` \| `specified` | `total-condense` | Condenser duty model. |

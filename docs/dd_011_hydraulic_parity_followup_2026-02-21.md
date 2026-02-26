@@ -7,6 +7,46 @@ Related root-cause report: `docs/dd_011_hydraulic_parity_drift_report_2026-02-19
 
 Document findings collected after the 2026-02-19 DD-011 root-cause write-up and record the implemented simplification path for ongoing diagnostics.
 
+## Executive Summary (2026-02-23)
+
+This section is the current decision snapshot for DD-011.
+
+Current status:
+1. The model no longer exhibits immediate startup blow-up in the corrected overhead-capacitance case, but it is not stable enough for parity-grade dynamic confidence.
+2. The dominant off-course behavior develops after startup, concentrated around stages 16-18 in the `~90-112 s` window.
+3. Pressure control using condenser duty is functional but shows late high-frequency chatter that amplifies drift.
+
+Most recent evidence run:
+1. Case: `distillation_column_template_overhead_caps.xlsx`
+2. Run: `legacy`, `dt=0.2 s`, `300 s`, `log-every=1`, level + pressure + distillate composition + bottoms composition ON.
+3. Artifacts:
+   - `logs/overhead_totalcond_ctrl_on/column_summary_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/column_profile_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/overall_derivative_metrics_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/stage_derivative_metrics_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/startup_t_p_l_v_ml_mv_derivatives_20260223_133146.csv`
+
+Key numbers:
+1. Max tray mass residual (0..300 s): `7263.26 lbmol/h` (stage 18, `t~94.6 s`).
+2. Top pressure drift: `220.44 -> 236.92 psia` (`+16.48 psia` in 300 s).
+3. Peak hydraulic-rate derivatives:
+   - `|dL_out_hyd/dt|`: `2818.70 lbmol/h/s` (stage 16, `t~89.4 s`)
+   - `|dV_out/dt|`: `334.66 lbmol/h/s` (stage 18, `t~112.2 s`)
+4. Startup derivatives are elevated but moderate on a relative basis:
+   - `t=0.0 s` max `|dL/dt|=819.84`, max `|dV/dt|=129.13`
+   - startup relative change (`0.0->0.2 s`): liquid max about `1.01%`, vapor max about `0.34%`
+
+Interpretation:
+1. Startup mismatch is no longer the primary failure signal.
+2. Main instability driver is mid-run hydraulic acceleration (stages 16-18), with pressure-MV chatter as a secondary amplifier.
+3. Controllers contribute to drift but are not the sole root cause.
+4. Startup hydraulic sequencing was tested historically, but not yet re-tested apples-to-apples on the corrected 2026-02-23 case and current pressure-gain sign convention.
+
+Immediate next actions:
+1. Run a strict A/B startup-sequence test on `distillation_column_template_overhead_caps.xlsx` with identical controller settings and only sequence toggled.
+2. Dampen pressure-loop chatter using PV filtering and MV slew limits while preserving pressure authority.
+3. Run focused sensitivity around stages 16-18 (vapor/liquid capacitance and hydraulic parameters) and rank by reduction in `max |dL/dt|`, `max |dV/dt|`, and 300 s residual.
+
 ## New Findings
 
 1. The runner now has explicit runtime behavior modes:
@@ -16,13 +56,19 @@ Document findings collected after the 2026-02-19 DD-011 root-cause write-up and 
 2. Startup hydraulic sequencing is now intentionally bypassed in both simplified modes (`parity`, `hydraulic`) and remains applicable only in `legacy`.
 3. The simplified modes make parity diagnostics deterministic by removing hidden startup-mode transitions.
 4. Hydraulic+energy startup remains numerically stiff in short checks; the runner emits an explicit warning under `hydraulic` mode with `condenser-duty-mode=total-condense`.
+5. Current pressure-capacitance input now reads from Excel keys:
+   - `Overhead Vapor Line Volume (ft3)`
+   - `Condenser Vapor Volume (ft3)`
+6. For `Condenser Type = Total`, distillate-drum vapor space is excluded from pressure-side column capacitance; only overhead line + condenser vapor space are included.
+7. Verified on current case: `V_top_drum_vapor_ft3 = 156` for `56 ft3` overhead line + `100 ft3` condenser vapor volume.
+8. Startup hydraulic sequencing was tested previously, but those sequence runs used older workbook/sign settings and were not an apples-to-apples retest of the corrected 2026-02-23 case.
 
 ## Evidence Snapshot
 
 Code paths implementing the simplification:
 - `src/dynamic_distillation/dynamic_run_scaffold_v1.py` (`RunnerConfig.runtime_mode`, runtime-mode normalization/override, startup-sequence bypass, CLI `--runtime-mode`).
 
-Excel input snapshot used for current initialization:
+Excel input snapshot used for the original 2026-02-21 baseline:
 - Workbook: `distillation_column_template.xlsx`
 - Sheet: `Initial Conditions`
 - Columns: `Stage`, `Liquid Flow (lbmol/h)`, `Liquid Holdup (lbmol)`
@@ -71,6 +117,55 @@ Key output:
 
 Recent sequence-enabled runs before simplification path was enforced by mode presets are listed in:
 - `docs/experiment_ledger.md` (e.g., run IDs `20260220_211346`, `20260220_211652`, `20260220_212101`, `20260220_212636`).
+
+## Current State Update (2026-02-23, Corrected Overhead-Capacitance Case)
+
+Latest high-resolution run:
+
+1. Case/workbook: `distillation_column_template_overhead_caps.xlsx`
+2. Runtime: `legacy`, `dt=0.2 s`, `300 s`, `log-every=1`
+3. Controllers ON: level + pressure (`MV=condenser-duty`) + distillate composition + bottoms composition
+4. Logs:
+   - `logs/overhead_totalcond_ctrl_on/column_summary_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/column_profile_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/overall_derivative_metrics_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/stage_derivative_metrics_20260223_133146.csv`
+   - `logs/overhead_totalcond_ctrl_on/startup_t_p_l_v_ml_mv_derivatives_20260223_133146.csv`
+
+Key metrics (0..300 s):
+
+| Metric | Value |
+|---|---:|
+| Max tray mass residual (`lbmol/h`) | `7263.26` (stage 18, `t~94.6 s`) |
+| Max tray mass residual 0..60 s (`lbmol/h`) | `4456.20` (stage 18, `t~34.2 s`) |
+| Top pressure drift (`psia`) | `220.44 -> 236.92` (`+16.48`) |
+| Distillate C4 PV drift (`mol frac`) | `0.14689 -> 0.18408` (SP `0.09513`) |
+| Bottoms C3 PV drift (`mol frac`) | `0.04514 -> 0.07078` (SP `0.04757`) |
+| Peak `|dL_out_hyd/dt|` (`lbmol/h/s`) | `2818.70` (stage 16, `t~89.4 s`) |
+| Peak `|dV_out/dt|` (`lbmol/h/s`) | `334.66` (stage 18, `t~112.2 s`) |
+| Peak `|dP/dt|` (`psia/s`) | `4.092` (stage 19/20, `t~291.4 s`) |
+
+Startup derivative check (`forward dt=0.2 s`):
+
+| Time (`s`) | Max `|dL/dt|` (`lbmol/h/s`) | Stage | Max `|dV/dt|` (`lbmol/h/s`) | Stage |
+|---:|---:|---:|---:|---:|
+| 0.0 | 819.84 | 19 | 129.13 | 12 |
+| 0.2 | 775.16 | 19 | 126.98 | 12 |
+| 0.4 | 729.12 | 19 | 124.87 | 12 |
+
+Startup relative flow change (`0.0 -> 0.2 s`) is modest:
+1. Liquid max relative change about `1.01%` (stage 19).
+2. Vapor max relative change about `0.34%` (stage 12).
+
+Late pressure-MV chatter indicator (`290..300 s`):
+1. `P_top_ctrl_pv` range: `236.62..238.12 psia`.
+2. `Q_cond_cmd` range: `-54.19..-50.79 MMBtu/h`.
+
+Interpretation update:
+1. In the corrected case, startup derivatives are not the dominant instability driver.
+2. The main divergence develops later in the internal hydraulic zone (stages 16-18, ~90-112 s).
+3. Pressure-loop/condenser-duty chatter is a late amplifier.
+4. Controllers contribute to off-course behavior, but they are not the sole root mechanism.
 
 ## A/B Matrix (Updated Holdups, 300 s)
 
@@ -441,6 +536,8 @@ Controller 600 s artifact:
    - Use `parity` to test ChemSep-profile consistency without liquid-hydraulic replacement.
    - Use `hydraulic` to stress full dynamic hydraulics with explicit acknowledgment of stiffness risk.
 3. Sequencing is now a legacy transitional aid, not part of simplified diagnostic modes.
+4. With corrected ChemSep alignment and updated pressure-side vapor capacitance, the model is improved from prior blow-up cases but still shows material mid-run hydraulic acceleration and composition drift.
+5. Current evidence points to stage 16-18 hydraulic acceleration plus late pressure-MV chatter as the highest-impact stabilization targets.
 
 ## Operational Guidance
 
@@ -450,8 +547,13 @@ Controller 600 s artifact:
 
 ## Open Items
 
-1. Calibrate liquid and vapor hydraulic parameterization so full hydraulic mode reproduces the intended steady operating point (not just transiently stable behavior).
-2. Re-run longer hydraulic-mode cases with updated holdup assumptions and track residual trajectories against parity baseline.
-3. Decide whether DD-011 should remain a single issue with follow-ups or be split into:
+1. Run an apples-to-apples startup-sequence A/B on the corrected 2026-02-23 case:
+   - same workbook (`distillation_column_template_overhead_caps.xlsx`), same controller stack, same pressure gain sign convention.
+2. Dampen pressure-loop chatter while preserving control authority:
+   - evaluate PV filter and MV slew settings against `Q_cond` high-frequency switching.
+3. Target stage-16..18 hydraulic acceleration directly:
+   - test vapor/liquid capacitance and hydraulic-parameter sensitivity focused on that section.
+4. Re-run longer hydraulic-mode cases with updated assumptions and track residual trajectories against parity baseline.
+5. Decide whether DD-011 should remain a single issue with follow-ups or be split into:
    - liquid-hydraulic calibration
    - vapor-hydraulic/pressure-coupling stabilization

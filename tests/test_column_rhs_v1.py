@@ -2355,6 +2355,152 @@ def test_no_holdup_reboiler_sump_temperature_uses_energy_balance_not_bubblepoint
     assert rel < 0.2
 
 
+def test_no_holdup_reboiler_duty_flash_not_frozen_by_cached_state():
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            # Trigger no-holdup reboiler mode on stage N.
+            "M_L_lbmol": np.array([5.0, 0.0], dtype=float),
+            "streams": {},
+        }
+    )
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col2)
+    sl = layout.slices()
+    tray_T0 = np.asarray(y0[sl["tray_T_f"]], dtype=float).reshape((2,)).copy()
+    tray_T0[0] = 150.0
+    tray_T0[1] = 150.0
+    y0[sl["tray_T_f"]] = tray_T0
+
+    class LinearEnthalpyProvider:
+        # Simple monotonic enthalpy model for deterministic duty-flash behavior.
+        def flash_TP_full_F_psia(self, T_F, P_psia, z):
+            z = np.asarray(z, dtype=float).reshape((-1,))
+            z = z / max(float(np.sum(z)), 1e-300)
+            K = np.full_like(z, 0.5)
+            HL = float(T_F)
+            HV = float(T_F) + 100.0
+            return z, z, K, HL, HV
+
+    provider = LinearEnthalpyProvider()
+
+    base_inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=7200.0, boilup_lbmolph=None, bottoms_lbmolph=0.0),
+        thermo_provider=provider,
+        reboiler_mode="duty",
+        reboiler_duty_btu_per_h=36000.0,  # +10 BTU/s
+        reboiler_equilibrium=False,
+        condenser_duty_mode="specified",
+        condenser_duty_btu_per_h=0.0,
+    )
+    _dydt1, diag1 = column_rhs(0.0, y0, col2, layout, inputs=base_inputs)
+    T_reb_1 = float(np.asarray(diag1["reb_T_F"], dtype=float).reshape((-1,))[0])
+    beta_1 = float(np.asarray(diag1["reb_beta"], dtype=float).reshape((-1,))[0])
+    x_1 = np.asarray(diag1["reb_x"], dtype=float).reshape((2,))
+    y_1 = np.asarray(diag1["reb_y"], dtype=float).reshape((2,))
+
+    y1 = y0.copy()
+    tray_T1 = np.asarray(y1[sl["tray_T_f"]], dtype=float).reshape((2,)).copy()
+    tray_T1[0] = 250.0  # raise stage-N-1 inlet temperature significantly
+    y1[sl["tray_T_f"]] = tray_T1
+
+    inputs_step2 = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=7200.0, boilup_lbmolph=None, bottoms_lbmolph=0.0),
+        thermo_provider=provider,
+        reboiler_mode="duty",
+        reboiler_duty_btu_per_h=36000.0,
+        reboiler_equilibrium=False,
+        condenser_duty_mode="specified",
+        condenser_duty_btu_per_h=0.0,
+        reb_T_prev=float(T_reb_1),
+        reb_x_prev=x_1.copy(),
+        reb_y_prev=y_1.copy(),
+        reb_beta_prev=float(beta_1),
+    )
+    _dydt2, diag2 = column_rhs(1.0, y1, col2, layout, inputs=inputs_step2)
+    T_reb_2 = float(np.asarray(diag2["reb_T_F"], dtype=float).reshape((-1,))[0])
+    flash_ok_2 = float(np.asarray(diag2["reb_flash_ok"], dtype=float).reshape((-1,))[0])
+
+    # Cached state is allowed as a seed, but duty flash must re-solve from the
+    # updated inlet each step (i.e., no frozen reboiler temperature).
+    assert np.isfinite(T_reb_1)
+    assert np.isfinite(T_reb_2)
+    assert T_reb_2 > (T_reb_1 + 20.0)
+    assert flash_ok_2 >= 0.5
+
+
+def test_no_holdup_reboiler_skips_bubblepoint_temperature_closure(monkeypatch):
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            # Trigger no-holdup reboiler mode on stage N.
+            "M_L_lbmol": np.array([5.0, 0.0], dtype=float),
+            "streams": {},
+        }
+    )
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col2)
+    sl = layout.slices()
+    tray_T = np.asarray(y0[sl["tray_T_f"]], dtype=float).reshape((2,)).copy()
+    tray_T[1] = 220.0
+    y0[sl["tray_T_f"]] = tray_T
+
+    class FlatProvider:
+        def flash_TP_full_F_psia(self, T_F, P_psia, z):
+            z = np.asarray(z, dtype=float).reshape((-1,))
+            z = z / max(float(np.sum(z)), 1e-300)
+            K = np.full_like(z, 0.7)
+            return z, z, K, -1000.0, -500.0
+
+    bubble_calls = {"n": 0}
+
+    def _fake_bubble_point_T_F(**kwargs):
+        bubble_calls["n"] += 1
+
+        class _Res:
+            y = np.asarray(kwargs.get("x", [0.5, 0.5]), dtype=float)
+            K = np.ones_like(y, dtype=float)
+
+        return 168.0, _Res()
+
+    monkeypatch.setattr(rhs_module, "_bubble_point_T_F", _fake_bubble_point_T_F)
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=7200.0, boilup_lbmolph=11743.5, bottoms_lbmolph=0.0),
+        thermo_provider=FlatProvider(),
+        reboiler_mode="auto",
+        reboiler_equilibrium=True,  # should be ignored for no-holdup mode
+        condenser_duty_mode="specified",
+        condenser_duty_btu_per_h=0.0,
+    )
+    _dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+    T_reb = float(np.asarray(diag["reb_T_F"], dtype=float).reshape((-1,))[0])
+
+    # No-holdup reboiler should not run bubble-point closure.
+    assert bubble_calls["n"] == 0
+    assert abs(T_reb - 220.0) < 1e-9
+
+
 def test_hydraulic_pressure_profile_applies_fixed_condenser_pressure_drop():
     n = 3
     area = math.pi * (10.0 * 0.5) ** 2

@@ -502,6 +502,23 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     if top_liq_frac is not None and (top_liq_frac < 0.0 or top_liq_frac > 1.0):
         top_liq_frac = None
     specs["Top Drum Liquid Fraction (-)"] = top_liq_frac
+    # Optional overhead vapor-space adders used to augment top-end capacitance.
+    specs["Overhead Vapor Line Volume (ft3)"] = _first_optional_float(
+        [
+            "Overhead Vapor Line Volume (ft3)",
+            "Overhead Vapour Line Volume (ft3)",
+            "Overhead Line Vapor Volume (ft3)",
+            "Overhead Line Volume (ft3)",
+        ]
+    )
+    specs["Condenser Vapor Volume (ft3)"] = _first_optional_float(
+        [
+            "Condenser Vapor Volume (ft3)",
+            "Condenser Vapour Volume (ft3)",
+            "Condenser Vapor Space (ft3)",
+            "Condenser Vapour Space (ft3)",
+        ]
+    )
 
     # Module 8B: tau (optional)
     specs["Stage time constant [tau] (sec)"] = _get_optional_float(specs_df, "Stage time constant [tau] (sec)")

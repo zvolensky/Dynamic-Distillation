@@ -50,6 +50,8 @@ If `Streams` is missing or malformed, the loader continues with `streams={}`.
 | `Top Drum Diameter (ft)` | float | Optional; if paired with `Top Drum Length (ft)`, computes total drum volume (`pi/4*D^2*L`) |
 | `Top Drum Length (ft)` | float | Optional; used with diameter to compute total drum volume |
 | `Top Drum Liquid Fraction (-)` | float or % | Optional liquid fill fraction (`0..1` or `0..100`) for vapor-volume inference |
+| `Overhead Vapor Line Volume (ft3)` | float | Optional vapor-only add-on volume added to top-end vapor capacitance |
+| `Condenser Vapor Volume (ft3)` | float | Optional vapor-only add-on volume added to top-end vapor capacitance |
 | `Stage time constant [tau] (sec)` | float | Equilibrium relaxation tau; fallback for vapor holdup relaxation |
 | `Dry Tray K` | float | Hydraulic dry pressure drop coefficient |
 | `Vapor Holdup Relaxation (sec)` | float | Dynamic vapor holdup relaxation |
@@ -120,6 +122,7 @@ The loader also reads reflux-drum geometry aliases into canonical keys:
 - `Top Drum Total Volume (ft3)` (aliases include `Top Accumulator/Reflux/Distillate Drum Volume (ft3)`)
 - `Top Drum Diameter (ft)` and `Top Drum Length (ft)` (aliases include `Top Accumulator ...`, `Reflux Drum ...`, `Distillate Drum ...`)
 - `Top Drum Liquid Fraction (-)` (aliases include `... Liquid Volume Fraction`, `... Fill Fraction`)
+- `Overhead Vapor Line Volume (ft3)` and `Condenser Vapor Volume (ft3)` (vapor-only adders)
 
 Volume inference precedence in runner:
 1. Explicit vapor volume (`Top Drum Vapor Volume (ft3)`), else
@@ -133,6 +136,9 @@ Dynamic behavior:
 - If total drum volume is available (`Top Drum Total Volume (ft3)` or inferred from `Diameter/Length`), the model updates top vapor volume every timestep from current top liquid holdup and inferred liquid density.
 - If only vapor volume is available, the runner tries to infer total volume from initial top holdup plus thermo liquid density.
 - If total volume still cannot be inferred, vapor volume is treated as fixed.
+- If overhead/condenser vapor adders are provided:
+  - for `Condenser Type = Total`, pressure-side vapor capacitance uses these adders (drum vapor is excluded),
+  - otherwise they are added to effective top-end vapor capacitance (vapor-only contribution).
 
 ### Components source
 

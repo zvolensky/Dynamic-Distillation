@@ -440,8 +440,10 @@ def column_rhs(
 
         z_bot = np.asarray(x_rebL, dtype=float).reshape((Nc,))
 
-        # Solve reboiler temperature by bubble point when equilibrium is requested
-        if inputs.reboiler_equilibrium:
+        # Solve reboiler temperature by bubble point when equilibrium is requested.
+        # Skip this for no-holdup reboiler mode: stage-N is modeled as a flow-through
+        # flash node, not a holdup equilibrium stage.
+        if inputs.reboiler_equilibrium and (not reboiler_no_holdup):
             try:
                 T_reb, fres_reb = _bubble_point_T_F(
                     thermo_provider=inputs.thermo_provider,
@@ -650,6 +652,8 @@ def column_rhs(
         reboiler_flash_done = False
         reboiler_flash_used_cache = False
 
+        reb_cache_valid = False
+        reb_beta_prev = 0.0
         if (
             inputs.reb_T_prev is not None
             and inputs.reb_x_prev is not None
@@ -664,18 +668,20 @@ def column_rhs(
                 if np.isfinite(reb_T_prev) and np.all(np.isfinite(reb_x_prev)) and np.all(np.isfinite(reb_y_prev)):
                     if reb_beta_prev < 0.0:
                         reb_beta_prev = 0.0
-                    reboiler_flash_used_cache = True
+                    reb_cache_valid = True
+                    # Use cached state as a seed/fallback only.
+                    # Do not short-circuit duty flash in no-holdup mode; that can
+                    # freeze reboiler temperature and decouple it from current
+                    # inlet enthalpy + duty.
                     T_reb = reb_T_prev
                     x_out = reb_x_prev.copy()
                     y_out = reb_y_prev.copy()
-                    V_out_reb = max(reb_beta_prev * L_in_reb, 0.0)
-                    boilup_s = V_out_reb
-                    L_out_reb = max(L_in_reb - V_out_reb, 0.0)
-                    y_reb_eq = y_out.copy()
-                    reboiler_flash_done = True
             except Exception:
-                reboiler_flash_used_cache = False
+                reb_cache_valid = False
                 reboiler_flash_done = False
+
+        # For no-duty operation, keep cache as a seed only; re-evaluate from
+        # current inlet state each step so the no-holdup reboiler cannot freeze.
 
         if (
             (not reboiler_flash_done)

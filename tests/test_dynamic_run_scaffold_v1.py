@@ -31,6 +31,7 @@ import pytest
 
 from dynamic_distillation.dynamic_run_scaffold_v1 import (
     PIController,
+    _column_rhs_with_inner_pv_coupling,
     _apply_slew_limit,
     RunnerConfig,
     _clear_initial_tray_vapor_holdup,
@@ -788,6 +789,110 @@ def test_thermo_startup_conditioner_with_mocked_rhs(monkeypatch):
     assert abs(float(info["eq_phase_change_final_lbmolps"])) < float(info["eq_phase_change_init_lbmolps"])
 
 
+def test_inner_pv_coupling_single_pass_when_max_iter_is_one(monkeypatch):
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    calls = {"n": 0}
+
+    def _fake_rhs(_t, y_vec, _col, _layout, inputs=None):
+        calls["n"] += 1
+        dydt = np.zeros_like(np.asarray(y_vec, dtype=float))
+        diag = {
+            "P_psia_hyd": np.array([220.0, 230.0], dtype=float),
+            "V_out_lbmolph": np.array([5000.0, 5100.0], dtype=float),
+        }
+        return dydt, diag
+
+    monkeypatch.setattr(scaffold, "column_rhs", _fake_rhs)
+
+    class TinyCol:
+        n_stages = 2
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+    )
+    y0 = np.zeros(layout.n_states(), dtype=float)
+
+    dydt, diag = _column_rhs_with_inner_pv_coupling(
+        t_s=0.0,
+        y=y0,
+        col=TinyCol(),
+        layout=layout,
+        inputs=ColumnInputs(
+            P_tray_prev=np.array([210.0, 220.0], dtype=float),
+            V_out_prev_lbmolph=np.array([4800.0, 4800.0], dtype=float),
+        ),
+        max_iter=1,
+        p_tol_psia=0.05,
+        v_tol_lbmolph=25.0,
+    )
+
+    assert calls["n"] == 1
+    assert dydt.shape == y0.shape
+    assert float(np.asarray(diag["pv_inner_iter_count"], dtype=float).reshape((-1,))[0]) == 1.0
+    assert float(np.asarray(diag["pv_inner_converged"], dtype=float).reshape((-1,))[0]) == 0.0
+
+
+def test_inner_pv_coupling_iterates_and_converges(monkeypatch):
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    calls = {"n": 0}
+    p_star = np.array([225.0, 235.0], dtype=float)
+    v_star = np.array([5200.0, 5400.0], dtype=float)
+
+    def _fake_rhs(_t, y_vec, _col, _layout, inputs=None):
+        calls["n"] += 1
+        p_prev = np.asarray(inputs.P_tray_prev, dtype=float).reshape((2,))
+        v_prev = np.asarray(inputs.V_out_prev_lbmolph, dtype=float).reshape((2,))
+        p_new = p_prev + 0.5 * (p_star - p_prev)
+        v_new = v_prev + 0.5 * (v_star - v_prev)
+        dydt = np.zeros_like(np.asarray(y_vec, dtype=float))
+        diag = {
+            "P_psia_hyd": p_new,
+            "V_out_lbmolph": v_new,
+            "Z_tray": np.ones(2, dtype=float),
+        }
+        return dydt, diag
+
+    monkeypatch.setattr(scaffold, "column_rhs", _fake_rhs)
+
+    class TinyCol:
+        n_stages = 2
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+    )
+    y0 = np.zeros(layout.n_states(), dtype=float)
+
+    _dydt, diag = _column_rhs_with_inner_pv_coupling(
+        t_s=0.0,
+        y=y0,
+        col=TinyCol(),
+        layout=layout,
+        inputs=ColumnInputs(
+            P_tray_prev=np.array([200.0, 210.0], dtype=float),
+            V_out_prev_lbmolph=np.array([4800.0, 5000.0], dtype=float),
+        ),
+        max_iter=8,
+        p_tol_psia=0.25,
+        v_tol_lbmolph=10.0,
+    )
+
+    assert calls["n"] >= 2
+    assert float(np.asarray(diag["pv_inner_converged"], dtype=float).reshape((-1,))[0]) == 1.0
+    assert float(np.asarray(diag["pv_inner_iter_count"], dtype=float).reshape((-1,))[0]) <= 8.0
+    assert float(np.asarray(diag["pv_inner_dp_max_psia"], dtype=float).reshape((-1,))[0]) <= 0.25
+    assert float(np.asarray(diag["pv_inner_dv_max_lbmolph"], dtype=float).reshape((-1,))[0]) <= 10.0
+
+
 def test_distillate_composition_control_logs_command(tmp_path: Path):
     excel = Path("distillation_column_template.xlsx")
     if not excel.exists():
@@ -915,6 +1020,8 @@ def test_build_inputs_computes_top_drum_vapor_volume_from_geometry():
     specs["Top Drum Diameter (ft)"] = 10.0
     specs["Top Drum Length (ft)"] = 40.0
     specs["Top Drum Liquid Fraction (-)"] = 0.60
+    specs["Overhead Vapor Line Volume (ft3)"] = None
+    specs["Condenser Vapor Volume (ft3)"] = None
     object.__setattr__(col, "specs_raw", specs)
 
     cfg = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
@@ -926,6 +1033,37 @@ def test_build_inputs_computes_top_drum_vapor_volume_from_geometry():
     assert abs(float(inputs.top_drum_total_volume_ft3) - total_vol) < 1e-9
     assert inputs.top_drum_vapor_volume_ft3 is not None
     assert abs(float(inputs.top_drum_vapor_volume_ft3) - expected_vapor) < 1e-9
+
+
+def test_build_inputs_adds_overhead_and_condenser_vapor_capacitance():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Top Drum Vapor Volume (ft3)"] = None
+    specs["Top Drum Total Volume (ft3)"] = None
+    specs["Top Drum Diameter (ft)"] = 10.0
+    specs["Top Drum Length (ft)"] = 40.0
+    specs["Top Drum Liquid Fraction (-)"] = 0.60
+    specs["Overhead Vapor Line Volume (ft3)"] = 56.0
+    specs["Condenser Vapor Volume (ft3)"] = 100.0
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+
+    adders = 56.0 + 100.0
+    # Template uses total condenser; drum vapor space is decoupled from pressure side.
+    assert inputs.top_drum_total_volume_ft3 is None
+    assert inputs.top_drum_vapor_volume_ft3 is not None
+    assert abs(float(inputs.top_drum_vapor_volume_ft3) - adders) < 1e-9
 
 
 def test_build_inputs_infers_top_drum_total_volume_from_holdup_and_vapor_volume():
@@ -943,6 +1081,8 @@ def test_build_inputs_infers_top_drum_total_volume_from_holdup_and_vapor_volume(
     specs["Top Drum Total Volume (ft3)"] = None
     specs["Top Drum Liquid Fraction (-)"] = None
     specs["Top Drum Vapor Volume (ft3)"] = 900.0
+    specs["Overhead Vapor Line Volume (ft3)"] = None
+    specs["Condenser Vapor Volume (ft3)"] = None
     specs["Top Accumulator Holdup (lbmol)"] = 397.0
     object.__setattr__(col, "specs_raw", specs)
 

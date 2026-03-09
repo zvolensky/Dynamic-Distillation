@@ -100,6 +100,10 @@ class ColumnInputs:
     # Module 8B: equilibrium relaxation using K
     equilibrium_relaxation: bool = False
     tau_eq_sec: Optional[float] = None   # <-- changed: allow None so we can fall back to ColumnSpec
+    # Equilibrium transfer target:
+    #   "phase-holdup"     = relax vapor holdup toward flash phase split (legacy)
+    #   "composition-only" = relax only vapor composition at fixed MV_tot
+    equilibrium_relaxation_mode: str = "phase-holdup"
 
     # Reboiler handling
     # reboiler_mode:
@@ -168,6 +172,9 @@ class ColumnInputs:
     # Conductance-mode vapor-flow nominal-profile high clamp ratio.
     # If None, default internal value is used.
     conductance_vflow_nominal_hi_ratio: Optional[float] = None
+    # Optional smooth clamp width (lbmol/s) for internal vapor-flow limiters.
+    # <=0 or None keeps legacy hard min/max clipping.
+    vflow_smooth_clamp_epsilon_lbmolps: Optional[float] = None
     V_out_prev_lbmolph: Optional[np.ndarray] = None
     dT_tray_target_F_per_s: Optional[np.ndarray] = None
     thermo_refresh_dT_F: Optional[float] = None
@@ -203,6 +210,62 @@ class ColumnInputs:
     reb_x_prev: Optional[np.ndarray] = None
     reb_y_prev: Optional[np.ndarray] = None
     reb_beta_prev: Optional[float] = None
+
+
+def _finite_positive_or_zero(value: Any) -> float:
+    try:
+        v = float(value)
+    except Exception:
+        return 0.0
+    if (not np.isfinite(v)) or v <= 0.0:
+        return 0.0
+    return v
+
+
+def _softplus_scaled(x: float, eps: float) -> float:
+    """
+    Stable softplus approximation of max(x, 0) with width eps.
+    """
+    eps_f = _finite_positive_or_zero(eps)
+    if eps_f <= 0.0:
+        return max(float(x), 0.0)
+    z = float(x) / eps_f
+    if z > 50.0:
+        return float(x)
+    if z < -50.0:
+        return 0.0
+    return eps_f * float(np.log1p(np.exp(-abs(z))) + max(z, 0.0))
+
+
+def _smooth_max_scalar(a: float, b: float, eps: float) -> float:
+    eps_f = _finite_positive_or_zero(eps)
+    if eps_f <= 0.0:
+        return max(float(a), float(b))
+    da = float(a) - float(b)
+    return 0.5 * (float(a) + float(b) + float(np.sqrt(da * da + eps_f * eps_f)))
+
+
+def _smooth_min_scalar(a: float, b: float, eps: float) -> float:
+    eps_f = _finite_positive_or_zero(eps)
+    if eps_f <= 0.0:
+        return min(float(a), float(b))
+    da = float(a) - float(b)
+    return 0.5 * (float(a) + float(b) - float(np.sqrt(da * da + eps_f * eps_f)))
+
+
+def _smooth_clip_scalar(v: float, lo: float, hi: float, eps: float) -> float:
+    lo_f = float(min(lo, hi))
+    hi_f = float(max(lo, hi))
+    eps_f = _finite_positive_or_zero(eps)
+    if eps_f <= 0.0:
+        return float(np.clip(float(v), lo_f, hi_f))
+    # lo + relu(v-lo) - relu(v-hi), with relu replaced by softplus.
+    return float(
+        lo_f
+        + _softplus_scaled(float(v) - lo_f, eps_f)
+        - _softplus_scaled(float(v) - hi_f, eps_f)
+    )
+
 
 def _layout_slices(layout: StateVectorLayout) -> Dict[str, slice]:
     if hasattr(layout, "slices") and callable(getattr(layout, "slices")):
@@ -909,6 +972,9 @@ def column_rhs(
         # This suppresses slow upward drift in lower-column vapor rates.
         vflow_reb_neighbor_up_ratio = 1.02
         vflow_reb_neighbor_down_ratio = 0.98
+        vflow_smooth_eps_lbmolps = _finite_positive_or_zero(
+            getattr(inputs, "vflow_smooth_clamp_epsilon_lbmolps", None)
+        )
         try:
             up_cfg = float(inputs.reboiler_neighbor_vflow_hi_ratio)
             if np.isfinite(up_cfg) and up_cfg > 0.0:
@@ -948,13 +1014,19 @@ def column_rhs(
             if V_nom_i > layout.epsilon_lbmol:
                 V_hi_nom = vflow_nominal_abs_ratio * V_nom_i
                 if V_prev_i > layout.epsilon_lbmol:
-                    V_hi = min(V_hi_prev, V_hi_nom)
+                    if vflow_smooth_eps_lbmolps > 0.0:
+                        V_hi = _smooth_min_scalar(V_hi_prev, V_hi_nom, vflow_smooth_eps_lbmolps)
+                    else:
+                        V_hi = min(V_hi_prev, V_hi_nom)
                 else:
                     V_hi = V_hi_nom
             else:
                 # If no reliable nominal is available, fall back to previous-step
                 # growth limit and keep a conservative boilup floor.
-                V_hi = max(V_hi_prev, float(boilup_s))
+                if vflow_smooth_eps_lbmolps > 0.0:
+                    V_hi = _smooth_max_scalar(V_hi_prev, float(boilup_s), vflow_smooth_eps_lbmolps)
+                else:
+                    V_hi = max(V_hi_prev, float(boilup_s))
             V_hi = max(float(V_hi), 0.0)
             V_lo = 0.0
             if V_prev_i > layout.epsilon_lbmol and V_nom_i > layout.epsilon_lbmol:
@@ -963,19 +1035,32 @@ def column_rhs(
             # Reboiler-neighbor guard: keep tray N-1 near reboiler boilup to
             # avoid non-physical long-horizon growth in lower-section vapor flow.
             if i == (N - 2):
-                V_hi = min(V_hi, vflow_reb_neighbor_up_ratio * float(boilup_s))
+                V_hi_reb = vflow_reb_neighbor_up_ratio * float(boilup_s)
+                if vflow_smooth_eps_lbmolps > 0.0:
+                    V_hi = _smooth_min_scalar(V_hi, V_hi_reb, vflow_smooth_eps_lbmolps)
+                else:
+                    V_hi = min(V_hi, V_hi_reb)
                 if float(boilup_s) > layout.epsilon_lbmol:
-                    V_lo = max(V_lo, vflow_reb_neighbor_down_ratio * float(boilup_s))
+                    V_lo_reb = vflow_reb_neighbor_down_ratio * float(boilup_s)
+                    if vflow_smooth_eps_lbmolps > 0.0:
+                        V_lo = _smooth_max_scalar(V_lo, V_lo_reb, vflow_smooth_eps_lbmolps)
+                    else:
+                        V_lo = max(V_lo, V_lo_reb)
+
+            if V_hi < V_lo:
+                V_hi = V_lo
 
             vflow_limit_hi[i] = float(V_hi) * 3600.0
             vflow_limit_lo[i] = float(V_lo) * 3600.0
-            clamped = False
-            if V_calc > V_hi:
-                V_calc = V_hi
-                clamped = True
-            elif V_calc < V_lo:
-                V_calc = V_lo
-                clamped = True
+            V_calc_raw = float(V_calc)
+            clamped = bool((V_calc_raw > V_hi) or (V_calc_raw < V_lo))
+            if vflow_smooth_eps_lbmolps > 0.0:
+                V_calc = _smooth_clip_scalar(V_calc_raw, V_lo, V_hi, vflow_smooth_eps_lbmolps)
+            else:
+                if V_calc_raw > V_hi:
+                    V_calc = V_hi
+                elif V_calc_raw < V_lo:
+                    V_calc = V_lo
             vflow_clamped[i] = 1.0 if clamped else 0.0
 
             vflow_ok[i] = 1.0 if ok else 0.0
@@ -999,6 +1084,10 @@ def column_rhs(
             "vflow_energy_limit_lo_lbmolph": vflow_limit_lo,
             "vflow_conductance_dp_psia": vflow_dp,
             "vflow_relax_alpha": vflow_alpha,
+            "vflow_smooth_clamp_eps_lbmolph": np.array(
+                [float(vflow_smooth_eps_lbmolps) * 3600.0],
+                dtype=float,
+            ),
         }
 
     # Vapor flows via energy balance (dynamic closure).
@@ -1094,6 +1183,9 @@ def column_rhs(
         # This suppresses slow upward drift in lower-column vapor rates.
         vflow_reb_neighbor_up_ratio = 1.02
         vflow_reb_neighbor_down_ratio = 0.98
+        vflow_smooth_eps_lbmolps = _finite_positive_or_zero(
+            getattr(inputs, "vflow_smooth_clamp_epsilon_lbmolps", None)
+        )
         try:
             up_cfg = float(inputs.reboiler_neighbor_vflow_hi_ratio)
             if np.isfinite(up_cfg) and up_cfg > 0.0:
@@ -1228,11 +1320,22 @@ def column_rhs(
             V_prev_i = max(float(V_prev[i]), 0.0)
             V_nom_i = max(float(V_out_profile[i]), 0.0)
 
-            V_hi = max(
-                vflow_prev_up_ratio * V_prev_i,
-                vflow_nominal_abs_ratio * V_nom_i,
-                float(boilup_s),
-            )
+            if vflow_smooth_eps_lbmolps > 0.0:
+                V_hi = _smooth_max_scalar(
+                    _smooth_max_scalar(
+                        vflow_prev_up_ratio * V_prev_i,
+                        vflow_nominal_abs_ratio * V_nom_i,
+                        vflow_smooth_eps_lbmolps,
+                    ),
+                    float(boilup_s),
+                    vflow_smooth_eps_lbmolps,
+                )
+            else:
+                V_hi = max(
+                    vflow_prev_up_ratio * V_prev_i,
+                    vflow_nominal_abs_ratio * V_nom_i,
+                    float(boilup_s),
+                )
             V_lo = 0.0
             if V_prev_i > layout.epsilon_lbmol and V_nom_i > layout.epsilon_lbmol:
                 V_lo = min(vflow_prev_down_ratio * V_prev_i, vflow_prev_down_ratio * V_nom_i)
@@ -1240,19 +1343,32 @@ def column_rhs(
             # Reboiler-neighbor guard: keep tray N-1 near reboiler boilup to
             # avoid non-physical long-horizon growth in lower-section vapor flow.
             if i == (N - 2):
-                V_hi = min(V_hi, vflow_reb_neighbor_up_ratio * float(boilup_s))
+                V_hi_reb = vflow_reb_neighbor_up_ratio * float(boilup_s)
+                if vflow_smooth_eps_lbmolps > 0.0:
+                    V_hi = _smooth_min_scalar(V_hi, V_hi_reb, vflow_smooth_eps_lbmolps)
+                else:
+                    V_hi = min(V_hi, V_hi_reb)
                 if float(boilup_s) > layout.epsilon_lbmol:
-                    V_lo = max(V_lo, vflow_reb_neighbor_down_ratio * float(boilup_s))
+                    V_lo_reb = vflow_reb_neighbor_down_ratio * float(boilup_s)
+                    if vflow_smooth_eps_lbmolps > 0.0:
+                        V_lo = _smooth_max_scalar(V_lo, V_lo_reb, vflow_smooth_eps_lbmolps)
+                    else:
+                        V_lo = max(V_lo, V_lo_reb)
+
+            if V_hi < V_lo:
+                V_hi = V_lo
 
             vflow_limit_hi[i] = float(V_hi) * 3600.0
             vflow_limit_lo[i] = float(V_lo) * 3600.0
-            clamped = False
-            if V_calc > V_hi:
-                V_calc = V_hi
-                clamped = True
-            elif V_calc < V_lo:
-                V_calc = V_lo
-                clamped = True
+            V_calc_raw = float(V_calc)
+            clamped = bool((V_calc_raw > V_hi) or (V_calc_raw < V_lo))
+            if vflow_smooth_eps_lbmolps > 0.0:
+                V_calc = _smooth_clip_scalar(V_calc_raw, V_lo, V_hi, vflow_smooth_eps_lbmolps)
+            else:
+                if V_calc_raw > V_hi:
+                    V_calc = V_hi
+                elif V_calc_raw < V_lo:
+                    V_calc = V_lo
             vflow_clamped[i] = 1.0 if clamped else 0.0
 
             vflow_ok[i] = 1.0 if ok else 0.0
@@ -1273,6 +1389,10 @@ def column_rhs(
             "vflow_energy_limit_hi_lbmolph": vflow_limit_hi,
             "vflow_energy_limit_lo_lbmolph": vflow_limit_lo,
             "vflow_relax_alpha": vflow_alpha,
+            "vflow_smooth_clamp_eps_lbmolph": np.array(
+                [float(vflow_smooth_eps_lbmolps) * 3600.0],
+                dtype=float,
+            ),
         }
 
     V_in = np.zeros(N, dtype=float)
@@ -1952,6 +2072,21 @@ def column_rhs(
     diag["MV_tot_tray"] = np.asarray(u[MV_key], dtype=float).copy()
     diag["x_tray"] = x_tray.copy()
     diag["y_tray"] = y_tray.copy()
+    try:
+        x_safe = np.asarray(x_tray, dtype=float).reshape((N, Nc))
+        y_safe = np.asarray(y_tray, dtype=float).reshape((N, Nc))
+        K_state = np.full((N, Nc), np.nan, dtype=float)
+        valid = np.isfinite(x_safe) & np.isfinite(y_safe) & (x_safe > 1.0e-12)
+        if np.any(valid):
+            K_state[valid] = y_safe[valid] / x_safe[valid]
+        # Stage 1 under total-condenser handling has no vapor holdup state.
+        if N > 0:
+            mv0 = float(np.sum(np.asarray(tray_V[0, :], dtype=float)))
+            if (not np.isfinite(mv0)) or (mv0 <= float(layout.epsilon_lbmol)):
+                K_state[0, :] = np.nan
+        diag["K_state_y_over_x_tray"] = K_state
+    except Exception:
+        pass
     if P_tray_hyd is not None:
         try:
             diag["P_psia_hyd"] = np.asarray(P_tray_hyd, dtype=float).reshape((N,))
@@ -2318,11 +2453,59 @@ def column_rhs(
     # Module 8B: relaxed equilibrium closure using K
     # -----------------------
     if inputs.equilibrium_relaxation:
-        if inputs.thermo_provider is None:
-            raise ColumnRHSError("equilibrium_relaxation=True requires thermo_provider.")
+        if thermo_cache is None and inputs.K_tray_prev is not None:
+            # Thermo refresh can be intentionally skipped in outer integration steps.
+            # In that case, reuse cached thermo K/HL/HV and current state z for
+            # equilibrium relaxation to avoid losing closure between refreshes.
+            Z_fb = np.zeros((N, Nc), dtype=float)
+            for i in range(N):
+                z = tray_L[i, :].copy()
+                if tray_V is not None:
+                    z = z + tray_V[i, :]
+                s = float(np.sum(z))
+                if s <= layout.epsilon_lbmol:
+                    z = x_tray[i, :].copy()
+                    s = float(np.sum(z))
+                Z_fb[i, :] = z / max(s, 1e-300)
+
+            try:
+                K_fb = np.asarray(inputs.K_tray_prev, dtype=float).reshape((N, Nc)).copy()
+            except Exception:
+                K_fb = None
+            if K_fb is not None:
+                HL_fb = (
+                    np.asarray(inputs.HL_prev, dtype=float).reshape((N,)).copy()
+                    if inputs.HL_prev is not None
+                    else np.zeros(N, dtype=float)
+                )
+                HV_fb = (
+                    np.asarray(inputs.HV_prev, dtype=float).reshape((N,)).copy()
+                    if inputs.HV_prev is not None
+                    else np.zeros(N, dtype=float)
+                )
+                Zfac_fb = (
+                    np.asarray(inputs.Zfac_prev, dtype=float).reshape((N,)).copy()
+                    if inputs.Zfac_prev is not None
+                    else np.ones(N, dtype=float)
+                )
+                thermo_cache = (Z_fb, K_fb, HL_fb, HV_fb, Zfac_fb)
+                diag["thermo_flash_cached_only"] = np.array([1.0], dtype=float)
+                if "z_overall_tray" not in diag:
+                    diag["z_overall_tray"] = Z_fb.copy()
+                if "K_tray" not in diag:
+                    diag["K_tray"] = K_fb.copy()
+                if "HL_BTU_lbmol_tray" not in diag:
+                    diag["HL_BTU_lbmol_tray"] = HL_fb.copy()
+                if "HV_BTU_lbmol_tray" not in diag:
+                    diag["HV_BTU_lbmol_tray"] = HV_fb.copy()
+                if "Z_tray" not in diag:
+                    diag["Z_tray"] = Zfac_fb.copy()
 
         if thermo_cache is None:
-            raise ColumnRHSError("equilibrium_relaxation=True requires thermo calculation (thermo_provider).")
+            raise ColumnRHSError(
+                "equilibrium_relaxation=True requires thermo data from thermo_provider "
+                "or cached K_tray_prev."
+            )
 
         # tau precedence: ColumnInputs overrides ColumnSpec; otherwise default 10 s
         tau = inputs.tau_eq_sec
@@ -2334,6 +2517,10 @@ def column_rhs(
             raise ColumnRHSError("tau_eq_sec must be finite and > 0 when equilibrium_relaxation is enabled.")
 
         _Z_overall, K_tray, _HL, _HV, _Zfac = thermo_cache
+        if "K_tray" not in diag:
+            diag["K_tray"] = np.asarray(K_tray, dtype=float).reshape((N, Nc)).copy()
+        if "z_overall_tray" not in diag:
+            diag["z_overall_tray"] = np.asarray(_Z_overall, dtype=float).reshape((N, Nc)).copy()
 
         # Flash-consistent interphase relaxation:
         #   1) compute equilibrium split (beta_eq, x_eq, y_eq) from (K, z_overall)
@@ -2383,8 +2570,16 @@ def column_rhs(
             x_eq[i, :] = x_i
             y_eq[i, :] = y_i
 
+        mode_raw = str(getattr(inputs, "equilibrium_relaxation_mode", "phase-holdup") or "phase-holdup").strip().lower()
+        comp_only_mode = mode_raw in ("composition-only", "composition", "comp-only", "y-only")
+
         Mtot_col = Mtot.reshape((N, 1))
-        V_target = beta_eq.reshape((N, 1)) * Mtot_col * y_eq
+        if comp_only_mode:
+            # Relax only vapor composition at fixed vapor holdup totals.
+            V_target = MV.reshape((N, 1)) * y_eq
+        else:
+            # Legacy behavior: relax toward flash-predicted phase split.
+            V_target = beta_eq.reshape((N, 1)) * Mtot_col * y_eq
         transfer = (V_target - tray_V) / float(tau)  # (N,Nc) lbmol/s
 
         # No interphase transfer on total-condenser tray (stage 1).
@@ -2399,8 +2594,29 @@ def column_rhs(
         diag["x_eq_tray"] = x_eq
         diag["y_eq_tray"] = y_eq
         diag["beta_eq_tray"] = beta_eq.reshape((N,))
+        diag["eq_target_vapor_lbmol_tray"] = V_target
         diag["eq_transfer_lbmolps_tray"] = transfer
         diag["eq_phase_change_lbmolps_tray"] = np.sum(transfer, axis=1).reshape((N,))
+        diag["eq_relaxation_mode_comp_only"] = np.array([1.0 if comp_only_mode else 0.0], dtype=float)
+
+    if "K_tray" in diag and "K_state_y_over_x_tray" in diag:
+        try:
+            K_state = np.asarray(diag["K_state_y_over_x_tray"], dtype=float).reshape((N, Nc))
+            K_thermo = np.asarray(diag["K_tray"], dtype=float).reshape((N, Nc))
+            K_ratio = np.full((N, Nc), np.nan, dtype=float)
+            valid = np.isfinite(K_state) & np.isfinite(K_thermo) & (np.abs(K_thermo) > 1.0e-12)
+            if np.any(valid):
+                K_ratio[valid] = K_state[valid] / K_thermo[valid]
+            K_delta = K_state - K_thermo
+            if N > 0:
+                mv0 = float(np.sum(np.asarray(tray_V[0, :], dtype=float)))
+                if (not np.isfinite(mv0)) or (mv0 <= float(layout.epsilon_lbmol)):
+                    K_ratio[0, :] = np.nan
+                    K_delta[0, :] = np.nan
+            diag["K_state_over_K_thermo_tray"] = K_ratio
+            diag["K_state_minus_K_thermo_tray"] = K_delta
+        except Exception:
+            pass
 
     # -----------------------
     # Option B1 energy holdup

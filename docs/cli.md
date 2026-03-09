@@ -11,17 +11,27 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 | Flag(s) | Type | Default | Explanation |
 |---|---|---|---|
 | `--excel` | path | `distillation_column_template.xlsx` | Excel case file to load. |
-| `--runtime-mode` | `legacy` \| `parity` \| `hydraulic` | `parity` | Runtime behavior mode: `parity` forces pressure/spec + vapor/profile + liquid hydraulics off; `hydraulic` forces pressure/hydraulic + vapor/energy + liquid hydraulics on; `legacy` keeps spec/CLI-driven behavior. |
+| `--runtime-mode` | `legacy` \| `parity` \| `calibration` \| `hydraulic` | `parity` | Runtime behavior mode: `parity` forces pressure/spec + vapor/profile + liquid hydraulics off; `calibration` uses the same closures as `parity` with explicit parity-check intent; `hydraulic` forces pressure/hydraulic + vapor/energy + liquid hydraulics on; `legacy` keeps spec/CLI-driven behavior. |
 | `--n-steps` | int | `600` | Number of integration steps. |
 | `--steps` | int | `None` | Alias for `--n-steps`. If provided, overrides `--n-steps`. |
 | `--dt` | float | `None` | Time step in seconds; if omitted uses `col.sim.dt_sec` from the case. |
 | `--log-every` | int | `None` | Log cadence (steps); if omitted uses `col.sim.log_every_n_steps` from the case. |
+| `--integrator` | `explicit-euler` \| `bdf` \| `radau` \| `ida` | `explicit-euler` | Time integration mode. `bdf`/`radau` use SciPy stiff solvers; `ida` uses the pilot implicit DAE fixed-point stepper. |
+| `--integrator-rtol` | float | `1e-3` | Relative tolerance for stiff integrators and IDA fixed-point convergence scaling. |
+| `--integrator-atol` | float | `1e-6` | Absolute tolerance for stiff integrators and IDA fixed-point convergence scaling. |
+| `--integrator-max-step-sec` | float | `None` | Optional cap on internal substep size used by stiff integrators. |
+| `--integrator-substep-sec` | float | `None` | Split each outer `dt` into fixed stiff substeps of this size (seconds). |
+| `--integrator-max-rhs-evals-per-step` | int | `24` | Cap on RHS calls per stiff step; if exceeded, the step falls back to explicit Euler. |
+| `--integrator-step-wall-limit-sec` | float | `15.0` | Per-step wall-time cap for stiff integrators; if exceeded, the step falls back to explicit Euler. |
+| `--ida-max-iter` | int | `8` | Maximum fixed-point iterations per IDA substep. |
+| `--ida-relax` | float | `1.0` | Relaxation factor for IDA fixed-point updates (`0 < relax <= 1`). |
 | `--no-temperature` | flag | `False` | Disables temperature states (default is enabled). |
 | `--no-temp` | flag | `False` | Alias for `--no-temperature`. |
 | `--include-energy` | flag | `False` | Enables energy holdup states (Option B1). |
 | `--energy` | flag | `False` | Alias for `--include-energy`. |
 | `--no-equilibrium` | flag | `False` | Disables equilibrium relaxation (default is enabled). |
 | `--no-eq` | flag | `False` | Alias for `--no-equilibrium`. |
+| `--equilibrium-relaxation-mode`, `--eq-mode` | `auto` \| `phase-holdup` \| `composition-only` | `auto` | Equilibrium transfer target. `phase-holdup` keeps legacy flash phase-split transfer, `composition-only` relaxes vapor composition at fixed vapor holdup. `auto` selects mode by runtime context (hydraulic mode defaults to `composition-only`). |
 | `--thermo` | `stub` \| `dwsim` \| `table` \| `table-pool` | `stub` | Thermo backend selection. |
 | `--thermo-every` | int | `1` | Compute thermo every N steps; intermediate steps reuse cached thermo diagnostics. |
 | `--thermo-refresh-dt` | float | `None` | Optional per-stage thermo refresh threshold `dT` (F). |
@@ -31,19 +41,28 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 | `--thermo-pool-workers` | int | `None` | Worker count for `table-pool`; `None` maps to `max(cpu_count-1, 1)`. |
 | `--thermo-pool-chunk-size` | int | `4` | Batch chunk size submitted per pool task in `table-pool`. |
 | `--thermo-pool-timeout-sec` | float | `None` | Per-task timeout for `table-pool`; timed-out/failed chunks fall back to local evaluation. |
-| `--thermo-cache` | path | `None` | Load thermo cache JSON at startup. |
 | `--disable-startup-thermo-conditioning` | flag | `False` | Disables startup thermo-consistent conditioning pass (enabled by default). |
 | `--startup-thermo-conditioning-iters` | int | `2` | Max startup thermo-conditioning iterations. |
 | `--startup-thermo-conditioning-relax` | float | `1.0` | Relaxation factor (`0..1`) for startup thermo conditioning. |
 | `--enable-liquid-hydraulic-override` | flag | `None` | Force-enable internal liquid hydraulic downflow override. |
 | `--disable-liquid-hydraulic-override` | flag | `None` | Disable internal liquid hydraulic downflow override (profile-only internal `L_out`). |
 | `--liquid-hydraulic-override-alpha` | float | `None` | Blend for liquid hydraulics override (`0=profile`, `1=full hydraulic`). |
-| `--enable-startup-hydraulic-sequence` | flag | `False` | Enable startup sequence: pressure first, then energy vapor closure, then residual-gated liquid hydraulics (`legacy` mode only; ignored by `parity`/`hydraulic`). |
+| `--enable-startup-hydraulic-sequence` | flag | `False` | Enable startup sequence: pressure first, then energy vapor closure, then residual-gated liquid hydraulics (`legacy` mode only; ignored by `parity`/`calibration`/`hydraulic`). |
 | `--startup-sequence-energy-on-sec` | float | `30.0` | Sequence time (`s`) to allow `vapor_flow_model="energy"`. |
 | `--startup-sequence-liquid-on-sec` | float | `120.0` | Sequence time (`s`) to begin liquid-hydraulics ramp. |
 | `--startup-sequence-liquid-ramp-sec` | float | `180.0` | Ramp timescale (`s`) for liquid-hydraulics blend. |
 | `--startup-sequence-mass-resid-gate-lbmolph` | float | `250.0` | Max tray mass-residual gate; above this, liquid-hydraulic blend is paused/backed off. |
 | `--startup-sequence-liquid-backoff-sec` | float | `None` | Optional timescale (`s`) for blend backoff while residual gate is exceeded. |
+| `--disable-steady-state-detection` | flag | `False` | Disable runtime steady-state detector diagnostics. |
+| `--steady-state-window-sec` | float | `30.0` | Time window (`s`) used for KPI/MV slope estimation. |
+| `--steady-state-min-time-sec` | float | `60.0` | Earliest simulation time (`s`) when SS flag can become `1`. |
+| `--steady-state-rel-rate-tol-per-s` | float | `3e-3` | Tolerance on max relative inventory rate `|dM/dt|/(|M|+floor)` (`1/s`). |
+| `--steady-state-kpi-slope-tol-per-s` | float | `1e-4` | Tolerance on KPI slope magnitude (`1/s`) using distillate/bottoms composition trends. |
+| `--steady-state-mv-rate-tol-per-s` | float | `20.0` | Tolerance on MV trend rate (`lbmol/h/s`) for reflux/boilup commands. |
+| `--steady-state-temp-rate-tol-fps` | float | `0.15` | Tolerance on maximum tray temperature derivative (`F/s`). |
+| `--steady-state-sp-error-tol` | float | `0.02` | Tolerance on max composition setpoint error (mole fraction). |
+| `--steady-state-require-sp` | flag | `False` | Require setpoint-error criterion for `steady_state_flag=1`. |
+| `--steady-state-rate-denom-floor-lbmol` | float | `1.0` | Denominator floor (`lbmol`) used in relative inventory-rate metric. |
 | `--reb-neighbor-vflow-hi-ratio` | float | `None` | Override stage `N-1` vapor-flow upper guard as ratio of boilup in energy mode (default case value or runner fallback `1.20`). |
 | `--reb-neighbor-vflow-lo-ratio` | float | `None` | Override stage `N-1` vapor-flow lower guard as ratio of boilup in energy mode (default case value or runner fallback `0.80`). |
 | `--use-excel-vapor-holdup` | flag | `False` | Use tray vapor holdup values from Excel `Initial Conditions` instead of clearing them before pressure-based vapor-holdup initialization. |
@@ -51,9 +70,17 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 | `--hydraulic-pressure-relaxation-sec` | float | `None` | Override hydraulic tray-pressure relaxation time constant; `<= 0` disables hydraulic pressure low-pass. |
 | `--top-drum-pressure-temperature-relaxation-sec` | float | `None` | Override top-drum pressure temperature lag time constant; `<= 0` disables this lag, `None` uses case/default behavior. |
 | `--vapor-flow-relaxation-sec` | float | `None` | Override vapor-flow relaxation time constant; `<= 0` disables relaxation. |
+| `--conductance-vflow-nominal-hi-ratio` | float | `None` | Conductance-mode ceiling as ratio of nominal profile vapor flow (e.g., `1.5`). |
+| `--stiff-vflow-smooth-clamp-lbmolph` | float | `None` | Smooth clamp width for hydraulic vapor-flow limits during stiff RHS evaluation (`lbmol/h`). `None` enables a small automatic value in stiff hydraulic mode; `<=0` disables smoothing. |
 | `--pv-inner-max-iter` | int | `1` | Inner fixed-point iterations per timestep for pressure-vapor coupling; active only when `pressure=hydraulic` and `vapor-flow=energy/conductance`. |
 | `--pv-inner-p-tol-psia` | float | `0.05` | Convergence tolerance for inner pressure iteration (`psia`). |
 | `--pv-inner-v-tol-lbmolph` | float | `25.0` | Convergence tolerance for inner vapor-flow iteration (`lbmol/h`). |
+| `--enable-dae-pilot-algebraic-solve` | flag | `False` | Enable pilot algebraic Newton solve for `z=[P_tray, V_out]` each step when `pressure=hydraulic` and `vapor-flow=energy/conductance`. |
+| `--dae-pilot-max-iter` | int | `3` | Maximum Newton iterations for pilot algebraic solve. |
+| `--dae-pilot-p-tol-psia` | float | `0.05` | Pressure algebraic residual tolerance (`psia`). |
+| `--dae-pilot-v-tol-lbmolph` | float | `25.0` | Vapor-flow algebraic residual tolerance (`lbmol/h`). |
+| `--dae-pilot-jac-rel-step` | float | `1e-6` | Relative finite-difference step used for pilot Jacobian construction. |
+| `--dae-pilot-line-search-max` | int | `4` | Maximum backtracking line-search trials per Newton update. |
 | `--reflux` | float | `None` | Override reflux (`lbmol/h`); if omitted uses case value. |
 | `--boilup` | float | `None` | Override boilup (`lbmol/h`); if omitted uses case value. |
 | `--condenser-duty-mode` | `total-condense` \| `specified` | `total-condense` | Condenser duty model. |
@@ -117,14 +144,26 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 
 - Runtime simplification:
   - `--runtime-mode parity` (default): forces `Pressure=spec`, `VaporFlow=profile`, liquid-hydraulic override disabled.
+  - `--runtime-mode calibration`: same closure set as `parity`, intended for parity/calibration checks.
   - `--runtime-mode hydraulic`: forces `Pressure=hydraulic`, `VaporFlow=energy`, liquid-hydraulic override enabled.
   - `--runtime-mode legacy`: uses existing spec/CLI behavior (backward-compatible path).
-- In `parity` and `hydraulic` modes, startup hydraulic sequencing flags are ignored (sequence disabled by design).
+- Integrator:
+  - `--integrator explicit-euler` keeps legacy explicit stepping (`y += dt*dydt`).
+  - `--integrator bdf|radau` uses SciPy stiff stepping per outer timestep, with automatic per-step fallback to explicit Euler if a solve fails.
+  - `--integrator ida` uses implicit-Euler fixed-point stepping with RHS-coupled DAE algebraic closure; when DAE pilot algebraic residuals are available, convergence requires both `dy` and weighted algebraic residual checks.
+  - In `--runtime-mode hydraulic` with `--integrator ida`, runner applies tuned defaults when legacy defaults are still present: auto-enable DAE pilot algebraic solve, `ida_max_iter=12`, and `dae_pilot_v_tol_lbmolph=100` (explicit CLI overrides still win).
+  - In stiff mode, hydraulic vapor-flow clamp regularization can be tuned via `--stiff-vflow-smooth-clamp-lbmolph`.
+  - When `--enable-dae-pilot-algebraic-solve` is active with `bdf|radau`, the pilot DAE Newton solve runs once per outer step; implicit substeps reuse the solved algebraic seed via the PV-coupled RHS path.
+- In `parity`, `calibration`, and `hydraulic` modes, startup hydraulic sequencing flags are ignored (sequence disabled by design).
 - In `vapor_flow_model="energy"`, feed-stage vapor outflow is solved dynamically.
 - There is no CLI flag to pin feed-stage vapor flow to the input profile.
 - Current "level control" is inventory control in `lbmol` (top/bottom holdup states), not geometric vessel `% level`.
 - Controller action is held at initialization row (`step=0`); PI updates begin at `step=1`.
 - Distillate and bottoms flow rates in logs (`D_lbmolph`, `B_lbmolph`) are dynamic when level control is enabled.
+- `column_summary_*.csv` includes integrator diagnostics (`integrator_*`, `ida_*`) so fallback/convergence behavior is directly traceable in time-series logs.
+- Runtime steady-state detector:
+  - Progress lines include `SS=...` and active metric magnitudes when enabled.
+  - `column_summary_*.csv` includes `steady_state_*` and `ss_*` fields for thresholded pass/fail auditing.
 - `column_profile_*.csv` includes `node_type`:
   - `stage` rows for trays (`stage=1..N`)
   - `distillate_drum` row (`stage=0`) with top-drum/condenser inventory+PSV fields
@@ -140,6 +179,10 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
   - Thermo-consistent startup conditioning is enabled by default (disable with `--disable-startup-thermo-conditioning`).
   - Top-drum startup steadying is always attempted when top states are active.
   - Optional startup hydraulic sequencing (`--enable-startup-hydraulic-sequence`) applies pressure-first startup and delays liquid-hydraulic override with residual gating in `--runtime-mode legacy` only.
+- Equilibrium-relaxation transfer mode:
+  - `--eq-mode phase-holdup`: legacy behavior, relaxes toward flash phase split.
+  - `--eq-mode composition-only`: relaxes vapor composition at fixed `MV_tot` (reduces conflict with vapor-holdup pressure closure).
+  - `--eq-mode auto`: uses `composition-only` in `--runtime-mode hydraulic`, otherwise `phase-holdup`.
 - When thermo is skipped on a step (cadence/threshold gating), cached thermo is reused and that step forces `vapor_flow_model="profile"` for robustness.
 - `--thermo table-pool` uses process-pool batch flashes when available. Failed/timed-out chunks fall back to local tabular evaluation.
 
@@ -161,6 +204,10 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 - Global mass-closure diagnostics:
   - `M_total_lbmol`, `dM_total_dt_lbmolph`, `net_F_minus_D_minus_B_lbmolph`
   - `global_mass_closure_error_lbmolph`, `global_mass_closure_cum_lbmol`, `stage_mass_resid_sum_lbmolps`
+- Steady-state diagnostics:
+  - `steady_state_enabled`, `steady_state_flag`, `steady_state_score`, `steady_state_active_criteria`
+  - `ss_max_rel_state_rate_per_s`, `ss_max_kpi_slope_per_s`, `ss_max_mv_rate_per_s`, `ss_max_temp_rate_F_per_s`
+  - `ss_max_sp_error`, `ss_window_samples`, `ss_window_sec`, `ss_min_time_sec`
 
 **Preflight Validation Console Output**
 

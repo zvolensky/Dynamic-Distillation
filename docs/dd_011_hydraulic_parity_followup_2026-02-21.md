@@ -1,6 +1,7 @@
 # DD-011 Follow-up: Runtime Simplification And Hydraulics Findings
 
 Date: 2026-02-21 (local)
+Status addendum: 2026-02-27 (local)
 Related root-cause report: `docs/dd_011_hydraulic_parity_drift_report_2026-02-19.md`
 
 ## Purpose
@@ -46,6 +47,42 @@ Immediate next actions:
 1. Run a strict A/B startup-sequence test on `distillation_column_template_overhead_caps.xlsx` with identical controller settings and only sequence toggled.
 2. Dampen pressure-loop chatter using PV filtering and MV slew limits while preserving pressure authority.
 3. Run focused sensitivity around stages 16-18 (vapor/liquid capacitance and hydraulic parameters) and rank by reduction in `max |dL/dt|`, `max |dV/dt|`, and 300 s residual.
+
+## Current State Update (2026-02-26, Bottoms-MV Comparison And C3 K Diagnostics)
+
+Objective: document what changed when the bottoms-composition manipulated variable was switched from `boilup` to `reboiler-duty` and reconcile the C3 K-value interpretation.
+
+Compared 300 s hydraulic runs (`dt=0.2 s`, table thermo, energy ON):
+
+1. `--bottoms-comp-mv boilup`
+   - `logs/column_summary_20260226_184354.csv`
+   - `logs/column_profile_20260226_184354.csv`
+2. `--bottoms-comp-mv reboiler-duty`
+   - `logs/column_summary_20260226_193355.csv`
+   - `logs/column_profile_20260226_193355.csv`
+   - `logs/stage19_xc3_vs_time_20260226_193355.csv`
+   - `logs/stage19_kc3_vs_time_20260226_193355.csv`
+
+Observed outcomes:
+
+1. In `boilup` MV mode (`20260226_184354`), `Boilup_cmd` moved (`8036.48 -> 8472.96 lbmol/h`) while `Q_reb_used` remained fixed (`54.706 MMBtu/h`).
+2. In `reboiler-duty` MV mode (`20260226_193355`), `Q_reb_cmd=Q_reb_used` moved (`54.706 -> 58.135 MMBtu/h`) and `Boilup_cmd_lbmolph` is intentionally `NaN`.
+3. Despite higher reboiler duty, lower-stage vapor traffic decreased in `20260226_193355`:
+   - stage-20 `V_out`: `8233 -> 6468 lbmol/h`
+   - stage-19 `V_out`: `8019 -> 6491 lbmol/h`
+4. Stage-19 propane liquid composition increased:
+   - `xC3`: `0.06805` at `t=0`, peak `0.18788` at `t=106 s`, final `0.14684`.
+5. Product specs remained off target at 300 s:
+   - `xD_C4`: `0.16301` (SP `0.09400`)
+   - `xB_C3`: `0.08429` (SP `0.04700`)
+   - steady-state detector: `flag=0`, `score=208.19`.
+
+K-value interpretation update (stage 19, C3):
+
+1. `K_thermo_C3` is the flash-equilibrium K at tray `T,P,z`; it stayed in `1.869..1.971`.
+2. `K_state_C3` is dynamic-state `y/x`; final value was `1.40299`.
+3. `K_state_over_K_thermo_C3` indicates disequilibrium; final ratio was `0.74699`.
+4. Therefore, the latest run does not indicate a gross C3 thermo-K magnitude error at stage 19; it indicates the dynamic state remains significantly off equilibrium.
 
 ## New Findings
 

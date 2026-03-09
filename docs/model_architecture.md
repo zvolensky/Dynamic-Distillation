@@ -33,7 +33,7 @@ Validates loaded case before simulation starts.
 Defines deterministic state vector layout and pack/unpack functions.
 
 - `dynamic_run_scaffold_v1.py`
-Owns startup initialization, control updates, runtime mode resolution, explicit integration loop, logging, run registration.
+Owns startup initialization, control updates, runtime mode resolution, integration loop (explicit or stiff), logging, run registration.
 
 - `column_rhs_v1.py`
 Computes `dydt` and diagnostics for mass/energy/hydraulics/pressure/thermo closures.
@@ -79,11 +79,15 @@ High-level flow:
 7. Time loop (`step = 0..n_steps`):
 - update step boundary commands and control MVs
 - resolve runtime mode and startup sequence behavior
+- resolve effective integrator profile (including hydraulic+IDA tuned defaults when legacy defaults are unchanged)
 - gate thermo refresh by cadence/threshold logic
 - build per-step `ColumnInputs` including previous-step cached signals
 - evaluate RHS: `dydt, diag = column_rhs(...)`
 - log diagnostics
-- explicit Euler update: `y = y + dt * dydt`
+- time update:
+  - explicit mode: `y = y + dt * dydt`
+  - stiff modes: per-step `solve_ivp` (`BDF` or `Radau`) with explicit fallback on step failure
+  - ida mode: implicit-Euler fixed-point stepper with RHS-coupled DAE algebraic closure; convergence uses state-update error plus weighted algebraic residual checks when those residuals are available
 - cache diagnostics for next step
 8. Write run artifacts and update experiment ledger.
 
@@ -121,6 +125,9 @@ Current architecture is sequential inside each RHS call, not fully simultaneous:
 Implication:
 - Pressure-vapor coupling is effectively one-step lagged in explicit time marching.
 - This is a key reason stiff `P/V` interactions can require damping or additional safeguards.
+- In hydraulic+energy operation, increasing reboiler duty does not guarantee a same-step
+  increase in vapor molar traffic (`V_out`); coupled temperature/enthalpy, pressure,
+  and limiter dynamics can produce duty-up / vapor-down behavior.
 
 Optional mitigation now available in runner:
 - inner fixed-point `P/V` coupling per timestep (`--pv-inner-max-iter` with
@@ -134,6 +141,9 @@ Configured via `--runtime-mode` in `dynamic_run_scaffold_v1.py`.
 
 - `parity`:
 forces pressure spec + vapor profile + liquid hydraulics override off.
+
+- `calibration`:
+uses the same closure set as `parity` (pressure spec + vapor profile + liquid hydraulics override off), with explicit parity-calibration intent.
 
 - `hydraulic`:
 forces hydraulic pressure + energy vapor closure + liquid hydraulics override on.
@@ -154,6 +164,12 @@ top pressure PV -> condenser duty or top-pressure anchor MV.
 - composition control:
 distillate composition -> reflux MV,
 bottoms composition -> boilup or reboiler-duty MV.
+
+Bottoms composition MV semantics:
+- `--bottoms-comp-mv boilup`: active MV is boilup flow (`Boilup_cmd_lbmolph`).
+- `--bottoms-comp-mv reboiler-duty`: active MV is reboiler duty
+  (`Q_reb_cmd_BTUph`, with `Q_reb_used_BTUph` as realized duty).
+- In reboiler-duty mode, `Boilup_cmd_lbmolph` is expected to be `NaN` in logs.
 
 Control sequence:
 - controllers are evaluated each step using latest cached PV/diag signals.
@@ -176,13 +192,29 @@ Pool performance is workload-dependent:
 - more workers do not guarantee faster runtime if task granularity is small.
 
 Current project guidance for this column configuration:
-- use `--thermo table-pool --thermo-pool-workers 2` for subsequent runs.
+- use `--thermo table-pool` and tune `--thermo-pool-workers` to hardware and run
+  size (start around `2..6`; higher counts are not always faster).
 
 ## 10) Logging, Traceability, And Reproducibility
 
 Per run:
 - profile CSV with stage-level and node-level diagnostics.
-- summary CSV with global and top-level metrics.
+- summary CSV with global and top-level metrics plus per-step integrator diagnostics (`integrator_*`, `ida_*` fields).
+
+K-value diagnostics in profile CSV:
+- `K_state_<comp>`: instantaneous dynamic-state ratio `y/x` on the tray.
+- `K_thermo_<comp>`: thermo-flash equilibrium K at tray `T,P,z`.
+- `K_state_over_K_thermo_<comp>`: disequilibrium indicator; near `1.0` means state
+  is close to thermo equilibrium.
+
+### 10.1) Common Misreads
+
+- `Boilup_cmd_lbmolph` being `NaN` is expected when bottoms MV is `reboiler-duty`;
+  in that mode, use `Q_reb_cmd_BTUph` and `Q_reb_used_BTUph` as the active MV traces.
+- `K_thermo_<comp>` and `K_state_<comp>` are different signals:
+  thermo equilibrium K versus dynamic state `y/x`.
+- A rising `Q_reb_*` command does not by itself prove actual vapor molar flow increased;
+  verify with stage `V_out_lbmolph` trends.
 
 Registry and ledger:
 - each run is recorded in `logs/run_registry.csv` with command provenance.
@@ -193,9 +225,15 @@ Duplicate command identity:
 
 ## 11) Known Architectural Constraints
 
-- Integrator is explicit Euler; stability is timestep-sensitive.
+- Default integrator is explicit Euler (timestep-sensitive); optional per-step stiff modes (`BDF`/`Radau`) and pilot `IDA` fixed-point mode are available.
 - `P/V` coupling is sequential with previous-step feedback, not full-step simultaneous.
 - Full simultaneous (large implicit nonlinear solve) is not the current architecture.
+- Optional pilot algebraic Newton solve for `z=[P_tray, V_out]` can be enabled,
+  but this is still a pilot path and not yet a full system-level DAE solve.
+  In stiff integrator mode, this pilot solve is executed once per outer step,
+  while implicit substeps use the PV-coupled RHS with seeded algebraics.
+- Hydraulic vapor-flow clamps are still limiter-based; stiff-mode RHS now supports
+  optional smooth clamp regularization to reduce derivative kinks near limits.
 - Startup initialization quality strongly affects early transient stiffness.
 
 ## 12) Future Architecture Options

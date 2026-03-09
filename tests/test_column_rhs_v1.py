@@ -1627,6 +1627,109 @@ def test_vapor_flow_conductance_caps_to_nominal_when_prev_is_high():
     assert v_out[2] <= (1.5 * 1200.0 + 1.0e-9)
 
 
+def test_vapor_flow_conductance_soft_clamp_reports_eps_and_preserves_limits():
+    N, Nc = 4, 1
+    x0 = np.ones((N, Nc), dtype=float)
+    y0 = np.ones((N, Nc), dtype=float)
+
+    diam_ft = np.full(N, 2.0, dtype=float)
+    spacing_ft = np.full(N, 1.0, dtype=float)
+    void_frac = np.full(N, 0.5, dtype=float)
+    area_ft2 = math.pi * (0.5 * diam_ft) ** 2
+    vapor_vol = area_ft2 * spacing_ft * void_frac
+    weir_h_in = np.zeros(N, dtype=float)
+    weir_L_ft = np.full(N, 1.0, dtype=float)
+    aaf = np.full(N, 1.0, dtype=float)
+    active_area_ft2 = area_ft2 * aaf
+
+    geom = ColumnGeometry(
+        sections=[
+            ColumnGeometrySection(
+                start_stage_1based=1,
+                end_stage_1based=N,
+                diameter_ft=2.0,
+                tray_spacing_ft=1.0,
+                gas_void_frac=0.5,
+                weir_height_in=0.0,
+                weir_length_ft=1.0,
+                active_area_frac=1.0,
+            )
+        ],
+        diameter_ft_per_stage=diam_ft,
+        tray_spacing_ft_per_stage=spacing_ft,
+        gas_void_frac_per_stage=void_frac,
+        area_ft2_per_stage=area_ft2,
+        vapor_volume_ft3_per_stage=vapor_vol,
+        weir_height_in_per_stage=weir_h_in,
+        weir_length_ft_per_stage=weir_L_ft,
+        active_area_frac_per_stage=aaf,
+        active_area_ft2_per_stage=active_area_ft2,
+    )
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A"],
+        components_dwsim=["A"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2, 3, 4], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Number of Stages": 4, "Number of Components": 1, "Timestep (sec)": 1.0, "Simulation Length (min)": 0.1, "Log Frequency (timesteps)": 1},
+        T_f=np.array([100.0, 110.0, 120.0, 130.0], dtype=float),
+        P_psia=np.array([200.0, 260.0, 320.0, 380.0], dtype=float),
+        V_lbmolph=np.array([0.0, 1000.0, 1200.0, 3600.0], dtype=float),
+        L_lbmolph=np.array([0.0, 0.0, 0.0, 0.0], dtype=float),
+        M_L_lbmol=np.array([2.0, 2.0, 2.0, 2.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0, 1.0, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+        geometry=geom,
+    )
+
+    layout = StateVectorLayout(
+        n_stages=N,
+        n_components=Nc,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y0_state = layout.pack_y0(col)
+
+    hard_inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=3600.0),
+        vapor_flow_model="conductance",
+        V_out_prev_lbmolph=np.array([0.0, 20000.0, 22000.0, 3600.0], dtype=float),
+        reboiler_neighbor_vflow_hi_ratio=10.0,
+        reboiler_neighbor_vflow_lo_ratio=1.0e-9,
+        vflow_smooth_clamp_epsilon_lbmolps=None,
+    )
+    _dydt_hard, diag_hard = column_rhs(0.0, y0_state, col, layout, inputs=hard_inputs)
+    v_hard = np.asarray(diag_hard["V_out_lbmolph"], dtype=float).reshape((N,))
+
+    smooth_eps_lbmolph = 50.0
+    smooth_inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=3600.0),
+        vapor_flow_model="conductance",
+        V_out_prev_lbmolph=np.array([0.0, 20000.0, 22000.0, 3600.0], dtype=float),
+        reboiler_neighbor_vflow_hi_ratio=10.0,
+        reboiler_neighbor_vflow_lo_ratio=1.0e-9,
+        vflow_smooth_clamp_epsilon_lbmolps=smooth_eps_lbmolph / 3600.0,
+    )
+    _dydt_smooth, diag_smooth = column_rhs(0.0, y0_state, col, layout, inputs=smooth_inputs)
+    v_smooth = np.asarray(diag_smooth["V_out_lbmolph"], dtype=float).reshape((N,))
+
+    eps_logged = float(np.asarray(diag_smooth["vflow_smooth_clamp_eps_lbmolph"], dtype=float).reshape((-1,))[0])
+    assert np.isclose(eps_logged, smooth_eps_lbmolph, atol=1e-12)
+    assert np.all(np.isfinite(v_smooth[1:3]))
+    # Soft clamp should preserve nominal ceilings while removing hard derivative kinks.
+    assert v_smooth[1] <= (1.5 * 1000.0 + 1.0e-6)
+    assert v_smooth[2] <= (1.5 * 1200.0 + 1.0e-6)
+    assert np.allclose(v_smooth[1:3], v_hard[1:3], atol=5.0)
+
+
 def test_feed_split_can_use_tp_flash_when_provider_available():
     # Stream vapor_fraction is 0, but thermo flash should provide non-zero effective feed vapor split.
     N, Nc = 3, 2

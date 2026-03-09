@@ -2,8 +2,8 @@
 
 ## 1. Document Control
 - Title: Dynamic Distillation Requirements Specification
-- Version: 1.1
-- Date: 2026-02-17
+- Version: 1.2
+- Date: 2026-02-27
 - Basis: Current implementation and tests in this repository.
 
 ## 2. Scope
@@ -24,6 +24,7 @@ This specification captures the as-built behavior of the current codebase.
 - `UR-008` Users shall receive structured profile/summary CSV outputs when logging is enabled.
 - `UR-009` Users shall be protected against accidental reruns of identical CLI commands unless explicitly overridden.
 - `UR-010` Users shall have automatic run provenance tracking and experiment-ledger regeneration.
+- `UR-011` Users shall be able to select runtime behavior mode (`parity`, `calibration`, `hydraulic`, `legacy`) from the CLI.
 
 ## 4. Functional Requirements
 
@@ -51,7 +52,7 @@ This specification captures the as-built behavior of the current codebase.
 - `FR-015` The RHS shall compute tray/top/bottom component holdup derivatives with feed and boundary source terms.
 - `FR-016` The model shall support condenser duty modes `total-condense` and `specified`.
 - `FR-017` The model shall support pressure models `spec` and `hydraulic`, including optional condenser pressure drop.
-- `FR-018` The model shall support vapor-flow models `profile` and `energy` with reboiler-neighbor vapor guardrails.
+- `FR-018` The model shall support vapor-flow models `profile`, `energy`, and `conductance` with reboiler-neighbor vapor guardrails.
 - `FR-019` The model shall support optional equilibrium relaxation and optional energy-holdup states.
 - `FR-020` The model shall support optional top-drum PSV venting with linear gain and max-vent clamp.
 
@@ -62,12 +63,15 @@ This specification captures the as-built behavior of the current codebase.
 - `FR-024` The runner shall support distillate composition PI control with reflux feasibility limiting.
 - `FR-025` The runner shall support bottoms composition PI control with selectable MV (`boilup` or `reboiler-duty`).
 - `FR-026` The runner shall clamp non-physical states (e.g., nonnegative holdup enforcement, temperature clipping to provider bounds).
+- `FR-031` The runner shall apply deterministic runtime-mode presets for pressure model, vapor-flow model, and liquid-hydraulic override according to selected `--runtime-mode`.
 
 ### 4.6 Logging and Ledger
 - `FR-027` The system shall write profile and summary CSV logs when enabled.
 - `FR-028` The system shall emit diagnostics for control commands, condenser/top-drum behavior, PSV behavior, and mass-closure signals.
 - `FR-029` The CLI shall block duplicate exact command identities unless `--allow-repeat-command` is provided.
 - `FR-030` The system shall append run registry metadata and regenerate `docs/experiment_ledger.csv` and `docs/experiment_ledger.md` after logged runs.
+- `FR-032` Profile logs shall expose per-component dynamic-state K, thermo-equilibrium K, and their ratio (`K_state_*`, `K_thermo_*`, `K_state_over_K_thermo_*`).
+- `FR-033` Bottoms-composition MV diagnostics shall reflect the selected MV mode: duty mode logs `Q_reb_cmd_BTUph`/`Q_reb_used_BTUph` as active MV and may leave `Boilup_cmd_lbmolph` undefined (`NaN`).
 
 ## 5. Traceability Matrix
 
@@ -76,12 +80,13 @@ This specification captures the as-built behavior of the current codebase.
 | `UR-001`, `UR-002` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_dynamic_run_scaffold_v1.py` |
 | `UR-003`, `FR-010`..`FR-014` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `src/dynamic_distillation/column_rhs_v1.py`, `src/dynamic_distillation/thermo_surrogate_v1.py`, `src/dynamic_distillation/thermo_table_pool_v1.py` | `tests/test_stage_thermo_v1.py`, `tests/test_thermo_surrogate_v1.py`, `tests/test_thermo_table_pool_v1.py`, `tests/test_column_rhs_v1.py` |
 | `UR-004`, `FR-016`..`FR-019` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `src/dynamic_distillation/column_rhs_v1.py` | `tests/test_column_rhs_v1.py`, `tests/test_dynamic_run_scaffold_v1.py` |
-| `UR-005`, `FR-021`..`FR-025` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_dynamic_run_scaffold_v1.py` |
+| `UR-005`, `FR-021`..`FR-026`, `FR-031` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_dynamic_run_scaffold_v1.py` |
 | `UR-006`, `FR-020` | `src/dynamic_distillation/column_rhs_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_column_rhs_v1.py`, `tests/test_dynamic_run_scaffold_v1.py` |
 | `UR-007`, `FR-005` | `src/dynamic_distillation/excel_case_validator_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_excel_case_validator_v1.py` |
-| `UR-008`, `FR-027`, `FR-028` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_dynamic_run_scaffold_v1.py` |
+| `UR-008`, `FR-027`, `FR-028`, `FR-032`, `FR-033` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `src/dynamic_distillation/column_rhs_v1.py` | `tests/test_dynamic_run_scaffold_v1.py`, `tests/test_column_rhs_v1.py` |
 | `UR-009`, `FR-029` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `src/dynamic_distillation/experiment_ledger_v1.py` | N/A |
 | `UR-010`, `FR-030` | `src/dynamic_distillation/experiment_ledger_v1.py`, `tools/update_experiment_ledger.py` | N/A |
+| `UR-011` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_dynamic_run_scaffold_v1.py` |
 | `FR-001`..`FR-004` | `src/dynamic_distillation/excel_case_loader_v1.py`, `src/dynamic_distillation/column_spec_builder_v1.py` | `tests/test_excel_case_loader_v1.py`, `tests/test_column_spec_builder_v1.py`, `tests/test_excel_case_validator_v1.py` |
 | `FR-006`..`FR-009`, `FR-026` | `src/dynamic_distillation/state_vector_layout_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_state_vector_layout_v1.py`, `tests/test_dynamic_run_scaffold_v1.py` |
 

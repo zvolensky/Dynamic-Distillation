@@ -48,6 +48,7 @@ import numpy as np
 _RUN_ID_RE = re.compile(r"column_summary_(\d{8}_\d{6})\.csv$")
 _FEAS_ID_RE = re.compile(r"feasibility_trim_search_(\d{8}_\d{6})\.csv$")
 _NON_EXPERIMENT_FLAGS = {"--allow-repeat-command"}
+_NON_EXPERIMENT_FLAGS_WITH_VALUE = {"--logs-dir"}
 
 
 @dataclass(frozen=True)
@@ -147,6 +148,15 @@ def compose_cli_command(module_name: str, argv: Sequence[str]) -> str:
 
 def _normalize_command_for_identity(command_text: str) -> str:
     s = str(command_text or "")
+    # Drop metadata-only flags and their argument values.
+    quoted_or_token = r'"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\'|\S+'
+    for flag in _NON_EXPERIMENT_FLAGS_WITH_VALUE:
+        s = re.sub(
+            rf"(?:(?<=\s)|^){re.escape(flag)}(?:\s+(?:{quoted_or_token}))?(?=\s|$)",
+            " ",
+            s,
+        )
+    # Drop standalone metadata-only flags.
     for flag in _NON_EXPERIMENT_FLAGS:
         s = re.sub(rf"(?:(?<=\s)|^){re.escape(flag)}(?=\s|$)", " ", s)
     s = re.sub(r"\s+", " ", s).strip()
@@ -159,7 +169,19 @@ def compose_cli_command_identity(module_name: str, argv: Sequence[str]) -> str:
 
     Non-experiment flags (override/metadata flags) are removed.
     """
-    argv_eff = [a for a in argv if str(a) not in _NON_EXPERIMENT_FLAGS]
+    argv_eff: List[str] = []
+    i = 0
+    argv_list = [str(a) for a in argv]
+    while i < len(argv_list):
+        a = argv_list[i]
+        if a in _NON_EXPERIMENT_FLAGS:
+            i += 1
+            continue
+        if a in _NON_EXPERIMENT_FLAGS_WITH_VALUE:
+            i += 2
+            continue
+        argv_eff.append(a)
+        i += 1
     return _normalize_command_for_identity(_compose_command(module_name, argv_eff))
 
 
@@ -268,7 +290,7 @@ def _choose_p_top(last: dict) -> str:
 
 
 def _iter_summary_files(logs_dir: Path) -> Iterable[Tuple[str, Path]]:
-    for path in sorted(logs_dir.glob("column_summary_*.csv")):
+    for path in sorted(logs_dir.rglob("column_summary_*.csv")):
         m = _RUN_ID_RE.match(path.name)
         if not m:
             continue
@@ -276,11 +298,17 @@ def _iter_summary_files(logs_dir: Path) -> Iterable[Tuple[str, Path]]:
 
 
 def _iter_feasibility_files(logs_dir: Path) -> Iterable[Tuple[str, Path]]:
-    for path in sorted(logs_dir.glob("feasibility_trim_search_*.csv")):
+    for path in sorted(logs_dir.rglob("feasibility_trim_search_*.csv")):
         m = _FEAS_ID_RE.match(path.name)
         if not m:
             continue
         yield m.group(1), path
+
+
+def _iter_registry_files(logs_dir: Path) -> Iterable[Path]:
+    for path in sorted(logs_dir.rglob("run_registry.csv")):
+        if path.is_file():
+            yield path
 
 
 def _run_id_from_results_filename(path: Path) -> Optional[str]:
@@ -418,7 +446,10 @@ def _compute_exact_command_duplicates(
         cmd = str(r.cli_command or "").strip()
         if not cmd:
             continue
-        by_cmd[cmd].append(r)
+        cmd_identity = _normalize_command_for_identity(cmd)
+        if not cmd_identity:
+            continue
+        by_cmd[cmd_identity].append(r)
 
     groups = [g for g in by_cmd.values() if len(g) > 1]
     groups.sort(key=lambda g: (max(x.run_id for x in g), len(g)), reverse=True)
@@ -576,19 +607,22 @@ def rebuild_experiment_ledger(
 
     ledger_csv = docs / "experiment_ledger.csv"
     ledger_md = docs / "experiment_ledger.md"
-    registry_csv = logs / "run_registry.csv"
 
     existing_cmd_map = _read_existing_command_map(ledger_csv)
-    registry_cmd_map = _read_registry_command_map(registry_csv)
+    registry_cmd_map: Dict[str, Tuple[str, str]] = {}
+    for registry_csv in _iter_registry_files(logs):
+        registry_cmd_map.update(_read_registry_command_map(registry_csv))
     known_cmd_map: Dict[str, Tuple[str, str]] = dict(existing_cmd_map)
     known_cmd_map.update(registry_cmd_map)
 
     rows: List[RunRecord] = []
     seen_run_ids: set[str] = set()
     for run_id, summary_path in _iter_summary_files(logs):
+        if run_id in seen_run_ids:
+            continue
         run_dt = datetime.strptime(run_id, "%Y%m%d_%H%M%S")
         run_dt_txt = run_dt.strftime("%Y-%m-%d %H:%M:%S")
-        profile_path = logs / f"column_profile_{run_id}.csv"
+        profile_path = summary_path.with_name(f"column_profile_{run_id}.csv")
 
         first, last, status = _read_summary_first_last(summary_path)
         src = "unknown"
@@ -778,8 +812,8 @@ def rebuild_experiment_ledger(
         f.write("# Experiment Ledger\n\n")
         f.write(f"Updated: {now_txt} (local)\n\n")
         f.write(
-            "This file is auto-generated from `logs/column_summary_*.csv`, "
-            "`logs/feasibility_trim_search_*.csv`, and `logs/run_registry.csv`.\n\n"
+            "This file is auto-generated from `logs/**/column_summary_*.csv`, "
+            "`logs/**/feasibility_trim_search_*.csv`, and `logs/**/run_registry.csv`.\n\n"
         )
         f.write(f"Total runs indexed: **{len(rows)}**  \n")
         f.write(f"Runs with known CLI command: **{len(known)}**  \n")

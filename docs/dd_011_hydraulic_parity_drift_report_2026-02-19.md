@@ -2,7 +2,7 @@
 
 Date: 2026-02-19 (local)
 
-Status addendum: 2026-02-23 (local)
+Status addenda: 2026-02-23, 2026-02-27 (local)
 
 ## Problem Statement
 
@@ -71,6 +71,46 @@ Key updates:
    - The root-cause statement remains valid (hydraulic-mode structural coupling dominates).
    - Current evidence indicates the main destabilizing window is mid-run hydraulic acceleration and pressure-MV chatter, not a gross `t=0` initialization shock.
 5. Startup hydraulic sequencing was previously tested, but those tests were on older workbook/sign settings; it has not yet been re-run apples-to-apples on the corrected 2026-02-23 case.
+
+## Current State Addendum (2026-02-26, Bottoms-MV Route And K Diagnostics)
+
+Latest closed-loop hydraulic comparisons (same base workbook family, `dt=0.2 s`, `300 s`, table thermo, energy ON):
+
+1. Boilup-MV run:
+   - `logs/column_summary_20260226_184354.csv`
+   - `logs/column_profile_20260226_184354.csv`
+2. Reboiler-duty-MV run:
+   - `logs/column_summary_20260226_193355.csv`
+   - `logs/column_profile_20260226_193355.csv`
+   - `logs/stage19_xc3_vs_time_20260226_193355.csv`
+   - `logs/stage19_kc3_vs_time_20260226_193355.csv`
+
+Key observations from `20260226_193355` (`--bottoms-comp-mv reboiler-duty`):
+
+1. Bottoms composition control remained off target over 300 s:
+   - `xB_C3`: `0.05998 -> 0.08429` (SP `0.04700`)
+   - `xD_C4`: `0.12990 -> 0.16301` (SP `0.09400`)
+2. Reboiler duty increased, but lower-stage vapor traffic did not:
+   - `Q_reb_used`: `54.706 -> 58.135 MMBtu/h`
+   - stage-20 `V_out`: `8233 -> 6468 lbmol/h`
+   - stage-19 `V_out`: `8019 -> 6491 lbmol/h`
+3. Stage-19 propane liquid composition rose despite the higher duty signal:
+   - `xC3` start: `0.06805`
+   - peak: `0.18788` at `t=106 s`
+   - final: `0.14684`
+4. Stage-19 C3 K diagnostics separate thermo from dynamic-state behavior:
+   - `K_thermo_C3`: `1.869..1.971` (near expected top-end magnitude for this case)
+   - final `K_state_C3`: `1.40299`
+   - final `K_state/K_thermo`: `0.74699`
+5. Steady-state detector result remained negative:
+   - `steady_state_flag=0`
+   - `steady_state_score=208.19` at `t=300 s`
+
+Interpretation update:
+
+1. This evidence supports the existing DD-011 framing (coupled hydraulic/energy/control dynamics), not a simple one-parameter controller-tuning shortfall.
+2. Increasing reboiler duty is not equivalent to increasing actual vapor molar traffic under these coupled conditions.
+3. The new K diagnostics indicate that, for stage-19 C3 in this run, thermo-flash K magnitude itself is plausible while the dynamic state remains materially off equilibrium.
 
 ## Primary Symptoms Observed
 

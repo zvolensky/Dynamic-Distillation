@@ -31,7 +31,14 @@ import pytest
 
 from dynamic_distillation.dynamic_run_scaffold_v1 import (
     PIController,
+    _max_abs_temperature_fd_rate_per_s,
+    _effective_hydraulic_ida_profile,
+    _integrate_one_step,
+    _integrate_one_step_ida,
+    _normalize_integrator_mode,
+    _normalize_runtime_mode,
     _column_rhs_with_inner_pv_coupling,
+    _solve_dae_pilot_algebraic,
     _apply_slew_limit,
     RunnerConfig,
     _clear_initial_tray_vapor_holdup,
@@ -48,6 +55,30 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
 )
 from dynamic_distillation.column_rhs_v1 import ColumnInputs, column_rhs
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
+
+
+def test_steady_state_temperature_fd_rate_ignores_boundary_temperatures():
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    sl = layout.slices()
+    y0 = np.zeros(layout.n_states(), dtype=float)
+    y1 = np.zeros(layout.n_states(), dtype=float)
+
+    # Keep tray temperatures fixed while perturbing boundary temperatures only.
+    y0[sl["tray_T_f"]] = np.array([120.0, 140.0], dtype=float)
+    y1[sl["tray_T_f"]] = np.array([120.0, 140.0], dtype=float)
+    y0[sl["bottom_T_f"]] = np.array([180.0], dtype=float)
+    y1[sl["bottom_T_f"]] = np.array([210.0], dtype=float)
+
+    max_rate = _max_abs_temperature_fd_rate_per_s(layout, y0, y1, dt_sec=10.0)
+    assert float(max_rate) == pytest.approx(0.0)
 
 
 def test_smoke_runner_builds_and_rhs_runs(tmp_path: Path):
@@ -305,6 +336,147 @@ def test_summary_row_prefers_logged_pressure_controller_pv():
     assert float(row["P_top_psia"]) != pytest.approx(226.0)
 
 
+def test_summary_row_includes_integrator_diagnostics():
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    class TinyCol:
+        n_stages = 2
+        n_components = 2
+        components_excel = ["C3", "C4"]
+        T_f = np.array([120.0, 130.0], dtype=float)
+        P_psia = np.array([220.0, 230.0], dtype=float)
+        M_L_lbmol = np.array([5.0, 6.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.0], dtype=float)
+        x0 = np.array([[0.80, 0.20], [0.30, 0.70]], dtype=float)
+        y0 = np.array([[0.75, 0.25], [0.25, 0.75]], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=col.n_stages,
+        n_components=col.n_components,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y = layout.pack_y0(col)
+    diag = {
+        "x_tray": np.asarray(col.x0, dtype=float).copy(),
+        "y_tray": np.asarray(col.y0, dtype=float).copy(),
+        "P_psia_diag": np.array([222.0, 231.0], dtype=float),
+    }
+    integ = {
+        "requested_mode": "ida",
+        "used_mode": "ida",
+        "fallback_used": False,
+        "fallback_reason": "",
+        "nfev": 9.0,
+        "ida_iter_max": 3.0,
+        "ida_iter_mean": 2.0,
+        "ida_converged": 1.0,
+        "ida_last_err": 0.2,
+        "ida_alg_p_inf_psia": 0.01,
+        "ida_alg_v_inf_lbmolph": 3.0,
+        "ida_alg_weighted": 0.6,
+        "ida_alg_converged": 1.0,
+        "ida_resid_energy_btups": 125.0,
+    }
+
+    row = scaffold._summary_row(
+        t_s=0.0,
+        case=None,
+        col=col,
+        layout=layout,
+        y=y,
+        diag=diag,
+        include_temperature=False,
+        volume_model=scaffold.VolumeModel(default_vapor_volume_ft3=10.0),
+        wall_clock_iso="2026-02-17T00:00:00",
+        wall_elapsed_s=0.0,
+        feed_tag=scaffold.StreamTag(name="Feed", flow_lbmolph=1000.0, stage_1based=2),
+        dist_tag=scaffold.StreamTag(name="Distillate", flow_lbmolph=200.0, stage_1based=1),
+        bots_tag=scaffold.StreamTag(name="Bottoms", flow_lbmolph=800.0, stage_1based=2),
+        integrator_info=integ,
+    )
+
+    assert str(row["integrator_requested_mode"]) == "ida"
+    assert str(row["integrator_used_mode"]) == "ida"
+    assert float(row["integrator_fallback_used"]) == pytest.approx(0.0)
+    assert float(row["integrator_nfev"]) == pytest.approx(9.0)
+    assert float(row["ida_iter_max"]) == pytest.approx(3.0)
+    assert float(row["ida_alg_weighted"]) == pytest.approx(0.6)
+
+
+def test_summary_row_includes_steady_state_diagnostics():
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    class TinyCol:
+        n_stages = 2
+        n_components = 2
+        components_excel = ["C3", "C4"]
+        T_f = np.array([120.0, 130.0], dtype=float)
+        P_psia = np.array([220.0, 230.0], dtype=float)
+        M_L_lbmol = np.array([5.0, 6.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.0], dtype=float)
+        x0 = np.array([[0.80, 0.20], [0.30, 0.70]], dtype=float)
+        y0 = np.array([[0.75, 0.25], [0.25, 0.75]], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=col.n_stages,
+        n_components=col.n_components,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y = layout.pack_y0(col)
+    diag = {
+        "x_tray": np.asarray(col.x0, dtype=float).copy(),
+        "y_tray": np.asarray(col.y0, dtype=float).copy(),
+        "P_psia_diag": np.array([222.0, 231.0], dtype=float),
+        "steady_state_enabled": np.array([1.0], dtype=float),
+        "steady_state_flag": np.array([1.0], dtype=float),
+        "steady_state_score": np.array([0.42], dtype=float),
+        "steady_state_active_criteria": np.array([4.0], dtype=float),
+        "ss_max_rel_state_rate_per_s": np.array([2.5e-3], dtype=float),
+        "ss_max_kpi_slope_per_s": np.array([8.0e-5], dtype=float),
+        "ss_max_mv_rate_per_s": np.array([9.0], dtype=float),
+        "ss_max_temp_rate_F_per_s": np.array([0.08], dtype=float),
+        "ss_max_sp_error": np.array([0.015], dtype=float),
+        "ss_window_samples": np.array([31.0], dtype=float),
+        "ss_window_sec": np.array([30.0], dtype=float),
+        "ss_min_time_sec": np.array([60.0], dtype=float),
+    }
+
+    row = scaffold._summary_row(
+        t_s=120.0,
+        case=None,
+        col=col,
+        layout=layout,
+        y=y,
+        diag=diag,
+        include_temperature=False,
+        volume_model=scaffold.VolumeModel(default_vapor_volume_ft3=10.0),
+        wall_clock_iso="2026-02-17T00:00:00",
+        wall_elapsed_s=0.0,
+        feed_tag=scaffold.StreamTag(name="Feed", flow_lbmolph=1000.0, stage_1based=2),
+        dist_tag=scaffold.StreamTag(name="Distillate", flow_lbmolph=200.0, stage_1based=1),
+        bots_tag=scaffold.StreamTag(name="Bottoms", flow_lbmolph=800.0, stage_1based=2),
+    )
+
+    assert float(row["steady_state_enabled"]) == pytest.approx(1.0)
+    assert float(row["steady_state_flag"]) == pytest.approx(1.0)
+    assert float(row["steady_state_score"]) == pytest.approx(0.42)
+    assert float(row["ss_max_rel_state_rate_per_s"]) == pytest.approx(2.5e-3)
+    assert float(row["ss_max_kpi_slope_per_s"]) == pytest.approx(8.0e-5)
+    assert float(row["ss_max_mv_rate_per_s"]) == pytest.approx(9.0)
+    assert float(row["ss_max_temp_rate_F_per_s"]) == pytest.approx(0.08)
+    assert float(row["ss_max_sp_error"]) == pytest.approx(0.015)
+
+
 def test_profile_rows_add_unit_rows_and_move_drum_sump_fields():
     import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
 
@@ -493,6 +665,260 @@ def test_apply_slew_limit_clamps_step_change():
 
     u3 = _apply_slew_limit(cmd=1.0, prev_cmd=0.0, rate_limit_per_s=2.0, dt_sec=1.0)
     assert u3 == pytest.approx(1.0)
+
+
+def test_normalize_integrator_mode_aliases():
+    assert _normalize_integrator_mode("explicit") == "explicit-euler"
+    assert _normalize_integrator_mode("euler") == "explicit-euler"
+    assert _normalize_integrator_mode("bdf") == "bdf"
+    assert _normalize_integrator_mode("radau") == "radau"
+    assert _normalize_integrator_mode("ida") == "ida"
+    assert _normalize_integrator_mode("dae") == "ida"
+    assert _normalize_integrator_mode("unknown") == "explicit-euler"
+
+
+def test_effective_hydraulic_ida_profile_applies_tuned_defaults():
+    cfg = RunnerConfig(excel_path="dummy.xlsx")
+    eff = _effective_hydraulic_ida_profile(
+        cfg,
+        runtime_mode="hydraulic",
+        integrator_mode="ida",
+    )
+    assert bool(eff["dae_pilot_enabled"]) is True
+    assert int(eff["ida_max_iter"]) == 12
+    assert float(eff["dae_pilot_v_tol_lbmolph"]) == pytest.approx(100.0)
+    assert "enable_dae_pilot_algebraic_solve=True" in list(eff["defaults_applied"])
+    assert "ida_max_iter=12" in list(eff["defaults_applied"])
+    assert "dae_pilot_v_tol_lbmolph=100" in list(eff["defaults_applied"])
+
+
+def test_effective_hydraulic_ida_profile_preserves_explicit_overrides():
+    cfg = RunnerConfig(
+        excel_path="dummy.xlsx",
+        ida_max_iter=16,
+        enable_dae_pilot_algebraic_solve=True,
+        dae_pilot_v_tol_lbmolph=60.0,
+    )
+    eff = _effective_hydraulic_ida_profile(
+        cfg,
+        runtime_mode="hydraulic",
+        integrator_mode="ida",
+    )
+    assert bool(eff["dae_pilot_enabled"]) is True
+    assert int(eff["ida_max_iter"]) == 16
+    assert float(eff["dae_pilot_v_tol_lbmolph"]) == pytest.approx(60.0)
+    assert list(eff["defaults_applied"]) == []
+
+
+def test_integrate_one_step_explicit_linear_decay():
+    layout = StateVectorLayout(
+        n_stages=1,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+        include_temperature=False,
+    )
+    y0 = np.array([2.0], dtype=float)
+
+    def _rhs(_t, y):
+        return -np.asarray(y, dtype=float), {}
+
+    y1, info = _integrate_one_step(
+        t_s=0.0,
+        y=y0,
+        dt_sec=0.1,
+        rhs_eval=_rhs,
+        layout=layout,
+        thermo_provider=None,
+        integrator_mode="explicit-euler",
+        rtol=1.0e-3,
+        atol=1.0e-6,
+        max_step_sec=None,
+        substep_sec=None,
+        max_rhs_evals_per_step=None,
+        step_wall_limit_sec=None,
+    )
+    assert y1.shape == (1,)
+    assert y1[0] == pytest.approx(1.8)
+    assert str(info["used_mode"]) == "explicit-euler"
+    assert bool(info["fallback_used"]) is False
+
+
+def test_integrate_one_step_bdf_falls_back_without_scipy(monkeypatch):
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    layout = StateVectorLayout(
+        n_stages=1,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+        include_temperature=False,
+    )
+    y0 = np.array([2.0], dtype=float)
+
+    def _rhs(_t, y):
+        return -np.asarray(y, dtype=float), {}
+
+    monkeypatch.setattr(scaffold, "_solve_ivp", None)
+
+    y1, info = _integrate_one_step(
+        t_s=0.0,
+        y=y0,
+        dt_sec=0.1,
+        rhs_eval=_rhs,
+        layout=layout,
+        thermo_provider=None,
+        integrator_mode="bdf",
+        rtol=1.0e-3,
+        atol=1.0e-6,
+        max_step_sec=None,
+        substep_sec=None,
+        max_rhs_evals_per_step=None,
+        step_wall_limit_sec=None,
+    )
+    assert y1[0] == pytest.approx(1.8)
+    assert bool(info["fallback_used"]) is True
+    assert str(info["used_mode"]) == "explicit-euler"
+
+
+def test_integrate_one_step_bdf_uses_solve_ivp_when_available(monkeypatch):
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    layout = StateVectorLayout(
+        n_stages=1,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+        include_temperature=False,
+    )
+    y0 = np.array([2.0], dtype=float)
+
+    class _Sol:
+        success = True
+        y = np.array([[1.234]], dtype=float)
+        nfev = 7
+        njev = 2
+        nlu = 2
+        status = 0
+        message = "ok"
+
+    def _rhs(_t, y):
+        return -np.asarray(y, dtype=float), {}
+
+    def _fake_solve_ivp(fun, t_span, y0, method, t_eval, rtol, atol, max_step, vectorized):
+        assert method == "BDF"
+        assert np.isfinite(float(rtol))
+        assert np.isfinite(float(atol))
+        _ = fun(float(t_eval[0]), np.asarray(y0, dtype=float))
+        return _Sol()
+
+    monkeypatch.setattr(scaffold, "_solve_ivp", _fake_solve_ivp)
+
+    y1, info = _integrate_one_step(
+        t_s=0.0,
+        y=y0,
+        dt_sec=0.1,
+        rhs_eval=_rhs,
+        layout=layout,
+        thermo_provider=None,
+        integrator_mode="bdf",
+        rtol=1.0e-3,
+        atol=1.0e-6,
+        max_step_sec=None,
+        substep_sec=None,
+        max_rhs_evals_per_step=None,
+        step_wall_limit_sec=None,
+    )
+    assert y1[0] == pytest.approx(1.234)
+    assert bool(info["fallback_used"]) is False
+    assert str(info["used_mode"]) == "bdf"
+    assert float(info["nfev"]) == pytest.approx(7.0)
+
+
+def test_integrate_one_step_ida_fixed_point_converges():
+    layout = StateVectorLayout(
+        n_stages=1,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+        include_temperature=False,
+    )
+    y0 = np.array([2.0], dtype=float)
+
+    def _rhs(_t, y):
+        # Stable linear system; implicit solve should converge quickly.
+        return -np.asarray(y, dtype=float), {}
+
+    y1, info = _integrate_one_step_ida(
+        t_s=0.0,
+        y=y0,
+        dt_sec=0.1,
+        rhs_eval=_rhs,
+        layout=layout,
+        thermo_provider=None,
+        substep_sec=None,
+        max_iter=8,
+        relax=1.0,
+        rtol=1.0e-6,
+        atol=1.0e-9,
+        max_rhs_evals_per_step=200,
+        step_wall_limit_sec=5.0,
+    )
+    assert y1.shape == (1,)
+    assert bool(info["fallback_used"]) is False
+    assert str(info["used_mode"]) == "ida"
+    assert float(info["ida_converged"]) == pytest.approx(1.0)
+    # Implicit Euler exact value for y'=-y with dt=0.1 is y1 = y0 / (1+dt).
+    assert y1[0] == pytest.approx(2.0 / 1.1, rel=1e-3)
+
+
+def test_integrate_one_step_ida_waits_for_algebraic_residual():
+    layout = StateVectorLayout(
+        n_stages=1,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+        include_temperature=False,
+    )
+    y0 = np.array([2.0], dtype=float)
+
+    calls = {"n": 0}
+    alg_p_series = [2.0, 2.0, 0.01]
+
+    def _rhs(_t, y):
+        idx = min(int(calls["n"]), len(alg_p_series) - 1)
+        calls["n"] += 1
+        dydt = np.zeros_like(np.asarray(y, dtype=float))
+        diag = {"dae_pilot_alg_p_inf_psia": np.array([alg_p_series[idx]], dtype=float)}
+        return dydt, diag
+
+    y1, info = _integrate_one_step_ida(
+        t_s=0.0,
+        y=y0,
+        dt_sec=0.1,
+        rhs_eval=_rhs,
+        layout=layout,
+        thermo_provider=None,
+        substep_sec=None,
+        max_iter=4,
+        relax=1.0,
+        rtol=1.0e-6,
+        atol=1.0e-9,
+        max_rhs_evals_per_step=200,
+        step_wall_limit_sec=5.0,
+        alg_p_tol_psia=0.05,
+        alg_v_tol_lbmolph=25.0,
+    )
+    assert bool(info["fallback_used"]) is False
+    assert float(info["ida_converged"]) == pytest.approx(1.0)
+    assert float(info["ida_iter_max"]) == pytest.approx(2.0)
+    assert float(info["ida_alg_weighted"]) <= 1.0
+    assert y1[0] == pytest.approx(2.0)
 
 
 def test_startup_hydraulic_sequence_stages_pressure_then_energy_then_liquid_ramp():
@@ -893,6 +1319,214 @@ def test_inner_pv_coupling_iterates_and_converges(monkeypatch):
     assert float(np.asarray(diag["pv_inner_dv_max_lbmolph"], dtype=float).reshape((-1,))[0]) <= 10.0
 
 
+def test_dae_pilot_algebraic_solver_converges_for_linear_map(monkeypatch):
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    calls = {"n": 0}
+    p_star = np.array([225.0, 235.0], dtype=float)
+    v_star = np.array([5200.0, 5400.0], dtype=float)
+
+    def _fake_rhs(_t, y_vec, _col, _layout, inputs=None):
+        calls["n"] += 1
+        p_prev = np.asarray(inputs.P_tray_prev, dtype=float).reshape((2,))
+        v_prev = np.asarray(inputs.V_out_prev_lbmolph, dtype=float).reshape((2,))
+        p_new = p_prev + 0.5 * (p_star - p_prev)
+        v_new = v_prev + 0.5 * (v_star - v_prev)
+        dydt = np.zeros_like(np.asarray(y_vec, dtype=float))
+        diag = {
+            "P_psia_hyd": p_new,
+            "V_out_lbmolph": v_new,
+        }
+        return dydt, diag
+
+    monkeypatch.setattr(scaffold, "column_rhs", _fake_rhs)
+
+    class TinyCol:
+        n_stages = 2
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+    )
+    y0 = np.zeros(layout.n_states(), dtype=float)
+
+    _dydt, diag = _solve_dae_pilot_algebraic(
+        t_s=0.0,
+        y=y0,
+        col=TinyCol(),
+        layout=layout,
+        inputs=ColumnInputs(
+            P_tray_prev=np.array([200.0, 210.0], dtype=float),
+            V_out_prev_lbmolph=np.array([4800.0, 5000.0], dtype=float),
+        ),
+        max_iter=4,
+        p_tol_psia=1e-6,
+        v_tol_lbmolph=1e-4,
+        jac_rel_step=1e-7,
+        line_search_max=3,
+    )
+
+    assert calls["n"] >= 2
+    assert float(np.asarray(diag["dae_pilot_enabled"], dtype=float).reshape((-1,))[0]) == 1.0
+    assert float(np.asarray(diag["dae_pilot_converged"], dtype=float).reshape((-1,))[0]) == 1.0
+    assert float(np.asarray(diag["dae_pilot_failed"], dtype=float).reshape((-1,))[0]) == 0.0
+    assert float(np.asarray(diag["dae_pilot_alg_p_inf_psia"], dtype=float).reshape((-1,))[0]) <= 1e-6
+    assert float(np.asarray(diag["dae_pilot_alg_v_inf_lbmolph"], dtype=float).reshape((-1,))[0]) <= 1e-4
+
+
+def test_dae_pilot_algebraic_solver_fallback_sets_failed_flag(monkeypatch):
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    def _fake_rhs(_t, y_vec, _col, _layout, inputs=None):
+        dydt = np.zeros_like(np.asarray(y_vec, dtype=float))
+        diag = {
+            "P_psia_hyd": np.asarray(inputs.P_tray_prev, dtype=float).reshape((2,)) + 1.0,
+            "V_out_lbmolph": np.asarray(inputs.V_out_prev_lbmolph, dtype=float).reshape((2,)) + 10.0,
+        }
+        return dydt, diag
+
+    def _raise_jac(*_args, **_kwargs):
+        raise RuntimeError("fd jacobian failure")
+
+    monkeypatch.setattr(scaffold, "column_rhs", _fake_rhs)
+    monkeypatch.setattr(scaffold, "finite_difference_jacobian", _raise_jac)
+
+    class TinyCol:
+        n_stages = 2
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+    )
+    y0 = np.zeros(layout.n_states(), dtype=float)
+
+    _dydt, diag = _solve_dae_pilot_algebraic(
+        t_s=0.0,
+        y=y0,
+        col=TinyCol(),
+        layout=layout,
+        inputs=ColumnInputs(
+            P_tray_prev=np.array([200.0, 210.0], dtype=float),
+            V_out_prev_lbmolph=np.array([4800.0, 5000.0], dtype=float),
+        ),
+        max_iter=3,
+        p_tol_psia=1e-12,
+        v_tol_lbmolph=1e-12,
+        jac_rel_step=1e-7,
+        line_search_max=2,
+    )
+
+    assert float(np.asarray(diag["dae_pilot_enabled"], dtype=float).reshape((-1,))[0]) == 1.0
+    assert float(np.asarray(diag["dae_pilot_failed"], dtype=float).reshape((-1,))[0]) == 1.0
+    assert float(np.asarray(diag["dae_pilot_converged"], dtype=float).reshape((-1,))[0]) == 0.0
+
+
+def test_stiff_integrator_uses_dae_outer_once_per_step(monkeypatch, tmp_path: Path):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    calls = {"dae": 0, "pv": 0}
+    smooth_eps_seen = []
+
+    def _fake_dae(
+        *,
+        t_s,
+        y,
+        col,
+        layout,
+        inputs,
+        max_iter,
+        p_tol_psia,
+        v_tol_lbmolph,
+        jac_rel_step,
+        line_search_max,
+    ):
+        calls["dae"] += 1
+        smooth_eps_seen.append(float(getattr(inputs, "vflow_smooth_clamp_epsilon_lbmolps", 0.0) or 0.0))
+        n = int(layout.n_states())
+        ns = int(col.n_stages)
+        dydt = np.zeros(n, dtype=float)
+        diag = {
+            "P_psia_hyd": np.full(ns, 220.0, dtype=float),
+            "V_out_lbmolph": np.full(ns, 5000.0, dtype=float),
+            "Z_tray": np.ones(ns, dtype=float),
+            "dae_pilot_enabled": np.array([1.0], dtype=float),
+            "dae_pilot_iter_count": np.array([1.0], dtype=float),
+            "dae_pilot_converged": np.array([1.0], dtype=float),
+            "dae_pilot_failed": np.array([0.0], dtype=float),
+        }
+        return dydt, diag
+
+    def _fake_pv(*, t_s, y, col, layout, inputs, max_iter, p_tol_psia, v_tol_lbmolph):
+        calls["pv"] += 1
+        n = int(layout.n_states())
+        ns = int(col.n_stages)
+        dydt = np.zeros(n, dtype=float)
+        diag = {
+            "P_psia_hyd": np.full(ns, 220.0, dtype=float),
+            "V_out_lbmolph": np.full(ns, 5000.0, dtype=float),
+            "Z_tray": np.ones(ns, dtype=float),
+        }
+        return dydt, diag
+
+    def _fake_integrate_one_step(
+        *,
+        t_s,
+        y,
+        dt_sec,
+        rhs_eval,
+        layout,
+        thermo_provider,
+        integrator_mode,
+        rtol,
+        atol,
+        max_step_sec,
+        substep_sec,
+        max_rhs_evals_per_step,
+        step_wall_limit_sec,
+    ):
+        _d1, _g1 = rhs_eval(float(t_s), np.asarray(y, dtype=float))
+        _d2, _g2 = rhs_eval(float(t_s) + 0.5 * float(dt_sec), np.asarray(y, dtype=float))
+        return np.asarray(y, dtype=float), {"fallback_used": False}
+
+    monkeypatch.setattr(scaffold, "_solve_dae_pilot_algebraic", _fake_dae)
+    monkeypatch.setattr(scaffold, "_column_rhs_with_inner_pv_coupling", _fake_pv)
+    monkeypatch.setattr(scaffold, "_integrate_one_step", _fake_integrate_one_step)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=1,
+        dt_sec=0.2,
+        log_every_n_steps=1,
+        runtime_mode="hydraulic",
+        include_temperature=False,
+        include_energy=False,
+        thermo_mode="stub",
+        write_logs=False,
+        integrator="bdf",
+        enable_dae_pilot_algebraic_solve=True,
+        logs_dir=str(tmp_path),
+    )
+    out = run_smoke_simulation(cfg)
+
+    # n_steps=1 -> outer-step evaluation at step 0 and step 1 only.
+    assert calls["dae"] == 2
+    # substep RHS inside fake integrator should not invoke the PV wrapper in this mode.
+    assert calls["pv"] == 0
+    assert len(smooth_eps_seen) == 2
+    assert all(v > 0.0 for v in smooth_eps_seen)
+    assert int(out.get("integrator_fallback_count", 0)) == 0
+
+
 def test_distillate_composition_control_logs_command(tmp_path: Path):
     excel = Path("distillation_column_template.xlsx")
     if not excel.exists():
@@ -1122,8 +1756,9 @@ def test_build_inputs_applies_hydraulic_energy_stability_defaults():
 
     assert str(inputs.pressure_model).lower() == "hydraulic"
     assert str(inputs.vapor_flow_model).lower() == "energy"
-    assert abs(float(inputs.vapor_holdup_relaxation_sec) - 10.0) < 1e-12
-    assert abs(float(inputs.hydraulic_pressure_relaxation_sec) - 10.0) < 1e-12
+    tau_ref = float(getattr(col, "tau_eq_sec", 10.0))
+    assert abs(float(inputs.vapor_holdup_relaxation_sec) - tau_ref) < 1e-12
+    assert abs(float(inputs.hydraulic_pressure_relaxation_sec) - tau_ref) < 1e-12
     assert abs(float(inputs.reboiler_neighbor_vflow_hi_ratio) - 1.20) < 1e-12
     assert abs(float(inputs.reboiler_neighbor_vflow_lo_ratio) - 0.80) < 1e-12
     assert inputs.thermo_refresh_dT_F is None
@@ -1171,6 +1806,85 @@ def test_build_inputs_hydraulic_energy_stability_defaults_allow_cfg_overrides():
     assert abs(float(inputs.thermo_refresh_dx) - 1.0e-3) < 1e-12
     assert bool(inputs.enforce_top_pressure_ordering) is False
     assert abs(float(inputs.top_pressure_ordering_margin_psi) - 0.15) < 1e-12
+
+
+def test_runtime_mode_calibration_forces_parity_closures():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    # Seed conflicting spec-side closures to verify runtime-mode override.
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Pressure Model"] = "hydraulic"
+    specs["Vapor Flow Model"] = "energy"
+    specs["Enable Liquid Hydraulic Override"] = True
+    specs["Liquid Hydraulic Override Alpha"] = 1.0
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="calibration",
+        enable_liquid_hydraulic_override=True,
+        liquid_hydraulic_override_alpha=1.0,
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+
+    assert str(inputs.pressure_model).lower() == "spec"
+    assert str(inputs.vapor_flow_model).lower() == "profile"
+    assert bool(inputs.enable_liquid_hydraulic_override) is False
+    assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.0)
+    assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "phase-holdup"
+
+
+def test_normalize_runtime_mode_accepts_calibration():
+    assert _normalize_runtime_mode("calibration") == "calibration"
+    assert _normalize_runtime_mode(" Calibration ") == "calibration"
+
+
+def test_build_inputs_runtime_hydraulic_defaults_equilibrium_mode_to_composition_only():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="hydraulic",
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "composition-only"
+
+
+def test_build_inputs_accepts_equilibrium_mode_override():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="hydraulic",
+        equilibrium_relaxation_mode="phase-holdup",
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "phase-holdup"
 
 
 def test_build_inputs_accepts_conductance_vapor_flow_model():

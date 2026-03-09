@@ -478,7 +478,6 @@ def main() -> int:
     ap.add_argument("--excel", dest="excel_path", default="distillation_column_template.xlsx")
     ap.add_argument("--thermo", dest="thermo_mode", choices=["stub", "dwsim", "table"], default="table")
     ap.add_argument("--thermo-table", dest="thermo_table_path", default="cache/thermo_table.json")
-    ap.add_argument("--thermo-cache", dest="thermo_cache_path", default=None)
     ap.add_argument("--thermo-every", dest="thermo_every_n_steps", type=int, default=1)
     ap.add_argument("--include-energy", dest="include_energy", action="store_true")
     ap.add_argument("--no-equilibrium", dest="enable_equilibrium_relaxation", action="store_false")
@@ -640,7 +639,6 @@ def main() -> int:
         thermo_mode=str(args.thermo_mode),
         thermo_every_n_steps=max(int(args.thermo_every_n_steps), 1),
         thermo_table_path=thermo_table_path,
-        thermo_cache_path=args.thermo_cache_path,
         reflux_lbmolph=float(reflux_baseline),
         boilup_lbmolph=float(boilup_baseline),
         condenser_duty_mode=str(condenser_duty_mode),

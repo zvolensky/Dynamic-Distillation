@@ -104,3 +104,59 @@ def test_equilibrium_relaxation_relaxes_to_flash_targets_with_net_phase_change()
     assert "y_eq_tray" in diag
     assert "beta_eq_tray" in diag
     assert "eq_transfer_lbmolps_tray" in diag
+
+
+def test_equilibrium_relaxation_composition_only_mode_keeps_net_phase_change_near_zero():
+    col = _make_zero_flow_column()
+    layout = StateVectorLayout(n_stages=2, n_components=2, include_top=False, include_bottom=False, include_vapor=True)
+    y0_vec = layout.pack_y0(col)
+
+    K = np.array([2.0, 0.5], dtype=float)
+    provider = _ThermoProviderWithK(K=K)
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo_provider=provider,
+        compute_thermo_diag=False,
+        equilibrium_relaxation=True,
+        equilibrium_relaxation_mode="composition-only",
+        tau_eq_sec=10.0,
+    )
+
+    dydt, diag = column_rhs(0.0, y0_vec, col, layout, inputs=inputs)
+    sl = layout.slices()
+    dL = dydt[sl["tray_L"]].reshape((col.n_stages, col.n_components))
+    dV = dydt[sl["tray_V"]].reshape((col.n_stages, col.n_components))
+    assert np.allclose(dL + dV, 0.0, atol=1e-12)
+
+    phase_change = np.asarray(diag["eq_phase_change_lbmolps_tray"], dtype=float).reshape((col.n_stages,))
+    assert np.allclose(phase_change, 0.0, atol=1e-12)
+    mode_flag = float(np.asarray(diag["eq_relaxation_mode_comp_only"], dtype=float).reshape((-1,))[0])
+    assert mode_flag == 1.0
+
+
+def test_equilibrium_relaxation_uses_cached_k_without_live_thermo_provider():
+    col = _make_zero_flow_column()
+    layout = StateVectorLayout(n_stages=2, n_components=2, include_top=False, include_bottom=False, include_vapor=True)
+    y0_vec = layout.pack_y0(col)
+
+    K_prev = np.array([[2.0, 0.5], [2.0, 0.5]], dtype=float)
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo_provider=None,
+        compute_thermo_diag=False,
+        equilibrium_relaxation=True,
+        equilibrium_relaxation_mode="composition-only",
+        tau_eq_sec=10.0,
+        K_tray_prev=K_prev,
+        HL_prev=np.zeros(2, dtype=float),
+        HV_prev=np.zeros(2, dtype=float),
+        Zfac_prev=np.ones(2, dtype=float),
+    )
+
+    dydt, diag = column_rhs(0.0, y0_vec, col, layout, inputs=inputs)
+    assert np.all(np.isfinite(dydt))
+    assert "eq_transfer_lbmolps_tray" in diag
+    assert "K_tray" in diag
+    cache_flag = float(np.asarray(diag["thermo_flash_cached_only"], dtype=float).reshape((-1,))[0])
+    assert cache_flag == 1.0

@@ -211,6 +211,23 @@ class ParallelTabularThermoProviderV1:
     ):
         return self._local.liquid_density_lbmol_ft3(float(T_F), float(P_psia), x)
 
+    def phase_enthalpy_BTU_lbmol(
+        self,
+        phase: str,
+        T_F: float,
+        P_psia: float,
+        comp: Sequence[float],
+    ) -> float:
+        return self._local.phase_enthalpy_BTU_lbmol(str(phase), float(T_F), float(P_psia), comp)
+
+    def vapor_z_factor_F_psia(
+        self,
+        T_F: float,
+        P_psia: float,
+        y: Sequence[float],
+    ):
+        return self._local.vapor_z_factor_F_psia(float(T_F), float(P_psia), y)
+
     def component_mw_lbm_per_lbmol(self):
         return self._local.component_mw_lbm_per_lbmol()
 

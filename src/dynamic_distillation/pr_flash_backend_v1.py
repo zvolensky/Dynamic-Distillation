@@ -521,6 +521,96 @@ def liquid_density_lbmol_ft3(T_F: float, P_psia: float, x) -> Optional[float]:
     return None
 
 
+def phase_enthalpy_BTU_lbmol(T_F: float, P_psia: float, comp, phase: str) -> float:
+    """Compute phase molar enthalpy (BTU/lbmol) using DWSIM CalcProp."""
+    _init_dwsim()
+    from System import Array  # type: ignore
+
+    phase_name = str(phase or "").strip().lower()
+    if phase_name in ("liq", "liquid", "l"):
+        phase_calc = "Liquid"
+    elif phase_name in ("vap", "vapor", "vapour", "v"):
+        phase_calc = "Vapor"
+    else:
+        raise ValueError("phase must be 'liquid' or 'vapor'")
+
+    T_K = F_to_K(T_F)
+    P_Pa = float(P_psia) * PSIA_TO_PA
+
+    comp_arr = np.asarray(comp, dtype=float).ravel()
+    if comp_arr.size != len(_component_ids):
+        raise ValueError(f"comp must be length {len(_component_ids)}; got {comp_arr.size}")
+    if comp_arr.sum() <= 0.0:
+        raise ValueError("comp must have a positive sum")
+    comp_arr = comp_arr / comp_arr.sum()
+
+    z_array = Array[float](list(comp_arr))
+    h_vals = _dtlc.CalcProp(_prop_package, "enthalpy", "Mole", phase_calc, _carray, T_K, P_Pa, z_array)
+    val = float(h_vals[0]) * J_PER_MOL_TO_BTU_PER_LBMOL
+    if (not np.isfinite(val)):
+        raise RuntimeError(f"Phase enthalpy lookup returned non-finite value for phase={phase_calc}")
+    return float(val)
+
+
+def vapor_z_factor_F_psia(T_F: float, P_psia: float, y) -> Optional[float]:
+    """Compute vapor-phase compressibility factor Z using DWSIM CalcProp."""
+    _init_dwsim()
+    from System import Array  # type: ignore
+
+    T_K = F_to_K(T_F)
+    P_Pa = float(P_psia) * PSIA_TO_PA
+
+    y_arr = np.asarray(y, dtype=float).ravel()
+    if y_arr.size != len(_component_ids):
+        raise ValueError(f"y must be length {len(_component_ids)}; got {y_arr.size}")
+    if y_arr.sum() <= 0.0:
+        raise ValueError("y must have a positive sum")
+    y_arr = y_arr / y_arr.sum()
+
+    y_array = Array[float](list(y_arr))
+
+    try:
+        for pname in ("compressibilityfactor", "compressibility factor", "z", "Z"):
+            try:
+                z_vals = _dtlc.CalcProp(_prop_package, pname, "Mole", "Vapor", _carray, T_K, P_Pa, y_array)
+                z = float(z_vals[0])
+                if np.isfinite(z) and z > 0.0:
+                    return float(z)
+            except Exception:
+                continue
+
+        rv = _dtlc.CalcProp(_prop_package, "density", "Mole", "Vapor", _carray, T_K, P_Pa, y_array)
+        rho = float(rv[0])
+        if np.isfinite(rho) and rho > 0.0:
+            rho_mol_m3 = rho * 1000.0 if rho < 50.0 else rho
+            r_si = 8.314462618
+            z = float(P_Pa) / (rho_mol_m3 * r_si * float(T_K))
+            if np.isfinite(z) and 0.02 < z < 10.0:
+                return float(z)
+
+        rv = _dtlc.CalcProp(_prop_package, "density", "Mass", "Vapor", _carray, T_K, P_Pa, y_array)
+        rho_mass = float(rv[0])
+        if np.isfinite(rho_mass) and rho_mass > 0.0:
+            mw = None
+            for mw_name in ("molecularweight", "molecular weight", "mw"):
+                try:
+                    mv = _dtlc.CalcProp(_prop_package, mw_name, "Mole", "Vapor", _carray, T_K, P_Pa, y_array)
+                    mw = float(mv[0])
+                    break
+                except Exception:
+                    continue
+            if mw is not None and np.isfinite(mw) and mw > 0.0:
+                mw_kg_per_mol = mw / 1000.0 if mw > 1.0 else mw
+                r_si = 8.314462618
+                z = float(P_Pa) * mw_kg_per_mol / (rho_mass * r_si * float(T_K))
+                if np.isfinite(z) and 0.02 < z < 10.0:
+                    return float(z)
+    except Exception:
+        return None
+
+    return None
+
+
 def component_mw_lbm_per_lbmol(T_F: float = 60.0, P_psia: float = 14.7) -> Optional[np.ndarray]:
     """Return component molecular weights (lbm/lbmol) using DWSIM CalcProp."""
     _init_dwsim()
@@ -731,6 +821,8 @@ __all__ = [
     "set_component_names",
     "pr_flash_TP_F_psia",
     "flash_TP_full_F_psia",
+    "phase_enthalpy_BTU_lbmol",
+    "vapor_z_factor_F_psia",
     "get_thermo_coefficients",
     "component_mw_lbm_per_lbmol",
     "silence_console",

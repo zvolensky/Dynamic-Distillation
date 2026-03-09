@@ -210,6 +210,47 @@ class ThermoProviderV1:
         except Exception:
             return None
 
+    def phase_enthalpy_BTU_lbmol(
+        self,
+        phase: str,
+        T_F: float,
+        P_psia: float,
+        comp: Sequence[float],
+    ) -> float:
+        """Phase molar enthalpy (BTU/lbmol) from thermo backend."""
+        self.configure_backend()
+        Nc = len(self.component_ids_dwsim)
+        comp_norm = self._normalize_z(comp, Nc)
+        with backend.silence_console(self.silence_backend_console):
+            return float(
+                backend.phase_enthalpy_BTU_lbmol(
+                    float(T_F),
+                    float(P_psia),
+                    comp_norm,
+                    str(phase),
+                )
+            )
+
+    def vapor_z_factor_F_psia(
+        self,
+        T_F: float,
+        P_psia: float,
+        y: Sequence[float],
+    ) -> Optional[float]:
+        """Vapor-phase compressibility factor from thermo backend."""
+        self.configure_backend()
+        Nc = len(self.component_ids_dwsim)
+        y_norm = self._normalize_z(y, Nc)
+        with backend.silence_console(self.silence_backend_console):
+            zfac = backend.vapor_z_factor_F_psia(float(T_F), float(P_psia), y_norm)
+        if zfac is None:
+            return None
+        try:
+            zf = float(zfac)
+        except Exception:
+            return None
+        return zf if np.isfinite(zf) and zf > 0.0 else None
+
     def component_mw_lbm_per_lbmol(self) -> Optional[np.ndarray]:
         """Return component molecular weights (lbm/lbmol) from backend, cached."""
         if self._mw_components_cache is not None:

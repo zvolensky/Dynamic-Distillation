@@ -543,6 +543,33 @@ class TabularThermoProviderV1:
         idx, w = self._anchor_blend(z_norm)
         return self._cp_from_surface(idx, w, float(T_F), float(P_psia))
 
+    def phase_enthalpy_BTU_lbmol(
+        self,
+        phase: str,
+        T_F: float,
+        P_psia: float,
+        comp: Sequence[float],
+    ) -> float:
+        res = self.flash_TP_full(float(T_F), float(P_psia), comp)
+        phase_name = str(phase or "").strip().lower()
+        if phase_name in ("liq", "liquid", "l"):
+            return float(res.HL_BTU_lbmol)
+        if phase_name in ("vap", "vapor", "vapour", "v"):
+            return float(res.HV_BTU_lbmol)
+        raise ValueError("phase must be 'liquid' or 'vapor'")
+
+    def vapor_z_factor_F_psia(
+        self,
+        T_F: float,
+        P_psia: float,
+        y: Sequence[float],
+    ) -> Optional[float]:
+        res = self.flash_TP_full(float(T_F), float(P_psia), y)
+        if res.Z is None:
+            return None
+        zf = float(res.Z)
+        return zf if np.isfinite(zf) and zf > 0.0 else None
+
     def liquid_density_lbmol_ft3(self, T_F: float, P_psia: float, x: Sequence[float]) -> Optional[float]:
         x_norm = _normalize_comp(x, self.n_components)
         idx, w = self._anchor_blend(x_norm)

@@ -79,6 +79,7 @@ from dynamic_distillation.column_rhs_v1 import (
     VolumeModel,
     column_rhs,
 )
+from dynamic_distillation.stage_hydraulics_francis_v1 import compute_francis_weir_liquid_outflow
 from dynamic_distillation.dae_pilot_v1 import (
     default_algebraic_seed,
     evaluate_pilot_residual,
@@ -185,6 +186,26 @@ def _max_rel_inventory_rate_per_s(
     """
     Maximum relative rate |dM/dt|/(|M|+denom_floor) over inventory states.
     """
+    detail = _max_rel_inventory_rate_detail_per_s(
+        layout,
+        y,
+        dydt,
+        denom_floor_lbmol=denom_floor_lbmol,
+    )
+    return float(detail.get("max_rel_rate_per_s", np.nan))
+
+
+def _max_rel_inventory_rate_detail_per_s(
+    layout: StateVectorLayout,
+    y: np.ndarray,
+    dydt: np.ndarray,
+    *,
+    denom_floor_lbmol: float = 1.0,
+) -> Dict[str, Any]:
+    """
+    Detail for maximum relative rate |dM/dt|/(|M|+denom_floor) over inventory states.
+    Returns state family and indices so transient bursts can be traced.
+    """
     floor = float(denom_floor_lbmol)
     if (not np.isfinite(floor)) or floor < 0.0:
         floor = 1.0
@@ -192,14 +213,22 @@ def _max_rel_inventory_rate_per_s(
     ud = layout.unpack(np.asarray(dydt, dtype=float).reshape((-1,)))
     keys = ("tray_L", "tray_V", "top_L", "top_V", "bottom_L", "bottom_V")
     max_rel = np.nan
+    best: Dict[str, Any] = {
+        "max_rel_rate_per_s": np.nan,
+        "state_key": "",
+        "stage_1based": np.nan,
+        "component_1based": np.nan,
+    }
     for key in keys:
         if key not in u or key not in ud:
             continue
         try:
-            x = np.asarray(u[key], dtype=float).reshape((-1,))
-            dx = np.asarray(ud[key], dtype=float).reshape((-1,))
+            x_raw = np.asarray(u[key], dtype=float)
+            dx_raw = np.asarray(ud[key], dtype=float)
         except Exception:
             continue
+        x = np.asarray(x_raw, dtype=float).reshape((-1,))
+        dx = np.asarray(dx_raw, dtype=float).reshape((-1,))
         n = min(x.size, dx.size)
         if n <= 0:
             continue
@@ -207,13 +236,36 @@ def _max_rel_inventory_rate_per_s(
         dx = dx[:n]
         denom = np.abs(x) + float(floor)
         rel = np.abs(dx) / np.maximum(denom, 1e-300)
-        rel_f = rel[np.isfinite(rel)]
-        if rel_f.size <= 0:
+        finite_mask = np.isfinite(rel)
+        if np.sum(finite_mask) <= 0:
             continue
-        cand = float(np.max(rel_f))
+        rel_f = np.where(finite_mask, rel, -np.inf)
+        idx_flat = int(np.argmax(rel_f))
+        cand = float(rel_f[idx_flat])
         if (not np.isfinite(max_rel)) or cand > max_rel:
             max_rel = cand
-    return float(max_rel)
+            stage_1based = np.nan
+            component_1based = np.nan
+            if x_raw.ndim == 2:
+                try:
+                    i_stage, i_comp = np.unravel_index(idx_flat, x_raw.shape)
+                    stage_1based = float(i_stage + 1)
+                    component_1based = float(i_comp + 1)
+                except Exception:
+                    pass
+            elif key in ("top_L", "top_V"):
+                component_1based = float(idx_flat + 1)
+                stage_1based = 0.0
+            elif key in ("bottom_L", "bottom_V"):
+                component_1based = float(idx_flat + 1)
+                stage_1based = float(layout.n_stages + 1)
+            best = {
+                "max_rel_rate_per_s": float(cand),
+                "state_key": str(key),
+                "stage_1based": stage_1based,
+                "component_1based": component_1based,
+            }
+    return best
 
 
 def _max_rel_inventory_fd_rate_per_s(
@@ -228,12 +280,44 @@ def _max_rel_inventory_fd_rate_per_s(
     Maximum relative inventory rate estimated by finite differences:
     |(x_now-x_prev)/dt| / (|x_now| + denom_floor).
     """
+    detail = _max_rel_inventory_fd_rate_detail_per_s(
+        layout,
+        y_prev,
+        y_now,
+        dt_sec=dt_sec,
+        denom_floor_lbmol=denom_floor_lbmol,
+    )
+    return float(detail.get("max_rel_rate_per_s", np.nan))
+
+
+def _max_rel_inventory_fd_rate_detail_per_s(
+    layout: StateVectorLayout,
+    y_prev: np.ndarray,
+    y_now: np.ndarray,
+    *,
+    dt_sec: float,
+    denom_floor_lbmol: float = 1.0,
+) -> Dict[str, Any]:
+    """
+    Detail for maximum finite-difference relative inventory rate:
+    |(x_now-x_prev)/dt| / (|x_now| + denom_floor).
+    """
     try:
         dt = float(dt_sec)
     except Exception:
-        return float("nan")
+        return {
+            "max_rel_rate_per_s": np.nan,
+            "state_key": "",
+            "stage_1based": np.nan,
+            "component_1based": np.nan,
+        }
     if (not np.isfinite(dt)) or dt <= 0.0:
-        return float("nan")
+        return {
+            "max_rel_rate_per_s": np.nan,
+            "state_key": "",
+            "stage_1based": np.nan,
+            "component_1based": np.nan,
+        }
 
     floor = float(denom_floor_lbmol)
     if (not np.isfinite(floor)) or floor < 0.0:
@@ -243,14 +327,22 @@ def _max_rel_inventory_fd_rate_per_s(
     u_now = layout.unpack(np.asarray(y_now, dtype=float).reshape((-1,)))
     keys = ("tray_L", "tray_V", "top_L", "top_V", "bottom_L", "bottom_V")
     max_rel = np.nan
+    best: Dict[str, Any] = {
+        "max_rel_rate_per_s": np.nan,
+        "state_key": "",
+        "stage_1based": np.nan,
+        "component_1based": np.nan,
+    }
     for key in keys:
         if key not in u_prev or key not in u_now:
             continue
         try:
-            x0 = np.asarray(u_prev[key], dtype=float).reshape((-1,))
-            x1 = np.asarray(u_now[key], dtype=float).reshape((-1,))
+            x0_raw = np.asarray(u_prev[key], dtype=float)
+            x1_raw = np.asarray(u_now[key], dtype=float)
         except Exception:
             continue
+        x0 = np.asarray(x0_raw, dtype=float).reshape((-1,))
+        x1 = np.asarray(x1_raw, dtype=float).reshape((-1,))
         n = min(x0.size, x1.size)
         if n <= 0:
             continue
@@ -259,13 +351,36 @@ def _max_rel_inventory_fd_rate_per_s(
         rate = (x1 - x0) / dt
         denom = np.abs(x1) + float(floor)
         rel = np.abs(rate) / np.maximum(denom, 1e-300)
-        rel_f = rel[np.isfinite(rel)]
-        if rel_f.size <= 0:
+        finite_mask = np.isfinite(rel)
+        if np.sum(finite_mask) <= 0:
             continue
-        cand = float(np.max(rel_f))
+        rel_f = np.where(finite_mask, rel, -np.inf)
+        idx_flat = int(np.argmax(rel_f))
+        cand = float(rel_f[idx_flat])
         if (not np.isfinite(max_rel)) or cand > max_rel:
             max_rel = cand
-    return float(max_rel)
+            stage_1based = np.nan
+            component_1based = np.nan
+            if x1_raw.ndim == 2:
+                try:
+                    i_stage, i_comp = np.unravel_index(idx_flat, x1_raw.shape)
+                    stage_1based = float(i_stage + 1)
+                    component_1based = float(i_comp + 1)
+                except Exception:
+                    pass
+            elif key in ("top_L", "top_V"):
+                component_1based = float(idx_flat + 1)
+                stage_1based = 0.0
+            elif key in ("bottom_L", "bottom_V"):
+                component_1based = float(idx_flat + 1)
+                stage_1based = float(layout.n_stages + 1)
+            best = {
+                "max_rel_rate_per_s": float(cand),
+                "state_key": str(key),
+                "stage_1based": stage_1based,
+                "component_1based": component_1based,
+            }
+    return best
 
 
 def _max_abs_temperature_fd_rate_per_s(
@@ -584,6 +699,123 @@ def _lookup_spec_int(col: ColumnSpec, keys: Sequence[str]) -> Optional[int]:
     return None
 
 
+def _geometry_has_explicit_hydraulic_c_factor(col: ColumnSpec) -> bool:
+    specs = getattr(col, "specs_raw", None) or {}
+    sections = specs.get("Geometry Sections", None)
+    if not isinstance(sections, list):
+        return False
+    for row in sections:
+        if not isinstance(row, dict):
+            continue
+        for key in ("hydraulic_c_factor", "system_factor"):
+            val = row.get(key, None)
+            try:
+                f = float(val)
+            except Exception:
+                continue
+            if np.isfinite(f) and f > 0.0:
+                return True
+    return False
+
+
+def _autocalibrate_francis_hydraulic_c_factors_from_seed(
+    *,
+    col: ColumnSpec,
+    thermo_provider: Any,
+) -> bool:
+    """
+    Fit per-stage Francis hydraulic C multipliers so the hydraulic liquid-flow
+    diagnostic matches the seeded tray liquid profile at t=0.
+
+    This is only intended when the workbook did not already provide explicit
+    hydraulic/system factors. It updates the in-memory frozen ColumnSpec via
+    object.__setattr__ so the rest of the runner sees the calibrated geometry.
+    """
+    geom = getattr(col, "geometry", None)
+    if geom is None:
+        return False
+    if _geometry_has_explicit_hydraulic_c_factor(col):
+        return False
+
+    try:
+        N = int(col.n_stages)
+        ML = np.asarray(col.M_L_lbmol, dtype=float).reshape((N,))
+        T = np.asarray(col.T_f, dtype=float).reshape((N,))
+        P = np.asarray(col.P_psia, dtype=float).reshape((N,))
+        x = np.asarray(col.x0, dtype=float).reshape((N, int(col.n_components)))
+        L_target = np.asarray(col.L_lbmolph, dtype=float).reshape((N,))
+        active_area = np.asarray(geom.active_area_ft2_per_stage, dtype=float).reshape((N,))
+        holdup_area = np.asarray(geom.area_ft2_per_stage, dtype=float).reshape((N,))
+        weir_h = np.asarray(geom.weir_height_in_per_stage, dtype=float).reshape((N,))
+        weir_L = np.asarray(geom.weir_length_ft_per_stage, dtype=float).reshape((N,))
+    except Exception:
+        return False
+
+    if (
+        ML.size != N
+        or T.size != N
+        or P.size != N
+        or L_target.size != N
+        or active_area.size != N
+        or holdup_area.size != N
+        or weir_h.size != N
+        or weir_L.size != N
+    ):
+        return False
+
+    rhoL = np.full(N, np.nan, dtype=float)
+    for i in range(N):
+        try:
+            rho_try = thermo_provider.liquid_density_lbmol_ft3(float(T[i]), float(P[i]), x[i, :].tolist())
+            rho_try = float(rho_try)
+        except Exception:
+            rho_try = np.nan
+        if np.isfinite(rho_try) and rho_try > 0.0:
+            rhoL[i] = rho_try
+
+    if not np.any(np.isfinite(rhoL[1:max(N - 1, 1)]) & (rhoL[1:max(N - 1, 1)] > 0.0)):
+        return False
+
+    try:
+        hyd_base = compute_francis_weir_liquid_outflow(
+            ML_lbmol=ML,
+            rhoL_lbmol_ft3=rhoL,
+            active_area_ft2=active_area,
+            holdup_area_ft2=holdup_area,
+            weir_height_in=weir_h,
+            weir_length_ft=weir_L,
+            c_multiplier=None,
+        )
+    except Exception:
+        return False
+
+    L_base = np.asarray(hyd_base.ML_lbmolph, dtype=float).reshape((N,))
+    cfac_old = np.asarray(getattr(geom, "hydraulic_c_factor_per_stage", np.ones(N, dtype=float)), dtype=float).reshape((N,))
+    cfac_new = np.asarray(cfac_old, dtype=float).copy()
+
+    fitted = False
+    for i in range(1, N - 1):
+        target = float(L_target[i])
+        base = float(L_base[i])
+        if (
+            np.isfinite(target)
+            and target > 0.0
+            and np.isfinite(base)
+            and base > 1.0e-12
+        ):
+            cfit = target / base
+            if np.isfinite(cfit) and cfit > 0.0:
+                cfac_new[i] = float(np.clip(cfit, 1.0e-6, 1.0e6))
+                fitted = True
+
+    if not fitted:
+        return False
+
+    new_geom = replace(geom, hydraulic_c_factor_per_stage=cfac_new)
+    object.__setattr__(col, "geometry", new_geom)
+    return True
+
+
 def _stage_value(i_1based: int, target_stage_1based: Optional[int], value: Optional[float]) -> float:
     """
     Returns value on the target stage, else 0.0.
@@ -644,7 +876,7 @@ class RunnerConfig:
     n_steps: int = 600
     dt_sec: Optional[float] = None
     log_every_n_steps: Optional[int] = None
-    runtime_mode: str = "legacy"  # legacy | parity | calibration | hydraulic
+    runtime_mode: str = "legacy"  # legacy | parity | calibration | hydraulic | huang
     integrator: str = "explicit-euler"  # explicit-euler | bdf | radau | ida
     integrator_rtol: float = 1.0e-3
     integrator_atol: float = 1.0e-6
@@ -659,12 +891,14 @@ class RunnerConfig:
     include_energy: bool = False
     enable_equilibrium_relaxation: bool = True
     equilibrium_relaxation_mode: str = "auto"  # auto | phase-holdup | composition-only
+    equilibrium_phase_holdup_guard_lbmol: Optional[float] = None
 
     thermo_mode: str = "stub"  # 'stub', 'dwsim', 'table', or 'table-pool'
     thermo_every_n_steps: int = 1  # 1=every step
     thermo_refresh_dT_F: Optional[float] = None
     thermo_refresh_dP_psia: Optional[float] = None
     thermo_refresh_dx: Optional[float] = None
+    flash_feed_at_stage_conditions: Optional[bool] = None
     thermo_table_path: Optional[str] = None
     thermo_pool_workers: Optional[int] = None
     thermo_pool_chunk_size: int = 4
@@ -674,6 +908,7 @@ class RunnerConfig:
     vapor_holdup_relaxation_sec: Optional[float] = None
     hydraulic_pressure_relaxation_sec: Optional[float] = None
     top_drum_pressure_temperature_relaxation_sec: Optional[float] = None
+    huang_top_drum_vapor_relaxation_sec: Optional[float] = None
     vapor_flow_relaxation_sec: Optional[float] = None
     conductance_vflow_nominal_hi_ratio: Optional[float] = None
     # Optional smooth-clamp width (lbmol/h) used only for stiff integrator RHS
@@ -691,6 +926,8 @@ class RunnerConfig:
     dae_pilot_line_search_max: int = 4
     enable_liquid_hydraulic_override: Optional[bool] = None
     liquid_hydraulic_override_alpha: Optional[float] = None
+    liquid_hydraulic_model: Optional[str] = None
+    liquid_hydraulic_htc_sec: Optional[float] = None
 
     reflux_lbmolph: Optional[float] = None
     boilup_lbmolph: Optional[float] = None
@@ -701,7 +938,7 @@ class RunnerConfig:
     top_drum_vapor_volume_ft3: Optional[float] = None
     top_drum_total_volume_ft3: Optional[float] = None
     enforce_top_drum_pressure_gate: bool = True
-    top_drum_pressure_gate_soft_psi: Optional[float] = 0.25
+    top_drum_pressure_gate_soft_psi: Optional[float] = None
     enforce_top_pressure_ordering: bool = True
     top_pressure_ordering_margin_psi: float = 0.0
     enable_top_psv: bool = False
@@ -757,6 +994,11 @@ class RunnerConfig:
     enable_startup_thermo_conditioning: bool = True
     startup_thermo_conditioning_iters: int = 2
     startup_thermo_conditioning_relaxation: float = 1.0
+    enable_startup_hydraulic_energy_consistency: bool = False
+    startup_hydraulic_energy_consistency_iters: int = 6
+    startup_hydraulic_energy_consistency_dt_sec: float = 0.5
+    startup_hydraulic_energy_consistency_mass_tol_lbmolph: Optional[float] = 5.0
+    startup_hydraulic_energy_consistency_energy_tol_btups: Optional[float] = 1000.0
     enable_startup_hydraulic_sequence: bool = False
     startup_sequence_energy_on_sec: float = 30.0
     startup_sequence_liquid_on_sec: float = 120.0
@@ -896,7 +1138,7 @@ def _clip_unit(x: Any, default: float = 0.0) -> float:
 
 def _normalize_runtime_mode(mode: Any, default: str = "legacy") -> str:
     m = str(mode).strip().lower() if mode is not None else str(default).strip().lower()
-    if m in ("legacy", "parity", "calibration", "hydraulic"):
+    if m in ("legacy", "parity", "calibration", "hydraulic", "huang", "huang-energy"):
         return m
     return str(default).strip().lower()
 
@@ -1126,6 +1368,13 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             "(use 'stub', 'dwsim', 'table', or 'table-pool')"
         )
 
+    calibrated_hyd_c = _autocalibrate_francis_hydraulic_c_factors_from_seed(
+        col=col,
+        thermo_provider=prov,
+    )
+    if calibrated_hyd_c:
+        print("[Init] Calibrated Francis hydraulic C factors from seeded ChemSep liquid profile")
+
     boundary = _infer_boundary_flows(case, col, cfg)
     vol = _build_volume_model(col, default_vapor_volume_ft3=1.0)
 
@@ -1149,8 +1398,14 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     elif runtime_mode == "hydraulic":
         pressure_model = "hydraulic"
         vapor_flow_model = "energy"
+    elif runtime_mode == "huang":
+        pressure_model = "hydraulic"
+        vapor_flow_model = "profile"
+    elif runtime_mode == "huang-energy":
+        pressure_model = "hydraulic"
+        vapor_flow_model = "energy"
 
-    eq_mode_default = "composition-only" if runtime_mode == "hydraulic" else "phase-holdup"
+    eq_mode_default = "composition-only" if runtime_mode in ("hydraulic", "huang", "huang-energy") else "phase-holdup"
     eq_mode_spec = _spec_get(
         specs,
         "Equilibrium Relaxation Mode",
@@ -1164,6 +1419,17 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     # If CLI left mode at default "auto", fall back to spec/default behavior.
     if str(getattr(cfg, "equilibrium_relaxation_mode", "auto")).strip().lower() in ("", "auto"):
         eq_mode = _normalize_equilibrium_relaxation_mode(eq_mode_spec, default=eq_mode_default)
+    eq_phase_guard_lbmol = cfg.equilibrium_phase_holdup_guard_lbmol
+    if eq_phase_guard_lbmol is None:
+        eq_phase_guard_lbmol = 0.0
+        if eq_mode == "phase-holdup" and runtime_mode in ("hydraulic", "huang", "huang-energy"):
+            eq_phase_guard_lbmol = 1.0
+    try:
+        eq_phase_guard_lbmol = float(eq_phase_guard_lbmol)
+    except Exception:
+        eq_phase_guard_lbmol = 0.0
+    if (not np.isfinite(eq_phase_guard_lbmol)) or eq_phase_guard_lbmol < 0.0:
+        eq_phase_guard_lbmol = 0.0
 
     coupled_hydraulic_energy = (pressure_model == "hydraulic") and (vapor_flow_model == "energy")
 
@@ -1174,6 +1440,7 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     tau_v = _spec_float(specs, "Vapor Holdup Relaxation (sec)")
     if tau_v is None:
         tau_v = _spec_float(specs, "Stage time constant [tau] (sec)")
+    tau_v_cli_explicit = cfg.vapor_holdup_relaxation_sec is not None
     if cfg.vapor_holdup_relaxation_sec is not None:
         tau_v = float(cfg.vapor_holdup_relaxation_sec)
     if tau_v is not None and (not np.isfinite(tau_v) or tau_v <= 0.0):
@@ -1205,6 +1472,18 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         tau_top_pT = float(cfg.top_drum_pressure_temperature_relaxation_sec)
     if tau_top_pT is not None and (not np.isfinite(tau_top_pT)):
         tau_top_pT = None
+
+    tau_huang_top_v = cfg.huang_top_drum_vapor_relaxation_sec
+    if tau_huang_top_v is None:
+        tau_huang_top_v = _spec_float(
+            specs,
+            "Huang Top Drum Vapor Relaxation (sec)",
+            "Huang Top Drum Vapor Holdup Relaxation (sec)",
+            "Top Drum Vapor Relaxation (sec)",
+            "Top Drum Vapor Holdup Relaxation (sec)",
+        )
+    if tau_huang_top_v is not None and (not np.isfinite(tau_huang_top_v) or tau_huang_top_v <= 0.0):
+        tau_huang_top_v = None
 
     tau_vflow = _spec_float(specs, "Vapor Flow Relaxation (sec)")
     if cfg.vapor_flow_relaxation_sec is not None:
@@ -1262,6 +1541,21 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         "Thermo Refresh dX",
         "Thermo Refresh Delta X",
     )
+    feed_flash_at_stage = _as_bool(
+        _spec_get(
+            specs,
+            "Flash Feed At Stage Conditions",
+            "Feed Flash At Stage Conditions",
+            "Flash Feed At Tray Conditions",
+            "Feed Flash At Tray Conditions",
+        )
+    )
+    feed_flash_explicit = feed_flash_at_stage is not None
+    if cfg.flash_feed_at_stage_conditions is not None:
+        feed_flash_at_stage = bool(cfg.flash_feed_at_stage_conditions)
+        feed_flash_explicit = True
+    if feed_flash_at_stage is None:
+        feed_flash_at_stage = True
 
     if cfg.thermo_refresh_dT_F is not None:
         thermo_refresh_dT = float(cfg.thermo_refresh_dT_F)
@@ -1643,12 +1937,15 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             "Liquid Hydraulics Enabled",
         )
     )
+    liq_hyd_override_enable_explicit = liq_hyd_override_enable is not None
     if cfg.enable_liquid_hydraulic_override is not None:
         liq_hyd_override_enable = bool(cfg.enable_liquid_hydraulic_override)
+        liq_hyd_override_enable_explicit = True
     if liq_hyd_override_enable is None:
         liq_hyd_override_enable = True
 
     liq_hyd_override_alpha = cfg.liquid_hydraulic_override_alpha
+    liq_hyd_override_alpha_explicit = liq_hyd_override_alpha is not None
     if liq_hyd_override_alpha is None:
         liq_hyd_override_alpha = _spec_float(
             specs,
@@ -1658,13 +1955,75 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             "Liquid Hydraulics Blend",
             "Liquid Hydraulics Alpha",
         )
+        liq_hyd_override_alpha_explicit = liq_hyd_override_alpha is not None
     liq_hyd_override_alpha = _clip_unit(liq_hyd_override_alpha, default=1.0)
+
+    liq_hyd_model = str(
+        cfg.liquid_hydraulic_model
+        if cfg.liquid_hydraulic_model is not None
+        else (_spec_get(
+            specs,
+            "Liquid Hydraulic Model",
+            "Liquid Hydraulics Model",
+            "Liquid Downflow Model",
+        ) or "francis")
+    ).strip().lower()
+    if liq_hyd_model not in ("francis", "huang-htc"):
+        liq_hyd_model = "francis"
+
+    liq_hyd_htc_sec = cfg.liquid_hydraulic_htc_sec
+    liq_hyd_htc_from_stage_tau = False
+    if liq_hyd_htc_sec is None:
+        liq_hyd_htc_sec = _spec_float(
+            specs,
+            "Huang Liquid HTC (sec)",
+            "Liquid Hydraulic HTC (sec)",
+            "Hydraulic Time Constant (sec)",
+        )
+        if liq_hyd_htc_sec is None:
+            liq_hyd_htc_sec = _spec_float(specs, "Stage time constant [tau] (sec)")
+            liq_hyd_htc_from_stage_tau = liq_hyd_htc_sec is not None
+    if liq_hyd_htc_sec is not None and (not np.isfinite(liq_hyd_htc_sec) or liq_hyd_htc_sec <= 0.0):
+        liq_hyd_htc_sec = None
 
     if runtime_mode in ("parity", "calibration"):
         liq_hyd_override_enable = False
         liq_hyd_override_alpha = 0.0
+        liq_hyd_model = "francis"
     elif runtime_mode == "hydraulic":
+        # Preserve hydraulic pressure + energy vapor closure, but avoid silently
+        # replacing ChemSep/Excel internal liquid profiles unless the workbook
+        # or CLI explicitly opted into liquid hydraulics.
+        if not liq_hyd_override_enable_explicit:
+            liq_hyd_override_enable = False
+            liq_hyd_override_alpha = 0.0
+        # Do not inherit a generic stage time constant as a startup
+        # vapor-holdup forcing term in hydraulic mode unless the case or CLI
+        # explicitly requested vapor-holdup relaxation.
+        if not tau_v_cli_explicit:
+            tau_v = None
+        # ChemSep/Excel steady profiles already reflect the intended feed-stage
+        # split. Re-flashing the feed during hydraulic startup can double-count
+        # that effect and pull the initialized state away from the seed.
+        if not feed_flash_explicit:
+            feed_flash_at_stage = False
+    elif runtime_mode in ("huang", "huang-energy"):
         liq_hyd_override_enable = True
+        liq_hyd_model = "huang-htc"
+        if not liq_hyd_override_alpha_explicit:
+            liq_hyd_override_alpha = 0.8
+        # A generic equilibrium tau is often too aggressive for the Huang-style
+        # liquid HTC closure, so promote that fallback to a safer default unless
+        # the case or CLI provided a more specific hydraulic HTC directly.
+        if cfg.liquid_hydraulic_htc_sec is None and liq_hyd_htc_from_stage_tau and liq_hyd_htc_sec is not None:
+            liq_hyd_htc_sec = max(float(liq_hyd_htc_sec), 20.0)
+
+    top_drum_gate_soft_psi = cfg.top_drum_pressure_gate_soft_psi
+    if top_drum_gate_soft_psi is None:
+        # Huang's partitioned profile-vapor path benefits from a hard top-drum
+        # pressure gate so zero/negative driving force does not leak vapor slip
+        # into the drum and inflate top pressure.
+        top_drum_gate_soft_psi = 0.0 if runtime_mode == "huang" else 0.25
 
     inputs = ColumnInputs(
         boundary=boundary,
@@ -1680,10 +2039,12 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         compute_thermo_diag=True,
         equilibrium_relaxation=bool(cfg.enable_equilibrium_relaxation),
         equilibrium_relaxation_mode=str(eq_mode),
+        equilibrium_phase_holdup_guard_lbmol=float(eq_phase_guard_lbmol),
         tau_eq_sec=getattr(col, "tau_eq_sec", None),
         reboiler_duty_btu_per_h=(float(cfg.reboiler_duty_btu_per_h) if cfg.reboiler_duty_btu_per_h is not None else None),
         pressure_model=str(pressure_model),
         pressure_top_anchor_psia=None,
+        hydraulic_use_top_drum_pressure_as_anchor=False,
         condenser_pressure_drop_psi=(float(condenser_dp_psi) if condenser_dp_psi is not None else None),
         top_drum_vapor_volume_ft3=(
             float(top_drum_vapor_volume_ft3)
@@ -1697,8 +2058,8 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         ),
         enforce_top_drum_pressure_gate=bool(cfg.enforce_top_drum_pressure_gate),
         top_drum_pressure_gate_soft_psi=(
-            float(cfg.top_drum_pressure_gate_soft_psi)
-            if cfg.top_drum_pressure_gate_soft_psi is not None
+            float(top_drum_gate_soft_psi)
+            if top_drum_gate_soft_psi is not None
             else None
         ),
         enable_top_drum_psv=bool(enable_top_psv),
@@ -1724,6 +2085,9 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         top_drum_pressure_temperature_relaxation_sec=(
             float(tau_top_pT) if tau_top_pT is not None else None
         ),
+        huang_top_drum_vapor_relaxation_sec=(
+            float(tau_huang_top_v) if tau_huang_top_v is not None else None
+        ),
         vapor_flow_relaxation_sec=(float(tau_vflow) if tau_vflow is not None else None),
         conductance_vflow_nominal_hi_ratio=(
             float(conductance_vflow_nominal_hi_ratio)
@@ -1737,8 +2101,11 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         thermo_refresh_dT_F=(float(thermo_refresh_dT) if thermo_refresh_dT is not None else None),
         thermo_refresh_dP_psia=(float(thermo_refresh_dP) if thermo_refresh_dP is not None else None),
         thermo_refresh_dx=(float(thermo_refresh_dX) if thermo_refresh_dX is not None else None),
+        flash_feed_at_stage_conditions=bool(feed_flash_at_stage),
         enable_liquid_hydraulic_override=bool(liq_hyd_override_enable),
         liquid_hydraulic_override_alpha=float(liq_hyd_override_alpha),
+        liquid_hydraulic_model=str(liq_hyd_model),
+        liquid_hydraulic_htc_sec=(float(liq_hyd_htc_sec) if liq_hyd_htc_sec is not None else None),
         component_mw_lbm_per_lbmol=mw_components,
     )
     return inputs, prov
@@ -1809,6 +2176,7 @@ def _integrate_one_step(
     y: np.ndarray,
     dt_sec: float,
     rhs_eval: Any,
+    rhs_eval_fallback: Optional[Any],
     layout: StateVectorLayout,
     thermo_provider: Optional[Any],
     integrator_mode: str,
@@ -1850,7 +2218,8 @@ def _integrate_one_step(
     def _explicit_step(reason: str = "") -> Tuple[np.ndarray, Dict[str, Any]]:
         nonlocal rhs_eval_count
         rhs_eval_count += 1
-        dydt, _diag = rhs_eval(float(t_s), y0)
+        rhs_cb = rhs_eval_fallback if rhs_eval_fallback is not None else rhs_eval
+        dydt, _diag = rhs_cb(float(t_s), y0)
         y1 = y0 + dt * np.asarray(dydt, dtype=float).reshape((-1,))
         y1 = _project_state(y1)
         if reason:
@@ -2977,12 +3346,14 @@ def _initialize_thermo_consistent_state(
         y_new[sl["tray_L"]] = tray_L_new.ravel(order="C")
         y_new[sl["tray_V"]] = tray_V_new.ravel(order="C")
 
-        # Align boundary holdup compositions with neighboring tray targets
-        # while preserving boundary total inventories.
+        # Keep boundary liquid holdups on their seeded product compositions.
+        # The reflux drum and bottoms sump are separate inventories; forcing
+        # them to equal neighboring tray compositions during startup destroys
+        # workbook/ChemSep product seeds before the first dynamic step.
+        # Vapor holdups remain aligned with neighboring tray targets.
         if layout.include_top and ("top_L" in sl):
             top_L_vec = np.asarray(u.get("top_L", np.zeros(Nc, dtype=float)), dtype=float).reshape((Nc,))
-            m_top_L = max(float(np.sum(top_L_vec)), 0.0)
-            y_new[sl["top_L"]] = m_top_L * x_new_frac[0, :]
+            y_new[sl["top_L"]] = np.where(np.isfinite(top_L_vec), top_L_vec, 0.0)
             if layout.include_vapor and ("top_V" in sl):
                 top_V_vec = np.asarray(u.get("top_V", np.zeros(Nc, dtype=float)), dtype=float).reshape((Nc,))
                 m_top_V = max(float(np.sum(top_V_vec)), 0.0)
@@ -2990,8 +3361,7 @@ def _initialize_thermo_consistent_state(
                 y_new[sl["top_V"]] = m_top_V * y_new_frac[src, :]
         if layout.include_bottom and ("bottom_L" in sl):
             bot_L_vec = np.asarray(u.get("bottom_L", np.zeros(Nc, dtype=float)), dtype=float).reshape((Nc,))
-            m_bot_L = max(float(np.sum(bot_L_vec)), 0.0)
-            y_new[sl["bottom_L"]] = m_bot_L * x_new_frac[-1, :]
+            y_new[sl["bottom_L"]] = np.where(np.isfinite(bot_L_vec), bot_L_vec, 0.0)
             if layout.include_vapor and ("bottom_V" in sl):
                 bot_V_vec = np.asarray(u.get("bottom_V", np.zeros(Nc, dtype=float)), dtype=float).reshape((Nc,))
                 m_bot_V = max(float(np.sum(bot_V_vec)), 0.0)
@@ -3321,6 +3691,192 @@ def _initialize_top_drum_dynamic_steady(
     if np.max(np.abs(f_best)) <= float(tol_lbmolps):
         info["success"] = True
     return y_best, info
+
+
+def _initialize_hydraulic_energy_consistent_state(
+    *,
+    col: ColumnSpec,
+    layout: StateVectorLayout,
+    y: np.ndarray,
+    inputs: ColumnInputs,
+    include_temperature: bool,
+    max_iter: int = 6,
+    pseudo_dt_sec: float = 0.5,
+    mass_tol_lbmolph: Optional[float] = 5.0,
+    energy_tol_btups: Optional[float] = 1000.0,
+    dae_max_iter: int = 5,
+    dae_p_tol_psia: Optional[float] = 0.05,
+    dae_v_tol_lbmolph: Optional[float] = 25.0,
+    dae_jac_rel_step: float = 1.0e-6,
+    dae_line_search_max: int = 4,
+) -> Tuple[np.ndarray, Dict[str, Any]]:
+    """
+    Best-effort startup consistency relaxation for hydraulic+energy runs.
+
+    The ChemSep seed can match product specs while still being slightly off the
+    hydraulic-energy differential/algebraic manifold. This initializer uses the
+    existing pilot algebraic solve at t=0, then takes a few bounded pseudo-time
+    relaxation steps only when they improve a normalized startup residual score.
+    """
+    info: Dict[str, Any] = {
+        "attempted": False,
+        "success": False,
+        "n_iter": 0,
+        "objective_init": np.nan,
+        "objective_final": np.nan,
+        "mass_resid_init_lbmolph": np.nan,
+        "mass_resid_final_lbmolph": np.nan,
+        "energy_resid_init_btups": np.nan,
+        "energy_resid_final_btups": np.nan,
+        "alg_p_init_psia": np.nan,
+        "alg_p_final_psia": np.nan,
+        "alg_v_init_lbmolph": np.nan,
+        "alg_v_final_lbmolph": np.nan,
+    }
+
+    if str(getattr(inputs, "pressure_model", "")).strip().lower() != "hydraulic":
+        return np.asarray(y, dtype=float), info
+    if str(getattr(inputs, "vapor_flow_model", "")).strip().lower() != "energy":
+        return np.asarray(y, dtype=float), info
+    if not bool(getattr(layout, "include_vapor", False)):
+        return np.asarray(y, dtype=float), info
+
+    try:
+        n_iter = max(1, int(max_iter))
+    except Exception:
+        n_iter = 1
+    try:
+        dt_relax = float(pseudo_dt_sec)
+    except Exception:
+        dt_relax = 0.5
+    if (not np.isfinite(dt_relax)) or dt_relax <= 0.0:
+        dt_relax = 0.5
+
+    def _project_state(y_in: np.ndarray) -> np.ndarray:
+        y_proj = _clamp_nonnegative_holdups(np.asarray(y_in, dtype=float), layout)
+        return _clip_temperature_states_to_provider_bounds(y_proj, layout, inputs.thermo_provider)
+
+    def _metric(diag: Dict[str, Any], dydt: np.ndarray) -> Tuple[float, float, float, float, float]:
+        mass_resid_lbmolph = np.nan
+        if "mass_balance_resid_lbmolps_tray" in diag:
+            try:
+                mr = np.asarray(diag["mass_balance_resid_lbmolps_tray"], dtype=float).reshape((-1,))
+                mr = mr[np.isfinite(mr)]
+                if mr.size > 0:
+                    mass_resid_lbmolph = float(np.max(np.abs(mr))) * 3600.0
+            except Exception:
+                mass_resid_lbmolph = np.nan
+        if not np.isfinite(mass_resid_lbmolph):
+            try:
+                mass_resid_lbmolph = abs(float(_total_inventory_rate_lbmolps(layout, dydt))) * 3600.0
+            except Exception:
+                mass_resid_lbmolph = np.nan
+
+        energy_resid_btups = abs(_mapping_scalar(diag, "resid_energy_btups"))
+        alg_p_psia = abs(_mapping_scalar(diag, "dae_pilot_alg_p_inf_psia"))
+        alg_v_lbmolph = abs(_mapping_scalar(diag, "dae_pilot_alg_v_inf_lbmolph"))
+
+        terms: List[float] = []
+        if np.isfinite(mass_resid_lbmolph):
+            m_tol = float(mass_tol_lbmolph) if mass_tol_lbmolph is not None else 5.0
+            m_tol = m_tol if np.isfinite(m_tol) and m_tol > 0.0 else 5.0
+            terms.append(float(mass_resid_lbmolph) / float(m_tol))
+        if np.isfinite(energy_resid_btups):
+            e_tol = float(energy_tol_btups) if energy_tol_btups is not None else 1000.0
+            e_tol = e_tol if np.isfinite(e_tol) and e_tol > 0.0 else 1000.0
+            terms.append(float(energy_resid_btups) / float(e_tol))
+        if np.isfinite(alg_p_psia):
+            p_tol = float(dae_p_tol_psia) if dae_p_tol_psia is not None else 0.05
+            p_tol = p_tol if np.isfinite(p_tol) and p_tol > 0.0 else 0.05
+            terms.append(float(alg_p_psia) / float(p_tol))
+        if np.isfinite(alg_v_lbmolph):
+            v_tol = float(dae_v_tol_lbmolph) if dae_v_tol_lbmolph is not None else 25.0
+            v_tol = v_tol if np.isfinite(v_tol) and v_tol > 0.0 else 25.0
+            terms.append(float(alg_v_lbmolph) / float(v_tol))
+        objective = float(np.max(np.asarray(terms, dtype=float))) if terms else float("inf")
+        return objective, mass_resid_lbmolph, energy_resid_btups, alg_p_psia, alg_v_lbmolph
+
+    y_work = _project_state(y)
+    inputs_work = inputs
+    info["attempted"] = True
+
+    try:
+        dydt_best, diag_best = _solve_dae_pilot_algebraic(
+            t_s=0.0,
+            y=y_work,
+            col=col,
+            layout=layout,
+            inputs=inputs_work,
+            max_iter=int(dae_max_iter),
+            p_tol_psia=dae_p_tol_psia,
+            v_tol_lbmolph=dae_v_tol_lbmolph,
+            jac_rel_step=float(dae_jac_rel_step),
+            line_search_max=int(dae_line_search_max),
+        )
+    except Exception:
+        return y_work, info
+
+    obj_best, mass_best, energy_best, alg_p_best, alg_v_best = _metric(diag_best, dydt_best)
+    info["objective_init"] = float(obj_best)
+    info["mass_resid_init_lbmolph"] = float(mass_best) if np.isfinite(mass_best) else np.nan
+    info["energy_resid_init_btups"] = float(energy_best) if np.isfinite(energy_best) else np.nan
+    info["alg_p_init_psia"] = float(alg_p_best) if np.isfinite(alg_p_best) else np.nan
+    info["alg_v_init_lbmolph"] = float(alg_v_best) if np.isfinite(alg_v_best) else np.nan
+
+    for it in range(n_iter):
+        info["n_iter"] = int(it + 1)
+        dydt_curr = np.asarray(dydt_best, dtype=float).reshape((-1,))
+        improved = False
+        for fac in (1.0, 0.5, 0.25, 0.1):
+            y_try = _project_state(y_work + float(fac) * float(dt_relax) * dydt_curr)
+            try:
+                dydt_try, diag_try = _solve_dae_pilot_algebraic(
+                    t_s=0.0,
+                    y=y_try,
+                    col=col,
+                    layout=layout,
+                    inputs=inputs_work,
+                    max_iter=int(dae_max_iter),
+                    p_tol_psia=dae_p_tol_psia,
+                    v_tol_lbmolph=dae_v_tol_lbmolph,
+                    jac_rel_step=float(dae_jac_rel_step),
+                    line_search_max=int(dae_line_search_max),
+                )
+            except Exception:
+                continue
+
+            obj_try, mass_try, energy_try, alg_p_try, alg_v_try = _metric(diag_try, dydt_try)
+            if np.isfinite(obj_try) and ((not np.isfinite(obj_best)) or obj_try + 1.0e-12 < obj_best):
+                y_work = y_try
+                dydt_best = np.asarray(dydt_try, dtype=float).reshape((-1,))
+                diag_best = dict(diag_try)
+                obj_best = float(obj_try)
+                mass_best = float(mass_try) if np.isfinite(mass_try) else np.nan
+                energy_best = float(energy_try) if np.isfinite(energy_try) else np.nan
+                alg_p_best = float(alg_p_try) if np.isfinite(alg_p_try) else np.nan
+                alg_v_best = float(alg_v_try) if np.isfinite(alg_v_try) else np.nan
+                try:
+                    p_prev = np.asarray(diag_best.get("P_psia_hyd"), dtype=float).reshape((col.n_stages,))
+                    v_prev = np.asarray(diag_best.get("V_out_lbmolph"), dtype=float).reshape((col.n_stages,))
+                    inputs_work = replace(inputs_work, P_tray_prev=p_prev, V_out_prev_lbmolph=v_prev)
+                except Exception:
+                    pass
+                improved = True
+                break
+        if (not improved) or (np.isfinite(obj_best) and obj_best <= 1.0):
+            break
+
+    info["objective_final"] = float(obj_best) if np.isfinite(obj_best) else np.nan
+    info["mass_resid_final_lbmolph"] = float(mass_best) if np.isfinite(mass_best) else np.nan
+    info["energy_resid_final_btups"] = float(energy_best) if np.isfinite(energy_best) else np.nan
+    info["alg_p_final_psia"] = float(alg_p_best) if np.isfinite(alg_p_best) else np.nan
+    info["alg_v_final_lbmolph"] = float(alg_v_best) if np.isfinite(alg_v_best) else np.nan
+    info["success"] = bool(
+        np.isfinite(info["objective_final"])
+        and np.isfinite(info["objective_init"])
+        and float(info["objective_final"]) + 1.0e-12 < float(info["objective_init"])
+    )
+    return y_work, info
 
 
 # -------------------------
@@ -4011,10 +4567,37 @@ def _profile_rows(
             V_out_calc = np.asarray(diag["V_out_lbmolph"], dtype=float).reshape((N,))
         except Exception:
             V_out_calc = None
+    hyd_dp_raw = None
+    hyd_dp_dry_raw = None
+    hyd_dp_liq_raw = None
+    hyd_dp_used = None
+    if "hydraulic_dp_raw_psia" in diag:
+        try:
+            hyd_dp_raw = np.asarray(diag["hydraulic_dp_raw_psia"], dtype=float).reshape((N,))
+        except Exception:
+            hyd_dp_raw = None
+    if "hydraulic_dp_dry_raw_psia" in diag:
+        try:
+            hyd_dp_dry_raw = np.asarray(diag["hydraulic_dp_dry_raw_psia"], dtype=float).reshape((N,))
+        except Exception:
+            hyd_dp_dry_raw = None
+    if "hydraulic_dp_liq_raw_psia" in diag:
+        try:
+            hyd_dp_liq_raw = np.asarray(diag["hydraulic_dp_liq_raw_psia"], dtype=float).reshape((N,))
+        except Exception:
+            hyd_dp_liq_raw = None
+    if "hydraulic_dp_used_psia" in diag:
+        try:
+            hyd_dp_used = np.asarray(diag["hydraulic_dp_used_psia"], dtype=float).reshape((N,))
+        except Exception:
+            hyd_dp_used = None
     vflow_ok = None
     vflow_denom = None
     vflow_calc = None
     vflow_used = None
+    vflow_clamped = None
+    vflow_limit_hi = None
+    vflow_limit_lo = None
     vflow_alpha = None
     if "vflow_energy_ok" in diag:
         try:
@@ -4036,6 +4619,21 @@ def _profile_rows(
             vflow_used = np.asarray(diag["vflow_energy_used_lbmolph"], dtype=float).reshape((N,))
         except Exception:
             vflow_used = None
+    if "vflow_energy_clamped" in diag:
+        try:
+            vflow_clamped = np.asarray(diag["vflow_energy_clamped"], dtype=float).reshape((N,))
+        except Exception:
+            vflow_clamped = None
+    if "vflow_energy_limit_hi_lbmolph" in diag:
+        try:
+            vflow_limit_hi = np.asarray(diag["vflow_energy_limit_hi_lbmolph"], dtype=float).reshape((N,))
+        except Exception:
+            vflow_limit_hi = None
+    if "vflow_energy_limit_lo_lbmolph" in diag:
+        try:
+            vflow_limit_lo = np.asarray(diag["vflow_energy_limit_lo_lbmolph"], dtype=float).reshape((N,))
+        except Exception:
+            vflow_limit_lo = None
     if "vflow_relax_alpha" in diag:
         try:
             vflow_alpha = np.asarray(diag["vflow_relax_alpha"], dtype=float).reshape((N,))
@@ -4053,6 +4651,30 @@ def _profile_rows(
             energy_resid = np.asarray(diag["energy_balance_resid_BTUps_tray"], dtype=float).reshape((N,))
         except Exception:
             energy_resid = None
+    dMLdt_transport = None
+    if "dMLdt_transport_lbmolps_tray" in diag:
+        try:
+            dMLdt_transport = np.asarray(diag["dMLdt_transport_lbmolps_tray"], dtype=float).reshape((N,))
+        except Exception:
+            dMLdt_transport = None
+    dMLdt_phase_relax = None
+    if "dMLdt_phase_relax_lbmolps_tray" in diag:
+        try:
+            dMLdt_phase_relax = np.asarray(diag["dMLdt_phase_relax_lbmolps_tray"], dtype=float).reshape((N,))
+        except Exception:
+            dMLdt_phase_relax = None
+    dMLdt_total = None
+    if "dMLdt_total_lbmolps_tray" in diag:
+        try:
+            dMLdt_total = np.asarray(diag["dMLdt_total_lbmolps_tray"], dtype=float).reshape((N,))
+        except Exception:
+            dMLdt_total = None
+    dMLdt_feed = None
+    if "dMLdt_feed_lbmolps_tray" in diag:
+        try:
+            dMLdt_feed = np.asarray(diag["dMLdt_feed_lbmolps_tray"], dtype=float).reshape((N,))
+        except Exception:
+            dMLdt_feed = None
     HL_tray = None
     HV_tray = None
     K_state_tray = None
@@ -4131,6 +4753,54 @@ def _profile_rows(
             P_top_drum_psia = float(np.asarray(diag["P_top_drum_psia"], dtype=float).reshape((-1,))[0])
         except Exception:
             P_top_drum_psia = np.nan
+    P_top_drum_psia_raw = np.nan
+    if "P_top_drum_psia_raw" in diag:
+        try:
+            P_top_drum_psia_raw = float(np.asarray(diag["P_top_drum_psia_raw"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            P_top_drum_psia_raw = np.nan
+    Z_top_drum_vapor = np.nan
+    if "Z_top_drum_vapor" in diag:
+        try:
+            Z_top_drum_vapor = float(np.asarray(diag["Z_top_drum_vapor"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Z_top_drum_vapor = np.nan
+    MV_top_drum_lbmol = np.nan
+    if "MV_top_drum_lbmol" in diag:
+        try:
+            MV_top_drum_lbmol = float(np.asarray(diag["MV_top_drum_lbmol"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            MV_top_drum_lbmol = np.nan
+    huang_top_anchor_free_psia = np.nan
+    if "huang_top_anchor_free_psia" in diag:
+        try:
+            huang_top_anchor_free_psia = float(np.asarray(diag["huang_top_anchor_free_psia"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            huang_top_anchor_free_psia = np.nan
+    huang_top_anchor_weight = np.nan
+    if "huang_top_anchor_weight" in diag:
+        try:
+            huang_top_anchor_weight = float(np.asarray(diag["huang_top_anchor_weight"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            huang_top_anchor_weight = np.nan
+    huang_top_anchor_gate_scale = np.nan
+    if "huang_top_anchor_gate_scale" in diag:
+        try:
+            huang_top_anchor_gate_scale = float(np.asarray(diag["huang_top_anchor_gate_scale"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            huang_top_anchor_gate_scale = np.nan
+    huang_top_drum_vapor_relax_target_psia = np.nan
+    if "huang_top_drum_vapor_relax_target_psia" in diag:
+        try:
+            huang_top_drum_vapor_relax_target_psia = float(np.asarray(diag["huang_top_drum_vapor_relax_target_psia"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            huang_top_drum_vapor_relax_target_psia = np.nan
+    huang_top_drum_vapor_relax_dmv_lbmolps = np.nan
+    if "huang_top_drum_vapor_relax_dmv_lbmolps" in diag:
+        try:
+            huang_top_drum_vapor_relax_dmv_lbmolps = float(np.asarray(diag["huang_top_drum_vapor_relax_dmv_lbmolps"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            huang_top_drum_vapor_relax_dmv_lbmolps = np.nan
     V_condensed_in_lbmolph = np.nan
     if "V_condensed_in_lbmolph" in diag:
         try:
@@ -4393,14 +5063,33 @@ def _profile_rows(
             ),
             "L_out_hyd_lbmolph": float(L_out_hyd[i]) if L_out_hyd is not None and np.isfinite(L_out_hyd[i]) else np.nan,
             "V_out_lbmolph": float(V_out_calc[i]) if V_out_calc is not None and np.isfinite(V_out_calc[i]) else np.nan,
+            "hydraulic_dp_raw_psia": float(hyd_dp_raw[i]) if hyd_dp_raw is not None and np.isfinite(hyd_dp_raw[i]) else np.nan,
+            "hydraulic_dp_dry_raw_psia": float(hyd_dp_dry_raw[i]) if hyd_dp_dry_raw is not None and np.isfinite(hyd_dp_dry_raw[i]) else np.nan,
+            "hydraulic_dp_liq_raw_psia": float(hyd_dp_liq_raw[i]) if hyd_dp_liq_raw is not None and np.isfinite(hyd_dp_liq_raw[i]) else np.nan,
+            "hydraulic_dp_used_psia": float(hyd_dp_used[i]) if hyd_dp_used is not None and np.isfinite(hyd_dp_used[i]) else np.nan,
             "vflow_energy_ok": float(vflow_ok[i]) if vflow_ok is not None and np.isfinite(vflow_ok[i]) else np.nan,
             "vflow_energy_denom_BTU_per_lbmol": float(vflow_denom[i]) if vflow_denom is not None and np.isfinite(vflow_denom[i]) else np.nan,
             "vflow_energy_calc_lbmolph": float(vflow_calc[i]) if vflow_calc is not None and np.isfinite(vflow_calc[i]) else np.nan,
             "vflow_energy_used_lbmolph": float(vflow_used[i]) if vflow_used is not None and np.isfinite(vflow_used[i]) else np.nan,
+            "vflow_energy_clamped": float(vflow_clamped[i]) if vflow_clamped is not None and np.isfinite(vflow_clamped[i]) else np.nan,
+            "vflow_energy_limit_hi_lbmolph": float(vflow_limit_hi[i]) if vflow_limit_hi is not None and np.isfinite(vflow_limit_hi[i]) else np.nan,
+            "vflow_energy_limit_lo_lbmolph": float(vflow_limit_lo[i]) if vflow_limit_lo is not None and np.isfinite(vflow_limit_lo[i]) else np.nan,
             "vflow_relax_alpha": float(vflow_alpha[i]) if vflow_alpha is not None and np.isfinite(vflow_alpha[i]) else np.nan,
             "h_ow_ft": float(h_ow[i]) if h_ow is not None and np.isfinite(h_ow[i]) else np.nan,
             "ML_lbmol": float(ML[i]),
             "MV_lbmol": float(MV[i]),
+            "dMLdt_transport_lbmolps": (
+                float(dMLdt_transport[i]) if dMLdt_transport is not None and np.isfinite(dMLdt_transport[i]) else np.nan
+            ),
+            "dMLdt_phase_relax_lbmolps": (
+                float(dMLdt_phase_relax[i]) if dMLdt_phase_relax is not None and np.isfinite(dMLdt_phase_relax[i]) else np.nan
+            ),
+            "dMLdt_total_lbmolps": (
+                float(dMLdt_total[i]) if dMLdt_total is not None and np.isfinite(dMLdt_total[i]) else np.nan
+            ),
+            "dMLdt_feed_lbmolps": (
+                float(dMLdt_feed[i]) if dMLdt_feed is not None and np.isfinite(dMLdt_feed[i]) else np.nan
+            ),
             "stage_mass_balance_resid_lbmolps": float(mass_resid[i]) if mass_resid is not None and np.isfinite(mass_resid[i]) else np.nan,
             "stage_energy_balance_resid_BTUps": float(energy_resid[i]) if energy_resid is not None and np.isfinite(energy_resid[i]) else np.nan,
             "HL_BTU_lbmol_tray": float(HL_tray[i]) if HL_tray is not None and np.isfinite(HL_tray[i]) else np.nan,
@@ -4418,12 +5107,20 @@ def _profile_rows(
             "Q_reb_used_BTUph": _stage_value(i1, N, Q_reb_used_BTUph),
             "Q_cond_cmd_BTUph": _stage_value(i1, 1, Q_cond_cmd_BTUph),
             "P_top_drum_psia": _stage_value(i1, 1, P_top_drum_psia),
+            "P_top_drum_psia_raw": _stage_value(i1, 1, P_top_drum_psia_raw),
+            "Z_top_drum_vapor": _stage_value(i1, 1, Z_top_drum_vapor),
+            "MV_top_drum_lbmol": _stage_value(i1, 1, MV_top_drum_lbmol),
+            "huang_top_anchor_free_psia": _stage_value(i1, 1, huang_top_anchor_free_psia),
+            "huang_top_anchor_weight": _stage_value(i1, 1, huang_top_anchor_weight),
+            "huang_top_anchor_gate_scale": _stage_value(i1, 1, huang_top_anchor_gate_scale),
             "V_condensed_in_lbmolph": _stage_value(i1, 1, V_condensed_in_lbmolph),
             "V_to_top_drum_lbmolph": _stage_value(i1, 1, V_to_top_drum_lbmolph),
             "dP_stage2_to_top_drum_psia": _stage_value(i1, 1, dP_stage2_to_top_drum_psia),
             "V_to_top_drum_pressure_gate_scale": _stage_value(i1, 1, V_to_top_drum_pressure_gate_scale),
             "V_to_top_drum_blocked_lbmolph": _stage_value(i1, 1, V_to_top_drum_blocked_lbmolph),
             "V_condensed_top_lbmolph": _stage_value(i1, 1, V_condensed_top_lbmolph),
+            "huang_top_drum_vapor_relax_target_psia": _stage_value(i1, 1, huang_top_drum_vapor_relax_target_psia),
+            "huang_top_drum_vapor_relax_dmv_lbmolps": _stage_value(i1, 1, huang_top_drum_vapor_relax_dmv_lbmolps),
             "V_psv_top_lbmolph": _stage_value(i1, 1, V_psv_top_lbmolph),
             "PSV_open_flag": _stage_value(i1, 1, PSV_open_flag),
             "PSV_setpoint_psia": _stage_value(i1, 1, PSV_setpoint_psia),
@@ -4484,12 +5181,20 @@ def _profile_rows(
             "Q_cond_used_BTUph",
             "Q_cond_cmd_BTUph",
             "P_top_drum_psia",
+            "P_top_drum_psia_raw",
+            "Z_top_drum_vapor",
+            "MV_top_drum_lbmol",
+            "huang_top_anchor_free_psia",
+            "huang_top_anchor_weight",
+            "huang_top_anchor_gate_scale",
             "V_condensed_in_lbmolph",
             "V_to_top_drum_lbmolph",
             "dP_stage2_to_top_drum_psia",
             "V_to_top_drum_pressure_gate_scale",
             "V_to_top_drum_blocked_lbmolph",
             "V_condensed_top_lbmolph",
+            "huang_top_drum_vapor_relax_target_psia",
+            "huang_top_drum_vapor_relax_dmv_lbmolps",
             "V_psv_top_lbmolph",
             "PSV_open_flag",
             "PSV_setpoint_psia",
@@ -4626,6 +5331,54 @@ def _summary_row(
             P_top_drum_psia = float(np.asarray(diag["P_top_drum_psia"], dtype=float).reshape((-1,))[0])
         except Exception:
             P_top_drum_psia = np.nan
+    P_top_drum_psia_raw = np.nan
+    if "P_top_drum_psia_raw" in diag:
+        try:
+            P_top_drum_psia_raw = float(np.asarray(diag["P_top_drum_psia_raw"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            P_top_drum_psia_raw = np.nan
+    Z_top_drum_vapor = np.nan
+    if "Z_top_drum_vapor" in diag:
+        try:
+            Z_top_drum_vapor = float(np.asarray(diag["Z_top_drum_vapor"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Z_top_drum_vapor = np.nan
+    MV_top_drum_lbmol = np.nan
+    if "MV_top_drum_lbmol" in diag:
+        try:
+            MV_top_drum_lbmol = float(np.asarray(diag["MV_top_drum_lbmol"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            MV_top_drum_lbmol = np.nan
+    huang_top_anchor_free_psia = np.nan
+    if "huang_top_anchor_free_psia" in diag:
+        try:
+            huang_top_anchor_free_psia = float(np.asarray(diag["huang_top_anchor_free_psia"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            huang_top_anchor_free_psia = np.nan
+    huang_top_anchor_weight = np.nan
+    if "huang_top_anchor_weight" in diag:
+        try:
+            huang_top_anchor_weight = float(np.asarray(diag["huang_top_anchor_weight"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            huang_top_anchor_weight = np.nan
+    huang_top_anchor_gate_scale = np.nan
+    if "huang_top_anchor_gate_scale" in diag:
+        try:
+            huang_top_anchor_gate_scale = float(np.asarray(diag["huang_top_anchor_gate_scale"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            huang_top_anchor_gate_scale = np.nan
+    huang_top_drum_vapor_relax_target_psia = np.nan
+    if "huang_top_drum_vapor_relax_target_psia" in diag:
+        try:
+            huang_top_drum_vapor_relax_target_psia = float(np.asarray(diag["huang_top_drum_vapor_relax_target_psia"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            huang_top_drum_vapor_relax_target_psia = np.nan
+    huang_top_drum_vapor_relax_dmv_lbmolps = np.nan
+    if "huang_top_drum_vapor_relax_dmv_lbmolps" in diag:
+        try:
+            huang_top_drum_vapor_relax_dmv_lbmolps = float(np.asarray(diag["huang_top_drum_vapor_relax_dmv_lbmolps"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            huang_top_drum_vapor_relax_dmv_lbmolps = np.nan
     V_condensed_in_lbmolph = np.nan
     if "V_condensed_in_lbmolph" in diag:
         try:
@@ -4873,6 +5626,14 @@ def _summary_row(
     steady_state_score = _mapping_scalar(diag, "steady_state_score")
     steady_state_active_criteria = _mapping_scalar(diag, "steady_state_active_criteria")
     ss_max_rel_state_rate_per_s = _mapping_scalar(diag, "ss_max_rel_state_rate_per_s")
+    ss_rel_state_rate_stage_1based = _mapping_scalar(diag, "ss_rel_state_rate_stage_1based")
+    ss_rel_state_rate_component_1based = _mapping_scalar(diag, "ss_rel_state_rate_component_1based")
+    ss_rel_state_rate_state_key = ""
+    if "ss_rel_state_rate_state_key" in diag:
+        try:
+            ss_rel_state_rate_state_key = str(np.asarray(diag["ss_rel_state_rate_state_key"], dtype=object).reshape((-1,))[0])
+        except Exception:
+            ss_rel_state_rate_state_key = ""
     ss_max_kpi_slope_per_s = _mapping_scalar(diag, "ss_max_kpi_slope_per_s")
     ss_max_mv_rate_per_s = _mapping_scalar(diag, "ss_max_mv_rate_per_s")
     ss_max_temp_rate_F_per_s = _mapping_scalar(diag, "ss_max_temp_rate_F_per_s")
@@ -4886,6 +5647,14 @@ def _summary_row(
     ss_tol_temp_rate_F_per_s = _mapping_scalar(diag, "ss_tol_temp_rate_F_per_s")
     ss_tol_sp_error = _mapping_scalar(diag, "ss_tol_sp_error")
     ss_require_sp = _mapping_scalar(diag, "ss_require_sp")
+    ss_rel_state_rate_component_name = ""
+    if np.isfinite(ss_rel_state_rate_component_1based):
+        try:
+            cidx = int(round(float(ss_rel_state_rate_component_1based))) - 1
+            if 0 <= cidx < len(col.components_excel):
+                ss_rel_state_rate_component_name = str(col.components_excel[cidx])
+        except Exception:
+            ss_rel_state_rate_component_name = ""
 
     integ = dict(integrator_info) if isinstance(integrator_info, dict) else {}
     integrator_requested_mode = str(integ.get("requested_mode", "")).strip()
@@ -4965,6 +5734,21 @@ def _summary_row(
         except Exception:
             T_sump = None
 
+    P_bot_meas = np.nan
+    if "P_psia_hyd" in diag:
+        try:
+            p_h = np.asarray(diag["P_psia_hyd"], dtype=float).reshape((N,))
+            if np.isfinite(float(p_h[-1])) and float(p_h[-1]) > 0.0:
+                P_bot_meas = float(p_h[-1])
+        except Exception:
+            P_bot_meas = np.nan
+    if not np.isfinite(P_bot_meas):
+        try:
+            if np.isfinite(float(P_diag[-1])) and float(P_diag[-1]) > 0.0:
+                P_bot_meas = float(P_diag[-1])
+        except Exception:
+            P_bot_meas = np.nan
+
     out: Dict[str, Any] = {
         "wall_clock_iso": wall_clock_iso,
         "wall_elapsed_s": float(wall_elapsed_s),
@@ -4972,7 +5756,7 @@ def _summary_row(
         "P_top_psia": float(P_top_meas) if np.isfinite(P_top_meas) else (float(P_spec[0]) if np.isfinite(P_spec[0]) else float(P_diag[0])),
         "P_top_psia_spec": float(P_spec[0]) if np.isfinite(P_spec[0]) else np.nan,
         "P_top_ctrl_pv_psia": float(P_top_meas),
-        "P_bot_psia": float(P_spec[-1]) if np.isfinite(P_spec[-1]) else float(P_diag[-1]),
+        "P_bot_psia": float(P_bot_meas) if np.isfinite(P_bot_meas) else (float(P_spec[-1]) if np.isfinite(P_spec[-1]) else float(P_diag[-1])),
         "P_bot_psia_spec": float(P_spec[-1]) if np.isfinite(P_spec[-1]) else np.nan,
         "T_Distillate_F": float(T_distillate) if T_distillate is not None else np.nan,
         "Q_cond_calc_BTUph": float(Q_cond_calc_BTUph) if np.isfinite(Q_cond_calc_BTUph) else np.nan,
@@ -4980,6 +5764,12 @@ def _summary_row(
         "Q_reb_used_BTUph": float(Q_reb_used_BTUph) if np.isfinite(Q_reb_used_BTUph) else np.nan,
         "Q_cond_cmd_BTUph": float(Q_cond_cmd_BTUph) if np.isfinite(Q_cond_cmd_BTUph) else np.nan,
         "P_top_drum_psia": float(P_top_drum_psia) if np.isfinite(P_top_drum_psia) else np.nan,
+        "P_top_drum_psia_raw": float(P_top_drum_psia_raw) if np.isfinite(P_top_drum_psia_raw) else np.nan,
+        "Z_top_drum_vapor": float(Z_top_drum_vapor) if np.isfinite(Z_top_drum_vapor) else np.nan,
+        "MV_top_drum_lbmol": float(MV_top_drum_lbmol) if np.isfinite(MV_top_drum_lbmol) else np.nan,
+        "huang_top_anchor_free_psia": float(huang_top_anchor_free_psia) if np.isfinite(huang_top_anchor_free_psia) else np.nan,
+        "huang_top_anchor_weight": float(huang_top_anchor_weight) if np.isfinite(huang_top_anchor_weight) else np.nan,
+        "huang_top_anchor_gate_scale": float(huang_top_anchor_gate_scale) if np.isfinite(huang_top_anchor_gate_scale) else np.nan,
         "V_condensed_in_lbmolph": float(V_condensed_in_lbmolph) if np.isfinite(V_condensed_in_lbmolph) else np.nan,
         "V_to_top_drum_lbmolph": float(V_to_top_drum_lbmolph) if np.isfinite(V_to_top_drum_lbmolph) else np.nan,
         "dP_stage2_to_top_drum_psia": (
@@ -4992,6 +5782,16 @@ def _summary_row(
             float(V_to_top_drum_blocked_lbmolph) if np.isfinite(V_to_top_drum_blocked_lbmolph) else np.nan
         ),
         "V_condensed_top_lbmolph": float(V_condensed_top_lbmolph) if np.isfinite(V_condensed_top_lbmolph) else np.nan,
+        "huang_top_drum_vapor_relax_target_psia": (
+            float(huang_top_drum_vapor_relax_target_psia)
+            if np.isfinite(huang_top_drum_vapor_relax_target_psia)
+            else np.nan
+        ),
+        "huang_top_drum_vapor_relax_dmv_lbmolps": (
+            float(huang_top_drum_vapor_relax_dmv_lbmolps)
+            if np.isfinite(huang_top_drum_vapor_relax_dmv_lbmolps)
+            else np.nan
+        ),
         "V_psv_top_lbmolph": float(V_psv_top_lbmolph) if np.isfinite(V_psv_top_lbmolph) else np.nan,
         "PSV_open_flag": float(PSV_open_flag) if np.isfinite(PSV_open_flag) else np.nan,
         "PSV_setpoint_psia": float(PSV_setpoint_psia) if np.isfinite(PSV_setpoint_psia) else np.nan,
@@ -5039,6 +5839,16 @@ def _summary_row(
         "ss_max_rel_state_rate_per_s": (
             float(ss_max_rel_state_rate_per_s) if np.isfinite(ss_max_rel_state_rate_per_s) else np.nan
         ),
+        "ss_rel_state_rate_state_key": str(ss_rel_state_rate_state_key),
+        "ss_rel_state_rate_stage_1based": (
+            float(ss_rel_state_rate_stage_1based) if np.isfinite(ss_rel_state_rate_stage_1based) else np.nan
+        ),
+        "ss_rel_state_rate_component_1based": (
+            float(ss_rel_state_rate_component_1based)
+            if np.isfinite(ss_rel_state_rate_component_1based)
+            else np.nan
+        ),
+        "ss_rel_state_rate_component_name": str(ss_rel_state_rate_component_name),
         "ss_max_kpi_slope_per_s": float(ss_max_kpi_slope_per_s) if np.isfinite(ss_max_kpi_slope_per_s) else np.nan,
         "ss_max_mv_rate_per_s": float(ss_max_mv_rate_per_s) if np.isfinite(ss_max_mv_rate_per_s) else np.nan,
         "ss_max_temp_rate_F_per_s": (
@@ -5177,13 +5987,13 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     ida_defaults_applied = list(eff_ida.get("defaults_applied", []))
 
     startup_sequence_enabled = bool(cfg.enable_startup_hydraulic_sequence)
-    if runtime_mode in ("parity", "calibration", "hydraulic"):
+    if runtime_mode in ("parity", "calibration", "hydraulic", "huang", "huang-energy"):
         if startup_sequence_enabled:
             print(
                 f"[Init] runtime_mode={runtime_mode} disables startup hydraulic sequencing; using direct mode behavior."
             )
         startup_sequence_enabled = False
-    if runtime_mode in ("parity", "calibration", "hydraulic"):
+    if runtime_mode in ("parity", "calibration", "hydraulic", "huang", "huang-energy"):
         print(f"[Init] Runtime mode active: {runtime_mode}")
     if ida_defaults_applied:
         print("[Init] Applied hydraulic+ida defaults: " + ", ".join(str(x) for x in ida_defaults_applied))
@@ -5322,6 +6132,21 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         "eq_phase_change_init_lbmolps": np.nan,
         "eq_phase_change_final_lbmolps": np.nan,
     }
+    hydraulic_energy_init_info = {
+        "attempted": False,
+        "success": False,
+        "n_iter": 0,
+        "objective_init": np.nan,
+        "objective_final": np.nan,
+        "mass_resid_init_lbmolph": np.nan,
+        "mass_resid_final_lbmolph": np.nan,
+        "energy_resid_init_btups": np.nan,
+        "energy_resid_final_btups": np.nan,
+        "alg_p_init_psia": np.nan,
+        "alg_p_final_psia": np.nan,
+        "alg_v_init_lbmolph": np.nan,
+        "alg_v_final_lbmolph": np.nan,
+    }
     if bool(cfg.enable_startup_thermo_conditioning):
         y, thermo_init_info = _initialize_thermo_consistent_state(
             col=col,
@@ -5343,6 +6168,35 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 f"eq_phase: {eq0:+.6g}->{eqf:+.6g} lbmol/s  "
                 f"max_dx={mdx:.3g}  max_dy={mdy:.3g}  "
                 f"iters={nit}  success={bool(thermo_init_info.get('success', False))}"
+            )
+    if bool(cfg.enable_startup_hydraulic_energy_consistency):
+        y, hydraulic_energy_init_info = _initialize_hydraulic_energy_consistent_state(
+            col=col,
+            layout=layout,
+            y=y,
+            inputs=init_inputs,
+            include_temperature=bool(cfg.include_temperature),
+            max_iter=int(cfg.startup_hydraulic_energy_consistency_iters),
+            pseudo_dt_sec=float(cfg.startup_hydraulic_energy_consistency_dt_sec),
+            mass_tol_lbmolph=cfg.startup_hydraulic_energy_consistency_mass_tol_lbmolph,
+            energy_tol_btups=cfg.startup_hydraulic_energy_consistency_energy_tol_btups,
+            dae_max_iter=int(max(3, getattr(cfg, "dae_pilot_max_iter", 3))),
+            dae_p_tol_psia=getattr(cfg, "dae_pilot_p_tol_psia", 0.05),
+            dae_v_tol_lbmolph=getattr(cfg, "dae_pilot_v_tol_lbmolph", 25.0),
+            dae_jac_rel_step=float(getattr(cfg, "dae_pilot_jac_rel_step", 1.0e-6)),
+            dae_line_search_max=int(getattr(cfg, "dae_pilot_line_search_max", 4)),
+        )
+        if bool(hydraulic_energy_init_info.get("attempted", False)):
+            print(
+                "[Init] Hydraulic-energy startup consistency  "
+                f"obj: {float(hydraulic_energy_init_info.get('objective_init', np.nan)):.3g}"
+                f"->{float(hydraulic_energy_init_info.get('objective_final', np.nan)):.3g}  "
+                f"mass: {float(hydraulic_energy_init_info.get('mass_resid_init_lbmolph', np.nan)):.3g}"
+                f"->{float(hydraulic_energy_init_info.get('mass_resid_final_lbmolph', np.nan)):.3g} lbmol/h  "
+                f"energy: {float(hydraulic_energy_init_info.get('energy_resid_init_btups', np.nan)):.3g}"
+                f"->{float(hydraulic_energy_init_info.get('energy_resid_final_btups', np.nan)):.3g} BTU/s  "
+                f"iters={int(hydraulic_energy_init_info.get('n_iter', 0))}  "
+                f"success={bool(hydraulic_energy_init_info.get('success', False))}"
             )
     y, top_drum_init_info = _initialize_top_drum_dynamic_steady(
         col=col,
@@ -6041,6 +6895,10 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 do_thermo = True
 
             if do_thermo:
+                use_top_drum_pressure_as_anchor = bool(
+                    pressure_control_enabled
+                    and str(pressure_control_mv).strip().lower() == "condenser-duty"
+                )
                 inputs = ColumnInputs(
                     boundary=step_boundary,
                     volume_model=base_inputs.volume_model,
@@ -6049,6 +6907,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     compute_thermo_diag=base_inputs.compute_thermo_diag,
                     equilibrium_relaxation=base_inputs.equilibrium_relaxation,
                     equilibrium_relaxation_mode=base_inputs.equilibrium_relaxation_mode,
+                    equilibrium_phase_holdup_guard_lbmol=base_inputs.equilibrium_phase_holdup_guard_lbmol,
                     tau_eq_sec=base_inputs.tau_eq_sec,
                     condenser_alpha=base_inputs.condenser_alpha,
                     clamp_alpha=base_inputs.clamp_alpha,
@@ -6081,6 +6940,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                         if step_pressure_top_anchor_psia is not None
                         else None
                     ),
+                    hydraulic_use_top_drum_pressure_as_anchor=use_top_drum_pressure_as_anchor,
                     condenser_pressure_drop_psi=base_inputs.condenser_pressure_drop_psi,
                     top_drum_vapor_volume_ft3=base_inputs.top_drum_vapor_volume_ft3,
                     top_drum_total_volume_ft3=base_inputs.top_drum_total_volume_ft3,
@@ -6099,6 +6959,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     top_drum_pressure_temperature_relaxation_sec=(
                         base_inputs.top_drum_pressure_temperature_relaxation_sec
                     ),
+                    huang_top_drum_vapor_relaxation_sec=(
+                        base_inputs.huang_top_drum_vapor_relaxation_sec
+                    ),
                     top_drum_pressure_T_prev_F=last_top_drum_pressure_T,
                     vapor_flow_relaxation_sec=base_inputs.vapor_flow_relaxation_sec,
                     conductance_vflow_nominal_hi_ratio=(
@@ -6111,6 +6974,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     thermo_refresh_dx=base_inputs.thermo_refresh_dx,
                     enable_liquid_hydraulic_override=base_inputs.enable_liquid_hydraulic_override,
                     liquid_hydraulic_override_alpha=float(seq_liquid_alpha_state),
+                    liquid_hydraulic_model=base_inputs.liquid_hydraulic_model,
+                    liquid_hydraulic_htc_sec=base_inputs.liquid_hydraulic_htc_sec,
                     component_mw_lbm_per_lbmol=base_inputs.component_mw_lbm_per_lbmol,
                     P_tray_prev=last_P_hyd if last_P_hyd is not None else last_P_diag,
                     V_out_prev_lbmolph=last_V_out,
@@ -6129,6 +6994,10 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 )
             else:
                 # Skip thermo calls on intermediate steps
+                use_top_drum_pressure_as_anchor = bool(
+                    pressure_control_enabled
+                    and str(pressure_control_mv).strip().lower() == "condenser-duty"
+                )
                 inputs = ColumnInputs(
                     boundary=step_boundary,
                     volume_model=base_inputs.volume_model,
@@ -6137,6 +7006,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     compute_thermo_diag=False,
                     equilibrium_relaxation=base_inputs.equilibrium_relaxation,
                     equilibrium_relaxation_mode=base_inputs.equilibrium_relaxation_mode,
+                    equilibrium_phase_holdup_guard_lbmol=base_inputs.equilibrium_phase_holdup_guard_lbmol,
                     tau_eq_sec=base_inputs.tau_eq_sec,
                     condenser_duty_mode=str(step_condenser_duty_mode),
                     condenser_duty_btu_per_h=(
@@ -6166,6 +7036,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                         if step_pressure_top_anchor_psia is not None
                         else None
                     ),
+                    hydraulic_use_top_drum_pressure_as_anchor=use_top_drum_pressure_as_anchor,
                     condenser_pressure_drop_psi=base_inputs.condenser_pressure_drop_psi,
                     top_drum_vapor_volume_ft3=base_inputs.top_drum_vapor_volume_ft3,
                     top_drum_total_volume_ft3=base_inputs.top_drum_total_volume_ft3,
@@ -6190,6 +7061,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     top_drum_pressure_temperature_relaxation_sec=(
                         base_inputs.top_drum_pressure_temperature_relaxation_sec
                     ),
+                    huang_top_drum_vapor_relaxation_sec=(
+                        base_inputs.huang_top_drum_vapor_relaxation_sec
+                    ),
                     top_drum_pressure_T_prev_F=last_top_drum_pressure_T,
                     vapor_flow_relaxation_sec=base_inputs.vapor_flow_relaxation_sec,
                     conductance_vflow_nominal_hi_ratio=(
@@ -6202,6 +7076,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     thermo_refresh_dx=base_inputs.thermo_refresh_dx,
                     enable_liquid_hydraulic_override=base_inputs.enable_liquid_hydraulic_override,
                     liquid_hydraulic_override_alpha=float(seq_liquid_alpha_state),
+                    liquid_hydraulic_model=base_inputs.liquid_hydraulic_model,
+                    liquid_hydraulic_htc_sec=base_inputs.liquid_hydraulic_htc_sec,
                     component_mw_lbm_per_lbmol=base_inputs.component_mw_lbm_per_lbmol,
                     P_tray_prev=last_P_hyd if last_P_hyd is not None else last_P_diag,
                     V_out_prev_lbmolph=last_V_out,
@@ -6228,29 +7104,32 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 and vapor_model_eval in ("energy", "conductance")
             )
             inputs_rhs = inputs
-            if str(integrator_mode).strip().lower() != "explicit-euler":
-                smooth_cfg_lbmolph = getattr(cfg, "stiff_vflow_smooth_clamp_lbmolph", None)
-                smooth_eps_lbmolps = 0.0
-                if smooth_cfg_lbmolph is None:
-                    if pressure_model_eval == "hydraulic" and vapor_model_eval in ("energy", "conductance"):
-                        # Small smoothing width to remove hard derivative kinks
-                        # at vapor-flow clamps for stiff substep Jacobians.
-                        smooth_eps_lbmolps = 5.0 / 3600.0
-                else:
-                    try:
-                        smooth_try_lbmolph = float(smooth_cfg_lbmolph)
-                    except Exception:
-                        smooth_try_lbmolph = 0.0
-                    if np.isfinite(smooth_try_lbmolph) and smooth_try_lbmolph > 0.0:
-                        smooth_eps_lbmolps = float(smooth_try_lbmolph) / 3600.0
-                if smooth_eps_lbmolps > 0.0:
-                    try:
-                        inputs_rhs = replace(
-                            inputs_rhs,
-                            vflow_smooth_clamp_epsilon_lbmolps=float(smooth_eps_lbmolps),
-                        )
-                    except Exception:
-                        pass
+            smooth_cfg_lbmolph = getattr(cfg, "stiff_vflow_smooth_clamp_lbmolph", None)
+            smooth_eps_lbmolps = 0.0
+            if smooth_cfg_lbmolph is None:
+                if (
+                    str(integrator_mode).strip().lower() != "explicit-euler"
+                    and pressure_model_eval == "hydraulic"
+                    and vapor_model_eval in ("energy", "conductance")
+                ):
+                    # Small smoothing width to remove hard derivative kinks
+                    # at vapor-flow clamps for stiff substep Jacobians.
+                    smooth_eps_lbmolps = 5.0 / 3600.0
+            else:
+                try:
+                    smooth_try_lbmolph = float(smooth_cfg_lbmolph)
+                except Exception:
+                    smooth_try_lbmolph = 0.0
+                if np.isfinite(smooth_try_lbmolph) and smooth_try_lbmolph > 0.0:
+                    smooth_eps_lbmolps = float(smooth_try_lbmolph) / 3600.0
+            if smooth_eps_lbmolps > 0.0:
+                try:
+                    inputs_rhs = replace(
+                        inputs_rhs,
+                        vflow_smooth_clamp_epsilon_lbmolps=float(smooth_eps_lbmolps),
+                    )
+                except Exception:
+                    pass
             pv_inner_iters = int(getattr(cfg, "pv_inner_max_iter", 1))
             if pressure_model_eval != "hydraulic":
                 pv_inner_iters = 1
@@ -6276,6 +7155,54 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     v_tol_lbmolph=getattr(cfg, "pv_inner_v_tol_lbmolph", None),
                 )
                 return np.asarray(dydt_eval, dtype=float).reshape((-1,)), dict(diag_eval)
+
+            def _make_step_rhs(eval_inputs: ColumnInputs):
+                if dae_outer_once_for_stiff:
+                    def _eval_step_rhs(t_eval_s: float, y_eval: np.ndarray) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
+                        dydt_eval, diag_eval = column_rhs(
+                            float(t_eval_s),
+                            np.asarray(y_eval, dtype=float),
+                            col,
+                            layout,
+                            inputs=eval_inputs,
+                        )
+                        dydt_eval = np.asarray(dydt_eval, dtype=float).reshape((-1,))
+                        diag_eval = dict(diag_eval)
+                        diag_eval["dae_pilot_enabled"] = np.array([1.0], dtype=float)
+                        diag_eval["dae_pilot_iter_count"] = np.array([0.0], dtype=float)
+                        diag_eval["dae_pilot_converged"] = np.array([0.0], dtype=float)
+                        diag_eval["dae_pilot_failed"] = np.array([0.0], dtype=float)
+                        diag_eval["dae_pilot_stiff_outer_only"] = np.array([1.0], dtype=float)
+                        return dydt_eval, diag_eval
+                else:
+                    def _eval_step_rhs(t_eval_s: float, y_eval: np.ndarray) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
+                        if dae_pilot_active:
+                            dydt_eval, diag_eval = _solve_dae_pilot_algebraic(
+                                t_s=float(t_eval_s),
+                                y=np.asarray(y_eval, dtype=float),
+                                col=col,
+                                layout=layout,
+                                inputs=eval_inputs,
+                                max_iter=int(dae_pilot_max_iter_eff),
+                                p_tol_psia=dae_pilot_p_tol_eff,
+                                v_tol_lbmolph=dae_pilot_v_tol_eff,
+                                jac_rel_step=float(getattr(cfg, "dae_pilot_jac_rel_step", 1.0e-6)),
+                                line_search_max=int(getattr(cfg, "dae_pilot_line_search_max", 4)),
+                            )
+                            return np.asarray(dydt_eval, dtype=float).reshape((-1,)), dict(diag_eval)
+
+                        dydt_eval, diag_eval = _eval_pv_rhs(
+                            float(t_eval_s),
+                            np.asarray(y_eval, dtype=float),
+                            eval_inputs,
+                        )
+                        if dae_pilot_enabled:
+                            diag_eval["dae_pilot_enabled"] = np.array([1.0], dtype=float)
+                            diag_eval["dae_pilot_iter_count"] = np.array([0.0], dtype=float)
+                            diag_eval["dae_pilot_converged"] = np.array([0.0], dtype=float)
+                            diag_eval["dae_pilot_failed"] = np.array([0.0], dtype=float)
+                        return dydt_eval, diag_eval
+                return _eval_step_rhs
 
             if dae_outer_once_for_stiff:
                 # Run full DAE algebraic Newton once per outer step for diagnostics
@@ -6319,75 +7246,27 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                         inputs_rhs = replace(inputs_rhs, **rhs_updates)
                 except Exception:
                     pass
-
-                if do_thermo:
-                    try:
-                        # Avoid repeated thermo flashes during implicit substeps.
-                        inputs_rhs = replace(
-                            inputs_rhs,
-                            thermo=None,
-                            thermo_provider=None,
-                            compute_thermo_diag=False,
-                            equilibrium_relaxation=False,
-                        )
-                    except Exception:
-                        pass
-
-                def _eval_step_rhs(t_eval_s: float, y_eval: np.ndarray) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
-                    dydt_eval, diag_eval = column_rhs(
-                        float(t_eval_s),
-                        np.asarray(y_eval, dtype=float),
-                        col,
-                        layout,
-                        inputs=inputs_rhs,
-                    )
-                    dydt_eval = np.asarray(dydt_eval, dtype=float).reshape((-1,))
-                    diag_eval = dict(diag_eval)
-                    diag_eval["dae_pilot_enabled"] = np.array([1.0], dtype=float)
-                    diag_eval["dae_pilot_iter_count"] = np.array([0.0], dtype=float)
-                    diag_eval["dae_pilot_converged"] = np.array([0.0], dtype=float)
-                    diag_eval["dae_pilot_failed"] = np.array([0.0], dtype=float)
-                    diag_eval["dae_pilot_stiff_outer_only"] = np.array([1.0], dtype=float)
-                    return dydt_eval, diag_eval
-            else:
-                def _eval_step_rhs(t_eval_s: float, y_eval: np.ndarray) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
-                    if dae_pilot_active:
-                        dydt_eval, diag_eval = _solve_dae_pilot_algebraic(
-                            t_s=float(t_eval_s),
-                            y=np.asarray(y_eval, dtype=float),
-                            col=col,
-                            layout=layout,
-                            inputs=inputs_rhs,
-                            max_iter=int(dae_pilot_max_iter_eff),
-                            p_tol_psia=dae_pilot_p_tol_eff,
-                            v_tol_lbmolph=dae_pilot_v_tol_eff,
-                            jac_rel_step=float(getattr(cfg, "dae_pilot_jac_rel_step", 1.0e-6)),
-                            line_search_max=int(getattr(cfg, "dae_pilot_line_search_max", 4)),
-                        )
-                        return np.asarray(dydt_eval, dtype=float).reshape((-1,)), dict(diag_eval)
-
-                    dydt_eval, diag_eval = _eval_pv_rhs(float(t_eval_s), np.asarray(y_eval, dtype=float), inputs_rhs)
-                    if dae_pilot_enabled:
-                        diag_eval["dae_pilot_enabled"] = np.array([1.0], dtype=float)
-                        diag_eval["dae_pilot_iter_count"] = np.array([0.0], dtype=float)
-                        diag_eval["dae_pilot_converged"] = np.array([0.0], dtype=float)
-                        diag_eval["dae_pilot_failed"] = np.array([0.0], dtype=float)
-                    return dydt_eval, diag_eval
-
+            inputs_rhs_fallback = inputs_rhs
+            _eval_step_rhs = _make_step_rhs(inputs_rhs_fallback)
+            if not dae_outer_once_for_stiff:
                 dydt, diag = _eval_step_rhs(float(t_s), y)
-                if integrator_mode != "explicit-euler" and do_thermo:
-                    try:
-                        # Freeze thermo flashes during implicit substeps so a stiff step
-                        # does not repeatedly invoke full tray flashes.
-                        inputs_rhs = replace(
-                            inputs_rhs,
-                            thermo=None,
-                            thermo_provider=None,
-                            compute_thermo_diag=False,
-                            equilibrium_relaxation=False,
-                        )
-                    except Exception:
-                        pass
+
+            inputs_rhs_integrator = inputs_rhs_fallback
+            if integrator_mode != "explicit-euler" and do_thermo:
+                try:
+                    # Freeze thermo flashes only for the attempted stiff substep
+                    # evaluations; explicit fallback must still use the live
+                    # outer-step RHS.
+                    inputs_rhs_integrator = replace(
+                        inputs_rhs_integrator,
+                        thermo=None,
+                        thermo_provider=None,
+                        compute_thermo_diag=False,
+                        equilibrium_relaxation=False,
+                    )
+                except Exception:
+                    inputs_rhs_integrator = inputs_rhs_fallback
+            _eval_step_rhs_integrator = _make_step_rhs(inputs_rhs_integrator)
             if (
                 step_condenser_duty_cmd_btu_per_h is not None
                 and np.isfinite(float(step_condenser_duty_cmd_btu_per_h))
@@ -6604,6 +7483,12 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             # Steady-state detector (diagnostic-only).
             if ss_enabled:
                 max_rel_state_rate = np.nan
+                max_rel_state_detail: Dict[str, Any] = {
+                    "max_rel_rate_per_s": np.nan,
+                    "state_key": "",
+                    "stage_1based": np.nan,
+                    "component_1based": np.nan,
+                }
                 dt_ss = np.nan
                 if ss_prev_t_s is not None and ss_prev_y is not None:
                     try:
@@ -6611,21 +7496,23 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     except Exception:
                         dt_ss = np.nan
                 if np.isfinite(dt_ss) and float(dt_ss) > 0.0 and ss_prev_y is not None:
-                    max_rel_state_rate = _max_rel_inventory_fd_rate_per_s(
+                    max_rel_state_detail = _max_rel_inventory_fd_rate_detail_per_s(
                         layout,
                         ss_prev_y,
                         y,
                         dt_sec=float(dt_ss),
                         denom_floor_lbmol=float(ss_rate_floor_lbmol),
                     )
+                    max_rel_state_rate = float(max_rel_state_detail.get("max_rel_rate_per_s", np.nan))
                 # Startup fallback for very first sample when finite-difference rate is unavailable.
                 if not np.isfinite(max_rel_state_rate):
-                    max_rel_state_rate = _max_rel_inventory_rate_per_s(
+                    max_rel_state_detail = _max_rel_inventory_rate_detail_per_s(
                         layout,
                         y,
                         dydt,
                         denom_floor_lbmol=float(ss_rate_floor_lbmol),
                     )
+                    max_rel_state_rate = float(max_rel_state_detail.get("max_rel_rate_per_s", np.nan))
                 max_temp_rate = np.nan
                 if np.isfinite(dt_ss) and float(dt_ss) > 0.0 and ss_prev_y is not None:
                     max_temp_rate = _max_abs_temperature_fd_rate_per_s(
@@ -6761,6 +7648,18 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 diag["steady_state_score"] = np.array([float(ss_score)], dtype=float)
                 diag["steady_state_active_criteria"] = np.array([float(ss_active_criteria)], dtype=float)
                 diag["ss_max_rel_state_rate_per_s"] = np.array([float(max_rel_state_rate)], dtype=float)
+                diag["ss_rel_state_rate_stage_1based"] = np.array(
+                    [float(max_rel_state_detail.get("stage_1based", np.nan))],
+                    dtype=float,
+                )
+                diag["ss_rel_state_rate_component_1based"] = np.array(
+                    [float(max_rel_state_detail.get("component_1based", np.nan))],
+                    dtype=float,
+                )
+                diag["ss_rel_state_rate_state_key"] = np.array(
+                    [str(max_rel_state_detail.get("state_key", "") or "")],
+                    dtype=object,
+                )
                 diag["ss_max_kpi_slope_per_s"] = np.array([float(max_kpi_slope)], dtype=float)
                 diag["ss_max_mv_rate_per_s"] = np.array([float(max_mv_rate)], dtype=float)
                 diag["ss_max_temp_rate_F_per_s"] = np.array([float(max_temp_rate)], dtype=float)
@@ -6799,6 +7698,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     "steady_state_flag": float(ss_flag),
                     "steady_state_score": float(ss_score),
                     "ss_max_rel_state_rate_per_s": float(max_rel_state_rate),
+                    "ss_rel_state_rate_stage_1based": float(max_rel_state_detail.get("stage_1based", np.nan)),
+                    "ss_rel_state_rate_component_1based": float(max_rel_state_detail.get("component_1based", np.nan)),
                     "ss_max_kpi_slope_per_s": float(max_kpi_slope),
                     "ss_max_mv_rate_per_s": float(max_mv_rate),
                     "ss_max_temp_rate_F_per_s": float(max_temp_rate),
@@ -6996,7 +7897,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     t_s=float(t_s),
                     y=y,
                     dt_sec=float(dt),
-                    rhs_eval=_eval_step_rhs,
+                    rhs_eval=_eval_step_rhs_integrator,
+                    rhs_eval_fallback=_eval_step_rhs,
                     layout=layout,
                     thermo_provider=thermo_provider,
                     integrator_mode=integrator_mode,
@@ -7090,6 +7992,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         "last_diag": last_diag,
         "steady_state_status_final": dict(steady_state_status_last),
         "startup_thermo_init_info": thermo_init_info,
+        "startup_hydraulic_energy_init_info": hydraulic_energy_init_info,
         "startup_top_drum_init_info": top_drum_init_info,
     }
 
@@ -7109,13 +8012,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument(
         "--runtime-mode",
         dest="runtime_mode",
-        choices=["legacy", "parity", "calibration", "hydraulic"],
+        choices=["legacy", "parity", "calibration", "hydraulic", "huang", "huang-energy"],
         default="parity",
         help=(
             "Runner behavior mode: "
             "parity=Pressure(spec)+Vapor(profile)+LiquidHydraulics(off), "
             "calibration=same closures as parity with explicit parity-check intent, "
-            "hydraulic=Pressure(hydraulic)+Vapor(energy)+LiquidHydraulics(on), "
+            "hydraulic=Pressure(hydraulic)+Vapor(energy)+LiquidHydraulics(off unless explicitly enabled), "
+            "huang=Pressure(hydraulic)+Vapor(profile)+Liquid(HTC) in a partitioned Huang-style hybrid path, "
+            "huang-energy=Pressure(hydraulic)+Vapor(energy)+Liquid(HTC) experimental hybrid path, "
             "legacy=use existing spec-driven behavior."
         ),
     )
@@ -7225,6 +8130,16 @@ def main(argv: Optional[List[str]] = None) -> int:
             "composition-only=relax vapor composition at fixed MV."
         ),
     )
+    p.add_argument(
+        "--equilibrium-phase-holdup-guard-lbmol",
+        dest="equilibrium_phase_holdup_guard_lbmol",
+        type=float,
+        default=None,
+        help=(
+            "Optional guard mass (lbmol) that softens phase-holdup relaxation "
+            "toward the flash-predicted vapor amount."
+        ),
+    )
 
     p.add_argument(
         "--thermo",
@@ -7238,6 +8153,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--thermo-refresh-dt", dest="thermo_refresh_dT_F", type=float, default=None)
     p.add_argument("--thermo-refresh-dp", dest="thermo_refresh_dP_psia", type=float, default=None)
     p.add_argument("--thermo-refresh-dx", dest="thermo_refresh_dx", type=float, default=None)
+    p.add_argument(
+        "--flash-feed-at-stage-conditions",
+        dest="flash_feed_at_stage_conditions",
+        action="store_true",
+        default=None,
+    )
+    p.add_argument(
+        "--no-flash-feed-at-stage-conditions",
+        dest="flash_feed_at_stage_conditions",
+        action="store_false",
+    )
     p.add_argument("--thermo-table", dest="thermo_table_path", default=None)
     p.add_argument("--thermo-pool-workers", dest="thermo_pool_workers", type=int, default=None)
     p.add_argument("--thermo-pool-chunk-size", dest="thermo_pool_chunk_size", type=int, default=4)
@@ -7255,6 +8181,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument(
         "--top-drum-pressure-temperature-relaxation-sec",
         dest="top_drum_pressure_temperature_relaxation_sec",
+        type=float,
+        default=None,
+    )
+    p.add_argument(
+        "--huang-top-drum-vapor-relaxation-sec",
+        dest="huang_top_drum_vapor_relaxation_sec",
         type=float,
         default=None,
     )
@@ -7367,6 +8299,39 @@ def main(argv: Optional[List[str]] = None) -> int:
         default=1.0,
     )
     p.add_argument(
+        "--enable-startup-hydraulic-energy-consistency",
+        dest="enable_startup_hydraulic_energy_consistency",
+        action="store_true",
+        help=(
+            "Run a bounded t=0 consistency relaxation for hydraulic+energy cases "
+            "using the pilot algebraic solve plus short pseudo-time steps."
+        ),
+    )
+    p.add_argument(
+        "--startup-hydraulic-energy-consistency-iters",
+        dest="startup_hydraulic_energy_consistency_iters",
+        type=int,
+        default=6,
+    )
+    p.add_argument(
+        "--startup-hydraulic-energy-consistency-dt-sec",
+        dest="startup_hydraulic_energy_consistency_dt_sec",
+        type=float,
+        default=0.5,
+    )
+    p.add_argument(
+        "--startup-hydraulic-energy-consistency-mass-tol-lbmolph",
+        dest="startup_hydraulic_energy_consistency_mass_tol_lbmolph",
+        type=float,
+        default=5.0,
+    )
+    p.add_argument(
+        "--startup-hydraulic-energy-consistency-energy-tol-btups",
+        dest="startup_hydraulic_energy_consistency_energy_tol_btups",
+        type=float,
+        default=1000.0,
+    )
+    p.add_argument(
         "--enable-liquid-hydraulic-override",
         dest="enable_liquid_hydraulic_override",
         action="store_true",
@@ -7385,6 +8350,20 @@ def main(argv: Optional[List[str]] = None) -> int:
         type=float,
         default=None,
         help="Blend for internal liquid hydraulics override: 0=profile, 1=full hydraulic.",
+    )
+    p.add_argument(
+        "--liquid-hydraulic-model",
+        dest="liquid_hydraulic_model",
+        choices=["francis", "huang-htc"],
+        default=None,
+        help="Internal liquid hydraulic closure: 'francis' or Huang-inspired 'huang-htc'.",
+    )
+    p.add_argument(
+        "--liquid-hydraulic-htc-sec",
+        dest="liquid_hydraulic_htc_sec",
+        type=float,
+        default=None,
+        help="Hydraulic time constant (s) used when liquid-hydraulic-model=huang-htc.",
     )
     p.add_argument(
         "--enable-startup-hydraulic-sequence",
@@ -7550,7 +8529,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "--top-drum-pressure-gate-soft-psi",
         dest="top_drum_pressure_gate_soft_psi",
         type=float,
-        default=0.25,
+        default=None,
         help="Soft transition width (psi) for top-drum pressure gate; <=0 gives hard gating.",
     )
     p.add_argument(
@@ -7678,6 +8657,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         include_energy=bool(args.include_energy),
         enable_equilibrium_relaxation=bool(args.enable_equilibrium_relaxation),
         equilibrium_relaxation_mode=str(args.equilibrium_relaxation_mode),
+        equilibrium_phase_holdup_guard_lbmol=args.equilibrium_phase_holdup_guard_lbmol,
         thermo_mode=str(args.thermo_mode),
         thermo_every_n_steps=int(args.thermo_every_n_steps),
         thermo_refresh_dT_F=args.thermo_refresh_dT_F,
@@ -7692,6 +8672,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         vapor_holdup_relaxation_sec=args.vapor_holdup_relaxation_sec,
         hydraulic_pressure_relaxation_sec=args.hydraulic_pressure_relaxation_sec,
         top_drum_pressure_temperature_relaxation_sec=args.top_drum_pressure_temperature_relaxation_sec,
+        huang_top_drum_vapor_relaxation_sec=args.huang_top_drum_vapor_relaxation_sec,
         vapor_flow_relaxation_sec=args.vapor_flow_relaxation_sec,
         conductance_vflow_nominal_hi_ratio=args.conductance_vflow_nominal_hi_ratio,
         stiff_vflow_smooth_clamp_lbmolph=args.stiff_vflow_smooth_clamp_lbmolph,
@@ -7706,6 +8687,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         dae_pilot_line_search_max=int(args.dae_pilot_line_search_max),
         enable_liquid_hydraulic_override=args.enable_liquid_hydraulic_override,
         liquid_hydraulic_override_alpha=args.liquid_hydraulic_override_alpha,
+        liquid_hydraulic_model=args.liquid_hydraulic_model,
+        liquid_hydraulic_htc_sec=args.liquid_hydraulic_htc_sec,
         reflux_lbmolph=args.reflux_lbmolph,
         boilup_lbmolph=args.boilup_lbmolph,
         condenser_duty_mode=str(args.condenser_duty_mode),
@@ -7770,6 +8753,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         enable_startup_thermo_conditioning=bool(args.enable_startup_thermo_conditioning),
         startup_thermo_conditioning_iters=int(args.startup_thermo_conditioning_iters),
         startup_thermo_conditioning_relaxation=float(args.startup_thermo_conditioning_relaxation),
+        enable_startup_hydraulic_energy_consistency=bool(args.enable_startup_hydraulic_energy_consistency),
+        startup_hydraulic_energy_consistency_iters=int(args.startup_hydraulic_energy_consistency_iters),
+        startup_hydraulic_energy_consistency_dt_sec=float(args.startup_hydraulic_energy_consistency_dt_sec),
+        startup_hydraulic_energy_consistency_mass_tol_lbmolph=args.startup_hydraulic_energy_consistency_mass_tol_lbmolph,
+        startup_hydraulic_energy_consistency_energy_tol_btups=args.startup_hydraulic_energy_consistency_energy_tol_btups,
         enable_startup_hydraulic_sequence=bool(args.enable_startup_hydraulic_sequence),
         startup_sequence_energy_on_sec=float(args.startup_sequence_energy_on_sec),
         startup_sequence_liquid_on_sec=float(args.startup_sequence_liquid_on_sec),

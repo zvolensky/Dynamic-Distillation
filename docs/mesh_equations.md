@@ -31,7 +31,8 @@ Boundary conditions always enforced:
 Optional hydraulics: internal `L_out` (stages 2..N-1) can be overridden by Francis-weir outflow when geometry is available.
 Runner preset note (`dynamic_run_scaffold_v1`):
 - `--runtime-mode parity` (default CLI mode) forces `pressure_model="spec"`, `vapor_flow_model="profile"`, and disables liquid-hydraulic override.
-- `--runtime-mode hydraulic` forces `pressure_model="hydraulic"`, `vapor_flow_model="energy"`, and enables liquid-hydraulic override.
+- `--runtime-mode hydraulic` forces `pressure_model="hydraulic"`, `vapor_flow_model="energy"`, leaves liquid-hydraulic override plus vapor-holdup relaxation off unless explicitly enabled, and defaults feed-stage flashing off unless explicitly requested.
+- `--runtime-mode huang` forces `pressure_model="hydraulic"`, `vapor_flow_model="profile"`, and enables liquid-hydraulic override with `liquid_hydraulic_model="huang-htc"`.
 - `--runtime-mode legacy` keeps spec/CLI-driven model selection and is the only mode where startup hydraulic sequencing is active.
 
 **Generic Tray Component Balances (All Stages)**
@@ -41,7 +42,7 @@ d(ML_i,k)/dt = L_in[i] * x_in[i,k] + F_L,i,k - L_out[i] * x_i,k
 d(MV_i,k)/dt = V_in[i] * y_in[i,k] + F_V,i,k - V_out[i] * y_i,k
 ```
 Feed components are only nonzero at the feed stage.
-When a thermo provider is available, the feed split can be computed from a TP flash at the feed-stage pressure (`flash_feed_at_stage_conditions=True`), instead of using the raw stream vapor fraction.
+When a thermo provider is available, the feed split can be computed from a TP flash at the feed-stage pressure (`flash_feed_at_stage_conditions=True`), instead of using the raw stream vapor fraction. For ChemSep-seeded hydraulic startup, the runner now defaults this off so the imported steady tray profiles are not immediately perturbed by a second feed flash calculation.
 Feed component-flow lookups are matched case/format-insensitively (for example `n-Pentane` and `N-Pentane` map to the same component).
 
 **Condenser (Stage 1)**

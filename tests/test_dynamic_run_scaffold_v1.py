@@ -31,7 +31,10 @@ import pytest
 
 from dynamic_distillation.dynamic_run_scaffold_v1 import (
     PIController,
+    _autocalibrate_francis_hydraulic_c_factors_from_seed,
     _max_abs_temperature_fd_rate_per_s,
+    _max_rel_inventory_fd_rate_detail_per_s,
+    _max_rel_inventory_rate_detail_per_s,
     _effective_hydraulic_ida_profile,
     _integrate_one_step,
     _integrate_one_step_ida,
@@ -44,6 +47,7 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _clear_initial_tray_vapor_holdup,
     _component_index_by_name,
     _clip_temperature_states_to_provider_bounds,
+    _initialize_hydraulic_energy_consistent_state,
     _initialize_thermo_consistent_state,
     _initialize_vapor_holdup_from_spec_pressure,
     _initialize_top_drum_dynamic_steady,
@@ -54,7 +58,100 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     run_smoke_simulation,
 )
 from dynamic_distillation.column_rhs_v1 import ColumnInputs, column_rhs
+from dynamic_distillation.column_spec_builder_v1 import (
+    ColumnGeometry,
+    ColumnGeometrySection,
+    ColumnSpec,
+    HeatDuties,
+    SimulationSettings,
+)
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
+from dynamic_distillation.stage_hydraulics_francis_v1 import compute_francis_weir_liquid_outflow
+
+
+def test_inventory_rate_detail_reports_tray_stage_and_component():
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=3,
+        include_top=True,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=False,
+    )
+    sl = layout.slices()
+    y = np.zeros(layout.n_states(), dtype=float)
+    dydt = np.zeros_like(y)
+    tray_l = np.array([[10.0, 8.0, 6.0], [5.0, 4.0, 3.0]], dtype=float)
+    y[sl["tray_L"]] = tray_l.ravel(order="C")
+    tray_v = np.array([[2.0, 1.0, 0.5], [1.0, 0.5, 0.25]], dtype=float)
+    y[sl["tray_V"]] = tray_v.ravel(order="C")
+    dydt[sl["tray_V"]] = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 5.0]], dtype=float).ravel(order="C")
+
+    detail = _max_rel_inventory_rate_detail_per_s(layout, y, dydt, denom_floor_lbmol=1.0)
+
+    assert float(detail["max_rel_rate_per_s"]) == pytest.approx(4.0)
+    assert detail["state_key"] == "tray_V"
+    assert float(detail["stage_1based"]) == pytest.approx(2.0)
+    assert float(detail["component_1based"]) == pytest.approx(3.0)
+
+
+def test_francis_hydraulics_uses_holdup_area_for_liquid_head():
+    ml = np.array([0.0, 20.0, 0.0], dtype=float)
+    rho = np.array([10.0, 10.0, 10.0], dtype=float)
+    active_area = np.array([1.0, 1.0, 1.0], dtype=float)
+    holdup_area = np.array([1.0, 2.0, 1.0], dtype=float)
+    weir_h = np.zeros(3, dtype=float)
+    weir_L = np.ones(3, dtype=float)
+
+    base = compute_francis_weir_liquid_outflow(
+        ML_lbmol=ml,
+        rhoL_lbmol_ft3=rho,
+        active_area_ft2=active_area,
+        weir_height_in=weir_h,
+        weir_length_ft=weir_L,
+    )
+    widened = compute_francis_weir_liquid_outflow(
+        ML_lbmol=ml,
+        rhoL_lbmol_ft3=rho,
+        active_area_ft2=active_area,
+        holdup_area_ft2=holdup_area,
+        weir_height_in=weir_h,
+        weir_length_ft=weir_L,
+    )
+
+    assert widened.h_ow[1] < base.h_ow[1]
+    assert widened.ML_lbmolph[1] < base.ML_lbmolph[1]
+
+
+def test_inventory_fd_rate_detail_reports_boundary_component():
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=True,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=False,
+    )
+    sl = layout.slices()
+    y0 = np.zeros(layout.n_states(), dtype=float)
+    y1 = np.zeros(layout.n_states(), dtype=float)
+    y0[sl["top_L"]] = np.array([100.0, 20.0], dtype=float)
+    y1[sl["top_L"]] = np.array([100.0, 10.0], dtype=float)
+
+    detail = _max_rel_inventory_fd_rate_detail_per_s(
+        layout,
+        y0,
+        y1,
+        dt_sec=10.0,
+        denom_floor_lbmol=1.0,
+    )
+
+    assert float(detail["max_rel_rate_per_s"]) == pytest.approx(1.0 / 11.0)
+    assert detail["state_key"] == "top_L"
+    assert float(detail["stage_1based"]) == pytest.approx(0.0)
+    assert float(detail["component_1based"]) == pytest.approx(2.0)
 
 
 def test_steady_state_temperature_fd_rate_ignores_boundary_temperatures():
@@ -333,7 +430,61 @@ def test_summary_row_prefers_logged_pressure_controller_pv():
 
     assert float(row["P_top_ctrl_pv_psia"]) == pytest.approx(221.0)
     assert float(row["P_top_psia"]) == pytest.approx(221.0)
+    assert float(row["P_bot_psia"]) == pytest.approx(232.0)
     assert float(row["P_top_psia"]) != pytest.approx(226.0)
+
+
+def test_summary_row_prefers_logged_hydraulic_bottom_pressure():
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    class TinyCol:
+        n_stages = 2
+        n_components = 2
+        components_excel = ["C3", "C4"]
+        T_f = np.array([120.0, 130.0], dtype=float)
+        P_psia = np.array([220.0, 230.0], dtype=float)
+        M_L_lbmol = np.array([5.0, 6.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.0], dtype=float)
+        x0 = np.array([[0.80, 0.20], [0.30, 0.70]], dtype=float)
+        y0 = np.array([[0.75, 0.25], [0.25, 0.75]], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=col.n_stages,
+        n_components=col.n_components,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y = layout.pack_y0(col)
+
+    diag = {
+        "x_tray": np.asarray(col.x0, dtype=float).copy(),
+        "y_tray": np.asarray(col.y0, dtype=float).copy(),
+        "P_psia_diag": np.array([222.0, 231.0], dtype=float),
+        "P_psia_hyd": np.array([224.0, 242.0], dtype=float),
+    }
+
+    row = scaffold._summary_row(
+        t_s=0.0,
+        case=None,
+        col=col,
+        layout=layout,
+        y=y,
+        diag=diag,
+        include_temperature=False,
+        volume_model=scaffold.VolumeModel(default_vapor_volume_ft3=10.0),
+        wall_clock_iso="2026-02-17T00:00:00",
+        wall_elapsed_s=0.0,
+        feed_tag=scaffold.StreamTag(name="Feed", flow_lbmolph=1000.0, stage_1based=2),
+        dist_tag=scaffold.StreamTag(name="Distillate", flow_lbmolph=200.0, stage_1based=1),
+        bots_tag=scaffold.StreamTag(name="Bottoms", flow_lbmolph=800.0, stage_1based=2),
+    )
+
+    assert float(row["P_bot_psia"]) == pytest.approx(242.0)
+    assert float(row["P_bot_psia_spec"]) == pytest.approx(230.0)
 
 
 def test_summary_row_includes_integrator_diagnostics():
@@ -729,6 +880,7 @@ def test_integrate_one_step_explicit_linear_decay():
         y=y0,
         dt_sec=0.1,
         rhs_eval=_rhs,
+        rhs_eval_fallback=None,
         layout=layout,
         thermo_provider=None,
         integrator_mode="explicit-euler",
@@ -768,6 +920,49 @@ def test_integrate_one_step_bdf_falls_back_without_scipy(monkeypatch):
         y=y0,
         dt_sec=0.1,
         rhs_eval=_rhs,
+        rhs_eval_fallback=None,
+        layout=layout,
+        thermo_provider=None,
+        integrator_mode="bdf",
+        rtol=1.0e-3,
+        atol=1.0e-6,
+        max_step_sec=None,
+        substep_sec=None,
+        max_rhs_evals_per_step=None,
+        step_wall_limit_sec=None,
+    )
+    assert y1[0] == pytest.approx(1.8)
+    assert bool(info["fallback_used"]) is True
+    assert str(info["used_mode"]) == "explicit-euler"
+
+
+def test_integrate_one_step_bdf_fallback_can_use_separate_rhs(monkeypatch):
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    layout = StateVectorLayout(
+        n_stages=1,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+        include_temperature=False,
+    )
+    y0 = np.array([2.0], dtype=float)
+
+    def _rhs_stiff(_t, y):
+        return -2.0 * np.asarray(y, dtype=float), {}
+
+    def _rhs_fallback(_t, y):
+        return -1.0 * np.asarray(y, dtype=float), {}
+
+    monkeypatch.setattr(scaffold, "_solve_ivp", None)
+
+    y1, info = _integrate_one_step(
+        t_s=0.0,
+        y=y0,
+        dt_sec=0.1,
+        rhs_eval=_rhs_stiff,
+        rhs_eval_fallback=_rhs_fallback,
         layout=layout,
         thermo_provider=None,
         integrator_mode="bdf",
@@ -822,6 +1017,7 @@ def test_integrate_one_step_bdf_uses_solve_ivp_when_available(monkeypatch):
         y=y0,
         dt_sec=0.1,
         rhs_eval=_rhs,
+        rhs_eval_fallback=None,
         layout=layout,
         thermo_provider=None,
         integrator_mode="bdf",
@@ -1215,6 +1411,175 @@ def test_thermo_startup_conditioner_with_mocked_rhs(monkeypatch):
     assert abs(float(info["eq_phase_change_final_lbmolps"])) < float(info["eq_phase_change_init_lbmolps"])
 
 
+def test_thermo_startup_conditioner_preserves_boundary_liquid_compositions(monkeypatch):
+    class TinyCol:
+        n_stages = 3
+        n_components = 2
+        M_L_lbmol = np.array([5.0, 6.0, 7.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.5, 2.0], dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.5, 0.5], [0.2, 0.8]], dtype=float)
+        y0 = np.array([[0.7, 0.3], [0.4, 0.6], [0.1, 0.9]], dtype=float)
+        T_f = np.array([100.0, 110.0, 120.0], dtype=float)
+        P_psia = np.array([200.0, 205.0, 210.0], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=True,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col)
+    sl = layout.slices()
+    y0 = np.asarray(y0, dtype=float).copy()
+    y0[sl["top_L"]] = np.array([9.0, 1.0], dtype=float)
+    y0[sl["bottom_L"]] = np.array([2.0, 8.0], dtype=float)
+
+    x_eq = np.array([[0.1, 0.9], [0.6, 0.4], [0.9, 0.1]], dtype=float)
+    y_eq = np.array([[0.2, 0.8], [0.55, 0.45], [0.75, 0.25]], dtype=float)
+
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    def _fake_rhs(_t, y_vec, _col, _layout, inputs=None):
+        dydt = np.zeros_like(np.asarray(y_vec, dtype=float))
+        diag = {
+            "x_eq_tray": x_eq.copy(),
+            "y_eq_tray": y_eq.copy(),
+            "Z_tray": np.ones(col.n_stages, dtype=float),
+            "eq_phase_change_lbmolps_tray": np.ones(col.n_stages, dtype=float),
+        }
+        return dydt, diag
+
+    monkeypatch.setattr(scaffold, "column_rhs", _fake_rhs)
+    monkeypatch.setattr(
+        scaffold,
+        "_initialize_vapor_holdup_from_spec_pressure",
+        lambda **kwargs: np.asarray(kwargs["y"], dtype=float).copy(),
+    )
+
+    y1, info = _initialize_thermo_consistent_state(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(thermo_provider=object()),
+        include_temperature=False,
+        max_iter=1,
+        relaxation=1.0,
+    )
+
+    u1 = layout.unpack(y1)
+    top_L = np.asarray(u1["top_L"], dtype=float).reshape((-1,))
+    bottom_L = np.asarray(u1["bottom_L"], dtype=float).reshape((-1,))
+    assert info["attempted"] is True
+    assert np.allclose(top_L, np.array([9.0, 1.0], dtype=float), atol=1e-12)
+    assert np.allclose(bottom_L, np.array([2.0, 8.0], dtype=float), atol=1e-12)
+
+
+def test_hydraulic_energy_startup_consistency_noops_for_non_hydraulic_energy_mode():
+    class TinyCol:
+        n_stages = 2
+        n_components = 1
+        M_L_lbmol = np.array([5.0, 6.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.0], dtype=float)
+        x0 = np.array([[1.0], [1.0]], dtype=float)
+        y0 = np.array([[1.0], [1.0]], dtype=float)
+        T_f = np.array([100.0, 110.0], dtype=float)
+        P_psia = np.array([200.0, 205.0], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=True,
+    )
+    y0 = layout.pack_y0(col)
+
+    y1, info = _initialize_hydraulic_energy_consistent_state(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(pressure_model="spec", vapor_flow_model="profile"),
+        include_temperature=False,
+    )
+
+    assert np.allclose(y1, y0)
+    assert info["attempted"] is False
+
+
+def test_hydraulic_energy_startup_consistency_relaxes_state_when_objective_improves(monkeypatch):
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    class TinyCol:
+        n_stages = 1
+        n_components = 1
+        M_L_lbmol = np.array([10.0], dtype=float)
+        M_V_lbmol = np.array([2.0], dtype=float)
+        x0 = np.array([[1.0]], dtype=float)
+        y0 = np.array([[1.0]], dtype=float)
+        T_f = np.array([100.0], dtype=float)
+        P_psia = np.array([200.0], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=1,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col)
+    sl = layout.slices()
+
+    def _fake_solve_dae(*, y, **_kwargs):
+        y_arr = np.asarray(y, dtype=float)
+        ml = float(np.asarray(y_arr[sl["tray_L"]], dtype=float).reshape((-1,))[0])
+        gap = ml - 4.0
+        dydt = np.zeros_like(y_arr)
+        dydt[sl["tray_L"]] = np.array([-gap], dtype=float)
+        diag = {
+            "mass_balance_resid_lbmolps_tray": np.array([abs(gap) / 3600.0], dtype=float),
+            "resid_energy_btups": np.array([abs(gap) * 100.0], dtype=float),
+            "dae_pilot_alg_p_inf_psia": np.array([abs(gap) * 0.1], dtype=float),
+            "dae_pilot_alg_v_inf_lbmolph": np.array([abs(gap) * 10.0], dtype=float),
+            "P_psia_hyd": np.array([200.0], dtype=float),
+            "V_out_lbmolph": np.array([5000.0], dtype=float),
+        }
+        return dydt, diag
+
+    monkeypatch.setattr(scaffold, "_solve_dae_pilot_algebraic", _fake_solve_dae)
+
+    y1, info = _initialize_hydraulic_energy_consistent_state(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(pressure_model="hydraulic", vapor_flow_model="energy"),
+        include_temperature=False,
+        max_iter=4,
+        pseudo_dt_sec=0.5,
+        mass_tol_lbmolph=5.0,
+        energy_tol_btups=1000.0,
+    )
+
+    ml0 = float(np.asarray(y0[sl["tray_L"]], dtype=float).reshape((-1,))[0])
+    ml1 = float(np.asarray(y1[sl["tray_L"]], dtype=float).reshape((-1,))[0])
+    assert ml1 < ml0
+    assert info["attempted"] is True
+    assert info["success"] is True
+    assert float(info["objective_final"]) < float(info["objective_init"])
+
+
 def test_inner_pv_coupling_single_pass_when_max_iter_is_one(monkeypatch):
     import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
 
@@ -1484,6 +1849,7 @@ def test_stiff_integrator_uses_dae_outer_once_per_step(monkeypatch, tmp_path: Pa
         y,
         dt_sec,
         rhs_eval,
+        rhs_eval_fallback,
         layout,
         thermo_provider,
         integrator_mode,
@@ -1848,6 +2214,159 @@ def test_normalize_runtime_mode_accepts_calibration():
     assert _normalize_runtime_mode(" Calibration ") == "calibration"
 
 
+def test_normalize_runtime_mode_accepts_huang():
+    assert _normalize_runtime_mode("huang") == "huang"
+    assert _normalize_runtime_mode(" Huang ") == "huang"
+
+
+def test_normalize_runtime_mode_accepts_huang_energy():
+    assert _normalize_runtime_mode("huang-energy") == "huang-energy"
+    assert _normalize_runtime_mode(" Huang-Energy ") == "huang-energy"
+
+
+def test_autocalibrate_francis_hydraulic_c_factors_from_seed_recovers_stage_targets():
+    n = 4
+    area = np.full(n, 10.0, dtype=float)
+    weir_h = np.full(n, 1.0, dtype=float)
+    weir_L = np.full(n, 2.0, dtype=float)
+    geom = ColumnGeometry(
+        sections=[
+            ColumnGeometrySection(
+                start_stage_1based=1,
+                end_stage_1based=n,
+                diameter_ft=3.0,
+                tray_spacing_ft=1.0,
+                gas_void_frac=0.5,
+                weir_height_in=1.0,
+                weir_length_ft=2.0,
+                active_area_frac=1.0,
+            )
+        ],
+        diameter_ft_per_stage=np.full(n, 3.0, dtype=float),
+        tray_spacing_ft_per_stage=np.full(n, 1.0, dtype=float),
+        gas_void_frac_per_stage=np.full(n, 0.5, dtype=float),
+        area_ft2_per_stage=area,
+        vapor_volume_ft3_per_stage=np.full(n, 5.0, dtype=float),
+        weir_height_in_per_stage=weir_h,
+        weir_length_ft_per_stage=weir_L,
+        active_area_frac_per_stage=np.ones(n, dtype=float),
+        active_area_ft2_per_stage=area,
+        hydraulic_c_factor_per_stage=np.ones(n, dtype=float),
+    )
+
+    rhoL = np.array([1.0, 1.0, 1.0, 1.0], dtype=float)
+    ML = np.array([0.0, 8.0, 10.0, 0.0], dtype=float)
+    base = compute_francis_weir_liquid_outflow(
+        ML_lbmol=ML,
+        rhoL_lbmol_ft3=rhoL,
+        active_area_ft2=area,
+        weir_height_in=weir_h,
+        weir_length_ft=weir_L,
+        c_multiplier=None,
+    )
+    c_target = np.array([1.0, 0.5, 2.0, 1.0], dtype=float)
+    L_profile = np.asarray(base.ML_lbmolph, dtype=float) * c_target
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A"],
+        components_dwsim=["A"],
+        n_components=1,
+        n_stages=n,
+        stage_1based=np.arange(1, n + 1, dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Geometry Sections": [{"start_stage_1based": 1, "end_stage_1based": n}]},
+        T_f=np.full(n, 100.0, dtype=float),
+        P_psia=np.full(n, 200.0, dtype=float),
+        V_lbmolph=np.zeros(n, dtype=float),
+        L_lbmolph=L_profile,
+        M_L_lbmol=ML,
+        M_V_lbmol=np.zeros(n, dtype=float),
+        y0=np.ones((n, 1), dtype=float),
+        x0=np.ones((n, 1), dtype=float),
+        streams={},
+        geometry=geom,
+    )
+
+    class ConstRhoProvider:
+        def liquid_density_lbmol_ft3(self, T_F, P_psia, x):
+            return 1.0
+
+    changed = _autocalibrate_francis_hydraulic_c_factors_from_seed(
+        col=col,
+        thermo_provider=ConstRhoProvider(),
+    )
+
+    assert changed is True
+    got = np.asarray(col.geometry.hydraulic_c_factor_per_stage, dtype=float)
+    assert got[1] == pytest.approx(0.5)
+    assert got[2] == pytest.approx(2.0)
+
+
+def test_autocalibrate_francis_hydraulic_c_factors_from_seed_respects_explicit_spec():
+    n = 3
+    geom = ColumnGeometry(
+        sections=[
+            ColumnGeometrySection(
+                start_stage_1based=1,
+                end_stage_1based=n,
+                diameter_ft=3.0,
+                tray_spacing_ft=1.0,
+                gas_void_frac=0.5,
+                weir_height_in=1.0,
+                weir_length_ft=2.0,
+                active_area_frac=1.0,
+                hydraulic_c_factor=0.75,
+            )
+        ],
+        diameter_ft_per_stage=np.full(n, 3.0, dtype=float),
+        tray_spacing_ft_per_stage=np.full(n, 1.0, dtype=float),
+        gas_void_frac_per_stage=np.full(n, 0.5, dtype=float),
+        area_ft2_per_stage=np.full(n, 10.0, dtype=float),
+        vapor_volume_ft3_per_stage=np.full(n, 5.0, dtype=float),
+        weir_height_in_per_stage=np.full(n, 1.0, dtype=float),
+        weir_length_ft_per_stage=np.full(n, 2.0, dtype=float),
+        active_area_frac_per_stage=np.ones(n, dtype=float),
+        active_area_ft2_per_stage=np.full(n, 10.0, dtype=float),
+        hydraulic_c_factor_per_stage=np.full(n, 0.75, dtype=float),
+    )
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A"],
+        components_dwsim=["A"],
+        n_components=1,
+        n_stages=n,
+        stage_1based=np.arange(1, n + 1, dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Geometry Sections": [{"start_stage_1based": 1, "end_stage_1based": n, "hydraulic_c_factor": 0.75}]},
+        T_f=np.full(n, 100.0, dtype=float),
+        P_psia=np.full(n, 200.0, dtype=float),
+        V_lbmolph=np.zeros(n, dtype=float),
+        L_lbmolph=np.zeros(n, dtype=float),
+        M_L_lbmol=np.array([0.0, 5.0, 0.0], dtype=float),
+        M_V_lbmol=np.zeros(n, dtype=float),
+        y0=np.ones((n, 1), dtype=float),
+        x0=np.ones((n, 1), dtype=float),
+        streams={},
+        geometry=geom,
+    )
+
+    class ConstRhoProvider:
+        def liquid_density_lbmol_ft3(self, T_F, P_psia, x):
+            return 1.0
+
+    changed = _autocalibrate_francis_hydraulic_c_factors_from_seed(
+        col=col,
+        thermo_provider=ConstRhoProvider(),
+    )
+
+    assert changed is False
+    got = np.asarray(col.geometry.hydraulic_c_factor_per_stage, dtype=float)
+    assert np.allclose(got, np.full(n, 0.75, dtype=float))
+
+
 def test_build_inputs_runtime_hydraulic_defaults_equilibrium_mode_to_composition_only():
     excel = Path("distillation_column_template.xlsx")
     if not excel.exists():
@@ -1865,6 +2384,72 @@ def test_build_inputs_runtime_hydraulic_defaults_equilibrium_mode_to_composition
     )
     inputs, _ = build_inputs_for_runner(case, col, cfg)
     assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "composition-only"
+    assert bool(inputs.enable_liquid_hydraulic_override) is False
+    assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.0)
+    assert inputs.vapor_holdup_relaxation_sec is None
+    assert bool(inputs.flash_feed_at_stage_conditions) is False
+
+
+def test_build_inputs_runtime_hydraulic_keeps_explicit_liquid_hydraulics_opt_in():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="hydraulic",
+        enable_liquid_hydraulic_override=True,
+        liquid_hydraulic_override_alpha=0.75,
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert bool(inputs.enable_liquid_hydraulic_override) is True
+    assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.75)
+
+
+def test_build_inputs_runtime_hydraulic_keeps_explicit_vapor_holdup_relaxation():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="hydraulic",
+        vapor_holdup_relaxation_sec=12.0,
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert float(inputs.vapor_holdup_relaxation_sec) == pytest.approx(12.0)
+
+
+def test_build_inputs_runtime_hydraulic_keeps_explicit_feed_flash_opt_in():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="hydraulic",
+        flash_feed_at_stage_conditions=True,
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert bool(inputs.flash_feed_at_stage_conditions) is True
 
 
 def test_build_inputs_accepts_equilibrium_mode_override():
@@ -1885,6 +2470,212 @@ def test_build_inputs_accepts_equilibrium_mode_override():
     )
     inputs, _ = build_inputs_for_runner(case, col, cfg)
     assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "phase-holdup"
+
+
+def test_build_inputs_runtime_huang_forces_partitioned_huang_closures():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="huang",
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert str(inputs.pressure_model).strip().lower() == "hydraulic"
+    assert str(inputs.vapor_flow_model).strip().lower() == "profile"
+    assert str(inputs.liquid_hydraulic_model).strip().lower() == "huang-htc"
+    assert bool(inputs.enable_liquid_hydraulic_override) is True
+    assert float(inputs.top_drum_pressure_gate_soft_psi) == pytest.approx(0.0)
+    assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.8)
+    assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "composition-only"
+
+
+def test_build_inputs_runtime_huang_energy_forces_energy_vapor_with_huang_liquid_closure():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="huang-energy",
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert str(inputs.pressure_model).strip().lower() == "hydraulic"
+    assert str(inputs.vapor_flow_model).strip().lower() == "energy"
+    assert str(inputs.liquid_hydraulic_model).strip().lower() == "huang-htc"
+    assert bool(inputs.enable_liquid_hydraulic_override) is True
+    assert float(inputs.top_drum_pressure_gate_soft_psi) == pytest.approx(0.25)
+    assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.8)
+    assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "composition-only"
+
+
+def test_build_inputs_runtime_huang_raises_generic_stage_tau_fallback_for_htc():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs.pop("Huang Liquid HTC (sec)", None)
+    specs.pop("Liquid Hydraulic HTC (sec)", None)
+    specs.pop("Hydraulic Time Constant (sec)", None)
+    specs["Stage time constant [tau] (sec)"] = 2.0
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="huang",
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert float(inputs.liquid_hydraulic_htc_sec) == pytest.approx(20.0)
+
+
+def test_build_inputs_runtime_huang_keeps_explicit_huang_htc_over_stage_tau():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Huang Liquid HTC (sec)"] = 7.0
+    specs["Stage time constant [tau] (sec)"] = 2.0
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="huang",
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert float(inputs.liquid_hydraulic_htc_sec) == pytest.approx(7.0)
+
+
+def test_build_inputs_non_huang_keeps_legacy_top_drum_pressure_gate_softness():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="hydraulic",
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert float(inputs.top_drum_pressure_gate_soft_psi) == pytest.approx(0.25)
+
+
+def test_build_inputs_runtime_huang_uses_hard_gate_for_8stage_case():
+    excel = Path("sandbox/mini8/input/distillation_column_template_8stage.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="huang",
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert int(col.n_stages) == 8
+    assert float(inputs.top_drum_pressure_gate_soft_psi) == pytest.approx(0.0)
+
+
+def test_build_inputs_runtime_huang_uses_hard_gate_for_larger_case():
+    excel = Path("sandbox/mini8/input/distillation_column_template_20stage_baseline.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="huang",
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert int(col.n_stages) == 20
+    assert float(inputs.top_drum_pressure_gate_soft_psi) == pytest.approx(0.0)
+
+
+def test_build_inputs_runtime_huang_keeps_explicit_liquid_alpha_override():
+    excel = Path("sandbox/mini8/input/distillation_column_template_8stage.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="huang",
+        liquid_hydraulic_override_alpha=0.9,
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.9)
+
+
+def test_build_inputs_runtime_huang_keeps_explicit_top_drum_vapor_relaxation():
+    excel = Path("sandbox/mini8/input/distillation_column_template_8stage.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="huang",
+        huang_top_drum_vapor_relaxation_sec=12.0,
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert float(inputs.huang_top_drum_vapor_relaxation_sec) == pytest.approx(12.0)
 
 
 def test_build_inputs_accepts_conductance_vapor_flow_model():

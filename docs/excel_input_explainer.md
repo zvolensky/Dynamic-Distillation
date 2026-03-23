@@ -153,10 +153,11 @@ Component names are canonicalized to DWSIM IDs during load.
 At present, the loader persists explicitly supported keys (including `Pressure Model` and `Vapor Flow Model`), but most arbitrary free-form spec rows are not retained automatically.
 Runtime precedence for pressure/vapor model selection is:
 - `--runtime-mode parity` (CLI default): forces `pressure_model=spec`, `vapor_flow_model=profile`, and liquid-hydraulic override off.
-- `--runtime-mode hydraulic`: forces `pressure_model=hydraulic`, `vapor_flow_model=energy`, and liquid-hydraulic override on.
+- `--runtime-mode hydraulic`: forces `pressure_model=hydraulic`, `vapor_flow_model=energy`, leaves liquid-hydraulic override plus vapor-holdup relaxation off unless explicitly enabled, and defaults feed-stage flashing off unless explicitly requested so imported steady profiles stay closer to the workbook seed.
+- `--runtime-mode huang`: forces `pressure_model=hydraulic`, `vapor_flow_model=profile`, and liquid-hydraulic override on with `liquid_hydraulic_model=huang-htc`.
 - `--runtime-mode legacy`: uses Excel/CLI behavior; `Pressure Model` and `Vapor Flow Model` are honored when valid.
 - In `legacy`, if no valid model strings are provided, defaults are: `pressure_model=hydraulic` when geometry exists (else `spec`), then `vapor_flow_model=energy` when pressure is hydraulic (else `profile`).
-- Startup hydraulic sequencing flags apply only in `legacy`; they are ignored in `parity` and `hydraulic`.
+- Startup hydraulic sequencing flags apply only in `legacy`; they are ignored in `parity`, `hydraulic`, and `huang`.
 
 ## Initial Conditions Sheet
 

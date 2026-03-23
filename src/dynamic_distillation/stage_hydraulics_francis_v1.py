@@ -53,6 +53,7 @@ def compute_francis_weir_liquid_outflow(
     ML_lbmol: np.ndarray,
     rhoL_lbmol_ft3: np.ndarray,
     active_area_ft2: np.ndarray,
+    holdup_area_ft2: np.ndarray | None = None,
     weir_height_in: np.ndarray,
     weir_length_ft: np.ndarray,
     c_multiplier: np.ndarray | None = None,
@@ -65,6 +66,9 @@ def compute_francis_weir_liquid_outflow(
     c_arr = np.ones(n, dtype=float)
     if c_multiplier is not None:
         c_arr = np.asarray(c_multiplier, dtype=float).reshape((n,))
+    holdup_area_arr = np.asarray(active_area_ft2, dtype=float).reshape((n,))
+    if holdup_area_ft2 is not None:
+        holdup_area_arr = np.asarray(holdup_area_ft2, dtype=float).reshape((n,))
 
     for i in range(1, n - 1):  # stages 2..N-1 (exclude condenser and reboiler)
         rho = rhoL_lbmol_ft3[i]
@@ -75,8 +79,11 @@ def compute_francis_weir_liquid_outflow(
             raise ValueError(f"Invalid hydraulic C multiplier at stage {i+1}")
 
         A = active_area_ft2[i]
+        A_hold = holdup_area_arr[i]
+        if A_hold <= 0.0:
+            raise ValueError(f"Invalid hydraulic holdup area at stage {i+1}")
         V = ML_lbmol[i] / rho
-        h_total = V / A
+        h_total = V / A_hold
         h_w = weir_height_in[i] / INCHES_PER_FOOT
         h = max(h_total - h_w, eps_h_ft)
 

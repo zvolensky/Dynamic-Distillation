@@ -11,6 +11,7 @@ from dynamic_distillation.uv_flash_sandbox_v1 import (
     _StageBoundaryState,
     _VaporFlowClosure,
     UvMini8PrototypeSpec,
+    _compute_huang_htc_liquid_flow_closure,
     _compute_vapor_flow_closure,
     _compute_rhs,
     _pack_state,
@@ -100,6 +101,127 @@ def test_compare_uv_run_to_reference_skips_placeholder_stage_holdup():
     assert ("2", "stage", "m_total_lbmol") not in metric_keys
 
 
+def test_compute_huang_htc_liquid_flow_closure_uses_holdup_over_tau():
+    spec = UvMini8PrototypeSpec(
+        excel_path="dummy.xlsx",
+        component_names=["n-Propane"],
+        n_total_stages=4,
+        active_stage0=np.asarray([1, 2], dtype=int),
+        active_stage1=np.asarray([2, 3], dtype=int),
+        fixed_total_volume_ft3=np.asarray([1.0, 1.0], dtype=float),
+        initial_total_component_holdup_lbmol=np.asarray([[10.0], [20.0]], dtype=float),
+        initial_total_internal_energy_BTU=np.asarray([0.0, 0.0], dtype=float),
+        initial_guesses=[
+            UvFlashStageGuess(T_F=100.0, P_psia=120.0, beta_vapor=0.5),
+            UvFlashStageGuess(T_F=110.0, P_psia=130.0, beta_vapor=0.5),
+        ],
+        top_stage_boundary=_StageBoundaryState(
+            T_F=90.0,
+            P_psia=115.0,
+            x_liq=np.asarray([1.0], dtype=float),
+            hL_BTU_lbmol=10.0,
+            y_vap=np.asarray([1.0], dtype=float),
+            hV_BTU_lbmol=11.0,
+        ),
+        bottom_stage_boundary=_StageBoundaryState(
+            T_F=120.0,
+            P_psia=140.0,
+            x_liq=np.asarray([1.0], dtype=float),
+            hL_BTU_lbmol=20.0,
+            y_vap=np.asarray([1.0], dtype=float),
+            hV_BTU_lbmol=21.0,
+        ),
+        top_node_reference=_LiquidNodeReference(
+            stage_label=0,
+            node_type="distillate_drum",
+            T_F=90.0,
+            P_psia=115.0,
+            initial_component_holdup_lbmol=np.asarray([5.0], dtype=float),
+            initial_hL_BTU_lbmol=10.0,
+        ),
+        bottom_node_reference=_LiquidNodeReference(
+            stage_label=5,
+            node_type="bottoms_sump",
+            T_F=120.0,
+            P_psia=140.0,
+            initial_component_holdup_lbmol=np.asarray([7.0], dtype=float),
+            initial_hL_BTU_lbmol=20.0,
+        ),
+        feed_term=None,
+        L_lbmolps=np.asarray([1.0, 2.0, 3.0, 0.25], dtype=float),
+        V_lbmolps=np.asarray([0.0, 7.0, 8.0, 0.4], dtype=float),
+        distillate_total_lbmolps=0.5,
+        bottoms_total_lbmolps=0.25,
+        dry_tray_K=1.0,
+        conductance_nominal_hi_ratio=1.25,
+        huang_liquid_htc_sec=5.0,
+        geometry=SimpleNamespace(active_area_ft2_per_stage=np.ones(4), area_ft2_per_stage=np.ones(4)),
+        component_mw_lbm_per_lbmol=None,
+        condenser_is_total=True,
+        reboiler_is_partial=True,
+    )
+    y = _pack_state(
+        np.asarray([[10.0], [20.0]], dtype=float),
+        np.asarray([0.0, 0.0], dtype=float),
+        np.asarray([5.0], dtype=float),
+        np.asarray([7.0], dtype=float),
+        50.0,
+        140.0,
+    )
+    stage_results = [
+        UvFlashStageResult(
+            T_F=100.0,
+            P_psia=120.0,
+            beta_vapor=0.5,
+            x=np.asarray([1.0], dtype=float),
+            y=np.asarray([1.0], dtype=float),
+            K=np.asarray([1.0], dtype=float),
+            HL_BTU_lbmol=1.0,
+            HV_BTU_lbmol=2.0,
+            uL_BTU_lbmol=0.0,
+            uV_BTU_lbmol=0.0,
+            vL_ft3_lbmol=1.0,
+            vV_ft3_lbmol=1.0,
+            Z_vapor=1.0,
+            residual_u_BTU_lbmol=0.0,
+            residual_v_ft3_lbmol=0.0,
+            residual_beta=0.0,
+            converged=True,
+            iterations=1,
+        ),
+        UvFlashStageResult(
+            T_F=110.0,
+            P_psia=130.0,
+            beta_vapor=0.25,
+            x=np.asarray([1.0], dtype=float),
+            y=np.asarray([1.0], dtype=float),
+            K=np.asarray([1.0], dtype=float),
+            HL_BTU_lbmol=3.0,
+            HV_BTU_lbmol=4.0,
+            uL_BTU_lbmol=0.0,
+            uV_BTU_lbmol=0.0,
+            vL_ft3_lbmol=2.0,
+            vV_ft3_lbmol=1.0,
+            Z_vapor=1.0,
+            residual_u_BTU_lbmol=0.0,
+            residual_v_ft3_lbmol=0.0,
+            residual_beta=0.0,
+            converged=True,
+            iterations=1,
+        ),
+    ]
+    out = _compute_huang_htc_liquid_flow_closure(
+        spec=spec,
+        y=y,
+        stage_results=stage_results,
+        l_prev_lbmolps=np.asarray([1.0, 2.0, 3.0, 0.25], dtype=float),
+    )
+    # Internal stage 2 raw flow: liquid holdup = (1-beta)*10 = 5 lbmol, tau = 5 s -> 1 lbmol/s.
+    assert np.isclose(out.raw_lbmolph[1], 3600.0)
+    # Internal stage 3 raw flow: liquid holdup = (1-beta)*20 = 15 lbmol, tau = 5 s -> 3 lbmol/s.
+    assert np.isclose(out.raw_lbmolph[2], 10800.0)
+
+
 def test_compute_rhs_uses_liquid_flow_closure_instead_of_profile():
     spec = UvMini8PrototypeSpec(
         excel_path="dummy.xlsx",
@@ -154,6 +276,7 @@ def test_compute_rhs_uses_liquid_flow_closure_instead_of_profile():
         bottoms_total_lbmolps=0.25,
         dry_tray_K=1.0,
         conductance_nominal_hi_ratio=1.25,
+        huang_liquid_htc_sec=10.0,
         geometry=SimpleNamespace(),
         component_mw_lbm_per_lbmol=None,
         condenser_is_total=True,
@@ -358,6 +481,7 @@ def test_compute_rhs_bottom_node_subtracts_partial_reboiler_boilup():
         bottoms_total_lbmolps=0.25,
         dry_tray_K=1.0,
         conductance_nominal_hi_ratio=1.25,
+        huang_liquid_htc_sec=10.0,
         geometry=SimpleNamespace(),
         component_mw_lbm_per_lbmol=None,
         condenser_is_total=True,
@@ -557,6 +681,7 @@ def test_vapor_flow_closure_uses_reboiler_duty_for_boilup():
         bottoms_total_lbmolps=0.25,
         dry_tray_K=1.0,
         conductance_nominal_hi_ratio=1.25,
+        huang_liquid_htc_sec=10.0,
         geometry=SimpleNamespace(area_ft2_per_stage=np.ones(4), active_area_ft2_per_stage=np.ones(4)),
         component_mw_lbm_per_lbmol=None,
         q_stage_BTUps=np.asarray([0.0, 0.0, 0.0, 10.0], dtype=float),

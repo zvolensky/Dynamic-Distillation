@@ -315,6 +315,13 @@ def main() -> int:
     ap.add_argument("--thermo-table", dest="thermo_table_path", default="cache/thermo_table.json")
     ap.add_argument("--thermo-pool-workers", dest="thermo_pool_workers", type=int, default=None)
     ap.add_argument("--thermo-pool-chunk-size", dest="thermo_pool_chunk_size", type=int, default=4)
+    ap.add_argument(
+        "--runtime-mode",
+        dest="runtime_mode",
+        choices=["legacy", "parity", "calibration", "hydraulic", "huang", "huang-energy"],
+        default="legacy",
+        help="Runner runtime-mode preset to audit against.",
+    )
     ap.add_argument("--no-temperature", dest="include_temperature", action="store_false")
     ap.add_argument("--include-energy", dest="include_energy", action="store_true")
     ap.add_argument("--no-energy", dest="include_energy", action="store_false")
@@ -353,6 +360,7 @@ def main() -> int:
         thermo_table_path=(None if thermo_table_path is None else str(thermo_table_path)),
         thermo_pool_workers=args.thermo_pool_workers,
         thermo_pool_chunk_size=max(int(args.thermo_pool_chunk_size), 1),
+        runtime_mode=str(args.runtime_mode),
         include_temperature=bool(args.include_temperature),
         include_energy=bool(args.include_energy),
         write_logs=False,
@@ -402,6 +410,7 @@ def main() -> int:
         print("Steady-state residual audit")
         print(f"Excel case: {excel_path}")
         print(f"Thermo mode: {str(args.thermo_mode).lower()}")
+        print(f"Runtime mode: {str(args.runtime_mode).lower()}")
         print(
             f"State basis: include_temperature={bool(args.include_temperature)} "
             f"include_energy={bool(args.include_energy)}"

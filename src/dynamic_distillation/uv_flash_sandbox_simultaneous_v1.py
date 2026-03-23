@@ -253,6 +253,45 @@ def _scale_residual_blocks(
     return stage_scaled + [node_energy_scaled, liquid_scaled, vapor_scaled], scale_diag
 
 
+def _build_vapor_regularization_chunks(
+    *,
+    vapor_trial: np.ndarray,
+    vapor_anchor: np.ndarray,
+    spec: UvMini8PrototypeSpec,
+    weight: float,
+) -> tuple[np.ndarray, np.ndarray, Dict[str, np.ndarray]]:
+    reg_weight = float(max(weight, 0.0))
+    vapor_trial_arr = np.asarray(vapor_trial, dtype=float).reshape((-1,))
+    vapor_anchor_arr = np.asarray(vapor_anchor, dtype=float).reshape((-1,))
+    if reg_weight <= 0.0 or vapor_trial_arr.size <= 0:
+        empty = np.asarray([], dtype=float)
+        return (
+            empty,
+            empty,
+            {
+                "simul_vreg_weight": np.asarray([reg_weight], dtype=float),
+                "simul_vreg_inf_lbmolps": np.asarray([0.0], dtype=float),
+                "simul_vreg_scaled_inf": np.asarray([0.0], dtype=float),
+            },
+        )
+
+    vapor_scale = _flow_scale_from_nominal(np.asarray(spec.V_lbmolps, dtype=float), floor=1.0e-3)
+    if vapor_scale.size > 0:
+        vapor_scale[-1] = max(float(vapor_scale[-1]), 1.0e-3)
+    coeff = float(np.sqrt(reg_weight))
+    raw = coeff * (vapor_trial_arr - vapor_anchor_arr)
+    scaled = np.asarray(raw, dtype=float) / vapor_scale
+    return (
+        np.asarray(raw, dtype=float),
+        np.asarray(scaled, dtype=float),
+        {
+            "simul_vreg_weight": np.asarray([reg_weight], dtype=float),
+            "simul_vreg_inf_lbmolps": np.asarray([inf_norm(raw)], dtype=float),
+            "simul_vreg_scaled_inf": np.asarray([inf_norm(scaled)], dtype=float),
+        },
+    )
+
+
 def _evaluate_liquid_node_trial(
     *,
     provider: Any,
@@ -489,6 +528,7 @@ def _attempt_preview_step(
     liquid_target_relax: float,
     vapor_target_relax: float,
     vapor_target_relax_min: float,
+    vapor_regularization_weight: float,
     state_relax_min: float = 0.125,
 ) -> tuple[bool, np.ndarray, Optional[SimultaneousSolveResult], float, float]:
     dt_try = float(dt_use)
@@ -514,6 +554,7 @@ def _attempt_preview_step(
                 liquid_target_relax=float(liquid_target_relax),
                 vapor_target_relax=float(vapor_target_relax),
                 vapor_target_relax_min=float(vapor_target_relax_min),
+                vapor_regularization_weight=float(vapor_regularization_weight),
             )
             last_preview = preview_solve
             preview_alg_inf = float(inf_norm(preview_solve.evaluation.residual))
@@ -537,6 +578,7 @@ def evaluate_simultaneous_algebraic_state(
     z_anchor: Optional[np.ndarray] = None,
     liquid_target_relax: float = 1.0,
     vapor_target_relax: float = 1.0,
+    vapor_regularization_weight: float = 0.0,
 ) -> SimultaneousMini8Evaluation:
     layout = SimultaneousMini8Layout(
         n_active=int(spec.active_stage0.size),
@@ -667,6 +709,12 @@ def evaluate_simultaneous_algebraic_state(
     )
     liquid_raw_resid = np.asarray(liquid_trial, dtype=float) - liquid_target
     vapor_raw_resid = np.asarray(vapor_trial, dtype=float) - vapor_target
+    vapor_reg_raw, vapor_reg_scaled, vapor_reg_diag = _build_vapor_regularization_chunks(
+        vapor_trial=np.asarray(vapor_trial, dtype=float),
+        vapor_anchor=np.asarray(vapor_anchor, dtype=float),
+        spec=spec,
+        weight=float(vapor_regularization_weight),
+    )
 
     scaled_chunks, scale_diag = _scale_residual_blocks(
         stage_raw=stage_raw_residuals,
@@ -683,6 +731,9 @@ def evaluate_simultaneous_algebraic_state(
     raw_chunks.append(np.asarray([top_energy_resid, bottom_energy_resid], dtype=float))
     raw_chunks.append(np.asarray(liquid_raw_resid, dtype=float))
     raw_chunks.append(np.asarray(vapor_raw_resid, dtype=float))
+    if vapor_reg_scaled.size > 0:
+        scaled_chunks.append(np.asarray(vapor_reg_scaled, dtype=float))
+        raw_chunks.append(np.asarray(vapor_reg_raw, dtype=float))
 
     liquid_flow = _LiquidFlowClosure(
         used_lbmolps=np.asarray(liquid_trial, dtype=float).copy(),
@@ -714,6 +765,7 @@ def evaluate_simultaneous_algebraic_state(
         "simul_scaled_alg_inf": np.asarray([inf_norm(np.concatenate(scaled_chunks, axis=0))], dtype=float),
     }
     diag.update(scale_diag)
+    diag.update(vapor_reg_diag)
 
     return SimultaneousMini8Evaluation(
         residual=np.concatenate(scaled_chunks, axis=0),
@@ -742,6 +794,7 @@ def solve_simultaneous_algebraic_state(
     liquid_target_relax: float = 1.0,
     vapor_target_relax: float = 0.25,
     vapor_target_relax_min: float = 0.05,
+    vapor_regularization_weight: float = 0.0,
 ) -> SimultaneousSolveResult:
     layout = SimultaneousMini8Layout(
         n_active=int(spec.active_stage0.size),
@@ -758,6 +811,7 @@ def solve_simultaneous_algebraic_state(
         z_anchor=anchor_z,
         liquid_target_relax=float(liquid_target_relax),
         vapor_target_relax=float(vapor_relax_local),
+        vapor_regularization_weight=float(vapor_regularization_weight),
     )
     converged = False
     failed = False
@@ -775,6 +829,7 @@ def solve_simultaneous_algebraic_state(
                 z_anchor=anchor_z,
                 liquid_target_relax=float(liquid_target_relax),
                 vapor_target_relax=float(vapor_relax_local),
+                vapor_regularization_weight=float(vapor_regularization_weight),
             ).residual
 
     for iter_idx in range(max(1, int(max_iter))):
@@ -821,6 +876,7 @@ def solve_simultaneous_algebraic_state(
                 z_anchor=anchor_z,
                 liquid_target_relax=float(liquid_target_relax),
                 vapor_target_relax=float(vapor_relax_local),
+                vapor_regularization_weight=float(vapor_regularization_weight),
             )
             try_norm = inf_norm(eval_try.residual)
             if np.isfinite(try_norm) and try_norm < best_try_norm:
@@ -861,6 +917,7 @@ def solve_simultaneous_algebraic_state(
                         z_anchor=anchor_z,
                         liquid_target_relax=float(liquid_target_relax),
                         vapor_target_relax=float(vapor_relax_local),
+                        vapor_regularization_weight=float(vapor_regularization_weight),
                     )
                     continue
                 failed = True
@@ -890,6 +947,7 @@ def solve_simultaneous_algebraic_state(
                 z_anchor=anchor_z,
                 liquid_target_relax=float(liquid_target_relax),
                 vapor_target_relax=float(vapor_relax_local),
+                vapor_regularization_weight=float(vapor_regularization_weight),
             )
 
     if not converged and not failed:
@@ -929,6 +987,7 @@ def run_mini8_uv_flash_simultaneous_prototype(
     flow_seed_relax: float = 0.25,
     liquid_target_relax: float = 1.0,
     vapor_target_relax: float = 0.25,
+    vapor_regularization_weight: float = 0.0,
     adaptive_vapor_target: bool = True,
     vapor_target_relax_min: float = 0.05,
     vapor_target_relax_max: float = 1.0,
@@ -1003,6 +1062,7 @@ def run_mini8_uv_flash_simultaneous_prototype(
                     liquid_target_relax=float(liquid_target_relax),
                     vapor_target_relax=float(vapor_target_relax_curr),
                     vapor_target_relax_min=float(vapor_target_relax_min),
+                    vapor_regularization_weight=float(vapor_regularization_weight),
                 )
             last_eval = solve.evaluation
             last_solve = solve
@@ -1065,6 +1125,12 @@ def run_mini8_uv_flash_simultaneous_prototype(
             )
             row["simul_vflow_raw_gap_inf_lbmolps"] = float(
                 np.asarray(last_eval.diag.get("simul_vflow_raw_gap_inf_lbmolps", np.asarray([np.nan], dtype=float)), dtype=float)[0]
+            )
+            row["simul_vreg_scaled_inf"] = float(
+                np.asarray(last_eval.diag.get("simul_vreg_scaled_inf", np.asarray([0.0], dtype=float)), dtype=float)[0]
+            )
+            row["simul_vreg_weight"] = float(
+                np.asarray(last_eval.diag.get("simul_vreg_weight", np.asarray([0.0], dtype=float)), dtype=float)[0]
             )
             row["simultaneous_vapor_target_relax"] = float(solve.vapor_target_relax)
             row["simultaneous_good_vapor_step_streak"] = int(good_vapor_step_streak)
@@ -1150,6 +1216,7 @@ def run_mini8_uv_flash_simultaneous_prototype(
                 liquid_target_relax=float(liquid_target_relax),
                 vapor_target_relax=float(vapor_target_relax_curr),
                 vapor_target_relax_min=float(vapor_target_relax_min),
+                vapor_regularization_weight=float(vapor_regularization_weight),
             )
             if accepted_step and preview_solve is not None:
                 y = np.asarray(y_trial, dtype=float).copy()
@@ -1232,6 +1299,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--flow-seed-relax", dest="flow_seed_relax", type=float, default=0.25)
     p.add_argument("--liquid-target-relax", dest="liquid_target_relax", type=float, default=1.0)
     p.add_argument("--vapor-target-relax", dest="vapor_target_relax", type=float, default=0.25)
+    p.add_argument("--vapor-regularization-weight", dest="vapor_regularization_weight", type=float, default=0.0)
     p.add_argument("--adaptive-vapor-target", dest="adaptive_vapor_target", action="store_true")
     p.add_argument("--no-adaptive-vapor-target", dest="adaptive_vapor_target", action="store_false")
     p.add_argument("--vapor-target-relax-min", dest="vapor_target_relax_min", type=float, default=0.05)
@@ -1270,6 +1338,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         flow_seed_relax=float(args.flow_seed_relax),
         liquid_target_relax=float(args.liquid_target_relax),
         vapor_target_relax=float(args.vapor_target_relax),
+        vapor_regularization_weight=float(args.vapor_regularization_weight),
         adaptive_vapor_target=bool(args.adaptive_vapor_target),
         vapor_target_relax_min=float(args.vapor_target_relax_min),
         vapor_target_relax_max=float(args.vapor_target_relax_max),

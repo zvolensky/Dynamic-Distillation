@@ -148,6 +148,10 @@ uses the same closure set as `parity` (pressure spec + vapor profile + liquid hy
 - `hydraulic`:
 forces hydraulic pressure + energy vapor closure + liquid hydraulics override on.
 
+- `huang`:
+forces a partitioned Huang-style hybrid path:
+hydraulic pressure + profile vapor traffic + liquid hydraulics override on with `huang-htc` liquid closure.
+
 - `legacy`:
 uses Excel/CLI-driven behavior and is the only mode where startup hydraulic sequencing is active.
 

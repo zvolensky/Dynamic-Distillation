@@ -172,6 +172,7 @@ class UvMini8PrototypeSpec:
     bottoms_total_lbmolps: float
     dry_tray_K: float
     conductance_nominal_hi_ratio: float
+    huang_liquid_htc_sec: float
     geometry: Any
     component_mw_lbm_per_lbmol: Optional[np.ndarray]
     initial_liquid_moles_lbmol: Optional[np.ndarray] = None
@@ -390,6 +391,16 @@ def build_mini8_uv_prototype_spec(
     dry_tray_k = _spec_float(specs, "Dry Tray K")
     if dry_tray_k is None or (not np.isfinite(float(dry_tray_k))) or float(dry_tray_k) <= 0.0:
         dry_tray_k = 1.0
+    huang_liquid_htc_sec = _spec_float(
+        specs,
+        "Huang Liquid HTC (sec)",
+        "Hydraulic Time Constant (sec)",
+        "Stage time constant [tau] (sec)",
+    )
+    if huang_liquid_htc_sec is None or (not np.isfinite(float(huang_liquid_htc_sec))) or float(huang_liquid_htc_sec) <= 0.0:
+        huang_liquid_htc_sec = float(getattr(col, "tau_eq_sec", 10.0) or 10.0)
+    if (not np.isfinite(float(huang_liquid_htc_sec))) or float(huang_liquid_htc_sec) <= 0.0:
+        huang_liquid_htc_sec = 10.0
 
     q_stage = np.zeros(int(col.n_stages), dtype=float)
     q_cond_btu_per_h = getattr(getattr(col, "duties", None), "q_cond_btu_per_h", None)
@@ -485,6 +496,7 @@ def build_mini8_uv_prototype_spec(
         bottoms_total_lbmolps=float(bottoms_total_lbmolps),
         dry_tray_K=float(dry_tray_k),
         conductance_nominal_hi_ratio=float(nominal_hi),
+        huang_liquid_htc_sec=float(huang_liquid_htc_sec),
         geometry=col.geometry,
         component_mw_lbm_per_lbmol=mw_components,
         initial_liquid_moles_lbmol=np.asarray([ref.liquid_moles_lbmol for ref in refs], dtype=float),
@@ -945,6 +957,99 @@ def _compute_liquid_flow_closure(
         l_prev_i = max(float(l_prev[i]), 0.0)
         if i == 0:
             l_nom_i = max(float(spec.L_lbmolps[0]), 0.0)
+        elif i == (N - 1):
+            l_nom_i = max(float(spec.reboiler_to_bottom_nominal_lbmolps), 0.0)
+        else:
+            l_nom_i = max(float(spec.L_lbmolps[i]), 0.0)
+        if l_prev_i > 1.0e-12 and l_nom_i > 1.0e-12:
+            l_hi = min(prev_up_ratio * l_prev_i, nominal_hi_ratio * l_nom_i)
+            l_lo = min(prev_down_ratio * l_prev_i, prev_down_ratio * l_nom_i)
+        elif l_nom_i > 1.0e-12:
+            l_hi = nominal_hi_ratio * l_nom_i
+            l_lo = 0.0
+        else:
+            l_hi = prev_up_ratio * l_prev_i
+            l_lo = 0.0
+        if l_hi < l_lo:
+            l_hi = l_lo
+        clamped_i = (l_calc > l_hi) or (l_calc < l_lo)
+        L_used[i] = min(max(l_calc, l_lo), l_hi)
+        clamped[i] = 1.0 if clamped_i else 0.0
+
+    return _LiquidFlowClosure(
+        used_lbmolps=L_used.copy(),
+        raw_lbmolph=L_raw_lbmolph.copy(),
+        h_ow_ft=h_ow.copy(),
+        clamped_flag=clamped.copy(),
+    )
+
+
+def _compute_huang_htc_liquid_flow_closure(
+    *,
+    spec: UvMini8PrototypeSpec,
+    y: np.ndarray,
+    stage_results: Sequence[UvFlashStageResult],
+    l_prev_lbmolps: Optional[np.ndarray],
+) -> _LiquidFlowClosure:
+    """
+    Huang-inspired hydraulic time constant (HTC) liquid closure.
+
+    This is a partitioned approximation, not a full reproduction of Huang's GRU
+    model. It uses tray liquid holdup divided by a hydraulic time constant to
+    generate tray liquid outflow, while keeping the rest of the UV sandbox
+    architecture unchanged.
+    """
+    N = int(spec.n_total_stages)
+    n_total, _u_total, _top_liquid, _bottom_liquid, _top_u_total, _bottom_u_total = _unpack_state(
+        y,
+        n_active=int(spec.active_stage0.size),
+        n_components=len(spec.component_names),
+    )
+    tau_htc = max(float(spec.huang_liquid_htc_sec), 1.0e-6)
+    ML_stage = np.zeros(N, dtype=float)
+    h_ow = np.zeros(N, dtype=float)
+    area = None
+    geom = spec.geometry
+    if getattr(geom, "active_area_ft2_per_stage", None) is not None:
+        try:
+            area = np.asarray(geom.active_area_ft2_per_stage, dtype=float).reshape((N,))
+            area = np.where(~np.isfinite(area) | (area <= 0.0), np.nan, area)
+        except Exception:
+            area = None
+
+    for idx, stage0 in enumerate(spec.active_stage0):
+        res = stage_results[idx]
+        total_stage = float(np.sum(n_total[idx, :]))
+        liquid_moles = max(0.0, 1.0 - float(res.beta_vapor)) * total_stage
+        ML_stage[stage0] = float(liquid_moles)
+        if area is not None and np.isfinite(area[stage0]) and area[stage0] > 0.0:
+            liquid_vol = float(liquid_moles) * float(res.vL_ft3_lbmol)
+            if np.isfinite(liquid_vol) and liquid_vol >= 0.0:
+                h_ow[stage0] = float(liquid_vol) / float(area[stage0])
+
+    L_raw_lbmolph = np.zeros(N, dtype=float)
+    for i in range(N):
+        L_raw_lbmolph[i] = max(float(ML_stage[i]) / float(tau_htc) * 3600.0, 0.0)
+
+    L_raw_lbmolph[0] = max(float(spec.condenser_to_top_nominal_lbmolps) * 3600.0, 0.0)
+    L_raw_lbmolph[-1] = max(float(spec.reboiler_to_bottom_nominal_lbmolps) * 3600.0, 0.0)
+
+    L_used = np.asarray(spec.L_lbmolps, dtype=float).reshape((N,)).copy()
+    L_used[0] = float(spec.condenser_to_top_nominal_lbmolps)
+    L_used[-1] = float(spec.reboiler_to_bottom_nominal_lbmolps)
+    l_prev = np.asarray(l_prev_lbmolps, dtype=float).reshape((N,)).copy() if l_prev_lbmolps is not None else L_used.copy()
+    l_prev = np.where(~np.isfinite(l_prev) | (l_prev < 0.0), 0.0, l_prev)
+
+    clamped = np.full(N, np.nan, dtype=float)
+    prev_up_ratio = 1.2
+    prev_down_ratio = 0.8
+    nominal_hi_ratio = 1.5
+
+    for i in range(N):
+        l_calc = max(float(L_raw_lbmolph[i]) / 3600.0, 0.0)
+        l_prev_i = max(float(l_prev[i]), 0.0)
+        if i == 0:
+            l_nom_i = max(float(spec.condenser_to_top_nominal_lbmolps), 0.0)
         elif i == (N - 1):
             l_nom_i = max(float(spec.reboiler_to_bottom_nominal_lbmolps), 0.0)
         else:
@@ -1741,8 +1846,8 @@ def run_mini8_uv_flash_prototype(
         compare_outputs: Dict[str, str] = {}
         liquid_flow_mode_norm = str(liquid_flow_mode or "francis").strip().lower()
         vapor_flow_mode_norm = str(vapor_flow_mode or "conductance").strip().lower()
-        if liquid_flow_mode_norm not in ("profile", "francis"):
-            raise ValueError("liquid_flow_mode must be 'profile' or 'francis'")
+        if liquid_flow_mode_norm not in ("profile", "francis", "huang-htc"):
+            raise ValueError("liquid_flow_mode must be 'profile', 'francis', or 'huang-htc'")
         if vapor_flow_mode_norm not in ("profile", "conductance"):
             raise ValueError("vapor_flow_mode must be 'profile' or 'conductance'")
 
@@ -1792,6 +1897,13 @@ def run_mini8_uv_flash_prototype(
 
             if liquid_flow_mode_norm == "francis":
                 liquid_flow = _compute_liquid_flow_closure(
+                    spec=spec,
+                    y=y,
+                    stage_results=stage_results,
+                    l_prev_lbmolps=l_prev,
+                )
+            elif liquid_flow_mode_norm == "huang-htc":
+                liquid_flow = _compute_huang_htc_liquid_flow_closure(
                     spec=spec,
                     y=y,
                     stage_results=stage_results,
@@ -2010,7 +2122,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--liquid-flow-mode",
         dest="liquid_flow_mode",
-        choices=["profile", "francis"],
+        choices=["profile", "francis", "huang-htc"],
         default="francis",
         help="Internal liquid-flow closure for the UV sandbox.",
     )

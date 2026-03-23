@@ -11,6 +11,7 @@ from dynamic_distillation.uv_flash_sandbox_simultaneous_v1 import (
     _adapt_vapor_target_relax,
     _blend_next_seed,
     _blend_flow_target,
+    _build_vapor_regularization_chunks,
     _scale_residual_blocks,
     solve_simultaneous_algebraic_state,
 )
@@ -457,6 +458,22 @@ def test_adapt_simultaneous_dt_cuts_and_grows_with_solver_quality():
     assert streak_hold == 2
 
 
+def test_build_vapor_regularization_chunks_scales_with_weight():
+    spec = SimpleNamespace(
+        V_lbmolps=np.asarray([0.0, 4.0, 5.0], dtype=float),
+    )
+    raw, scaled, diag = _build_vapor_regularization_chunks(
+        vapor_trial=np.asarray([0.0, 5.0, 7.0], dtype=float),
+        vapor_anchor=np.asarray([0.0, 4.0, 5.0], dtype=float),
+        spec=spec,
+        weight=4.0,
+    )
+    assert np.allclose(raw, np.asarray([0.0, 2.0, 4.0], dtype=float))
+    assert np.allclose(scaled, np.asarray([0.0, 0.5, 0.8], dtype=float))
+    assert np.isclose(diag["simul_vreg_weight"][0], 4.0)
+    assert np.isclose(diag["simul_vreg_scaled_inf"][0], 0.8)
+
+
 def test_attempt_preview_step_backtracks_state_update_before_dt(monkeypatch):
     calls = []
     y_base = np.asarray([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=float)
@@ -527,6 +544,7 @@ def test_attempt_preview_step_backtracks_state_update_before_dt(monkeypatch):
         liquid_target_relax=1.0,
         vapor_target_relax=0.25,
         vapor_target_relax_min=0.05,
+        vapor_regularization_weight=0.0,
     )
     assert accepted
     assert preview_solve is not None

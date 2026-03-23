@@ -66,6 +66,33 @@ def _make_zero_flow_column() -> ColumnSpec:
     )
 
 
+def _make_zero_flow_column_3stage() -> ColumnSpec:
+    N, Nc = 3, 2
+    x0 = np.array([[0.8, 0.2], [0.6, 0.4], [0.3, 0.7]], dtype=float)
+    y0 = np.array([[0.9, 0.1], [0.7, 0.3], [0.4, 0.6]], dtype=float)
+
+    return ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2, 3], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Number of Stages": 3, "Number of Components": 2, "Timestep (sec)": 1.0, "Simulation Length (min)": 0.1, "Log Frequency (timesteps)": 1},
+        T_f=np.array([100.0, 110.0, 120.0], dtype=float),
+        P_psia=np.array([200.0, 205.0, 210.0], dtype=float),
+        V_lbmolph=np.array([0.0, 0.0, 0.0], dtype=float),
+        L_lbmolph=np.array([0.0, 0.0, 0.0], dtype=float),
+        M_L_lbmol=np.array([5.0, 5.0, 5.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 0.2, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+    )
+
+
 def test_equilibrium_relaxation_relaxes_to_flash_targets_with_net_phase_change():
     col = _make_zero_flow_column()
     layout = StateVectorLayout(n_stages=2, n_components=2, include_top=False, include_bottom=False, include_vapor=True)
@@ -104,6 +131,11 @@ def test_equilibrium_relaxation_relaxes_to_flash_targets_with_net_phase_change()
     assert "y_eq_tray" in diag
     assert "beta_eq_tray" in diag
     assert "eq_transfer_lbmolps_tray" in diag
+    dml_transport = np.asarray(diag["dMLdt_transport_lbmolps_tray"], dtype=float).reshape((col.n_stages,))
+    dml_phase = np.asarray(diag["dMLdt_phase_relax_lbmolps_tray"], dtype=float).reshape((col.n_stages,))
+    dml_total = np.asarray(diag["dMLdt_total_lbmolps_tray"], dtype=float).reshape((col.n_stages,))
+    assert np.allclose(dml_transport + dml_phase, dml_total, atol=1e-12)
+    assert np.allclose(dml_phase, -phase_change, atol=1e-12)
 
 
 def test_equilibrium_relaxation_composition_only_mode_keeps_net_phase_change_near_zero():
@@ -160,3 +192,42 @@ def test_equilibrium_relaxation_uses_cached_k_without_live_thermo_provider():
     assert "K_tray" in diag
     cache_flag = float(np.asarray(diag["thermo_flash_cached_only"], dtype=float).reshape((-1,))[0])
     assert cache_flag == 1.0
+
+
+def test_phase_holdup_guard_softens_near_empty_vapor_target():
+    col = _make_zero_flow_column_3stage()
+    layout = StateVectorLayout(n_stages=3, n_components=2, include_top=False, include_bottom=False, include_vapor=True)
+    y0_vec = layout.pack_y0(col)
+
+    K = np.array([0.02, 0.01], dtype=float)
+    provider = _ThermoProviderWithK(K=K)
+
+    inputs_plain = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo_provider=provider,
+        compute_thermo_diag=False,
+        equilibrium_relaxation=True,
+        equilibrium_relaxation_mode="phase-holdup",
+        equilibrium_phase_holdup_guard_lbmol=0.0,
+        tau_eq_sec=10.0,
+    )
+    _dydt_plain, diag_plain = column_rhs(0.0, y0_vec, col, layout, inputs=inputs_plain)
+
+    inputs_guard = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo_provider=provider,
+        compute_thermo_diag=False,
+        equilibrium_relaxation=True,
+        equilibrium_relaxation_mode="phase-holdup",
+        equilibrium_phase_holdup_guard_lbmol=1.0,
+        tau_eq_sec=10.0,
+    )
+    _dydt_guard, diag_guard = column_rhs(0.0, y0_vec, col, layout, inputs=inputs_guard)
+
+    target_plain = np.asarray(diag_plain["eq_target_vapor_lbmol_tray"], dtype=float).reshape((3, 2))
+    target_guard = np.asarray(diag_guard["eq_target_vapor_lbmol_tray"], dtype=float).reshape((3, 2))
+    weight_guard = np.asarray(diag_guard["eq_phase_holdup_guard_weight_tray"], dtype=float).reshape((3,))
+
+    # Middle tray starts with a small vapor holdup; guard should soften collapse.
+    assert np.sum(target_guard[1, :]) > np.sum(target_plain[1, :])
+    assert 0.0 < float(weight_guard[1]) < 1.0

@@ -1,6 +1,0 @@
-[BAT] pwd: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\scilab
-[BAT] python: "C:/Users/Thoma/Documents/Python Scripts/Dynamic_DistillationII/.venv/Scripts/python.exe"
-[BAT] case_dump_py: "C:/Users/Thoma/Documents/Python Scripts/Dynamic_DistillationII/case_dump.py"
-[BAT] excel_path: "C:/Users/Thoma/Documents/Python Scripts/Dynamic_DistillationII/distillation_column_template.xlsx"
-[BAT] out_file: "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\scilab\case_dump_out.txt"
-[BAT] python exit code: 1

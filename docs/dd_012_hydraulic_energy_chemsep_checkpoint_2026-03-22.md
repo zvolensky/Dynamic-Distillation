@@ -27,6 +27,36 @@ Bottom line:
 2. The model now starts near ChemSep and stays near it briefly.
 3. The real unresolved issue is the evolving hydraulic-energy dynamics after startup.
 
+## March 23, 2026 Update
+
+The case definition was later reconciled against the actual ChemSep warmer-feed workbook:
+- `ChemSep Depropanizer_warmer_feed.xls`
+
+This produced a corrected dynamic seed workbook:
+- `sandbox/mini8/input/distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx`
+
+Current best general-purpose hydraulic branch for this case:
+1. `runtime-mode hydraulic`
+2. `pressure_control_mV = condenser-duty`
+3. `equilibrium_relaxation_mode = phase-holdup`
+4. stripping-section phase-holdup softener enabled ("stripguard2")
+5. top tray pressure anchored to live top-drum pressure when condenser-duty pressure control is active
+
+Best short-horizon warmer-feed evidence so far:
+- `logs/case20_hydraulic_120s_pcq_explicit_pool_phaseholdup_stripguard2_prtop_drumanchor_chemsep_warmer_seed_dmldiag_20260323/column_summary_20260323_161315.csv`
+
+At `120 s`:
+1. `P_top ~= 222.21 psia`
+2. `P_bottom ~= 232.03 psia`
+3. `xD(C4) ~= 0.09907`
+4. `Q_cond ~= -50.291 MMBtu/h`
+
+Interpretation:
+1. Pressure behavior is now broadly credible.
+2. The specified `2 psi` condenser drop is being honored (`P_stage2 - P_top_drum ~= 2 psi`).
+3. The main remaining mismatch is lower-section liquid-holdup / hydraulic-diagnostic behavior, not top-pressure control.
+4. `L_out_used` remains the trustworthy active liquid-flow profile; `L_out_hyd` is still a diagnostic signal unless liquid-hydraulic override is explicitly enabled.
+
 ## Workbook Seed Facts
 
 Baseline workbook:

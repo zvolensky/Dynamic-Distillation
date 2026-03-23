@@ -102,6 +102,11 @@ Major stages inside RHS:
 3. Build internal liquid flow:
 - profile baseline from `ColumnSpec`
 - optional Francis-weir hydraulic override on internal stages.
+
+Current practical meaning in the hydraulic parity branch:
+- `L_out_used` is the liquid flow actually marched by the model.
+- `L_out_hyd` is the Francis/weir hydraulic candidate.
+- when liquid-hydraulic override is disabled, `L_out_hyd` is diagnostic only and may differ materially from `L_out_used`.
 4. Build vapor flow based on `vapor_flow_model`:
 - `profile`: use profile traffic
 - `conductance`: pressure-conductance closure with clamps/relaxation
@@ -146,7 +151,11 @@ forces pressure spec + vapor profile + liquid hydraulics override off.
 uses the same closure set as `parity` (pressure spec + vapor profile + liquid hydraulics override off), with explicit parity-calibration intent.
 
 - `hydraulic`:
-forces hydraulic pressure + energy vapor closure + liquid hydraulics override on.
+forces hydraulic pressure + energy vapor closure.
+
+Current project convention for ChemSep parity work:
+- liquid-hydraulic override is kept off unless explicitly requested
+- this keeps the seeded/profile liquid traffic active while still logging `L_out_hyd` for hydraulic diagnosis
 
 - `huang`:
 forces a partitioned Huang-style hybrid path:

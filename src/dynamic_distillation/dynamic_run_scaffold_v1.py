@@ -1481,7 +1481,12 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         if cfg.hydraulic_energy_temperature_mode is not None
         else "legacy"
     ).strip().lower()
-    if hydraulic_energy_temp_mode not in ("legacy", "bubble-point-follower", "pressure-correction-follower"):
+    if hydraulic_energy_temp_mode not in (
+        "legacy",
+        "bubble-point-follower",
+        "pressure-correction-follower",
+        "enthalpy-state-follower",
+    ):
         hydraulic_energy_temp_mode = "legacy"
     hydraulic_energy_temp_follow_tau_sec = cfg.hydraulic_energy_temperature_follow_tau_sec
     if hydraulic_energy_temp_follow_tau_sec is None:
@@ -2263,6 +2268,43 @@ def _clip_temperature_states_to_provider_bounds(
     if "bottom_T_f" in sl:
         y_new[sl["bottom_T_f"]] = np.clip(y_new[sl["bottom_T_f"]], t_min, t_max)
     return y_new
+
+
+def _sync_algebraic_tray_temperature_state(
+    y: np.ndarray,
+    layout: StateVectorLayout,
+    diag: Mapping[str, Any],
+    thermo_provider: Optional[Any],
+) -> np.ndarray:
+    """
+    Project tray temperature state onto an algebraic tray-temperature diagnostic.
+
+    This is a diagnostic bridge for experimental hydraulic-energy modes where
+    RHS thermo is evaluated on an algebraic temperature manifold. Keeping the
+    stored tray_T_f state synchronized avoids a ghost-state split between the
+    integrator state and the property evaluation temperature.
+    """
+    sl = layout.slices()
+    if "tray_T_f" not in sl:
+        return np.asarray(y, dtype=float)
+    T_alg = None
+    for key in ("T_enthalpy_algebraic_F_tray", "T_bubble_target_F_tray"):
+        try:
+            arr = np.asarray(diag.get(key), dtype=float).reshape((layout.n_stages,))
+        except Exception:
+            continue
+        if arr.size == int(layout.n_stages) and np.any(np.isfinite(arr)):
+            T_alg = arr
+            break
+    if T_alg is None:
+        return np.asarray(y, dtype=float)
+
+    y_new = np.asarray(y, dtype=float).copy()
+    T_state = np.asarray(y_new[sl["tray_T_f"]], dtype=float).reshape((layout.n_stages,)).copy()
+    mask = np.isfinite(T_alg)
+    T_state[mask] = T_alg[mask]
+    y_new[sl["tray_T_f"]] = T_state
+    return _clip_temperature_states_to_provider_bounds(y_new, layout, thermo_provider)
 
 
 def _integrate_one_step(
@@ -3482,14 +3524,22 @@ def _initialize_thermo_consistent_state(
 
         if bool(getattr(layout, "include_energy", False)):
             try:
+                diag_energy = diag
+                try:
+                    _dydt_energy, diag_energy_try = column_rhs(0.0, y_new, col, layout, inputs=eval_inputs)
+                    if isinstance(diag_energy_try, dict):
+                        diag_energy = diag_energy_try
+                except Exception:
+                    diag_energy = diag
+
                 u_energy = layout.unpack(y_new)
-                if ("tray_EL_BTU" in sl) and ("HL_BTU_lbmol_tray" in diag):
-                    HL = np.asarray(diag["HL_BTU_lbmol_tray"], dtype=float).reshape((N,))
+                if ("tray_EL_BTU" in sl) and ("HL_BTU_lbmol_tray" in diag_energy):
+                    HL = np.asarray(diag_energy["HL_BTU_lbmol_tray"], dtype=float).reshape((N,))
                     HL = np.where(np.isfinite(HL), HL, 0.0)
                     ML_now = np.asarray(u_energy["ML_tot_tray"], dtype=float).reshape((N,))
                     y_new[sl["tray_EL_BTU"]] = ML_now * HL
-                if ("tray_EV_BTU" in sl) and ("HV_BTU_lbmol_tray" in diag):
-                    HV = np.asarray(diag["HV_BTU_lbmol_tray"], dtype=float).reshape((N,))
+                if ("tray_EV_BTU" in sl) and ("HV_BTU_lbmol_tray" in diag_energy):
+                    HV = np.asarray(diag_energy["HV_BTU_lbmol_tray"], dtype=float).reshape((N,))
                     HV = np.where(np.isfinite(HV), HV, 0.0)
                     MV_now = np.asarray(u_energy["MV_tot_tray"], dtype=float).reshape((N,))
                     y_new[sl["tray_EV_BTU"]] = MV_now * HV
@@ -3849,6 +3899,68 @@ def _refresh_tray_bubble_targets_F(
         except Exception:
             continue
     return targets
+
+
+def _update_tray_temp_pressure_slope_F_per_psi(
+    *,
+    prev_slope_F_per_psi: Optional[np.ndarray],
+    prev_T_F: Optional[np.ndarray],
+    curr_T_F: Optional[np.ndarray],
+    prev_P_psia: Optional[np.ndarray],
+    curr_P_psia: Optional[np.ndarray],
+    default_slope_F_per_psi: float = 1.5,
+    dp_min_psia: float = 0.05,
+    slope_clip_min_F_per_psi: float = -2.0,
+    slope_clip_max_F_per_psi: float = 2.0,
+    blend_new: float = 0.5,
+) -> Optional[np.ndarray]:
+    try:
+        curr_T = np.asarray(curr_T_F, dtype=float).reshape((-1,))
+        curr_P = np.asarray(curr_P_psia, dtype=float).reshape((-1,))
+    except Exception:
+        return None
+    n = int(curr_T.size)
+    if int(curr_P.size) != n or n <= 0:
+        return None
+    slope = np.full(n, float(default_slope_F_per_psi), dtype=float)
+    if prev_slope_F_per_psi is not None:
+        try:
+            prev_slope = np.asarray(prev_slope_F_per_psi, dtype=float).reshape((n,))
+            valid_prev = np.isfinite(prev_slope)
+            slope[valid_prev] = prev_slope[valid_prev]
+        except Exception:
+            pass
+    if prev_T_F is None or prev_P_psia is None:
+        return slope
+    try:
+        prev_T = np.asarray(prev_T_F, dtype=float).reshape((n,))
+        prev_P = np.asarray(prev_P_psia, dtype=float).reshape((n,))
+    except Exception:
+        return slope
+    try:
+        blend = float(blend_new)
+    except Exception:
+        blend = 0.5
+    if (not np.isfinite(blend)) or blend < 0.0:
+        blend = 0.5
+    if blend > 1.0:
+        blend = 1.0
+    valid = (
+        np.isfinite(prev_T)
+        & np.isfinite(curr_T)
+        & np.isfinite(prev_P)
+        & np.isfinite(curr_P)
+        & (np.abs(curr_P - prev_P) >= float(dp_min_psia))
+    )
+    if np.any(valid):
+        secant = (curr_T[valid] - prev_T[valid]) / (curr_P[valid] - prev_P[valid])
+        secant = np.clip(
+            secant,
+            float(slope_clip_min_F_per_psi),
+            float(slope_clip_max_F_per_psi),
+        )
+        slope[valid] = (1.0 - float(blend)) * slope[valid] + float(blend) * secant
+    return slope
 
 
 def _initialize_hydraulic_energy_consistent_state(
@@ -4857,6 +4969,12 @@ def _profile_rows(
             eq_phase_energy_damping = np.asarray(diag["eq_phase_energy_damping_tray"], dtype=float).reshape((N,))
         except Exception:
             eq_phase_energy_damping = None
+    T_bubble_target = None
+    if "T_bubble_target_F_tray" in diag:
+        try:
+            T_bubble_target = np.asarray(diag["T_bubble_target_F_tray"], dtype=float).reshape((N,))
+        except Exception:
+            T_bubble_target = None
     HL_tray = None
     HV_tray = None
     q_phase_latent = None
@@ -5312,6 +5430,11 @@ def _profile_rows(
             "eq_phase_energy_damping_tray": (
                 float(eq_phase_energy_damping[i])
                 if eq_phase_energy_damping is not None and np.isfinite(eq_phase_energy_damping[i])
+                else np.nan
+            ),
+            "T_bubble_target_F_tray": (
+                float(T_bubble_target[i])
+                if T_bubble_target is not None and np.isfinite(T_bubble_target[i])
                 else np.nan
             ),
             "stage_mass_balance_resid_lbmolps": float(mass_resid[i]) if mass_resid is not None and np.isfinite(mass_resid[i]) else np.nan,
@@ -6363,6 +6486,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     last_HV: Optional[np.ndarray] = None
     last_energy_resid_tray: Optional[np.ndarray] = None
     last_phase_energy_damping_min: Optional[np.ndarray] = None
+    last_tray_temp_pressure_slope: Optional[np.ndarray] = None
     last_tray_bubble_target_F: Optional[np.ndarray] = None
     last_Zfac: Optional[np.ndarray] = None
     last_z_overall: Optional[np.ndarray] = None
@@ -7222,6 +7346,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     hydraulic_energy_temperature_pressure_slope_F_per_psi=(
                         base_inputs.hydraulic_energy_temperature_pressure_slope_F_per_psi
                     ),
+                    tray_temp_pressure_slope_prev_F_per_psi=last_tray_temp_pressure_slope,
                     tray_bubble_target_prev_F=last_tray_bubble_target_F,
                     energy_balance_resid_prev_BTUps_tray=last_energy_resid_tray,
                     phase_energy_damping_min_prev_tray=last_phase_energy_damping_min,
@@ -7332,6 +7457,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     hydraulic_energy_temperature_pressure_slope_F_per_psi=(
                         base_inputs.hydraulic_energy_temperature_pressure_slope_F_per_psi
                     ),
+                    tray_temp_pressure_slope_prev_F_per_psi=last_tray_temp_pressure_slope,
                     tray_bubble_target_prev_F=last_tray_bubble_target_F,
                     energy_balance_resid_prev_BTUps_tray=last_energy_resid_tray,
                     phase_energy_damping_min_prev_tray=last_phase_energy_damping_min,
@@ -8050,6 +8176,20 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
 
             # Cache and carry forward thermo diagnostics so intermediate log rows don't show NaNs
             if do_thermo:
+                p_prev_for_slope = None
+                t_prev_for_slope = None
+                try:
+                    if last_P_hyd is not None:
+                        p_prev_for_slope = np.asarray(last_P_hyd, dtype=float).copy()
+                    elif last_P_diag is not None:
+                        p_prev_for_slope = np.asarray(last_P_diag, dtype=float).copy()
+                except Exception:
+                    p_prev_for_slope = None
+                try:
+                    if last_T_tray is not None:
+                        t_prev_for_slope = np.asarray(last_T_tray, dtype=float).copy()
+                except Exception:
+                    t_prev_for_slope = None
                 if "Z_tray" in diag:
                     last_Z_tray = np.asarray(diag["Z_tray"], dtype=float).copy()
                 if "y_eq_tray" in diag:
@@ -8132,6 +8272,39 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     last_T_tray = _tray_temperature_F(col, layout, y, include_temperature=bool(cfg.include_temperature)).copy()
                 except Exception:
                     pass
+                if (
+                    str(base_inputs.pressure_model).strip().lower() == "hydraulic"
+                    and str(base_inputs.vapor_flow_model).strip().lower() == "energy"
+                    and str(base_inputs.hydraulic_energy_temperature_mode).strip().lower()
+                    == "pressure-correction-follower"
+                    and bool(cfg.include_temperature)
+                    and last_T_tray is not None
+                ):
+                    try:
+                        p_curr_for_slope = (
+                            np.asarray(last_P_hyd, dtype=float).copy()
+                            if last_P_hyd is not None
+                            else (
+                                np.asarray(last_P_diag, dtype=float).copy()
+                                if last_P_diag is not None
+                                else None
+                            )
+                        )
+                    except Exception:
+                        p_curr_for_slope = None
+                    try:
+                        last_tray_temp_pressure_slope = _update_tray_temp_pressure_slope_F_per_psi(
+                            prev_slope_F_per_psi=last_tray_temp_pressure_slope,
+                            prev_T_F=t_prev_for_slope,
+                            curr_T_F=last_T_tray,
+                            prev_P_psia=p_prev_for_slope,
+                            curr_P_psia=p_curr_for_slope,
+                            default_slope_F_per_psi=float(
+                                base_inputs.hydraulic_energy_temperature_pressure_slope_F_per_psi
+                            ),
+                        )
+                    except Exception:
+                        pass
                 if (
                     str(base_inputs.pressure_model).strip().lower() == "hydraulic"
                     and str(base_inputs.vapor_flow_model).strip().lower() == "energy"
@@ -8319,6 +8492,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     str(step_integrator_info.get("fallback_reason", "")).strip()
                     + " | advanced with outer DAE dydt"
                 ).strip(" |")
+
             last_step_integrator_info = dict(step_integrator_info) if isinstance(step_integrator_info, dict) else {}
             if bool(step_integrator_info.get("fallback_used", False)):
                 integrator_fallback_count += 1
@@ -8563,7 +8737,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument(
         "--hydraulic-energy-temperature-mode",
         dest="hydraulic_energy_temperature_mode",
-        choices=["legacy", "bubble-point-follower", "pressure-correction-follower"],
+        choices=[
+            "legacy",
+            "bubble-point-follower",
+            "pressure-correction-follower",
+            "enthalpy-state-follower",
+        ],
         default=None,
         help="Tray temperature handling in hydraulic+energy mode.",
     )

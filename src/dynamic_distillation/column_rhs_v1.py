@@ -128,10 +128,14 @@ class ColumnInputs:
     # "pressure-correction-follower" uses a damped dE/C term plus an
     # immediate pressure-tracking correction based on dP over a short
     # follower timescale, avoiding explicit bubble-point solves.
+    # "enthalpy-state-follower" uses the tray EL/EV holdup states as the
+    # thermal truth and relaxes temperature toward the state-implied
+    # mixed-enthalpy target, avoiding a second direct dE/C solve.
     hydraulic_energy_temperature_mode: str = "legacy"
     hydraulic_energy_temperature_follow_tau_sec: float = 0.5
     hydraulic_energy_temperature_resid_frac: float = 0.01
     hydraulic_energy_temperature_pressure_slope_F_per_psi: float = 2.0
+    tray_temp_pressure_slope_prev_F_per_psi: Optional[np.ndarray] = None
     tray_bubble_target_prev_F: Optional[np.ndarray] = None
     # Optional previous-step monotone minimum damping by tray for below-feed
     # phase-holdup ratcheting.
@@ -485,6 +489,12 @@ def column_rhs(
     y_tray = u.get("y_tray", None)
     if y_tray is not None:
         y_tray = y_tray.copy()
+
+    hyd_energy_mode = (
+        str(getattr(inputs, "pressure_model", "")).strip().lower() == "hydraulic"
+        and str(getattr(inputs, "vapor_flow_model", "")).strip().lower() == "energy"
+    )
+    temp_mode = str(getattr(inputs, "hydraulic_energy_temperature_mode", "legacy") or "legacy").strip().lower()
 
     top_L = u.get("top_L", None)
     top_V = u.get("top_V", None)
@@ -3303,8 +3313,13 @@ def column_rhs(
             diag["T_cond_bubble_F"] = np.array([float(T_cond_bubble_F)], dtype=float)
 
         dT_tray = np.zeros(N, dtype=float)
+        q_phase_latent_tray = np.zeros(N, dtype=float)
         T_bubble_target = np.full(N, np.nan, dtype=float)
+        T_enthalpy_state_target = np.full(N, np.nan, dtype=float)
+        E_enthalpy_state_mismatch = np.full(N, np.nan, dtype=float)
+        T_enthalpy_state_correction = np.zeros(N, dtype=float)
         T_pressure_correction = np.zeros(N, dtype=float)
+        T_pressure_slope_used = np.full(N, np.nan, dtype=float)
         use_provider_cp = (
             inputs.thermo_provider is not None
             and hasattr(inputs.thermo_provider, "cp_liq_vap_btu_per_lbmolF")
@@ -3459,9 +3474,7 @@ def column_rhs(
                 dE += float(Qc_BTUph) / 3600.0
             if i == (N - 1):
                 dE += float(Qr_BTUph) / 3600.0
-            if i == 0:
-                q_phase_latent_tray = np.zeros(N, dtype=float)
-            q_phase_latent_tray[i] = float(q_phase_latent)
+                q_phase_latent_tray[i] = float(q_phase_latent)
 
             if use_provider_cp:
                 z_for_cp = tray_L[i, :].copy()
@@ -3493,11 +3506,6 @@ def column_rhs(
                 raise ColumnRHSError("Non-positive tray heat capacity encountered.")
 
             dT_val = dE / C
-            hyd_energy_mode = (
-                str(getattr(inputs, "pressure_model", "")).strip().lower() == "hydraulic"
-                and str(getattr(inputs, "vapor_flow_model", "")).strip().lower() == "energy"
-            )
-            temp_mode = str(getattr(inputs, "hydraulic_energy_temperature_mode", "legacy") or "legacy").strip().lower()
             if hyd_energy_mode and temp_mode == "bubble-point-follower":
                 try:
                     T_target_prev = getattr(inputs, "tray_bubble_target_prev_F", None)
@@ -3515,6 +3523,35 @@ def column_rhs(
                         dT_val = (float(T_bubble_target[i]) - float(tray_T[i])) / tau_T + resid_frac * float(dE / C)
                 except Exception:
                     pass
+            elif hyd_energy_mode and temp_mode == "enthalpy-state-follower":
+                try:
+                    tau_T = float(getattr(inputs, "hydraulic_energy_temperature_follow_tau_sec", 0.5) or 0.5)
+                    if (not np.isfinite(tau_T)) or tau_T <= 0.0:
+                        tau_T = 0.5
+                    resid_frac = float(getattr(inputs, "hydraulic_energy_temperature_resid_frac", 0.0) or 0.0)
+                    if (not np.isfinite(resid_frac)) or resid_frac < 0.0:
+                        resid_frac = 0.0
+                    if bool(getattr(layout, "include_energy", False)):
+                        if "EL" in locals():
+                            E_enthalpy_state_mismatch[i] = float(EL[i]) - (
+                                float(diag["ML_tot_tray"][i]) * float(hL_out)
+                            )
+                        T_target = _tray_temperature_target_from_liquid_energy_state_F(
+                            T_now_F=float(tray_T[i]),
+                            ML_tot_lbmol=float(diag["ML_tot_tray"][i]),
+                            EL_BTU=float(EL[i]) if "EL" in locals() else None,
+                            hL_BTU_lbmol=float(hL_out),
+                            cpL_BTU_lbmolF=float(cpL),
+                        )
+                        if T_target is not None and np.isfinite(float(T_target)):
+                            T_enthalpy_state_target[i] = float(T_target)
+                            dT_val = (float(T_target) - float(tray_T[i])) / float(tau_T)
+                            dT_val = float(np.clip(dT_val, -5.0, 5.0))
+                            T_enthalpy_state_correction[i] = float(dT_val)
+                            if resid_frac > 0.0:
+                                dT_val += float(resid_frac) * float(dE / C)
+                except Exception:
+                    pass
             elif hyd_energy_mode and temp_mode == "pressure-correction-follower":
                 try:
                     tau_T = float(getattr(inputs, "hydraulic_energy_temperature_follow_tau_sec", 0.5) or 0.5)
@@ -3527,6 +3564,15 @@ def column_rhs(
                     p_slope = float(
                         getattr(inputs, "hydraulic_energy_temperature_pressure_slope_F_per_psi", 2.0) or 2.0
                     )
+                    p_slope_vec = getattr(inputs, "tray_temp_pressure_slope_prev_F_per_psi", None)
+                    if p_slope_vec is not None:
+                        try:
+                            p_slope_arr = np.asarray(p_slope_vec, dtype=float).reshape((N,))
+                            if np.isfinite(float(p_slope_arr[i])):
+                                p_slope = float(p_slope_arr[i])
+                        except Exception:
+                            pass
+                    T_pressure_slope_used[i] = float(p_slope)
                     if np.isfinite(p_slope) and abs(float(p_slope)) > 0.0 and inputs.P_tray_prev is not None:
                         P_prev_arr = np.asarray(inputs.P_tray_prev, dtype=float).reshape((N,))
                         if np.isfinite(float(P_prev_arr[i])) and np.isfinite(float(P_tray[i])):
@@ -3549,7 +3595,11 @@ def column_rhs(
         diag["dT_tray_F_per_s"] = dT_tray.copy()
         diag["Q_phase_relax_latent_BTUps_tray"] = q_phase_latent_tray.copy()
         diag["T_bubble_target_F_tray"] = T_bubble_target.copy()
+        diag["T_enthalpy_state_target_F_tray"] = T_enthalpy_state_target.copy()
+        diag["E_enthalpy_state_mismatch_BTU_tray"] = E_enthalpy_state_mismatch.copy()
+        diag["T_enthalpy_state_correction_F_per_s_tray"] = T_enthalpy_state_correction.copy()
         diag["T_pressure_correction_F_per_s_tray"] = T_pressure_correction.copy()
+        diag["T_pressure_slope_used_F_per_psi_tray"] = T_pressure_slope_used.copy()
 
         # Bottom sump temperature (separate from reboiler temperature)
         if layout.include_bottom and ("bottom_T_f" in sl) and (bottom_L is not None):

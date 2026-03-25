@@ -54,7 +54,9 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _refresh_tray_bubble_targets_F,
     _pi_update,
     _pressure_resid_gain_scale,
+    _update_tray_temp_pressure_slope_F_per_psi,
     _resolve_startup_hydraulic_sequence_step,
+    _sync_algebraic_tray_temperature_state,
     build_inputs_for_runner,
     run_smoke_simulation,
 )
@@ -95,6 +97,68 @@ def test_inventory_rate_detail_reports_tray_stage_and_component():
     assert detail["state_key"] == "tray_V"
     assert float(detail["stage_1based"]) == pytest.approx(2.0)
     assert float(detail["component_1based"]) == pytest.approx(3.0)
+
+
+def test_sync_algebraic_tray_temperature_state_projects_state_to_diag_values():
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    sl = layout.slices()
+    y = np.zeros(layout.n_states(), dtype=float)
+    y[sl["tray_T_f"]] = np.array([100.0, 150.0, 200.0], dtype=float)
+    diag = {
+        "T_enthalpy_algebraic_F_tray": np.array([110.0, np.nan, 210.0], dtype=float),
+    }
+
+    y2 = _sync_algebraic_tray_temperature_state(
+        y,
+        layout,
+        diag,
+        thermo_provider=None,
+    )
+
+    assert np.allclose(
+        y2[sl["tray_T_f"]],
+        np.array([110.0, 150.0, 210.0], dtype=float),
+        atol=1e-12,
+    )
+
+
+def test_sync_algebraic_tray_temperature_state_uses_bubble_target_when_present():
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    sl = layout.slices()
+    y = np.zeros(layout.n_states(), dtype=float)
+    y[sl["tray_T_f"]] = np.array([120.0, 140.0], dtype=float)
+    diag = {
+        "T_bubble_target_F_tray": np.array([121.5, 139.25], dtype=float),
+    }
+
+    y2 = _sync_algebraic_tray_temperature_state(
+        y,
+        layout,
+        diag,
+        thermo_provider=None,
+    )
+
+    assert np.allclose(
+        y2[sl["tray_T_f"]],
+        np.array([121.5, 139.25], dtype=float),
+        atol=1e-12,
+    )
 
 
 def test_francis_hydraulics_uses_holdup_area_for_liquid_head():
@@ -1415,21 +1479,21 @@ def test_thermo_startup_conditioner_with_mocked_rhs(monkeypatch):
 
     x_eq = np.array([[0.9, 0.1], [0.6, 0.4], [0.3, 0.7]], dtype=float)
     y_eq = np.array([[0.8, 0.2], [0.55, 0.45], [0.25, 0.75]], dtype=float)
-    HL = np.array([10.0, 20.0, 30.0], dtype=float)
-    HV = np.array([100.0, 200.0, 300.0], dtype=float)
-
     import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
 
     def _fake_rhs(_t, y_vec, _col, _layout, inputs=None):
         u = layout.unpack(np.asarray(y_vec, dtype=float))
         x_now = np.asarray(u["x_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+        y_now = np.asarray(u["y_tray"], dtype=float).reshape((col.n_stages, col.n_components))
         gap = np.sum(np.abs(x_now - x_eq), axis=1)
+        HL_now = 10.0 + 100.0 * x_now[:, 0] + 10.0 * x_now[:, 1]
+        HV_now = 50.0 + 200.0 * y_now[:, 0] + 20.0 * y_now[:, 1]
         dydt = np.zeros(layout.n_states(), dtype=float)
         diag = {
             "x_eq_tray": x_eq.copy(),
             "y_eq_tray": y_eq.copy(),
-            "HL_BTU_lbmol_tray": HL.copy(),
-            "HV_BTU_lbmol_tray": HV.copy(),
+            "HL_BTU_lbmol_tray": HL_now,
+            "HV_BTU_lbmol_tray": HV_now,
             "Z_tray": np.ones(col.n_stages, dtype=float),
             "eq_phase_change_lbmolps_tray": gap,
         }
@@ -1465,8 +1529,10 @@ def test_thermo_startup_conditioner_with_mocked_rhs(monkeypatch):
     mv_tot = np.asarray(u1["MV_tot_tray"], dtype=float).reshape((col.n_stages,))
     tray_EL = np.asarray(y1[sl["tray_EL_BTU"]], dtype=float).reshape((col.n_stages,))
     tray_EV = np.asarray(y1[sl["tray_EV_BTU"]], dtype=float).reshape((col.n_stages,))
-    assert np.allclose(tray_EL, ml_tot * HL, atol=1e-12)
-    assert np.allclose(tray_EV, mv_tot * HV, atol=1e-12)
+    HL_expected = 10.0 + 100.0 * x_eq[:, 0] + 10.0 * x_eq[:, 1]
+    HV_expected = 50.0 + 200.0 * y_eq[:, 0] + 20.0 * y_eq[:, 1]
+    assert np.allclose(tray_EL, ml_tot * HL_expected, atol=1e-12)
+    assert np.allclose(tray_EV, mv_tot * HV_expected, atol=1e-12)
     assert abs(float(info["eq_phase_change_final_lbmolps"])) < float(info["eq_phase_change_init_lbmolps"])
 
 
@@ -2531,6 +2597,24 @@ def test_build_inputs_runtime_hydraulic_keeps_explicit_liquid_hydraulics_opt_in(
     inputs, _ = build_inputs_for_runner(case, col, cfg)
     assert bool(inputs.enable_liquid_hydraulic_override) is True
     assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.75)
+
+
+def test_update_tray_temp_pressure_slope_uses_local_secant_and_fallback():
+    out = _update_tray_temp_pressure_slope_F_per_psi(
+        prev_slope_F_per_psi=np.array([1.5, 1.5, 1.5], dtype=float),
+        prev_T_F=np.array([100.0, 150.0, 200.0], dtype=float),
+        curr_T_F=np.array([101.0, 149.0, 201.0], dtype=float),
+        prev_P_psia=np.array([200.0, 220.0, 240.0], dtype=float),
+        curr_P_psia=np.array([200.5, 221.0, 240.01], dtype=float),
+        default_slope_F_per_psi=1.5,
+        dp_min_psia=0.05,
+        blend_new=0.5,
+    )
+
+    assert out is not None
+    assert out[0] == pytest.approx(1.75)
+    assert out[1] == pytest.approx(0.25)
+    assert out[2] == pytest.approx(1.5)
 
 
 def test_build_inputs_runtime_hydraulic_keeps_explicit_vapor_holdup_relaxation():

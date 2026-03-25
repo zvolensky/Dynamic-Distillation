@@ -239,9 +239,74 @@ Short version:
 3. stop global-slope tuning
 4. pursue a deeper hydraulic-energy temperature-closure refactor
 
+## Algebraic Experiment Closeout
+
+Follow-up work on 2026-03-25 tested direct algebraic tray-temperature takeovers and rejected them as a class for the current hydraulic-energy branch.
+
+### Attempt 1: `enthalpy-algebraic-liquid`
+
+Concept:
+1. derive tray temperature directly from integrated liquid enthalpy `EL`
+2. remove the independent tray temperature ODE from active control
+
+Outcome:
+1. numerically stable enthalpy inversion was achieved
+2. startup conditioning was improved with a warm-up gate and a post-conditioned energy reseed fix
+3. despite that, the branch still drifted badly and landed on the wrong pressure manifold
+
+Key result:
+- `logs/case20_hydraulic_120s_level_pressure_enthalpyalgliq_warm1_startupfix_chemsep_warmer_20260325/column_summary_20260325_140021.csv`
+
+Critical diagnostic:
+1. at stage `2`, `T_state` and `T_bubble(P,x)` matched exactly at takeover
+2. `T_alg(EL)` was about `7.245 F` hotter
+3. this showed that integrated `EL` had drifted away from the physical bubble-point manifold and could not serve as a reliable algebraic temperature anchor
+
+Verdict:
+1. reject `EL -> T` algebraic closure for this branch
+
+### Attempt 2: `bubble-point-algebraic`
+
+Concept:
+1. derive tray temperature directly from `T_bubble(P,x)`
+2. let vapor flow remain the only active energy-balancing mechanism
+
+Outcome:
+1. once dynamic bubble-target refresh was fixed, the true test showed a violent takeover shock
+2. stage `18` snapped about `5 F` colder at gate activation
+3. `dMLdt_phase_relax` flipped sign and `vflow_energy_calc` collapsed while `vflow_energy_used` stayed high
+
+Key result:
+- `logs/case20_hydraulic_5s_level_pressure_bubblealg_warm1_hifreq2_chemsep_warmer_20260325/column_summary_20260325_143835.csv`
+- `logs/case20_hydraulic_5s_level_pressure_bubblealg_warm1_hifreq2_chemsep_warmer_20260325/column_profile_20260325_143835.csv`
+
+Verdict:
+1. reject `T_bubble(P,x)` algebraic takeover for this branch
+
+### Preserved Improvements
+
+Even though the algebraic modes were rejected, two improvements from the experiment should be retained:
+1. startup energy reseeding now recomputes `HL/HV` on the post-conditioned state before reseeding `tray_EL/EV`
+2. tray-temperature state projection remains useful as a diagnostic helper for future DAE-style experiments
+
+### Final Practical Outcome
+
+After removing the rejected algebraic modes, the cap-law benchmark was rerun with the startup-energy reseed fix and matched the prior reference essentially exactly:
+
+- `logs/case20_hydraulic_240s_level_pressure_caplaw_startupfix_chemsep_warmer_20260325/column_summary_20260325_144834.csv`
+
+That rerun ended near:
+1. `P_top = 221.02 psia`
+2. `P_bottom = 232.26 psia`
+3. `steady_state_score = 14.17`
+
+Interpretation:
+1. the startup-energy reseed fix is a real permanent improvement
+2. algebraic tray-temperature takeovers should be considered closed out for this branch
+3. the cap-law differential temperature treatment remains the general-use reference pending any deeper refactor
+
 ## Relevant Code
 
 - `src/dynamic_distillation/column_rhs_v1.py`
 - `src/dynamic_distillation/dynamic_run_scaffold_v1.py`
 - `tests/test_dynamic_run_scaffold_v1.py`
-

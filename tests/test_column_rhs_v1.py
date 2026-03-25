@@ -2900,6 +2900,62 @@ def test_include_energy_reports_scalar_energy_residual_diagnostic():
     assert resid_scalar >= 0.0
 
 
+def test_enthalpy_state_follower_uses_energy_state_mismatch_to_drive_temperature():
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "V_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "L_lbmolph": np.array([0.0, 0.0], dtype=float),
+        }
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=True,
+    )
+    y0 = layout.pack_y0(col2, thermo=ConstantCpThermo(
+        cp_liq_components=np.full(2, 1.0, dtype=float),
+        cp_vap_components=np.full(2, 1.0, dtype=float),
+        tref_f=0.0,
+    ))
+    sl = layout.slices()
+    tray_EL = np.asarray(y0[sl["tray_EL_BTU"]], dtype=float).reshape((2,)).copy()
+    tray_EL[0] += 60.0
+    y0[sl["tray_EL_BTU"]] = tray_EL
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo=ConstantCpThermo(
+            cp_liq_components=np.full(2, 1.0, dtype=float),
+            cp_vap_components=np.full(2, 1.0, dtype=float),
+            tref_f=0.0,
+        ),
+        pressure_model="hydraulic",
+        vapor_flow_model="energy",
+        dry_tray_K=0.0,
+        hydraulic_energy_temperature_mode="enthalpy-state-follower",
+        hydraulic_energy_temperature_follow_tau_sec=1.0,
+        hydraulic_energy_temperature_resid_frac=0.0,
+    )
+
+    dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+
+    dT = np.asarray(dydt[sl["tray_T_f"]], dtype=float).reshape((2,))
+    T_target = np.asarray(diag["T_enthalpy_state_target_F_tray"], dtype=float).reshape((2,))
+    e_mismatch = np.asarray(diag["E_enthalpy_state_mismatch_BTU_tray"], dtype=float).reshape((2,))
+    dT_corr = np.asarray(diag["T_enthalpy_state_correction_F_per_s_tray"], dtype=float).reshape((2,))
+
+    assert e_mismatch[0] > 0.0
+    assert dT[0] >= 0.0
+    assert dT_corr[0] >= 0.0
+    assert dT_corr[0] <= 5.0
+
+
 def test_include_energy_stays_finite_with_tiny_vapor_holdup_and_huge_ev():
     col = _make_tiny_column()
     col2 = ColumnSpec(

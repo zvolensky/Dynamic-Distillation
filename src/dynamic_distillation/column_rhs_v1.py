@@ -109,6 +109,33 @@ class ColumnInputs:
     # this guard, the target blends toward current tray vapor inventory
     # instead of collapsing abruptly to the flash phase split.
     equilibrium_phase_holdup_guard_lbmol: float = 0.0
+    # Optional previous-step tray energy-balance residuals (BTU/s) used to
+    # damp phase-holdup relaxation on the next step without introducing a
+    # same-step circular dependency.
+    energy_balance_resid_prev_BTUps_tray: Optional[np.ndarray] = None
+    # Sensitivity for energy-aware damping of phase-holdup relaxation.
+    # Zero disables this path.
+    equilibrium_energy_damping_gain: float = 0.0
+    # Optional scalar damping applied to the tray temperature derivative in
+    # hydraulic+energy runs to keep the temperature path from competing too
+    # aggressively with the energy-based vapor-flow closure.
+    hydraulic_energy_temperature_damping: float = 1.0
+    # Optional hydraulic+energy tray temperature mode.
+    # "legacy" uses the historical dE/C path.
+    # "bubble-point-follower" relaxes temperature toward the liquid
+    # bubble-point target at current pressure/composition plus a small residual
+    # correction term.
+    # "pressure-correction-follower" uses a damped dE/C term plus an
+    # immediate pressure-tracking correction based on dP over a short
+    # follower timescale, avoiding explicit bubble-point solves.
+    hydraulic_energy_temperature_mode: str = "legacy"
+    hydraulic_energy_temperature_follow_tau_sec: float = 0.5
+    hydraulic_energy_temperature_resid_frac: float = 0.01
+    hydraulic_energy_temperature_pressure_slope_F_per_psi: float = 2.0
+    tray_bubble_target_prev_F: Optional[np.ndarray] = None
+    # Optional previous-step monotone minimum damping by tray for below-feed
+    # phase-holdup ratcheting.
+    phase_energy_damping_min_prev_tray: Optional[np.ndarray] = None
 
     # Reboiler handling
     # reboiler_mode:
@@ -2979,6 +3006,8 @@ def column_rhs(
                     float(phase_guard_lbmol),
                 )
                 vapor_fraction_weight = np.clip(vapor_fraction_weight, 0.25, 1.0)
+                phase_weight_cap = np.full(N, np.nan, dtype=float)
+                energy_damping = np.ones(N, dtype=float)
                 if feed_stage0 is not None:
                     stripping_mask = np.zeros(N, dtype=bool)
                     i_feed = int(np.clip(int(feed_stage0), 0, max(N - 1, 0)))
@@ -2991,8 +3020,49 @@ def column_rhs(
                     # forced to condense vapor into liquid inventory.
                     strip_depth_weight = 1.0 - 0.75 * np.power(strip_depth, 1.5)
                     strip_depth_weight = np.clip(strip_depth_weight, 0.25, 1.0)
-                    stripping_weight = vapor_fraction_weight * strip_depth_weight
-                    phase_weight = np.where(stripping_mask, phase_weight * stripping_weight, phase_weight)
+                    current_vapor_fraction = np.asarray(MV, dtype=float).reshape((N,)) / np.maximum(
+                        np.asarray(Mtot, dtype=float).reshape((N,)),
+                        float(phase_guard_lbmol),
+                    )
+                    current_vapor_fraction = np.clip(current_vapor_fraction, 0.0, 1.0)
+                    # Below the feed, cap the effective phase-holdup weighting by a
+                    # conservative monotone ceiling so flash-target shifts cannot
+                    # suddenly re-accelerate liquid depletion on hot stripping trays.
+                    stripping_cap = 0.15 + 0.60 * current_vapor_fraction * strip_depth_weight
+                    stripping_cap = np.clip(stripping_cap, 0.15, 0.45)
+                    prev_energy_resid = getattr(inputs, "energy_balance_resid_prev_BTUps_tray", None)
+                    energy_gain = float(getattr(inputs, "equilibrium_energy_damping_gain", 0.0) or 0.0)
+                    if prev_energy_resid is not None and np.isfinite(energy_gain) and energy_gain > 0.0:
+                        try:
+                            e_prev = np.asarray(prev_energy_resid, dtype=float).reshape((N,))
+                            e_prev = np.where(np.isfinite(e_prev), np.abs(e_prev), 0.0)
+                            H_inventory = (
+                                np.abs(np.asarray(ML, dtype=float).reshape((N,)) * np.asarray(_HL, dtype=float).reshape((N,)))
+                                + np.abs(np.asarray(MV, dtype=float).reshape((N,)) * np.asarray(_HV, dtype=float).reshape((N,)))
+                            )
+                            H_inventory = np.maximum(H_inventory, 1.0)
+                            e_ratio = (e_prev * float(tau)) / H_inventory
+                            energy_damping = np.exp(-float(energy_gain) * e_ratio)
+                            energy_damping = np.clip(energy_damping, 0.25, 1.0)
+                            prev_energy_damping_min = getattr(inputs, "phase_energy_damping_min_prev_tray", None)
+                            if prev_energy_damping_min is not None:
+                                prev_energy_damping_min = np.asarray(prev_energy_damping_min, dtype=float).reshape((N,))
+                                prev_energy_damping_min = np.where(
+                                    np.isfinite(prev_energy_damping_min),
+                                    np.clip(prev_energy_damping_min, 0.25, 1.0),
+                                    1.0,
+                                )
+                                energy_damping = np.where(
+                                    stripping_mask,
+                                    np.minimum(prev_energy_damping_min, energy_damping),
+                                    energy_damping,
+                                )
+                            stripping_cap = stripping_cap * energy_damping
+                            stripping_cap = np.clip(stripping_cap, 0.10, 0.45)
+                        except Exception:
+                            energy_damping = np.ones(N, dtype=float)
+                    phase_weight_cap = np.where(stripping_mask, stripping_cap, phase_weight_cap)
+                    phase_weight = np.where(stripping_mask, np.minimum(phase_weight, stripping_cap), phase_weight)
                 phase_weight = np.clip(phase_weight, 0.0, 1.0)
                 y_target = phase_weight.reshape((N, 1)) * y_eq + (1.0 - phase_weight).reshape((N, 1)) * y_tray
                 y_target = np.clip(y_target, 0.0, None)
@@ -3027,6 +3097,10 @@ def column_rhs(
         diag["eq_phase_change_lbmolps_tray"] = np.sum(transfer, axis=1).reshape((N,))
         diag["eq_relaxation_mode_comp_only"] = np.array([1.0 if comp_only_mode else 0.0], dtype=float)
         diag["eq_phase_holdup_guard_weight_tray"] = np.asarray(phase_weight, dtype=float).reshape((N,))
+        if 'phase_weight_cap' in locals():
+            diag["eq_phase_holdup_guard_cap_tray"] = np.asarray(phase_weight_cap, dtype=float).reshape((N,))
+        if 'energy_damping' in locals():
+            diag["eq_phase_energy_damping_tray"] = np.asarray(energy_damping, dtype=float).reshape((N,))
         diag["dMLdt_transport_lbmolps_tray"] = np.asarray(liquid_transport_rate, dtype=float).reshape((N,))
         diag["dMLdt_phase_relax_lbmolps_tray"] = np.asarray(liquid_phase_relax_rate, dtype=float).reshape((N,))
         diag["dMLdt_total_lbmolps_tray"] = np.asarray(liquid_total_rate, dtype=float).reshape((N,))
@@ -3136,7 +3210,6 @@ def column_rhs(
                 epsilon_lbmol=float(layout.epsilon_lbmol),
             )
         diag["Q_feed_BTUps_tray"] = q_feed_BTUps.copy()
-
         dEL, dEV = _energy_derivatives_b1(
             L_out=L_out,
             V_out=V_out,
@@ -3230,6 +3303,8 @@ def column_rhs(
             diag["T_cond_bubble_F"] = np.array([float(T_cond_bubble_F)], dtype=float)
 
         dT_tray = np.zeros(N, dtype=float)
+        T_bubble_target = np.full(N, np.nan, dtype=float)
+        T_pressure_correction = np.zeros(N, dtype=float)
         use_provider_cp = (
             inputs.thermo_provider is not None
             and hasattr(inputs.thermo_provider, "cp_liq_vap_btu_per_lbmolF")
@@ -3341,6 +3416,15 @@ def column_rhs(
                 thermo_provider=inputs.thermo_provider,
                 epsilon_lbmol=float(layout.epsilon_lbmol),
             )
+            psi_phase = 0.0
+            if "eq_phase_change_lbmolps_tray" in diag:
+                try:
+                    psi_phase = float(np.asarray(diag["eq_phase_change_lbmolps_tray"], dtype=float).reshape((N,))[i])
+                    if not np.isfinite(psi_phase):
+                        psi_phase = 0.0
+                except Exception:
+                    psi_phase = 0.0
+            q_phase_latent = float(psi_phase) * float(hV_out - hL_out)
 
             if i == 0 and layout.include_top:
                 # Condenser/top-drum temperature closure:
@@ -3371,11 +3455,13 @@ def column_rhs(
                     - L_out[i] * hL_out
                     - V_out[i] * hV_out
                 )
-
             if i == 0:
                 dE += float(Qc_BTUph) / 3600.0
             if i == (N - 1):
                 dE += float(Qr_BTUph) / 3600.0
+            if i == 0:
+                q_phase_latent_tray = np.zeros(N, dtype=float)
+            q_phase_latent_tray[i] = float(q_phase_latent)
 
             if use_provider_cp:
                 z_for_cp = tray_L[i, :].copy()
@@ -3406,10 +3492,64 @@ def column_rhs(
                     continue
                 raise ColumnRHSError("Non-positive tray heat capacity encountered.")
 
-            dT_tray[i] = dE / C
+            dT_val = dE / C
+            hyd_energy_mode = (
+                str(getattr(inputs, "pressure_model", "")).strip().lower() == "hydraulic"
+                and str(getattr(inputs, "vapor_flow_model", "")).strip().lower() == "energy"
+            )
+            temp_mode = str(getattr(inputs, "hydraulic_energy_temperature_mode", "legacy") or "legacy").strip().lower()
+            if hyd_energy_mode and temp_mode == "bubble-point-follower":
+                try:
+                    T_target_prev = getattr(inputs, "tray_bubble_target_prev_F", None)
+                    if T_target_prev is not None:
+                        T_target_prev = np.asarray(T_target_prev, dtype=float).reshape((N,))
+                        if np.isfinite(float(T_target_prev[i])):
+                            T_bubble_target[i] = float(T_target_prev[i])
+                    if np.isfinite(T_bubble_target[i]):
+                        tau_T = float(getattr(inputs, "hydraulic_energy_temperature_follow_tau_sec", 0.5) or 0.5)
+                        if (not np.isfinite(tau_T)) or tau_T <= 0.0:
+                            tau_T = 0.5
+                        resid_frac = float(getattr(inputs, "hydraulic_energy_temperature_resid_frac", 0.01) or 0.01)
+                        if (not np.isfinite(resid_frac)) or resid_frac < 0.0:
+                            resid_frac = 0.01
+                        dT_val = (float(T_bubble_target[i]) - float(tray_T[i])) / tau_T + resid_frac * float(dE / C)
+                except Exception:
+                    pass
+            elif hyd_energy_mode and temp_mode == "pressure-correction-follower":
+                try:
+                    tau_T = float(getattr(inputs, "hydraulic_energy_temperature_follow_tau_sec", 0.5) or 0.5)
+                    if (not np.isfinite(tau_T)) or tau_T <= 0.0:
+                        tau_T = 0.5
+                    resid_alpha = float(getattr(inputs, "hydraulic_energy_temperature_damping", 0.1) or 0.1)
+                    if (not np.isfinite(resid_alpha)) or resid_alpha < 0.0:
+                        resid_alpha = 0.1
+                    dT_val = float(resid_alpha) * float(dE / C)
+                    p_slope = float(
+                        getattr(inputs, "hydraulic_energy_temperature_pressure_slope_F_per_psi", 2.0) or 2.0
+                    )
+                    if np.isfinite(p_slope) and abs(float(p_slope)) > 0.0 and inputs.P_tray_prev is not None:
+                        P_prev_arr = np.asarray(inputs.P_tray_prev, dtype=float).reshape((N,))
+                        if np.isfinite(float(P_prev_arr[i])) and np.isfinite(float(P_tray[i])):
+                            dP_term = float(p_slope) * (float(P_tray[i]) - float(P_prev_arr[i])) / float(tau_T)
+                            T_pressure_correction[i] = float(dP_term)
+                            dT_val += float(dP_term)
+                except Exception:
+                    pass
+            elif hyd_energy_mode:
+                try:
+                    temp_damping = float(getattr(inputs, "hydraulic_energy_temperature_damping", 1.0) or 1.0)
+                except Exception:
+                    temp_damping = 1.0
+                if (not np.isfinite(temp_damping)) or temp_damping < 0.0:
+                    temp_damping = 1.0
+                dT_val *= float(temp_damping)
+            dT_tray[i] = dT_val
 
         dydt[sl["tray_T_f"]] = dT_tray
         diag["dT_tray_F_per_s"] = dT_tray.copy()
+        diag["Q_phase_relax_latent_BTUps_tray"] = q_phase_latent_tray.copy()
+        diag["T_bubble_target_F_tray"] = T_bubble_target.copy()
+        diag["T_pressure_correction_F_per_s_tray"] = T_pressure_correction.copy()
 
         # Bottom sump temperature (separate from reboiler temperature)
         if layout.include_bottom and ("bottom_T_f" in sl) and (bottom_L is not None):

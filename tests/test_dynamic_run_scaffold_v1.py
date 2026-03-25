@@ -51,6 +51,7 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _initialize_thermo_consistent_state,
     _initialize_vapor_holdup_from_spec_pressure,
     _initialize_top_drum_dynamic_steady,
+    _refresh_tray_bubble_targets_F,
     _pi_update,
     _pressure_resid_gain_scale,
     _resolve_startup_hydraulic_sequence_step,
@@ -1329,6 +1330,64 @@ def test_top_drum_dynamic_steady_initializer_with_mocked_rhs(monkeypatch):
     assert abs(float(info["d_top_V_final_lbmolps"])) < 1e-7
 
 
+def test_top_drum_dynamic_steady_initializer_matches_runtime_pressure_model(monkeypatch):
+    class TinyCol:
+        n_stages = 2
+        n_components = 2
+        M_L_lbmol = np.array([1.0, 1.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.0], dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.5, 0.5]], dtype=float)
+        y0 = np.array([[0.6, 0.4], [0.5, 0.5]], dtype=float)
+        T_f = np.array([100.0, 110.0], dtype=float)
+        P_psia = np.array([200.0, 205.0], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col)
+    sl = layout.slices()
+    y0[sl["top_L"]] = np.array([0.8, 0.2], dtype=float) * 1.0
+    y0[sl["top_V"]] = np.array([0.6, 0.4], dtype=float) * 5.0
+
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    def _fake_rhs(_t, _y_vec, _col, _layout, inputs=None):
+        return np.zeros(layout.n_states(), dtype=float), {}
+
+    def _fake_top_pressure(*, top_V, top_T_F, Z_top, top_vapor_volume_ft3, thermo_provider, y_top, P_seed_psia, return_details=False):
+        mv = float(np.sum(np.asarray(top_V, dtype=float)))
+        p = 20.0 * mv
+        if return_details:
+            return p, 0.5, mv
+        return p
+
+    monkeypatch.setattr(scaffold, "column_rhs", _fake_rhs)
+    monkeypatch.setattr(scaffold, "_compute_top_drum_pressure_psia", _fake_top_pressure)
+
+    y1, info = _initialize_top_drum_dynamic_steady(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(top_drum_vapor_volume_ft3=10.0, thermo_provider=object()),
+        max_iter=2,
+        tol_lbmolps=1e-9,
+    )
+
+    u1 = layout.unpack(y1)
+    top_V_tot = float(np.sum(np.asarray(u1["top_V"], dtype=float)))
+    assert info["attempted"] is True
+    assert info["pressure_coupled"] is True
+    assert top_V_tot == pytest.approx(10.0, abs=1e-9)
+
+
 def test_thermo_startup_conditioner_with_mocked_rhs(monkeypatch):
     class TinyCol:
         n_stages = 3
@@ -2388,6 +2447,68 @@ def test_build_inputs_runtime_hydraulic_defaults_equilibrium_mode_to_composition
     assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.0)
     assert inputs.vapor_holdup_relaxation_sec is None
     assert bool(inputs.flash_feed_at_stage_conditions) is False
+
+
+def test_refresh_tray_bubble_targets_uses_cached_state_and_provider(monkeypatch: pytest.MonkeyPatch):
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=2,
+        n_stages=2,
+        stage_1based=np.array([1, 2], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=2.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={},
+        T_f=np.array([110.0, 150.0], dtype=float),
+        P_psia=np.array([220.0, 230.0], dtype=float),
+        V_lbmolph=np.zeros(2, dtype=float),
+        L_lbmolph=np.zeros(2, dtype=float),
+        M_L_lbmol=np.ones(2, dtype=float),
+        M_V_lbmol=np.ones(2, dtype=float),
+        y0=np.array([[0.8, 0.2], [0.2, 0.8]], dtype=float),
+        x0=np.array([[0.7, 0.3], [0.3, 0.7]], dtype=float),
+        streams={},
+        geometry=None,
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    sl = layout.slices()
+    y = np.zeros(layout.n_states(), dtype=float)
+    y[sl["tray_L"]] = np.array([[7.0, 3.0], [3.0, 7.0]], dtype=float).ravel(order="C")
+    y[sl["tray_V"]] = np.array([[1.0, 0.5], [0.5, 1.0]], dtype=float).ravel(order="C")
+    y[sl["tray_T_f"]] = np.array([111.0, 149.0], dtype=float)
+
+    calls = []
+
+    def _fake_bubble(*, thermo_provider, P_psia, x, T_guess_F, **_kwargs):
+        calls.append((float(P_psia), np.asarray(x, dtype=float).copy(), float(T_guess_F)))
+        return float(T_guess_F + 10.0), object()
+
+    monkeypatch.setattr("dynamic_distillation.dynamic_run_scaffold_v1._bubble_point_T_F", _fake_bubble)
+
+    targets = _refresh_tray_bubble_targets_F(
+        col=col,
+        layout=layout,
+        y=y,
+        thermo_provider=object(),
+        P_tray_psia=np.array([221.0, 229.0], dtype=float),
+    )
+
+    assert targets is not None
+    assert np.allclose(targets, np.array([121.0, 159.0], dtype=float))
+    assert len(calls) == 2
+    assert calls[0][0] == pytest.approx(221.0)
+    assert calls[1][0] == pytest.approx(229.0)
+    assert calls[0][2] == pytest.approx(111.0)
+    assert calls[1][2] == pytest.approx(149.0)
 
 
 def test_build_inputs_runtime_hydraulic_keeps_explicit_liquid_hydraulics_opt_in():

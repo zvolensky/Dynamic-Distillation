@@ -77,6 +77,8 @@ from dynamic_distillation.column_rhs_v1 import (
     BoundaryFlows,
     ColumnInputs,
     VolumeModel,
+    _compute_top_drum_pressure_psia,
+    _bubble_point_T_F,
     column_rhs,
 )
 from dynamic_distillation.stage_hydraulics_francis_v1 import compute_francis_weir_liquid_outflow
@@ -467,6 +469,7 @@ def _pi_update(
     dt_sec: float,
     out_min: Optional[float] = None,
     out_max: Optional[float] = None,
+    debug: Optional[Dict[str, float]] = None,
 ) -> float:
     """
     One-step PI with anti-windup (conditional integration).
@@ -505,6 +508,24 @@ def _pi_update(
     if allow_int:
         controller.integ = float(i_next)
         u = float(np.clip(float(controller.bias) + float(controller.kc) * (e + controller.integ), umin, umax))
+    if debug is not None:
+        debug.clear()
+        debug.update(
+            {
+                "error": float(e),
+                "u_unclamped": float(u_unclamped),
+                "u_clamped": float(u),
+                "out_min": float(umin),
+                "out_max": float(umax),
+                "bias": float(controller.bias),
+                "kc": float(controller.kc),
+                "ti_sec": float(controller.ti_sec),
+                "integ": float(controller.integ),
+                "sat_hi": 1.0 if sat_hi else 0.0,
+                "sat_lo": 1.0 if sat_lo else 0.0,
+                "allow_int": 1.0 if allow_int else 0.0,
+            }
+        )
     return u
 
 
@@ -892,6 +913,13 @@ class RunnerConfig:
     enable_equilibrium_relaxation: bool = True
     equilibrium_relaxation_mode: str = "auto"  # auto | phase-holdup | composition-only
     equilibrium_phase_holdup_guard_lbmol: Optional[float] = None
+    equilibrium_energy_damping_gain: Optional[float] = None
+    hydraulic_energy_temperature_damping: Optional[float] = None
+    hydraulic_energy_temperature_mode: Optional[str] = None
+    hydraulic_energy_temperature_follow_tau_sec: Optional[float] = None
+    hydraulic_energy_temperature_resid_frac: Optional[float] = None
+    hydraulic_energy_temperature_pressure_slope_F_per_psi: Optional[float] = None
+    hydraulic_energy_temperature_target_refresh_steps: Optional[int] = None
 
     thermo_mode: str = "stub"  # 'stub', 'dwsim', 'table', or 'table-pool'
     thermo_every_n_steps: int = 1  # 1=every step
@@ -1430,6 +1458,67 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         eq_phase_guard_lbmol = 0.0
     if (not np.isfinite(eq_phase_guard_lbmol)) or eq_phase_guard_lbmol < 0.0:
         eq_phase_guard_lbmol = 0.0
+    eq_energy_damping_gain = cfg.equilibrium_energy_damping_gain
+    if eq_energy_damping_gain is None:
+        eq_energy_damping_gain = 0.0
+    try:
+        eq_energy_damping_gain = float(eq_energy_damping_gain)
+    except Exception:
+        eq_energy_damping_gain = 0.0
+    if (not np.isfinite(eq_energy_damping_gain)) or eq_energy_damping_gain < 0.0:
+        eq_energy_damping_gain = 0.0
+    hydraulic_energy_temp_damping = cfg.hydraulic_energy_temperature_damping
+    if hydraulic_energy_temp_damping is None:
+        hydraulic_energy_temp_damping = 1.0
+    try:
+        hydraulic_energy_temp_damping = float(hydraulic_energy_temp_damping)
+    except Exception:
+        hydraulic_energy_temp_damping = 1.0
+    if (not np.isfinite(hydraulic_energy_temp_damping)) or hydraulic_energy_temp_damping < 0.0:
+        hydraulic_energy_temp_damping = 1.0
+    hydraulic_energy_temp_mode = str(
+        cfg.hydraulic_energy_temperature_mode
+        if cfg.hydraulic_energy_temperature_mode is not None
+        else "legacy"
+    ).strip().lower()
+    if hydraulic_energy_temp_mode not in ("legacy", "bubble-point-follower", "pressure-correction-follower"):
+        hydraulic_energy_temp_mode = "legacy"
+    hydraulic_energy_temp_follow_tau_sec = cfg.hydraulic_energy_temperature_follow_tau_sec
+    if hydraulic_energy_temp_follow_tau_sec is None:
+        hydraulic_energy_temp_follow_tau_sec = 0.5
+    try:
+        hydraulic_energy_temp_follow_tau_sec = float(hydraulic_energy_temp_follow_tau_sec)
+    except Exception:
+        hydraulic_energy_temp_follow_tau_sec = 0.5
+    if (not np.isfinite(hydraulic_energy_temp_follow_tau_sec)) or hydraulic_energy_temp_follow_tau_sec <= 0.0:
+        hydraulic_energy_temp_follow_tau_sec = 0.5
+    hydraulic_energy_temp_resid_frac = cfg.hydraulic_energy_temperature_resid_frac
+    if hydraulic_energy_temp_resid_frac is None:
+        hydraulic_energy_temp_resid_frac = 0.01
+    try:
+        hydraulic_energy_temp_resid_frac = float(hydraulic_energy_temp_resid_frac)
+    except Exception:
+        hydraulic_energy_temp_resid_frac = 0.01
+    if (not np.isfinite(hydraulic_energy_temp_resid_frac)) or hydraulic_energy_temp_resid_frac < 0.0:
+        hydraulic_energy_temp_resid_frac = 0.01
+    hydraulic_energy_temp_pressure_slope = cfg.hydraulic_energy_temperature_pressure_slope_F_per_psi
+    if hydraulic_energy_temp_pressure_slope is None:
+        hydraulic_energy_temp_pressure_slope = 2.0
+    try:
+        hydraulic_energy_temp_pressure_slope = float(hydraulic_energy_temp_pressure_slope)
+    except Exception:
+        hydraulic_energy_temp_pressure_slope = 2.0
+    if not np.isfinite(hydraulic_energy_temp_pressure_slope):
+        hydraulic_energy_temp_pressure_slope = 2.0
+    hydraulic_energy_temp_target_refresh_steps = cfg.hydraulic_energy_temperature_target_refresh_steps
+    if hydraulic_energy_temp_target_refresh_steps is None:
+        hydraulic_energy_temp_target_refresh_steps = 20
+    try:
+        hydraulic_energy_temp_target_refresh_steps = int(hydraulic_energy_temp_target_refresh_steps)
+    except Exception:
+        hydraulic_energy_temp_target_refresh_steps = 20
+    if hydraulic_energy_temp_target_refresh_steps <= 0:
+        hydraulic_energy_temp_target_refresh_steps = 20
 
     coupled_hydraulic_energy = (pressure_model == "hydraulic") and (vapor_flow_model == "energy")
 
@@ -2040,6 +2129,12 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         equilibrium_relaxation=bool(cfg.enable_equilibrium_relaxation),
         equilibrium_relaxation_mode=str(eq_mode),
         equilibrium_phase_holdup_guard_lbmol=float(eq_phase_guard_lbmol),
+        equilibrium_energy_damping_gain=float(eq_energy_damping_gain),
+        hydraulic_energy_temperature_damping=float(hydraulic_energy_temp_damping),
+        hydraulic_energy_temperature_mode=str(hydraulic_energy_temp_mode),
+        hydraulic_energy_temperature_follow_tau_sec=float(hydraulic_energy_temp_follow_tau_sec),
+        hydraulic_energy_temperature_resid_frac=float(hydraulic_energy_temp_resid_frac),
+        hydraulic_energy_temperature_pressure_slope_F_per_psi=float(hydraulic_energy_temp_pressure_slope),
         tau_eq_sec=getattr(col, "tau_eq_sec", None),
         reboiler_duty_btu_per_h=(float(cfg.reboiler_duty_btu_per_h) if cfg.reboiler_duty_btu_per_h is not None else None),
         pressure_model=str(pressure_model),
@@ -3516,10 +3611,6 @@ def _initialize_top_drum_dynamic_steady(
     if (not np.isfinite(t_top_f)):
         t_top_f = 100.0
 
-    # Keep startup top-drum pressure coupling on ideal-gas Z basis for
-    # consistency with dynamic top-drum pressure diagnostics.
-    z_top = 1.0
-
     rho_top = None
     if inputs.rhoL_tray_lbmol_ft3 is not None:
         try:
@@ -3578,11 +3669,43 @@ def _initialize_top_drum_dynamic_steady(
         T_R = float(t_top_f) + 459.67
         if (not np.isfinite(T_R)) or T_R <= 0.0:
             return None
-        Z = float(z_top) if np.isfinite(float(z_top)) and float(z_top) > 0.0 else 1.0
         R = 10.7316
-        mv = float(p_target) * float(vap_vol) / max(float(Z) * float(R) * float(T_R), 1e-12)
-        if not np.isfinite(mv):
+        mv = float(p_target) * float(vap_vol) / max(float(R) * float(T_R), 1e-12)
+        if (not np.isfinite(mv)) or mv < 0.0:
             return None
+        if inputs.thermo_provider is None:
+            return max(float(mv), 0.0)
+
+        y_anchor = np.asarray(y_top, dtype=float).reshape((Nc,))
+        y_anchor = _normalize_comp(np.where(np.isfinite(y_anchor), y_anchor, 0.0))
+        for _ in range(6):
+            top_v = max(float(mv), 0.0) * y_anchor
+            try:
+                p_res = _compute_top_drum_pressure_psia(
+                    top_V=top_v,
+                    top_T_F=float(t_top_f),
+                    Z_top=1.0,
+                    top_vapor_volume_ft3=float(vap_vol),
+                    thermo_provider=inputs.thermo_provider,
+                    y_top=y_anchor,
+                    P_seed_psia=float(p_target),
+                    return_details=True,
+                )
+            except Exception:
+                p_res = None
+            if isinstance(p_res, tuple):
+                p_eval = p_res[0]
+            else:
+                p_eval = p_res
+            if (p_eval is None) or (not np.isfinite(float(p_eval))) or float(p_eval) <= 0.0:
+                break
+            ratio = float(p_target) / max(float(p_eval), 1.0e-12)
+            if abs(ratio - 1.0) <= 1.0e-6:
+                return max(float(mv), 0.0)
+            mv_new = float(mv) * float(np.clip(ratio, 0.25, 4.0))
+            if (not np.isfinite(mv_new)) or mv_new < 0.0:
+                break
+            mv = float(mv_new)
         return max(float(mv), 0.0)
 
     pressure_coupled = _mV_anchor_from_mL(float(np.sum(top_L0))) is not None
@@ -3691,6 +3814,41 @@ def _initialize_top_drum_dynamic_steady(
     if np.max(np.abs(f_best)) <= float(tol_lbmolps):
         info["success"] = True
     return y_best, info
+
+
+def _refresh_tray_bubble_targets_F(
+    *,
+    col: ColumnSpec,
+    layout: StateVectorLayout,
+    y: np.ndarray,
+    thermo_provider: Any,
+    P_tray_psia: np.ndarray,
+) -> Optional[np.ndarray]:
+    if thermo_provider is None or (not bool(getattr(layout, "include_temperature", False))):
+        return None
+    try:
+        u = layout.unpack(y)
+        tray_T = np.asarray(u["tray_T_f"], dtype=float).reshape((col.n_stages,))
+        x_tray = np.asarray(u["x_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+        P_arr = np.asarray(P_tray_psia, dtype=float).reshape((col.n_stages,))
+    except Exception:
+        return None
+    targets = np.full((col.n_stages,), np.nan, dtype=float)
+    for i in range(col.n_stages):
+        try:
+            if not np.isfinite(float(P_arr[i])):
+                continue
+            T_eq, _ = _bubble_point_T_F(
+                thermo_provider=thermo_provider,
+                P_psia=float(P_arr[i]),
+                x=x_tray[i, :],
+                T_guess_F=float(tray_T[i]),
+            )
+            if np.isfinite(float(T_eq)):
+                targets[i] = float(T_eq)
+        except Exception:
+            continue
+    return targets
 
 
 def _initialize_hydraulic_energy_consistent_state(
@@ -4675,8 +4833,33 @@ def _profile_rows(
             dMLdt_feed = np.asarray(diag["dMLdt_feed_lbmolps_tray"], dtype=float).reshape((N,))
         except Exception:
             dMLdt_feed = None
+    beta_eq_tray = None
+    if "beta_eq_tray" in diag:
+        try:
+            beta_eq_tray = np.asarray(diag["beta_eq_tray"], dtype=float).reshape((N,))
+        except Exception:
+            beta_eq_tray = None
+    eq_phase_weight = None
+    if "eq_phase_holdup_guard_weight_tray" in diag:
+        try:
+            eq_phase_weight = np.asarray(diag["eq_phase_holdup_guard_weight_tray"], dtype=float).reshape((N,))
+        except Exception:
+            eq_phase_weight = None
+    eq_phase_cap = None
+    if "eq_phase_holdup_guard_cap_tray" in diag:
+        try:
+            eq_phase_cap = np.asarray(diag["eq_phase_holdup_guard_cap_tray"], dtype=float).reshape((N,))
+        except Exception:
+            eq_phase_cap = None
+    eq_phase_energy_damping = None
+    if "eq_phase_energy_damping_tray" in diag:
+        try:
+            eq_phase_energy_damping = np.asarray(diag["eq_phase_energy_damping_tray"], dtype=float).reshape((N,))
+        except Exception:
+            eq_phase_energy_damping = None
     HL_tray = None
     HV_tray = None
+    q_phase_latent = None
     K_state_tray = None
     K_thermo_tray = None
     K_ratio_tray = None
@@ -4690,6 +4873,11 @@ def _profile_rows(
             HV_tray = np.asarray(diag["HV_BTU_lbmol_tray"], dtype=float).reshape((N,))
         except Exception:
             HV_tray = None
+    if "Q_phase_relax_latent_BTUps_tray" in diag:
+        try:
+            q_phase_latent = np.asarray(diag["Q_phase_relax_latent_BTUps_tray"], dtype=float).reshape((N,))
+        except Exception:
+            q_phase_latent = None
     if "K_state_y_over_x_tray" in diag:
         try:
             K_state_tray = np.asarray(diag["K_state_y_over_x_tray"], dtype=float).reshape((N, Nc))
@@ -4935,6 +5123,12 @@ def _profile_rows(
             xD_comp_pv = float(np.asarray(diag["xD_comp_pv"], dtype=float).reshape((-1,))[0])
         except Exception:
             xD_comp_pv = np.nan
+    xD_comp_err = np.nan
+    if "xD_comp_err" in diag:
+        try:
+            xD_comp_err = float(np.asarray(diag["xD_comp_err"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            xD_comp_err = np.nan
     RR_comp_cmd = np.nan
     if "RR_comp_cmd" in diag:
         try:
@@ -4947,6 +5141,24 @@ def _profile_rows(
             Reflux_cmd_lbmolph = float(np.asarray(diag["Reflux_cmd_lbmolph"], dtype=float).reshape((-1,))[0])
         except Exception:
             Reflux_cmd_lbmolph = np.nan
+    Reflux_cmd_unclamped_lbmolph = np.nan
+    if "Reflux_cmd_unclamped_lbmolph" in diag:
+        try:
+            Reflux_cmd_unclamped_lbmolph = float(np.asarray(diag["Reflux_cmd_unclamped_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Reflux_cmd_unclamped_lbmolph = np.nan
+    Reflux_cmd_active_max_lbmolph = np.nan
+    if "Reflux_cmd_active_max_lbmolph" in diag:
+        try:
+            Reflux_cmd_active_max_lbmolph = float(np.asarray(diag["Reflux_cmd_active_max_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Reflux_cmd_active_max_lbmolph = np.nan
+    Reflux_cap_active_flag = np.nan
+    if "Reflux_cap_active_flag" in diag:
+        try:
+            Reflux_cap_active_flag = float(np.asarray(diag["Reflux_cap_active_flag"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Reflux_cap_active_flag = np.nan
     xB_comp_sp = np.nan
     if "xB_comp_sp" in diag:
         try:
@@ -5090,8 +5302,23 @@ def _profile_rows(
             "dMLdt_feed_lbmolps": (
                 float(dMLdt_feed[i]) if dMLdt_feed is not None and np.isfinite(dMLdt_feed[i]) else np.nan
             ),
+            "beta_eq_tray": float(beta_eq_tray[i]) if beta_eq_tray is not None and np.isfinite(beta_eq_tray[i]) else np.nan,
+            "eq_phase_holdup_guard_weight_tray": (
+                float(eq_phase_weight[i]) if eq_phase_weight is not None and np.isfinite(eq_phase_weight[i]) else np.nan
+            ),
+            "eq_phase_holdup_guard_cap_tray": (
+                float(eq_phase_cap[i]) if eq_phase_cap is not None and np.isfinite(eq_phase_cap[i]) else np.nan
+            ),
+            "eq_phase_energy_damping_tray": (
+                float(eq_phase_energy_damping[i])
+                if eq_phase_energy_damping is not None and np.isfinite(eq_phase_energy_damping[i])
+                else np.nan
+            ),
             "stage_mass_balance_resid_lbmolps": float(mass_resid[i]) if mass_resid is not None and np.isfinite(mass_resid[i]) else np.nan,
             "stage_energy_balance_resid_BTUps": float(energy_resid[i]) if energy_resid is not None and np.isfinite(energy_resid[i]) else np.nan,
+            "Q_phase_relax_latent_BTUps": (
+                float(q_phase_latent[i]) if q_phase_latent is not None and np.isfinite(q_phase_latent[i]) else np.nan
+            ),
             "HL_BTU_lbmol_tray": float(HL_tray[i]) if HL_tray is not None and np.isfinite(HL_tray[i]) else np.nan,
             "HV_BTU_lbmol_tray": float(HV_tray[i]) if HV_tray is not None and np.isfinite(HV_tray[i]) else np.nan,
             "reflux_ratio": _stage_value(i1, 1, reflux_ratio),
@@ -5132,8 +5359,12 @@ def _profile_rows(
             "P_top_anchor_cmd_psia": _stage_value(i1, 1, P_top_anchor_cmd_psia),
             "xD_comp_sp": _stage_value(i1, 1, xD_comp_sp),
             "xD_comp_pv": _stage_value(i1, 1, xD_comp_pv),
+            "xD_comp_err": _stage_value(i1, 1, xD_comp_err),
             "RR_comp_cmd": _stage_value(i1, 1, RR_comp_cmd),
             "Reflux_cmd_lbmolph": _stage_value(i1, 1, Reflux_cmd_lbmolph),
+            "Reflux_cmd_unclamped_lbmolph": _stage_value(i1, 1, Reflux_cmd_unclamped_lbmolph),
+            "Reflux_cmd_active_max_lbmolph": _stage_value(i1, 1, Reflux_cmd_active_max_lbmolph),
+            "Reflux_cap_active_flag": _stage_value(i1, 1, Reflux_cap_active_flag),
             "xB_comp_sp": _stage_value(i1, N, xB_comp_sp),
             "xB_comp_pv": _stage_value(i1, N, xB_comp_pv),
             "Boilup_cmd_lbmolph": _stage_value(i1, N, Boilup_cmd_lbmolph),
@@ -5205,8 +5436,12 @@ def _profile_rows(
             "P_top_anchor_cmd_psia",
             "xD_comp_sp",
             "xD_comp_pv",
+            "xD_comp_err",
             "RR_comp_cmd",
             "Reflux_cmd_lbmolph",
+            "Reflux_cmd_unclamped_lbmolph",
+            "Reflux_cmd_active_max_lbmolph",
+            "Reflux_cap_active_flag",
         }
         sump_fields = {
             "B_lbmolph",
@@ -5513,6 +5748,12 @@ def _summary_row(
             xD_comp_pv = float(np.asarray(diag["xD_comp_pv"], dtype=float).reshape((-1,))[0])
         except Exception:
             xD_comp_pv = np.nan
+    xD_comp_err = np.nan
+    if "xD_comp_err" in diag:
+        try:
+            xD_comp_err = float(np.asarray(diag["xD_comp_err"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            xD_comp_err = np.nan
     RR_comp_cmd = np.nan
     if "RR_comp_cmd" in diag:
         try:
@@ -5525,6 +5766,24 @@ def _summary_row(
             Reflux_cmd_lbmolph = float(np.asarray(diag["Reflux_cmd_lbmolph"], dtype=float).reshape((-1,))[0])
         except Exception:
             Reflux_cmd_lbmolph = np.nan
+    Reflux_cmd_unclamped_lbmolph = np.nan
+    if "Reflux_cmd_unclamped_lbmolph" in diag:
+        try:
+            Reflux_cmd_unclamped_lbmolph = float(np.asarray(diag["Reflux_cmd_unclamped_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Reflux_cmd_unclamped_lbmolph = np.nan
+    Reflux_cmd_active_max_lbmolph = np.nan
+    if "Reflux_cmd_active_max_lbmolph" in diag:
+        try:
+            Reflux_cmd_active_max_lbmolph = float(np.asarray(diag["Reflux_cmd_active_max_lbmolph"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Reflux_cmd_active_max_lbmolph = np.nan
+    Reflux_cap_active_flag = np.nan
+    if "Reflux_cap_active_flag" in diag:
+        try:
+            Reflux_cap_active_flag = float(np.asarray(diag["Reflux_cap_active_flag"], dtype=float).reshape((-1,))[0])
+        except Exception:
+            Reflux_cap_active_flag = np.nan
     xB_comp_sp = np.nan
     if "xB_comp_sp" in diag:
         try:
@@ -5809,8 +6068,16 @@ def _summary_row(
         ),
         "xD_comp_sp": float(xD_comp_sp) if np.isfinite(xD_comp_sp) else np.nan,
         "xD_comp_pv": float(xD_comp_pv) if np.isfinite(xD_comp_pv) else np.nan,
+        "xD_comp_err": float(xD_comp_err) if np.isfinite(xD_comp_err) else np.nan,
         "RR_comp_cmd": float(RR_comp_cmd) if np.isfinite(RR_comp_cmd) else np.nan,
         "Reflux_cmd_lbmolph": float(Reflux_cmd_lbmolph) if np.isfinite(Reflux_cmd_lbmolph) else np.nan,
+        "Reflux_cmd_unclamped_lbmolph": (
+            float(Reflux_cmd_unclamped_lbmolph) if np.isfinite(Reflux_cmd_unclamped_lbmolph) else np.nan
+        ),
+        "Reflux_cmd_active_max_lbmolph": (
+            float(Reflux_cmd_active_max_lbmolph) if np.isfinite(Reflux_cmd_active_max_lbmolph) else np.nan
+        ),
+        "Reflux_cap_active_flag": float(Reflux_cap_active_flag) if np.isfinite(Reflux_cap_active_flag) else np.nan,
         "xB_comp_sp": float(xB_comp_sp) if np.isfinite(xB_comp_sp) else np.nan,
         "xB_comp_pv": float(xB_comp_pv) if np.isfinite(xB_comp_pv) else np.nan,
         "Boilup_cmd_lbmolph": float(Boilup_cmd_lbmolph) if np.isfinite(Boilup_cmd_lbmolph) else np.nan,
@@ -6094,6 +6361,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     last_K_tray: Optional[np.ndarray] = None
     last_HL: Optional[np.ndarray] = None
     last_HV: Optional[np.ndarray] = None
+    last_energy_resid_tray: Optional[np.ndarray] = None
+    last_phase_energy_damping_min: Optional[np.ndarray] = None
+    last_tray_bubble_target_F: Optional[np.ndarray] = None
     last_Zfac: Optional[np.ndarray] = None
     last_z_overall: Optional[np.ndarray] = None
     last_diag: Optional[Dict[str, np.ndarray]] = None
@@ -6217,6 +6487,26 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             f"iters={iters}  success={bool(top_drum_init_info.get('success', False))}"
         )
     _milestone("initialized vapor holdup from spec pressure")
+    if (
+        str(base_inputs.pressure_model).strip().lower() == "hydraulic"
+        and str(base_inputs.vapor_flow_model).strip().lower() == "energy"
+        and str(base_inputs.hydraulic_energy_temperature_mode).strip().lower() == "bubble-point-follower"
+        and base_inputs.thermo_provider is not None
+        and bool(cfg.include_temperature)
+    ):
+        try:
+            p_init = np.asarray(getattr(col, "P_psia", np.full(col.n_stages, 200.0, dtype=float)), dtype=float).reshape((col.n_stages,))
+            last_tray_bubble_target_F = _refresh_tray_bubble_targets_F(
+                col=col,
+                layout=layout,
+                y=y,
+                thermo_provider=base_inputs.thermo_provider,
+                P_tray_psia=p_init,
+            )
+            if last_tray_bubble_target_F is not None and np.any(np.isfinite(last_tray_bubble_target_F)):
+                _milestone("initialized cached tray bubble-point targets")
+        except Exception:
+            last_tray_bubble_target_F = None
 
     # Resolve streams for logging placement
     feed_tag, dist_tag, bots_tag = _resolve_logging_streams(case, col)
@@ -6484,6 +6774,10 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             step_distillate_comp_sp: Optional[float] = None
             step_reflux_ratio_cmd: Optional[float] = None
             step_reflux_cmd_lbmolph: Optional[float] = None
+            step_distillate_comp_error: Optional[float] = None
+            step_distillate_comp_u_unclamped: Optional[float] = None
+            step_distillate_comp_out_max: Optional[float] = None
+            step_distillate_comp_cap_active: Optional[float] = None
             step_bottoms_comp_pv: Optional[float] = None
             step_bottoms_comp_sp: Optional[float] = None
             step_boilup_cmd_lbmolph: Optional[float] = None
@@ -6609,14 +6903,17 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     reflux_max_feasible = max(float(dist_comp_ctrl.out_min), float(reflux_max_feasible))
 
                 if controllers_active:
+                    reflux_ctrl_debug: Dict[str, float] = {}
                     reflux_cmd = _pi_update(
                         dist_comp_ctrl,
                         pv=float(xD_pv),
                         sp=float(dist_comp_sp),
                         dt_sec=float(dt),
                         out_max=float(reflux_max_feasible),
+                        debug=reflux_ctrl_debug,
                     )
                 else:
+                    reflux_ctrl_debug = {}
                     if step_boundary.reflux_lbmolph is not None:
                         reflux_cmd = float(step_boundary.reflux_lbmolph)
                     else:
@@ -6628,6 +6925,15 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     bottoms_lbmolph=step_boundary.bottoms_lbmolph,
                 )
                 step_reflux_cmd_lbmolph = float(reflux_cmd)
+                step_distillate_comp_error = float(reflux_ctrl_debug.get("error", np.nan))
+                step_distillate_comp_u_unclamped = float(reflux_ctrl_debug.get("u_unclamped", np.nan))
+                step_distillate_comp_out_max = float(reflux_max_feasible)
+                step_distillate_comp_cap_active = (
+                    1.0
+                    if np.isfinite(float(reflux_max_feasible))
+                    and float(reflux_max_feasible) < float(dist_comp_ctrl.out_max) - 1e-9
+                    else 0.0
+                )
                 d_for_ratio = np.nan
                 if step_boundary.distillate_lbmolph is not None:
                     d_for_ratio = float(step_boundary.distillate_lbmolph)
@@ -6908,6 +7214,17 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     equilibrium_relaxation=base_inputs.equilibrium_relaxation,
                     equilibrium_relaxation_mode=base_inputs.equilibrium_relaxation_mode,
                     equilibrium_phase_holdup_guard_lbmol=base_inputs.equilibrium_phase_holdup_guard_lbmol,
+                    equilibrium_energy_damping_gain=base_inputs.equilibrium_energy_damping_gain,
+                    hydraulic_energy_temperature_damping=base_inputs.hydraulic_energy_temperature_damping,
+                    hydraulic_energy_temperature_mode=base_inputs.hydraulic_energy_temperature_mode,
+                    hydraulic_energy_temperature_follow_tau_sec=base_inputs.hydraulic_energy_temperature_follow_tau_sec,
+                    hydraulic_energy_temperature_resid_frac=base_inputs.hydraulic_energy_temperature_resid_frac,
+                    hydraulic_energy_temperature_pressure_slope_F_per_psi=(
+                        base_inputs.hydraulic_energy_temperature_pressure_slope_F_per_psi
+                    ),
+                    tray_bubble_target_prev_F=last_tray_bubble_target_F,
+                    energy_balance_resid_prev_BTUps_tray=last_energy_resid_tray,
+                    phase_energy_damping_min_prev_tray=last_phase_energy_damping_min,
                     tau_eq_sec=base_inputs.tau_eq_sec,
                     condenser_alpha=base_inputs.condenser_alpha,
                     clamp_alpha=base_inputs.clamp_alpha,
@@ -7007,6 +7324,17 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     equilibrium_relaxation=base_inputs.equilibrium_relaxation,
                     equilibrium_relaxation_mode=base_inputs.equilibrium_relaxation_mode,
                     equilibrium_phase_holdup_guard_lbmol=base_inputs.equilibrium_phase_holdup_guard_lbmol,
+                    equilibrium_energy_damping_gain=base_inputs.equilibrium_energy_damping_gain,
+                    hydraulic_energy_temperature_damping=base_inputs.hydraulic_energy_temperature_damping,
+                    hydraulic_energy_temperature_mode=base_inputs.hydraulic_energy_temperature_mode,
+                    hydraulic_energy_temperature_follow_tau_sec=base_inputs.hydraulic_energy_temperature_follow_tau_sec,
+                    hydraulic_energy_temperature_resid_frac=base_inputs.hydraulic_energy_temperature_resid_frac,
+                    hydraulic_energy_temperature_pressure_slope_F_per_psi=(
+                        base_inputs.hydraulic_energy_temperature_pressure_slope_F_per_psi
+                    ),
+                    tray_bubble_target_prev_F=last_tray_bubble_target_F,
+                    energy_balance_resid_prev_BTUps_tray=last_energy_resid_tray,
+                    phase_energy_damping_min_prev_tray=last_phase_energy_damping_min,
                     tau_eq_sec=base_inputs.tau_eq_sec,
                     condenser_duty_mode=str(step_condenser_duty_mode),
                     condenser_duty_btu_per_h=(
@@ -7297,6 +7625,14 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 diag["xD_comp_sp"] = np.array([float(step_distillate_comp_sp)], dtype=float)
             if step_distillate_comp_pv is not None and np.isfinite(float(step_distillate_comp_pv)):
                 diag["xD_comp_pv"] = np.array([float(step_distillate_comp_pv)], dtype=float)
+            if step_distillate_comp_error is not None and np.isfinite(float(step_distillate_comp_error)):
+                diag["xD_comp_err"] = np.array([float(step_distillate_comp_error)], dtype=float)
+            if step_distillate_comp_u_unclamped is not None and np.isfinite(float(step_distillate_comp_u_unclamped)):
+                diag["Reflux_cmd_unclamped_lbmolph"] = np.array([float(step_distillate_comp_u_unclamped)], dtype=float)
+            if step_distillate_comp_out_max is not None and np.isfinite(float(step_distillate_comp_out_max)):
+                diag["Reflux_cmd_active_max_lbmolph"] = np.array([float(step_distillate_comp_out_max)], dtype=float)
+            if step_distillate_comp_cap_active is not None and np.isfinite(float(step_distillate_comp_cap_active)):
+                diag["Reflux_cap_active_flag"] = np.array([float(step_distillate_comp_cap_active)], dtype=float)
             if step_reflux_ratio_cmd is not None and np.isfinite(float(step_reflux_ratio_cmd)):
                 diag["RR_comp_cmd"] = np.array([float(step_reflux_ratio_cmd)], dtype=float)
             if step_reflux_cmd_lbmolph is not None and np.isfinite(float(step_reflux_cmd_lbmolph)):
@@ -7743,6 +8079,28 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     last_HL = np.asarray(diag["HL_BTU_lbmol_tray"], dtype=float).copy()
                 if "HV_BTU_lbmol_tray" in diag:
                     last_HV = np.asarray(diag["HV_BTU_lbmol_tray"], dtype=float).copy()
+                if "energy_balance_resid_BTUps_tray" in diag:
+                    try:
+                        last_energy_resid_tray = np.asarray(diag["energy_balance_resid_BTUps_tray"], dtype=float).copy()
+                    except Exception:
+                        pass
+                if "eq_phase_energy_damping_tray" in diag:
+                    try:
+                        current_energy_damping = np.asarray(diag["eq_phase_energy_damping_tray"], dtype=float).copy()
+                        current_energy_damping = np.where(
+                            np.isfinite(current_energy_damping),
+                            np.clip(current_energy_damping, 0.25, 1.0),
+                            1.0,
+                        )
+                        if last_phase_energy_damping_min is None:
+                            last_phase_energy_damping_min = current_energy_damping
+                        else:
+                            last_phase_energy_damping_min = np.minimum(
+                                np.asarray(last_phase_energy_damping_min, dtype=float),
+                                current_energy_damping,
+                            )
+                    except Exception:
+                        pass
                 if "Z_tray" in diag:
                     last_Zfac = np.asarray(diag["Z_tray"], dtype=float).copy()
                 if "z_overall_tray" in diag:
@@ -7774,6 +8132,46 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     last_T_tray = _tray_temperature_F(col, layout, y, include_temperature=bool(cfg.include_temperature)).copy()
                 except Exception:
                     pass
+                if (
+                    str(base_inputs.pressure_model).strip().lower() == "hydraulic"
+                    and str(base_inputs.vapor_flow_model).strip().lower() == "energy"
+                    and str(base_inputs.hydraulic_energy_temperature_mode).strip().lower()
+                    == "bubble-point-follower"
+                    and base_inputs.thermo_provider is not None
+                    and bool(cfg.include_temperature)
+                ):
+                    refresh_steps = int(
+                        getattr(cfg, "hydraulic_energy_temperature_target_refresh_steps", None) or 20
+                    )
+                    if refresh_steps <= 0:
+                        refresh_steps = 1
+                    should_refresh_targets = (
+                        last_tray_bubble_target_F is None
+                        or (step <= 1)
+                        or ((step % refresh_steps) == 0)
+                    )
+                    if should_refresh_targets:
+                        try:
+                            p_target = (
+                                np.asarray(last_P_hyd, dtype=float).copy()
+                                if last_P_hyd is not None
+                                else (
+                                    np.asarray(last_P_diag, dtype=float).copy()
+                                    if last_P_diag is not None
+                                    else np.asarray(getattr(col, "P_psia", np.full(col.n_stages, 200.0, dtype=float)), dtype=float).reshape((col.n_stages,))
+                                )
+                            )
+                            refreshed_targets = _refresh_tray_bubble_targets_F(
+                                col=col,
+                                layout=layout,
+                                y=y,
+                                thermo_provider=base_inputs.thermo_provider,
+                                P_tray_psia=p_target,
+                            )
+                            if refreshed_targets is not None and np.any(np.isfinite(refreshed_targets)):
+                                last_tray_bubble_target_F = np.asarray(refreshed_targets, dtype=float).copy()
+                        except Exception:
+                            pass
                 last_diag = diag
             else:
                 if last_Z_tray is not None:
@@ -7786,6 +8184,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     diag["P_psia_hyd"] = last_P_hyd
                 if last_rhoL is not None:
                     diag["rhoL_tray_lbmol_ft3"] = last_rhoL
+                if last_energy_resid_tray is not None:
+                    diag["energy_balance_resid_BTUps_tray"] = last_energy_resid_tray
 
             # Log / print at cadence
             if (step % log_every) == 0:
@@ -8139,6 +8539,64 @@ def main(argv: Optional[List[str]] = None) -> int:
             "Optional guard mass (lbmol) that softens phase-holdup relaxation "
             "toward the flash-predicted vapor amount."
         ),
+    )
+    p.add_argument(
+        "--equilibrium-energy-damping-gain",
+        dest="equilibrium_energy_damping_gain",
+        type=float,
+        default=None,
+        help=(
+            "Optional gain for previous-step energy-residual damping of "
+            "phase-holdup relaxation. Zero disables this path."
+        ),
+    )
+    p.add_argument(
+        "--hydraulic-energy-temperature-damping",
+        dest="hydraulic_energy_temperature_damping",
+        type=float,
+        default=None,
+        help=(
+            "Optional scalar damping on tray dT/dt in hydraulic+energy mode. "
+            "1.0 keeps current behavior; smaller values soften the temperature path."
+        ),
+    )
+    p.add_argument(
+        "--hydraulic-energy-temperature-mode",
+        dest="hydraulic_energy_temperature_mode",
+        choices=["legacy", "bubble-point-follower", "pressure-correction-follower"],
+        default=None,
+        help="Tray temperature handling in hydraulic+energy mode.",
+    )
+    p.add_argument(
+        "--hydraulic-energy-temperature-follow-tau-sec",
+        dest="hydraulic_energy_temperature_follow_tau_sec",
+        type=float,
+        default=None,
+        help="Relaxation time for hydraulic+energy bubble-point follower mode.",
+    )
+    p.add_argument(
+        "--hydraulic-energy-temperature-resid-frac",
+        dest="hydraulic_energy_temperature_resid_frac",
+        type=float,
+        default=None,
+        help="Small residual dE/C fraction retained in bubble-point follower mode.",
+    )
+    p.add_argument(
+        "--hydraulic-energy-temperature-pressure-slope-f-per-psi",
+        dest="hydraulic_energy_temperature_pressure_slope_F_per_psi",
+        type=float,
+        default=None,
+        help=(
+            "Pressure-correction follower slope in F/psi for hydraulic+energy "
+            "temperature mode."
+        ),
+    )
+    p.add_argument(
+        "--hydraulic-energy-temperature-target-refresh-steps",
+        dest="hydraulic_energy_temperature_target_refresh_steps",
+        type=int,
+        default=None,
+        help="Refresh cadence in outer time steps for cached bubble-point targets.",
     )
 
     p.add_argument(
@@ -8658,6 +9116,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         enable_equilibrium_relaxation=bool(args.enable_equilibrium_relaxation),
         equilibrium_relaxation_mode=str(args.equilibrium_relaxation_mode),
         equilibrium_phase_holdup_guard_lbmol=args.equilibrium_phase_holdup_guard_lbmol,
+        equilibrium_energy_damping_gain=args.equilibrium_energy_damping_gain,
+        hydraulic_energy_temperature_damping=args.hydraulic_energy_temperature_damping,
+        hydraulic_energy_temperature_mode=args.hydraulic_energy_temperature_mode,
+        hydraulic_energy_temperature_follow_tau_sec=args.hydraulic_energy_temperature_follow_tau_sec,
+        hydraulic_energy_temperature_resid_frac=args.hydraulic_energy_temperature_resid_frac,
+        hydraulic_energy_temperature_pressure_slope_F_per_psi=(
+            args.hydraulic_energy_temperature_pressure_slope_F_per_psi
+        ),
+        hydraulic_energy_temperature_target_refresh_steps=args.hydraulic_energy_temperature_target_refresh_steps,
         thermo_mode=str(args.thermo_mode),
         thermo_every_n_steps=int(args.thermo_every_n_steps),
         thermo_refresh_dT_F=args.thermo_refresh_dT_F,

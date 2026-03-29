@@ -28,6 +28,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from openpyxl import Workbook, load_workbook
 
 from dynamic_distillation.dynamic_run_scaffold_v1 import (
     PIController,
@@ -59,6 +60,7 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _sync_algebraic_tray_temperature_state,
     build_inputs_for_runner,
     run_smoke_simulation,
+    write_restart_workbook_from_run_result,
 )
 from dynamic_distillation.column_rhs_v1 import ColumnInputs, column_rhs
 from dynamic_distillation.column_spec_builder_v1 import (
@@ -70,6 +72,139 @@ from dynamic_distillation.column_spec_builder_v1 import (
 )
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
 from dynamic_distillation.stage_hydraulics_francis_v1 import compute_francis_weir_liquid_outflow
+
+
+def test_write_restart_workbook_from_run_result_writes_boundary_state_sheet(tmp_path: Path):
+    template = tmp_path / "template.xlsx"
+    wb = Workbook()
+    ws_specs = wb.active
+    ws_specs.title = "Specifications"
+    specs_rows = [
+        ("Number of Stages", 2),
+        ("Number of Components", 2),
+        ("Simulation Length (min)", 1.0),
+        ("Timestep (sec)", 1.0),
+        ("Log Frequency (timesteps)", 1),
+    ]
+    for r, (k, v) in enumerate(specs_rows, start=1):
+        ws_specs.cell(r, 1).value = k
+        ws_specs.cell(r, 2).value = v
+
+    ws_ic = wb.create_sheet("Initial Conditions")
+    headers = [
+        "Stage",
+        "Temperature (F)",
+        "Pressure (psia)",
+        "Vapor Flow (lbmol/h)",
+        "Liquid Flow (lbmol/h)",
+        "Liquid Holdup (lbmol)",
+        "Vapor Holdup (lbmol)",
+        "Vapor Composition Component 1",
+        "Vapor Composition Component 2",
+        "Liquid Composition Component 1",
+        "Liquid Composition Component 2",
+    ]
+    for c, h in enumerate(headers, start=1):
+        ws_ic.cell(1, c).value = h
+    wb.save(template)
+
+    col = ColumnSpec(
+        excel_path=str(template),
+        components_excel=["Propane", "N-butane"],
+        components_dwsim=["Propane", "N-butane"],
+        n_components=2,
+        n_stages=2,
+        stage_1based=np.array([1, 2], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={
+            "Number of Stages": 2,
+            "Number of Components": 2,
+            "Simulation Length (min)": 1.0,
+            "Timestep (sec)": 1.0,
+            "Log Frequency (timesteps)": 1,
+        },
+        T_f=np.array([100.0, 120.0], dtype=float),
+        P_psia=np.array([200.0, 210.0], dtype=float),
+        V_lbmolph=np.array([10.0, 20.0], dtype=float),
+        L_lbmolph=np.array([30.0, 40.0], dtype=float),
+        M_L_lbmol=np.array([5.0, 6.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 2.0], dtype=float),
+        y0=np.array([[0.6, 0.4], [0.55, 0.45]], dtype=float),
+        x0=np.array([[0.7, 0.3], [0.65, 0.35]], dtype=float),
+        streams={},
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=True,
+    )
+    y = layout.pack_y0(col)
+    sl = layout.slices()
+    y[sl["tray_T_f"]] = np.array([111.0, 222.0], dtype=float)
+    y[sl["top_L"]] = np.array([10.0, 20.0], dtype=float)
+    y[sl["top_V"]] = np.array([1.0, 2.0], dtype=float)
+    y[sl["bottom_L"]] = np.array([30.0, 40.0], dtype=float)
+    y[sl["bottom_V"]] = np.array([3.0, 4.0], dtype=float)
+    y[sl["tray_EL_BTU"]] = np.array([101.0, 102.0], dtype=float)
+    y[sl["tray_EV_BTU"]] = np.array([201.0, 202.0], dtype=float)
+
+    out_path = tmp_path / "restart.xlsx"
+    write_restart_workbook_from_run_result(
+        run_result={
+            "excel_path": str(template),
+            "final_state": y,
+            "layout": layout,
+            "column": col,
+            "controller_state_final": {
+                "top_level_integ": 1.5,
+                "top_pressure_integ": -2.5,
+                "top_pressure_pv_filt_psia": 221.25,
+            },
+            "last_diag": {
+                "x_tray": col.x0,
+                "y_tray": col.y0,
+                "P_psia_hyd": col.P_psia,
+                "L_out_used_lbmolph": col.L_lbmolph,
+                "V_out_lbmolph": col.V_lbmolph,
+            },
+        },
+        output_excel_path=str(out_path),
+    )
+
+    wb2 = load_workbook(out_path, data_only=True)
+    assert "Boundary State" in wb2.sheetnames
+    assert "Energy State" in wb2.sheetnames
+    assert "Controller State" in wb2.sheetnames
+    wsb = wb2["Boundary State"]
+    assert wsb.cell(2, 1).value == "top_L"
+    assert wsb.cell(2, 2).value == pytest.approx(10.0)
+    assert wsb.cell(3, 1).value == "top_V"
+    assert wsb.cell(3, 2).value == pytest.approx(1.0)
+    assert wsb.cell(4, 1).value == "bottom_L"
+    assert wsb.cell(4, 2).value == pytest.approx(30.0)
+    assert wsb.cell(5, 1).value == "bottom_V"
+    assert wsb.cell(5, 2).value == pytest.approx(3.0)
+    wse = wb2["Energy State"]
+    assert wse.cell(2, 1).value == 1
+    assert wse.cell(2, 2).value == pytest.approx(101.0)
+    assert wse.cell(2, 3).value == pytest.approx(201.0)
+    assert wse.cell(3, 1).value == 2
+    assert wse.cell(3, 2).value == pytest.approx(102.0)
+    assert wse.cell(3, 3).value == pytest.approx(202.0)
+    wsc = wb2["Controller State"]
+    ctrl_map = {
+        wsc.cell(r, 1).value: wsc.cell(r, 2).value
+        for r in range(2, wsc.max_row + 1)
+        if wsc.cell(r, 1).value is not None
+    }
+    assert ctrl_map["top_level_integ"] == pytest.approx(1.5)
+    assert ctrl_map["top_pressure_integ"] == pytest.approx(-2.5)
+    assert ctrl_map["top_pressure_pv_filt_psia"] == pytest.approx(221.25)
 
 
 def test_inventory_rate_detail_reports_tray_stage_and_component():
@@ -734,9 +869,19 @@ def test_profile_rows_add_unit_rows_and_move_drum_sump_fields():
         "V_top_drum_vapor_ft3": np.array([500.0], dtype=float),
         "Q_reb_cmd_BTUph": np.array([8.2e7], dtype=float),
         "Q_reb_used_BTUph": np.array([8.1e7], dtype=float),
+        "x_eq_tray": np.array([[0.78, 0.22], [0.28, 0.72]], dtype=float),
+        "y_eq_tray": np.array([[0.74, 0.26], [0.24, 0.76]], dtype=float),
+        "y_target_tray": np.array([[0.745, 0.255], [0.245, 0.755]], dtype=float),
         "xD_comp_sp": np.array([0.10], dtype=float),
         "xD_comp_pv": np.array([0.12], dtype=float),
         "Reflux_cmd_lbmolph": np.array([6000.0], dtype=float),
+        "eq_flash_mv_total_lbmol_tray": np.array([1.2, 1.6], dtype=float),
+        "eq_target_mv_total_lbmol_tray": np.array([1.3, 1.7], dtype=float),
+        "eq_target_vapor_total_lbmol_tray": np.array([1.4, 1.8], dtype=float),
+        "eq_target_vapor_delta_lbmol_tray": np.array([0.4, 0.8], dtype=float),
+        "eq_target_vapor_fraction_tray": np.array([0.20, 0.257142857], dtype=float),
+        "eq_current_vapor_fraction_tray": np.array([1.0 / 6.0, 1.0 / 7.0], dtype=float),
+        "eq_phase_change_lbmolps_tray": np.array([0.20, 0.40], dtype=float),
         "xB_comp_sp": np.array([0.30], dtype=float),
         "xB_comp_pv": np.array([0.28], dtype=float),
         "Boilup_cmd_lbmolph": np.array([12000.0], dtype=float),
@@ -795,6 +940,15 @@ def test_profile_rows_add_unit_rows_and_move_drum_sump_fields():
     assert np.isfinite(float(sump["Bottoms_x_C4"]))
     assert np.isnan(float(stage2["B_lbmolph"]))
     assert float(sump["B_lbmolph"]) == pytest.approx(800.0)
+    assert float(stage1["eq_target_vapor_total_lbmol_tray"]) == pytest.approx(1.4)
+    assert float(stage2["eq_target_vapor_delta_lbmol_tray"]) == pytest.approx(0.8)
+    assert float(stage1["eq_current_vapor_fraction_tray"]) == pytest.approx(1.0 / 6.0)
+    assert float(stage2["eq_phase_change_lbmolps_tray"]) == pytest.approx(0.40)
+    assert float(stage1["eq_flash_mv_total_lbmol_tray"]) == pytest.approx(1.2)
+    assert float(stage2["eq_target_mv_total_lbmol_tray"]) == pytest.approx(1.7)
+    assert float(stage1["x_eq_C3"]) == pytest.approx(0.78)
+    assert float(stage2["y_eq_C4"]) == pytest.approx(0.76)
+    assert float(stage1["y_target_C4"]) == pytest.approx(0.255)
 
 
 def test_clip_temperature_states_to_provider_bounds():
@@ -2088,6 +2242,34 @@ def test_build_inputs_reads_and_overrides_condenser_pressure_drop():
     assert abs(float(inputs_override.condenser_pressure_drop_psi) - 1.25) < 1e-12
 
 
+def test_build_inputs_can_enable_selective_live_pr_for_equilibrium_relaxation(monkeypatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+    import dynamic_distillation.thermo_provider_v1 as thermo_provider_v1
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    class _FakeThermoProvider:
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    monkeypatch.setattr(thermo_provider_v1, "ThermoProviderV1", _FakeThermoProvider)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        equilibrium_relaxation_live_pr=True,
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert inputs.equilibrium_relaxation_thermo_provider is not None
+
+
 def test_build_inputs_reads_and_overrides_top_psv_settings():
     excel = Path("distillation_column_template.xlsx")
     if not excel.exists():
@@ -2184,11 +2366,15 @@ def test_build_inputs_adds_overhead_and_condenser_vapor_capacitance():
     cfg = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
     inputs, _ = build_inputs_for_runner(case, col, cfg)
 
+    total_vol = float(np.pi * 0.25 * 10.0 * 10.0 * 40.0)
+    expected_shell_vapor = total_vol * (1.0 - 0.60)
     adders = 56.0 + 100.0
-    # Template uses total condenser; drum vapor space is decoupled from pressure side.
-    assert inputs.top_drum_total_volume_ft3 is None
+    assert inputs.top_drum_total_volume_ft3 is not None
+    assert abs(float(inputs.top_drum_total_volume_ft3) - total_vol) < 1e-9
     assert inputs.top_drum_vapor_volume_ft3 is not None
-    assert abs(float(inputs.top_drum_vapor_volume_ft3) - adders) < 1e-9
+    assert abs(float(inputs.top_drum_vapor_volume_ft3) - expected_shell_vapor) < 1e-9
+    assert inputs.top_drum_extra_vapor_volume_ft3 is not None
+    assert abs(float(inputs.top_drum_extra_vapor_volume_ft3) - adders) < 1e-9
 
 
 def test_build_inputs_infers_top_drum_total_volume_from_holdup_and_vapor_volume():

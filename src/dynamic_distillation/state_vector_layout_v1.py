@@ -294,8 +294,18 @@ class StateVectorLayout:
 
             y[sl["top_L"]] = topL
             if self.include_vapor:
-                topV_base = (MV0[0] * y0v[0, :]).copy()
-                topV = self.epsilon_lbmol * self._safe_norm_vec(topV_base, self.epsilon_lbmol)
+                topV = None
+                if hasattr(col, "top_V0_lbmol"):
+                    raw = getattr(col, "top_V0_lbmol")
+                    try:
+                        arr = np.asarray(raw, dtype=float).reshape((-1,))
+                        if arr.size == Nc:
+                            topV = np.clip(arr.copy(), 0.0, None)
+                    except Exception:
+                        pass
+                if topV is None:
+                    topV_base = (MV0[0] * y0v[0, :]).copy()
+                    topV = self.epsilon_lbmol * self._safe_norm_vec(topV_base, self.epsilon_lbmol)
                 y[sl["top_V"]] = topV
 
         if self.include_bottom:
@@ -396,8 +406,18 @@ class StateVectorLayout:
 
             y[sl["bottom_L"]] = botL
             if self.include_vapor:
-                botV_base = (MV0[-1] * y0v[-1, :]).copy()
-                botV = self.epsilon_lbmol * self._safe_norm_vec(botV_base, self.epsilon_lbmol)
+                botV = None
+                if hasattr(col, "bottom_V0_lbmol"):
+                    raw = getattr(col, "bottom_V0_lbmol")
+                    try:
+                        arr = np.asarray(raw, dtype=float).reshape((-1,))
+                        if arr.size == Nc:
+                            botV = np.clip(arr.copy(), 0.0, None)
+                    except Exception:
+                        pass
+                if botV is None:
+                    botV_base = (MV0[-1] * y0v[-1, :]).copy()
+                    botV = self.epsilon_lbmol * self._safe_norm_vec(botV_base, self.epsilon_lbmol)
                 y[sl["bottom_V"]] = botV
 
         # Temperature states (if enabled)
@@ -429,42 +449,64 @@ class StateVectorLayout:
 
         # Energy holdup states (Module 6 Option B1)
         if self.include_energy:
-            if hasattr(col, "T0_F"):
-                T0 = np.asarray(col.T0_F, dtype=float).reshape((N,))
-            elif hasattr(col, "T_f"):
-                T0 = np.asarray(col.T_f, dtype=float).reshape((N,))
-            else:
-                T0 = np.full(N, 100.0, dtype=float)
+            EL = None
+            EV = None
+            if hasattr(col, "tray_EL0_BTU"):
+                try:
+                    arr = np.asarray(getattr(col, "tray_EL0_BTU"), dtype=float).reshape((N,))
+                    if np.all(np.isfinite(arr)):
+                        EL = arr.copy()
+                except Exception:
+                    EL = None
+            if self.include_vapor and hasattr(col, "tray_EV0_BTU"):
+                try:
+                    arr = np.asarray(getattr(col, "tray_EV0_BTU"), dtype=float).reshape((N,))
+                    if np.all(np.isfinite(arr)):
+                        EV = arr.copy()
+                except Exception:
+                    EV = None
 
-            if hasattr(col, "P0_psia"):
-                P0 = np.asarray(col.P0_psia, dtype=float).reshape((N,))
-            elif hasattr(col, "P_psia"):
-                P0 = np.asarray(col.P_psia, dtype=float).reshape((N,))
-            else:
-                P0 = np.full(N, 200.0, dtype=float)
-
-            EL = np.zeros(N, dtype=float)
-            EV = np.zeros(N, dtype=float)
-
-            for i in range(N):
-                ML = max(float(ML0[i]), self.epsilon_lbmol)
-                MV = max(float(MV0[i]), self.epsilon_lbmol)
-
-                z = tray_L[i, :].copy()
-                if self.include_vapor:
-                    z = z + (MV0[i] * y0v[i, :])
-                z = self._safe_norm_vec(z, self.epsilon_lbmol)
-
-                if thermo is not None and hasattr(thermo, "flash_TP_full"):
-                    fres = thermo.flash_TP_full(float(T0[i]), float(P0[i]), z)
-                    hL = float(fres.HL_BTU_lbmol)
-                    hV = float(fres.HV_BTU_lbmol)
+            if EL is None or (self.include_vapor and EV is None):
+                if hasattr(col, "T0_F"):
+                    T0 = np.asarray(col.T0_F, dtype=float).reshape((N,))
+                elif hasattr(col, "T_f"):
+                    T0 = np.asarray(col.T_f, dtype=float).reshape((N,))
                 else:
-                    hL = float(T0[i])
-                    hV = float(T0[i])
+                    T0 = np.full(N, 100.0, dtype=float)
 
-                EL[i] = ML * hL
-                EV[i] = MV * hV
+                if hasattr(col, "P0_psia"):
+                    P0 = np.asarray(col.P0_psia, dtype=float).reshape((N,))
+                elif hasattr(col, "P_psia"):
+                    P0 = np.asarray(col.P_psia, dtype=float).reshape((N,))
+                else:
+                    P0 = np.full(N, 200.0, dtype=float)
+
+                if EL is None:
+                    EL = np.zeros(N, dtype=float)
+                if EV is None:
+                    EV = np.zeros(N, dtype=float)
+
+                for i in range(N):
+                    ML = max(float(ML0[i]), self.epsilon_lbmol)
+                    MV = max(float(MV0[i]), self.epsilon_lbmol)
+
+                    z = tray_L[i, :].copy()
+                    if self.include_vapor:
+                        z = z + (MV0[i] * y0v[i, :])
+                    z = self._safe_norm_vec(z, self.epsilon_lbmol)
+
+                    if thermo is not None and hasattr(thermo, "flash_TP_full"):
+                        fres = thermo.flash_TP_full(float(T0[i]), float(P0[i]), z)
+                        hL = float(fres.HL_BTU_lbmol)
+                        hV = float(fres.HV_BTU_lbmol)
+                    else:
+                        hL = float(T0[i])
+                        hV = float(T0[i])
+
+                    if not np.isfinite(float(EL[i])):
+                        EL[i] = ML * hL
+                    if self.include_vapor and not np.isfinite(float(EV[i])):
+                        EV[i] = MV * hV
 
             y[sl["tray_EL_BTU"]] = EL
             if self.include_vapor and "tray_EV_BTU" in sl:

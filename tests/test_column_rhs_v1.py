@@ -3135,6 +3135,41 @@ def test_temperature_stage1_uses_specified_condenser_duty_without_bubble_closure
     assert abs(float(np.asarray(diag["Q_cond_used_BTUph"], dtype=float).reshape((-1,))[0]) + 7200.0) < 1e-12
 
 
+def test_resolve_condenser_duty_exposes_bubble_target_in_specified_mode(monkeypatch):
+    col = _make_tiny_column()
+
+    def fake_compute_total_condenser_duty_btu_per_h(**_kwargs):
+        return -1234.0, 110.0
+
+    monkeypatch.setattr(
+        rhs_module,
+        "_compute_total_condenser_duty_btu_per_h",
+        fake_compute_total_condenser_duty_btu_per_h,
+    )
+
+    inputs = ColumnInputs(
+        condenser_duty_mode="specified",
+        condenser_duty_btu_per_h=-7200.0,
+        thermo_provider=object(),
+    )
+
+    q_used, q_calc, t_bub, mode = rhs_module._resolve_condenser_duty_btu_per_h(
+        col=col,
+        inputs=inputs,
+        N=2,
+        tray_T_F=np.array([100.0, 120.0], dtype=float),
+        P_tray_psia=np.array([200.0, 210.0], dtype=float),
+        V_in_lbmolps=np.array([1.0, 0.0], dtype=float),
+        y_in=np.array([[0.9, 0.1], [0.4, 0.6]], dtype=float),
+        epsilon_lbmol=1e-12,
+    )
+
+    assert abs(float(q_used) + 7200.0) < 1e-12
+    assert q_calc is None
+    assert abs(float(t_bub) - 110.0) < 1e-12
+    assert mode == "specified"
+
+
 def test_bubble_point_no_bracket_returns_clipped_guess_not_scan_node():
     class NoBracketProvider:
         T_grid_F = np.array([95.0, 120.0, 150.0], dtype=float)

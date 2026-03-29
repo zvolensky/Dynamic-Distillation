@@ -50,6 +50,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
+import numpy as np
 
 from dynamic_distillation.compound_registry_v1 import canonicalize_components
 
@@ -63,6 +64,9 @@ class CaseData:
     component_ids_dwsim: List[str]      # canonical names used by thermo/flash
     specs: Dict[str, Any]
     initial_conditions: pd.DataFrame
+    boundary_state: Dict[str, List[float]]
+    energy_state: Dict[str, List[float]]
+    controller_state: Dict[str, float]
     streams: Dict[str, Dict[str, Any]]
 
 
@@ -132,6 +136,203 @@ def _coerce_void_fraction(gv: float) -> float:
     if gv <= 100.0:
         return gv / 100.0
     return gv
+
+
+def _try_read_boundary_state_sheet(p: Path, comp_names: List[str]) -> Dict[str, List[float]]:
+    """Parse optional Boundary State sheet for restart holdups."""
+    try:
+        df = pd.read_excel(p, sheet_name="Boundary State")
+    except Exception:
+        return {}
+    if df is None or df.empty:
+        return {}
+
+    nc = int(len(comp_names))
+    if nc <= 0:
+        return {}
+
+    def _norm_token(s: Any) -> str:
+        return "".join(ch for ch in _norm_str(s).lower() if ch.isalnum())
+
+    state_col = None
+    for c in df.columns:
+        if _norm_token(c) in {"state", "boundary", "boundarystate"}:
+            state_col = c
+            break
+    if state_col is None:
+        state_col = df.columns[0]
+
+    norm_cols = {_norm_token(c): c for c in df.columns}
+    comp_cols: List[str] = []
+    non_state_cols = [c for c in df.columns if c != state_col]
+    for i, comp_name in enumerate(comp_names, start=1):
+        found = None
+        for cand in (f"Component {i}", f"Comp {i}", str(comp_name)):
+            key = _norm_token(cand)
+            if key in norm_cols:
+                found = norm_cols[key]
+                break
+        if found is None:
+            if len(non_state_cols) >= nc:
+                comp_cols = list(non_state_cols[:nc])
+                break
+            return {}
+        comp_cols.append(found)
+    if len(comp_cols) != nc:
+        return {}
+
+    aliases = {
+        "topl": "top_L",
+        "topliquid": "top_L",
+        "topliquidholdup": "top_L",
+        "topdrumliquid": "top_L",
+        "topv": "top_V",
+        "topvapor": "top_V",
+        "topvapour": "top_V",
+        "topvaporholdup": "top_V",
+        "bottoml": "bottom_L",
+        "bottomliquid": "bottom_L",
+        "bottomsliquid": "bottom_L",
+        "sumpliquid": "bottom_L",
+        "bottomv": "bottom_V",
+        "bottomvapor": "bottom_V",
+        "bottomvapour": "bottom_V",
+        "sumpvapor": "bottom_V",
+    }
+
+    out: Dict[str, List[float]] = {}
+    for _, row in df.iterrows():
+        label = aliases.get(_norm_token(row.get(state_col)))
+        if label is None:
+            continue
+        vals: List[float] = []
+        ok = True
+        for c in comp_cols:
+            try:
+                fv = float(row.get(c))
+            except Exception:
+                ok = False
+                break
+            if not pd.notna(fv):
+                ok = False
+                break
+            vals.append(fv)
+        if ok and len(vals) == nc:
+            out[label] = vals
+    return out
+
+
+def _try_read_energy_state_sheet(p: Path, n_stages: int) -> Dict[str, List[float]]:
+    """Parse optional Energy State sheet for tray EL/EV restart values."""
+    try:
+        df = pd.read_excel(p, sheet_name="Energy State")
+    except Exception:
+        return {}
+    if df is None or df.empty or n_stages <= 0:
+        return {}
+
+    def _norm_token(s: Any) -> str:
+        return "".join(ch for ch in _norm_str(s).lower() if ch.isalnum())
+
+    norm_cols = {_norm_token(c): c for c in df.columns}
+    stage_col = None
+    for key in ("stage", "tray", "stage1based"):
+        if key in norm_cols:
+            stage_col = norm_cols[key]
+            break
+    if stage_col is None:
+        return {}
+
+    def _find_col(*candidates: str) -> Optional[str]:
+        for cand in candidates:
+            key = _norm_token(cand)
+            if key in norm_cols:
+                return norm_cols[key]
+        return None
+
+    col_el = _find_col("Tray EL (BTU)", "EL (BTU)", "tray_EL_BTU")
+    col_ev = _find_col("Tray EV (BTU)", "EV (BTU)", "tray_EV_BTU")
+    out: Dict[str, List[float]] = {}
+
+    if col_el is not None:
+        arr = [np.nan] * int(n_stages)
+        for _, row in df.iterrows():
+            try:
+                i = int(float(row.get(stage_col))) - 1
+                v = float(row.get(col_el))
+            except Exception:
+                continue
+            if 0 <= i < n_stages and pd.notna(v):
+                arr[i] = v
+        if all(np.isfinite(arr)):
+            out["tray_EL_BTU"] = [float(v) for v in arr]
+
+    if col_ev is not None:
+        arr = [np.nan] * int(n_stages)
+        for _, row in df.iterrows():
+            try:
+                i = int(float(row.get(stage_col))) - 1
+                v = float(row.get(col_ev))
+            except Exception:
+                continue
+            if 0 <= i < n_stages and pd.notna(v):
+                arr[i] = v
+        if all(np.isfinite(arr)):
+            out["tray_EV_BTU"] = [float(v) for v in arr]
+
+    return out
+
+
+def _try_read_controller_state_sheet(p: Path) -> Dict[str, float]:
+    """Parse optional Controller State sheet for PI-memory restart values."""
+    try:
+        df = pd.read_excel(p, sheet_name="Controller State")
+    except Exception:
+        return {}
+    if df is None or df.empty:
+        return {}
+
+    def _norm_token(s: Any) -> str:
+        return "".join(ch for ch in _norm_str(s).lower() if ch.isalnum())
+
+    norm_cols = {_norm_token(c): c for c in df.columns}
+    ctrl_col = None
+    value_col = None
+    for key in ("controller", "state", "tag", "name"):
+        if key in norm_cols:
+            ctrl_col = norm_cols[key]
+            break
+    for key in ("value", "integral", "integ", "statevalue"):
+        if key in norm_cols:
+            value_col = norm_cols[key]
+            break
+    if ctrl_col is None or value_col is None:
+        return {}
+
+    aliases = {
+        "toplevelinteg": "top_level_integ",
+        "toplevelcontrollerinteg": "top_level_integ",
+        "bottomlevelinteg": "bottom_level_integ",
+        "bottomlevelcontrollerinteg": "bottom_level_integ",
+        "toppressureinteg": "top_pressure_integ",
+        "toppressurecontrollerinteg": "top_pressure_integ",
+        "toppressurepvfiltpsia": "top_pressure_pv_filt_psia",
+        "distillatecompositioninteg": "distillate_comp_integ",
+        "bottomscompositioninteg": "bottoms_comp_integ",
+    }
+
+    out: Dict[str, float] = {}
+    for _, row in df.iterrows():
+        key = aliases.get(_norm_token(row.get(ctrl_col)))
+        if key is None:
+            continue
+        try:
+            val = float(row.get(value_col))
+        except Exception:
+            continue
+        if np.isfinite(val):
+            out[key] = float(val)
+    return out
 
 
 def _read_stage_geometry_sections(specs_df: pd.DataFrame) -> Optional[List[Dict[str, Any]]]:
@@ -617,6 +818,9 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
         streams = _parse_streams_sheet(streams_df, comp_names)
     except Exception:
         streams = {}
+    boundary_state = _try_read_boundary_state_sheet(p, comp_names)
+    energy_state = _try_read_energy_state_sheet(p, int(specs["Number of Stages"]))
+    controller_state = _try_read_controller_state_sheet(p)
 
     return CaseData(
         excel_path=str(p),
@@ -624,5 +828,8 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
         component_ids_dwsim=component_ids_dwsim,
         specs=specs,
         initial_conditions=init_df,
+        boundary_state=boundary_state,
+        energy_state=energy_state,
+        controller_state=controller_state,
         streams=streams,
     )

@@ -194,6 +194,34 @@ def test_equilibrium_relaxation_uses_cached_k_without_live_thermo_provider():
     assert cache_flag == 1.0
 
 
+def test_equilibrium_relaxation_can_override_flash_k_with_selective_provider():
+    col = _make_zero_flow_column()
+    layout = StateVectorLayout(n_stages=2, n_components=2, include_top=False, include_bottom=False, include_vapor=True)
+    y0_vec = layout.pack_y0(col)
+
+    provider_table = _ThermoProviderWithK(np.array([2.0, 0.5], dtype=float))
+    provider_live = _ThermoProviderWithK(np.array([1.2, 0.9], dtype=float))
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo_provider=provider_table,
+        equilibrium_relaxation_thermo_provider=provider_live,
+        compute_thermo_diag=False,
+        equilibrium_relaxation=True,
+        tau_eq_sec=10.0,
+    )
+
+    _dydt, diag = column_rhs(0.0, y0_vec, col, layout, inputs=inputs)
+
+    k_main = np.asarray(diag["K_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+    k_relax = np.asarray(diag["K_eq_relax_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+    override_flag = float(np.asarray(diag["eq_relax_thermo_override_active"], dtype=float).reshape((-1,))[0])
+
+    assert np.allclose(k_main, np.array([[2.0, 0.5], [2.0, 0.5]], dtype=float))
+    assert np.allclose(k_relax, np.array([[1.2, 0.9], [1.2, 0.9]], dtype=float))
+    assert override_flag == 1.0
+
+
 def test_phase_holdup_guard_softens_near_empty_vapor_target():
     col = _make_zero_flow_column_3stage()
     layout = StateVectorLayout(n_stages=3, n_components=2, include_top=False, include_bottom=False, include_vapor=True)

@@ -131,6 +131,13 @@ class ColumnSpec:
     x0: np.ndarray
 
     streams: Dict[str, StreamSpecNormalized]
+    top_L0_lbmol: Optional[np.ndarray] = None
+    top_V0_lbmol: Optional[np.ndarray] = None
+    bottom_L0_lbmol: Optional[np.ndarray] = None
+    bottom_V0_lbmol: Optional[np.ndarray] = None
+    tray_EL0_BTU: Optional[np.ndarray] = None
+    tray_EV0_BTU: Optional[np.ndarray] = None
+    controller_state: Optional[Dict[str, float]] = None
 
     # Optional expanded geometry (used for vapor volume diagnostics)
     geometry: Optional[ColumnGeometry] = None
@@ -378,6 +385,55 @@ def build_column_spec_from_case(case: Any) -> ColumnSpec:
     # Geometry (optional)
     geometry = _build_geometry_from_specs(specs_raw, n_stages)
 
+    boundary_state_raw = getattr(case, "boundary_state", {}) or {}
+    top_L0 = top_V0 = bottom_L0 = bottom_V0 = None
+    for key in ("top_L", "top_V", "bottom_L", "bottom_V"):
+        vals = boundary_state_raw.get(key)
+        if vals is None:
+            continue
+        arr = np.asarray(vals, dtype=float).reshape((-1,))
+        if arr.size != n_components:
+            raise ColumnSpecError(f"Boundary State '{key}' length {arr.size} != expected {n_components}.")
+        if np.any(~np.isfinite(arr)) or np.any(arr < 0.0):
+            raise ColumnSpecError(f"Boundary State '{key}' contains invalid values.")
+        if key == "top_L":
+            top_L0 = arr.copy()
+        elif key == "top_V":
+            top_V0 = arr.copy()
+        elif key == "bottom_L":
+            bottom_L0 = arr.copy()
+        elif key == "bottom_V":
+            bottom_V0 = arr.copy()
+
+    energy_state_raw = getattr(case, "energy_state", {}) or {}
+    tray_EL0 = tray_EV0 = None
+    vals = energy_state_raw.get("tray_EL_BTU")
+    if vals is not None:
+        arr = np.asarray(vals, dtype=float).reshape((-1,))
+        if arr.size != n_stages:
+            raise ColumnSpecError(f"Energy State 'tray_EL_BTU' length {arr.size} != expected {n_stages}.")
+        if np.any(~np.isfinite(arr)):
+            raise ColumnSpecError("Energy State 'tray_EL_BTU' contains invalid values.")
+        tray_EL0 = arr.copy()
+    vals = energy_state_raw.get("tray_EV_BTU")
+    if vals is not None:
+        arr = np.asarray(vals, dtype=float).reshape((-1,))
+        if arr.size != n_stages:
+            raise ColumnSpecError(f"Energy State 'tray_EV_BTU' length {arr.size} != expected {n_stages}.")
+        if np.any(~np.isfinite(arr)):
+            raise ColumnSpecError("Energy State 'tray_EV_BTU' contains invalid values.")
+        tray_EV0 = arr.copy()
+
+    controller_state_raw = getattr(case, "controller_state", {}) or {}
+    controller_state: Dict[str, float] = {}
+    for key, val in controller_state_raw.items():
+        try:
+            fv = float(val)
+        except Exception:
+            continue
+        if np.isfinite(fv):
+            controller_state[str(key)] = fv
+
     streams_in = getattr(case, "streams", {}) or {}
     streams_norm = _normalize_streams(streams_in)
 
@@ -399,6 +455,13 @@ def build_column_spec_from_case(case: Any) -> ColumnSpec:
         M_V_lbmol=M_V_lbmol,
         y0=y0,
         x0=x0,
+        top_L0_lbmol=top_L0,
+        top_V0_lbmol=top_V0,
+        bottom_L0_lbmol=bottom_L0,
+        bottom_V0_lbmol=bottom_V0,
+        tray_EL0_BTU=tray_EL0,
+        tray_EV0_BTU=tray_EV0,
+        controller_state=(controller_state or None),
         streams=streams_norm,
         geometry=geometry,
         tau_eq_sec=float(tau),

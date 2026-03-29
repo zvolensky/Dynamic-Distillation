@@ -132,6 +132,26 @@ def test_top_accumulator_holdup_initialization():
     assert np.allclose(x_top, col.x0[0, :], atol=1e-12)
 
 
+def test_pack_y0_honors_explicit_restart_energy_state():
+    col = _make_tiny_column_with_top_holdup(100.0)
+    object.__setattr__(col, "tray_EL0_BTU", np.array([101.0, 102.0], dtype=float))
+    object.__setattr__(col, "tray_EV0_BTU", np.array([201.0, 202.0], dtype=float))
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=True,
+        include_vapor=True,
+        include_energy=True,
+    )
+
+    y0 = layout.pack_y0(col)
+    sl = layout.slices()
+
+    assert np.allclose(y0[sl["tray_EL_BTU"]], np.array([101.0, 102.0], dtype=float))
+    assert np.allclose(y0[sl["tray_EV_BTU"]], np.array([201.0, 202.0], dtype=float))
+
+
 def test_top_accumulator_uses_distillate_composition():
     N, Nc = 2, 2
     x0 = np.array([[0.2, 0.8], [0.3, 0.7]], dtype=float)
@@ -225,3 +245,45 @@ def test_bottom_holdup_initialization_from_specs():
     assert abs(float(np.sum(bottom_L)) - 200.0) < 1e-9
     z_bottom = bottom_L / max(float(np.sum(bottom_L)), 1e-300)
     assert np.allclose(z_bottom, col.x0[-1, :], atol=1e-12)
+
+
+def test_pack_y0_honors_explicit_boundary_vapor_restart_state():
+    N, Nc = 2, 2
+    x0 = np.array([[0.2, 0.8], [0.3, 0.7]], dtype=float)
+    y0 = np.array([[0.5, 0.5], [0.4, 0.6]], dtype=float)
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={
+            "Number of Stages": 2,
+            "Number of Components": 2,
+            "Timestep (sec)": 1.0,
+            "Simulation Length (min)": 0.1,
+            "Log Frequency (timesteps)": 1,
+        },
+        T_f=np.array([100.0, 120.0], dtype=float),
+        P_psia=np.array([200.0, 210.0], dtype=float),
+        V_lbmolph=np.array([10.0, 10.0], dtype=float),
+        L_lbmolph=np.array([10.0, 10.0], dtype=float),
+        M_L_lbmol=np.array([5.0, 5.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+        top_V0_lbmol=np.array([2.0, 3.0], dtype=float),
+        bottom_V0_lbmol=np.array([4.0, 1.0], dtype=float),
+    )
+
+    layout = StateVectorLayout(n_stages=N, n_components=Nc, include_top=True, include_bottom=True, include_vapor=True)
+    y_init = layout.pack_y0(col)
+    sl = layout.slices()
+
+    assert np.allclose(y_init[sl["top_V"]], np.array([2.0, 3.0], dtype=float))
+    assert np.allclose(y_init[sl["bottom_V"]], np.array([4.0, 1.0], dtype=float))

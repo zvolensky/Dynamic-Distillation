@@ -4,6 +4,14 @@ Date: 2026-02-19 (local)
 
 Status addenda: 2026-02-23, 2026-02-27 (local)
 
+Historical note (2026-03-28):
+This report remains useful as a record of the original DD-011 parity-drift investigation, but it no longer describes the current highest-priority active failure on the main branch. Since this write-up:
+1. The long-horizon true-level hydraulic branch was stabilized through a combination of selective live-PR use in the equilibrium-relaxation flash path and a stage-1 condenser-transfer temperature closure.
+2. The standard explicit-sump topology was corrected so the reboiler draws liquid from the bottom sump.
+3. Current status should be taken from [issue_log.md](/c:/Users/Thoma/Documents/Python%20Scripts/Dynamic_DistillationII/docs/issue_log.md), especially `DD-006`, `DD-007`, `DD-016`, and `DD-017`.
+
+Use this document as historical DD-011 evidence, not as the current model-state summary.
+
 ## Problem Statement
 
 The dynamic model deviates strongly from the ChemSep-provided steady-state initialization, even when initialized with matching stage temperatures, pressures, compositions, and internal flow profiles. A representative symptom is upper-column vapor composition drift (for example, stage-2 `y_n_Butane` trending toward feed-like values), which should not occur under a parity-consistent startup.

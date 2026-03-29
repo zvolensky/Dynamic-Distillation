@@ -481,6 +481,8 @@ class StateVectorLayout:
                 else:
                     P0 = np.full(N, 200.0, dtype=float)
 
+                EL_missing = EL is None
+                EV_missing = EV is None
                 if EL is None:
                     EL = np.zeros(N, dtype=float)
                 if EV is None:
@@ -503,9 +505,9 @@ class StateVectorLayout:
                         hL = float(T0[i])
                         hV = float(T0[i])
 
-                    if not np.isfinite(float(EL[i])):
+                    if EL_missing or (not np.isfinite(float(EL[i]))):
                         EL[i] = ML * hL
-                    if self.include_vapor and not np.isfinite(float(EV[i])):
+                    if self.include_vapor and (EV_missing or (not np.isfinite(float(EV[i])))):
                         EV[i] = MV * hV
 
             y[sl["tray_EL_BTU"]] = EL

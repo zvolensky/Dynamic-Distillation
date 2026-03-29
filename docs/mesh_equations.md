@@ -32,7 +32,7 @@ Optional hydraulics: internal `L_out` (stages 2..N-1) can be overridden by Franc
 Runner preset note (`dynamic_run_scaffold_v1`):
 - `--runtime-mode parity` (default CLI mode) forces `pressure_model="spec"`, `vapor_flow_model="profile"`, and disables liquid-hydraulic override.
 - `--runtime-mode hydraulic` forces `pressure_model="hydraulic"`, `vapor_flow_model="energy"`, leaves liquid-hydraulic override plus vapor-holdup relaxation off unless explicitly enabled, and defaults feed-stage flashing off unless explicitly requested.
-- `--runtime-mode huang` forces `pressure_model="hydraulic"`, `vapor_flow_model="profile"`, and enables liquid-hydraulic override with `liquid_hydraulic_model="huang-htc"`.
+- `--runtime-mode calibration` uses the same closure set as `parity`, but is intended for parity/calibration checks.
 - `--runtime-mode legacy` keeps spec/CLI-driven model selection and is the only mode where startup hydraulic sequencing is active.
 
 **Generic Tray Component Balances (All Stages)**
@@ -100,7 +100,14 @@ d(ML_N,k)/dt -= V_out[N] * x_reb,k
 d(MV_N,k)/dt += V_out[N] * x_reb,k
                - V_out[N] * y_reb,k
 ```
-`x_reb` and `y_reb` come from tray N holdup, or tray N-1 if the reboiler holdup is zero.
+In the standard explicit-sump configuration:
+- the reboiler liquid feed is drawn from the bottom sump liquid state
+- `x_reb` comes from sump liquid composition
+- `y_reb` and, when applicable, `T_reb`, come from the reboiler flash at the bottom-end pressure
+
+In the special no-holdup reboiler shortcut:
+- the legacy tray-fed / flow-through flash path is still used
+- tray-N derivatives are forced to zero and the no-holdup flash is solved from the inlet state each step
 
 Boilup selection:
 - `reboiler_mode="specified"`: use `boundary.boilup_lbmolph` or `col.V_lbmolph[-1]`.
@@ -108,12 +115,11 @@ Boilup selection:
 - `reboiler_mode="auto"`: use duty if available and no explicit boilup; otherwise specified.
 
 If `reboiler_equilibrium=True`, a bubble-point solve at the bottom pressure updates `T_reb` and `y_reb`.
-If the reboiler tray holdup is zero, tray-N derivatives are forced to zero and a no-holdup flash is used.
 
 **Bottom Sump (If `include_bottom=True`)**
-Liquid-only holdup for bottoms draw (no coupling to boilup):
+Liquid-only holdup for bottoms draw and, in the standard configuration, reboiler liquid feed:
 ```
-d(M_botL,k)/dt = L_out[N] * x_tray_N,k - B_k
+d(M_botL,k)/dt = L_out[N] * x_tray_N,k - B_k - V_out[N] * x_reb,k
 ```
 Bottom vapor draw (if specified) removes from `M_botV,k`.
 `B_k` can be dynamically overridden by runner-level control (bottom holdup PI -> total bottoms draw).
@@ -126,15 +132,27 @@ sum_k y_i,k = 1
 If liquid holdup is near zero, a fallback composition is supplied so flashes remain valid.
 
 **Equilibrium Relaxation (Optional)**
-When `equilibrium_relaxation=True` (requires `thermo_provider`):
+When `equilibrium_relaxation=True` (requires thermo data):
 ```
+// composition-only mode
 y_eq,i,k = K_i,k * x_i,k / sum_j(K_i,j * x_i,j)
 transfer_i,k = (MV_i / tau_eq) * (y_eq,i,k - y_i,k)
 
 d(MV_i,k)/dt += transfer_i,k
 d(ML_i,k)/dt -= transfer_i,k
+
+// phase-holdup mode (current hydraulic default outside auto-hydraulic fallback)
+MV_eq,i = beta_eq,i * Mtot_i
+y_target,i = phase_weight_i * y_eq,i + (1 - phase_weight_i) * y_i
+MV_target_eff,i = phase_weight_i * MV_eq,i + (1 - phase_weight_i) * MV_i
+V_target_i = MV_target_eff,i * y_target,i
+transfer_i = (V_target_i - tray_V_i) / tau_eq
+
+d(tray_V_i)/dt += transfer_i
+d(tray_L_i)/dt -= transfer_i
 ```
 `tau_eq` is `ColumnInputs.tau_eq_sec` if set, otherwise `ColumnSpec.tau_eq_sec`, else 10 s.
+The equilibrium-relaxation flash may optionally use a live PR provider (`--equilibrium-relaxation-live-pr`) while the main run still uses table or table-pool thermo.
 
 **Energy Option B1 (Enthalpy Holdup, `include_energy=True`)**
 Energy holdup is stored as `EL_i = ML_i * hL_i` and `EV_i = MV_i * hV_i`.
@@ -164,6 +182,11 @@ C_i = ML_i * cpL_i + MV_i * cpV_i
 dT_i/dt = dE_i / C_i
 ```
 `Q_i` includes `Q_cond` at stage 1 and `Q_reb` at stage N. The sump temperature has a separate liquid-only balance and can be relaxed to a bubble-point when `thermo_provider` is available.
+
+Special top-end handling:
+- when a separate reflux drum is modeled, stage 1 acts as a condenser-transfer node rather than a large independent thermal mass
+- in that configuration, stage-1 temperature is relaxed toward the condenser bubble-point target instead of integrating an unconstrained tiny-`C` `dE/C` temperature ODE
+- this avoids non-physical top-end thermal spikes from an almost massless condenser tray
 
 **Vapor Flow Closure**
 - `vapor_flow_model="profile"`: use the internal Excel/ChemSep `V` profile with boundary conditions enforced.

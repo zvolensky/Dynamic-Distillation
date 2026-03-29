@@ -4,6 +4,14 @@ Date: 2026-02-21 (local)
 Status addendum: 2026-02-27 (local)
 Related root-cause report: `docs/dd_011_hydraulic_parity_drift_report_2026-02-19.md`
 
+Historical note (2026-03-28):
+This follow-up remains useful as a record of the original DD-011 runtime-simplification and hydraulic-parity work, but it no longer reflects the current stabilized baseline. Since this note:
+1. The true-level hydraulic branch reached a stable `600 s` run (`20260328_145436`) after fixing the stage-1 condenser thermal closure.
+2. The stage-10 equilibrium-relaxation trigger was materially reduced by selective live-PR use in the eq-relax flash path.
+3. The standard explicit-sump model was corrected so the reboiler is sump-fed.
+
+For current status and active issues, use [issue_log.md](/c:/Users/Thoma/Documents/Python%20Scripts/Dynamic_DistillationII/docs/issue_log.md) rather than this document alone.
+
 ## Purpose
 
 Document findings collected after the 2026-02-19 DD-011 root-cause write-up and record the implemented simplification path for ongoing diagnostics.

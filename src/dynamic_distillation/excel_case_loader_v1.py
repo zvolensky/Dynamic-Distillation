@@ -720,6 +720,54 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
             "Condenser Vapour Space (ft3)",
         ]
     )
+    # Optional bottom-sump geometry for true-level control.
+    specs["Bottom Sump Total Volume (ft3)"] = _first_optional_float(
+        [
+            "Bottom Sump Total Volume (ft3)",
+            "Bottom Sump Volume (ft3)",
+            "Bottom Total Volume (ft3)",
+            "Bottom Vessel Total Volume (ft3)",
+            "Bottom Vessel Volume (ft3)",
+            "Bottom Drum Total Volume (ft3)",
+            "Bottom Drum Volume (ft3)",
+        ]
+    )
+    specs["Bottom Sump Diameter (ft)"] = _first_optional_float(
+        [
+            "Bottom Sump Diameter (ft)",
+            "Bottom Sump ID (ft)",
+            "Bottom Vessel Diameter (ft)",
+            "Bottom Vessel ID (ft)",
+            "Bottom Drum Diameter (ft)",
+            "Bottom Drum ID (ft)",
+        ]
+    )
+    specs["Bottom Sump Height (ft)"] = _first_optional_float(
+        [
+            "Bottom Sump Height (ft)",
+            "Bottom Sump height (ft)",
+            "Bottom Sump Length (ft)",
+            "Bottom Vessel Height (ft)",
+            "Bottom Vessel Length (ft)",
+            "Bottom Drum Height (ft)",
+            "Bottom Drum Length (ft)",
+        ]
+    )
+    bottom_liq_frac = _first_optional_float(
+        [
+            "Bottom Sump Liquid Volume Fraction",
+            "Bottom Sump Liquid Fraction",
+            "Bottom Sump Fill Fraction",
+            "Bottom Liquid Volume Fraction",
+            "Bottom Liquid Fraction",
+            "Bottom Fill Fraction",
+        ]
+    )
+    if bottom_liq_frac is not None and bottom_liq_frac > 1.0 and bottom_liq_frac <= 100.0:
+        bottom_liq_frac = float(bottom_liq_frac) / 100.0
+    if bottom_liq_frac is not None and (bottom_liq_frac < 0.0 or bottom_liq_frac > 1.0):
+        bottom_liq_frac = None
+    specs["Bottom Sump Liquid Fraction (-)"] = bottom_liq_frac
 
     # Module 8B: tau (optional)
     specs["Stage time constant [tau] (sec)"] = _get_optional_float(specs_df, "Stage time constant [tau] (sec)")

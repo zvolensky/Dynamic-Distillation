@@ -172,7 +172,7 @@ class UvMini8PrototypeSpec:
     bottoms_total_lbmolps: float
     dry_tray_K: float
     conductance_nominal_hi_ratio: float
-    huang_liquid_htc_sec: float
+    liquid_hydraulic_tau_sec: float
     geometry: Any
     component_mw_lbm_per_lbmol: Optional[np.ndarray]
     initial_liquid_moles_lbmol: Optional[np.ndarray] = None
@@ -391,16 +391,15 @@ def build_mini8_uv_prototype_spec(
     dry_tray_k = _spec_float(specs, "Dry Tray K")
     if dry_tray_k is None or (not np.isfinite(float(dry_tray_k))) or float(dry_tray_k) <= 0.0:
         dry_tray_k = 1.0
-    huang_liquid_htc_sec = _spec_float(
+    liquid_hydraulic_tau_sec = _spec_float(
         specs,
-        "Huang Liquid HTC (sec)",
         "Hydraulic Time Constant (sec)",
         "Stage time constant [tau] (sec)",
     )
-    if huang_liquid_htc_sec is None or (not np.isfinite(float(huang_liquid_htc_sec))) or float(huang_liquid_htc_sec) <= 0.0:
-        huang_liquid_htc_sec = float(getattr(col, "tau_eq_sec", 10.0) or 10.0)
-    if (not np.isfinite(float(huang_liquid_htc_sec))) or float(huang_liquid_htc_sec) <= 0.0:
-        huang_liquid_htc_sec = 10.0
+    if liquid_hydraulic_tau_sec is None or (not np.isfinite(float(liquid_hydraulic_tau_sec))) or float(liquid_hydraulic_tau_sec) <= 0.0:
+        liquid_hydraulic_tau_sec = float(getattr(col, "tau_eq_sec", 10.0) or 10.0)
+    if (not np.isfinite(float(liquid_hydraulic_tau_sec))) or float(liquid_hydraulic_tau_sec) <= 0.0:
+        liquid_hydraulic_tau_sec = 10.0
 
     q_stage = np.zeros(int(col.n_stages), dtype=float)
     q_cond_btu_per_h = getattr(getattr(col, "duties", None), "q_cond_btu_per_h", None)
@@ -496,7 +495,7 @@ def build_mini8_uv_prototype_spec(
         bottoms_total_lbmolps=float(bottoms_total_lbmolps),
         dry_tray_K=float(dry_tray_k),
         conductance_nominal_hi_ratio=float(nominal_hi),
-        huang_liquid_htc_sec=float(huang_liquid_htc_sec),
+        liquid_hydraulic_tau_sec=float(liquid_hydraulic_tau_sec),
         geometry=col.geometry,
         component_mw_lbm_per_lbmol=mw_components,
         initial_liquid_moles_lbmol=np.asarray([ref.liquid_moles_lbmol for ref in refs], dtype=float),
@@ -984,7 +983,7 @@ def _compute_liquid_flow_closure(
     )
 
 
-def _compute_huang_htc_liquid_flow_closure(
+def _compute_holdup_tau_liquid_flow_closure(
     *,
     spec: UvMini8PrototypeSpec,
     y: np.ndarray,
@@ -992,12 +991,11 @@ def _compute_huang_htc_liquid_flow_closure(
     l_prev_lbmolps: Optional[np.ndarray],
 ) -> _LiquidFlowClosure:
     """
-    Huang-inspired hydraulic time constant (HTC) liquid closure.
+    Generic liquid holdup-over-tau closure.
 
-    This is a partitioned approximation, not a full reproduction of Huang's GRU
-    model. It uses tray liquid holdup divided by a hydraulic time constant to
-    generate tray liquid outflow, while keeping the rest of the UV sandbox
-    architecture unchanged.
+    This is a partitioned approximation. It uses tray liquid holdup divided by
+    a hydraulic time constant to generate tray liquid outflow while keeping the
+    rest of the UV sandbox architecture unchanged.
     """
     N = int(spec.n_total_stages)
     n_total, _u_total, _top_liquid, _bottom_liquid, _top_u_total, _bottom_u_total = _unpack_state(
@@ -1005,7 +1003,7 @@ def _compute_huang_htc_liquid_flow_closure(
         n_active=int(spec.active_stage0.size),
         n_components=len(spec.component_names),
     )
-    tau_htc = max(float(spec.huang_liquid_htc_sec), 1.0e-6)
+    tau_htc = max(float(spec.liquid_hydraulic_tau_sec), 1.0e-6)
     ML_stage = np.zeros(N, dtype=float)
     h_ow = np.zeros(N, dtype=float)
     area = None
@@ -1846,8 +1844,8 @@ def run_mini8_uv_flash_prototype(
         compare_outputs: Dict[str, str] = {}
         liquid_flow_mode_norm = str(liquid_flow_mode or "francis").strip().lower()
         vapor_flow_mode_norm = str(vapor_flow_mode or "conductance").strip().lower()
-        if liquid_flow_mode_norm not in ("profile", "francis", "huang-htc"):
-            raise ValueError("liquid_flow_mode must be 'profile', 'francis', or 'huang-htc'")
+        if liquid_flow_mode_norm not in ("profile", "francis", "holdup-tau"):
+            raise ValueError("liquid_flow_mode must be 'profile', 'francis', or 'holdup-tau'")
         if vapor_flow_mode_norm not in ("profile", "conductance"):
             raise ValueError("vapor_flow_mode must be 'profile' or 'conductance'")
 
@@ -1902,8 +1900,8 @@ def run_mini8_uv_flash_prototype(
                     stage_results=stage_results,
                     l_prev_lbmolps=l_prev,
                 )
-            elif liquid_flow_mode_norm == "huang-htc":
-                liquid_flow = _compute_huang_htc_liquid_flow_closure(
+            elif liquid_flow_mode_norm == "holdup-tau":
+                liquid_flow = _compute_holdup_tau_liquid_flow_closure(
                     spec=spec,
                     y=y,
                     stage_results=stage_results,
@@ -2122,7 +2120,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--liquid-flow-mode",
         dest="liquid_flow_mode",
-        choices=["profile", "francis", "huang-htc"],
+        choices=["profile", "francis", "holdup-tau"],
         default="francis",
         help="Internal liquid-flow closure for the UV sandbox.",
     )

@@ -9,52 +9,29 @@ PURPOSE
 Export workbook case data into a plain key/value dump used by Scilab scripts.
 Includes tray profiles, composition rows, stream totals, geometry vectors,
 and molecular-weight vectors derived from component labels.
-
-INPUTS
-------
-CLI:
-- excel_path: source workbook
-- out_path: target text dump file
-
-OUTPUTS
--------
-Text dump containing stage/component dimensions and model-ready vectors:
-- pressure/temperature/holdup profiles
-- x/z composition rows
-- feed/distillate/bottoms boundary values
-- geometry and MW vectors
-
-KEY DEPENDENCIES
-----------------
-- openpyxl
-
-ASSUMPTIONS & CONSTRAINTS
--------------------------
-- Expects workbook structure matching project template conventions.
-- Output format is consumed by existing Scilab utilities.
 """
 
-import sys
+from __future__ import annotations
+
 import re
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from openpyxl import load_workbook
 
 
-# -----------------------------
-# Helpers
-# -----------------------------
-
 def _as_str(v: Any) -> str:
     if v is None:
         return ""
     return str(v).strip()
 
+
 def _norm(s: str) -> str:
     s = _as_str(s).lower()
     s = re.sub(r"\s+", " ", s)
     return s
+
 
 def _float_or_none(v: Any) -> Optional[float]:
     if v is None:
@@ -69,20 +46,24 @@ def _float_or_none(v: Any) -> Optional[float]:
     except ValueError:
         return None
 
+
 def _int_or_none(v: Any) -> Optional[int]:
     f = _float_or_none(v)
     if f is None:
         return None
     return int(round(f))
 
+
 def _csv(vals: Sequence[float]) -> str:
     return ",".join(f"{float(v):.12g}" for v in vals)
+
 
 def _row_values(ws, r: int) -> List[str]:
     out: List[str] = []
     for c in range(1, ws.max_column + 1):
         out.append(_norm(_as_str(ws.cell(r, c).value)))
     return out
+
 
 def _header_map(ws, r: int) -> Dict[str, int]:
     m: Dict[str, int] = {}
@@ -92,6 +73,7 @@ def _header_map(ws, r: int) -> Dict[str, int]:
             m[_norm(v)] = c
     return m
 
+
 def _find_header_row_containing(ws, required: Sequence[str], max_rows: int = 400) -> Optional[int]:
     req = [_norm(x) for x in required]
     for r in range(1, min(max_rows, ws.max_row) + 1):
@@ -99,6 +81,7 @@ def _find_header_row_containing(ws, required: Sequence[str], max_rows: int = 400
         if all(x in row for x in req):
             return r
     return None
+
 
 def _find_param_value(wb, param_name: str) -> Optional[float]:
     p_norm = _norm(param_name)
@@ -119,8 +102,8 @@ def _find_param_value(wb, param_name: str) -> Optional[float]:
                 return _float_or_none(ws.cell(r, c_v).value)
     return None
 
+
 def _find_component_names(wb, nc: int) -> List[str]:
-    # Try a row containing "Component Name" and read nc cells to the right
     for ws in wb.worksheets:
         for r in range(1, min(350, ws.max_row) + 1):
             for c in range(1, ws.max_column + 1):
@@ -131,6 +114,7 @@ def _find_component_names(wb, nc: int) -> List[str]:
                     if len(names) == nc and all(names):
                         return names
     return [f"Component{i+1}" for i in range(nc)]
+
 
 def _mw_lookup(name: str) -> float:
     k = _norm(name)
@@ -144,10 +128,6 @@ def _mw_lookup(name: str) -> float:
     }
     return lookup.get(k, 60.0)
 
-
-# -----------------------------
-# Stage Geometry
-# -----------------------------
 
 def _find_stage_geometry_table(wb) -> Tuple[Any, int, Dict[str, int]]:
     required = [
@@ -167,16 +147,17 @@ def _find_stage_geometry_table(wb) -> Tuple[Any, int, Dict[str, int]]:
                 return ws, r, hm
     raise RuntimeError("Stage Geometry header row not found in any sheet.")
 
-def _read_stage_geometry(ws, hdr_row: int, hm: Dict[str, int]) -> List[Tuple[int,int,float,float,float,float,float,float]]:
-    rows: List[Tuple[int,int,float,float,float,float,float,float]] = []
+
+def _read_stage_geometry(ws, hdr_row: int, hm: Dict[str, int]) -> List[Tuple[int, int, float, float, float, float, float, float]]:
+    rows: List[Tuple[int, int, float, float, float, float, float, float]] = []
     r = hdr_row + 1
     while r <= ws.max_row:
         v_start = ws.cell(r, hm[_norm("start stage")]).value
-        v_end   = ws.cell(r, hm[_norm("end stage")]).value
+        v_end = ws.cell(r, hm[_norm("end stage")]).value
         if _as_str(v_start) == "" and _as_str(v_end) == "":
             break
         start = _int_or_none(v_start)
-        end   = _int_or_none(v_end)
+        end = _int_or_none(v_end)
         if start is None or end is None:
             break
 
@@ -186,34 +167,38 @@ def _read_stage_geometry(ws, hdr_row: int, hm: Dict[str, int]) -> List[Tuple[int
                 raise RuntimeError(f"Stage Geometry row {r}: missing '{h}'")
             return float(v)
 
-        rows.append((
-            start, end,
-            gv("diameter (ft)"),
-            gv("tray spacing (ft)"),
-            gv("gas void fraction"),
-            gv("weir height (in)"),
-            gv("weir length (ft)"),
-            gv("active area fraction"),
-        ))
+        rows.append(
+            (
+                start,
+                end,
+                gv("diameter (ft)"),
+                gv("tray spacing (ft)"),
+                gv("gas void fraction"),
+                gv("weir height (in)"),
+                gv("weir length (ft)"),
+                gv("active area fraction"),
+            )
+        )
         r += 1
 
     if not rows:
         raise RuntimeError("Stage Geometry table found but no data rows read.")
     return rows
 
+
 def _expand_geometry(N: int, geom_rows) -> Dict[str, List[float]]:
-    diam = [0.0]*N
-    spacing = [0.0]*N
-    gasvoid = [0.0]*N
-    weir_h_in = [0.0]*N
-    weir_L = [0.0]*N
-    aaf = [0.0]*N
+    diam = [0.0] * N
+    spacing = [0.0] * N
+    gasvoid = [0.0] * N
+    weir_h_in = [0.0] * N
+    weir_L = [0.0] * N
+    aaf = [0.0] * N
 
     for (start, end, d, sp, gv, wh, wl, aa) in geom_rows:
         s0 = max(1, start)
         s1 = min(N, end)
-        for s in range(s0, s1+1):
-            i = s-1
+        for s in range(s0, s1 + 1):
+            i = s - 1
             diam[i] = d
             spacing[i] = sp
             gasvoid[i] = gv
@@ -231,19 +216,7 @@ def _expand_geometry(N: int, geom_rows) -> Dict[str, List[float]]:
     }
 
 
-# -----------------------------
-# Stage Profile table (P, T, ML0, X0)
-# -----------------------------
-
 def _find_stage_profile_table(wb, comps: List[str]) -> Tuple[Any, int, Dict[str, int], List[int]]:
-    """
-    Find a table with at least:
-      Stage, Pressure, Temperature, Holdup
-    and preferably component mole fraction columns.
-
-    Returns: ws, header_row, header_map, comp_cols (len NC)
-    """
-    # Accept variants
     stage_keys = ["stage"]
     p_keys = ["p (psia)", "p_psia", "pressure (psia)", "pressure", "p"]
     t_keys = ["t (f)", "t_f", "temperature (f)", "temperature", "t0_f", "t0 (f)"]
@@ -269,28 +242,32 @@ def _find_stage_profile_table(wb, comps: List[str]) -> Tuple[Any, int, Dict[str,
             if not (k_stage and k_p and k_t and k_m):
                 continue
 
-            # Component columns: try exact component names first
             comp_cols: List[int] = []
             for cn in comp_norm:
                 if cn in hm:
                     comp_cols.append(hm[cn])
 
-            # If not found, try x1/x2/... style
             if len(comp_cols) != len(comps):
                 comp_cols = []
-                for j in range(1, len(comps)+1):
+                for j in range(1, len(comps) + 1):
                     for alt in [f"x{j}", f"x_{j}", f"liq x{j}", f"liquid x{j}"]:
                         if _norm(alt) in hm:
                             comp_cols.append(hm[_norm(alt)])
                             break
 
-            # Still not found? We'll fail later with a clearer error.
             return ws, r, hm, comp_cols
 
     raise RuntimeError("Could not locate a Stage Profile table (Stage, Pressure, Temperature, Holdup).")
 
-def _read_stage_profile(ws, hdr_row: int, hm: Dict[str,int], N: int, NC: int, comp_cols: List[int]) -> Tuple[List[float], List[float], List[float], List[List[float]]]:
-    # Resolve essential columns
+
+def _read_stage_profile(
+    ws,
+    hdr_row: int,
+    hm: Dict[str, int],
+    N: int,
+    NC: int,
+    comp_cols: List[int],
+) -> Tuple[List[float], List[float], List[float], List[List[float]]]:
     def pick(keys: List[str]) -> int:
         for k in keys:
             kk = _norm(k)
@@ -299,22 +276,18 @@ def _read_stage_profile(ws, hdr_row: int, hm: Dict[str,int], N: int, NC: int, co
         raise RuntimeError("Missing expected column in Stage Profile: one of " + ", ".join(keys))
 
     c_stage = pick(["stage"])
-    c_p = pick(["p (psia)","p_psia","pressure (psia)","pressure","p"])
-    c_t = pick(["t (f)","t_f","temperature (f)","temperature","t0_f","t0 (f)"])
-    c_m = pick(["ml0 (lbmol)","ml0_lbmol","holdup (lbmol)","liquid holdup (lbmol)","ml0"])
+    c_p = pick(["p (psia)", "p_psia", "pressure (psia)", "pressure", "p"])
+    c_t = pick(["t (f)", "t_f", "temperature (f)", "temperature", "t0_f", "t0 (f)"])
+    c_m = pick(["ml0 (lbmol)", "ml0_lbmol", "holdup (lbmol)", "liquid holdup (lbmol)", "ml0"])
 
-    # Read rows until we collected stages 1..N
-    P = [0.0]*N
-    T = [0.0]*N
-    ML0 = [0.0]*N
-    X0 = [[0.0]*NC for _ in range(N)]
+    P = [0.0] * N
+    T = [0.0] * N
+    ML0 = [0.0] * N
+    X0 = [[0.0] * NC for _ in range(N)]
 
-    found = 0
-    for r in range(hdr_row+1, min(hdr_row+1+2000, ws.max_row)+1):
+    for r in range(hdr_row + 1, min(hdr_row + 1 + 2000, ws.max_row) + 1):
         s = _int_or_none(ws.cell(r, c_stage).value)
-        if s is None:
-            continue
-        if s < 1 or s > N:
+        if s is None or s < 1 or s > N:
             continue
 
         pv = _float_or_none(ws.cell(r, c_p).value)
@@ -324,38 +297,24 @@ def _read_stage_profile(ws, hdr_row: int, hm: Dict[str,int], N: int, NC: int, co
         if pv is None or tv is None or mv is None:
             raise RuntimeError(f"Stage Profile row {r}: missing P/T/ML0 for stage {s}")
 
-        P[s-1] = float(pv)
-        T[s-1] = float(tv)
-        ML0[s-1] = float(mv)
+        P[s - 1] = float(pv)
+        T[s - 1] = float(tv)
+        ML0[s - 1] = float(mv)
 
         if len(comp_cols) == NC:
             xs: List[float] = []
             for c in comp_cols:
                 xv = _float_or_none(ws.cell(r, c).value)
-                if xv is None:
-                    xs.append(0.0)
-                else:
-                    xs.append(float(xv))
-            # normalize defensively
+                xs.append(0.0 if xv is None else float(xv))
             tot = sum(xs)
             if tot <= 0.0:
                 raise RuntimeError(f"Stage Profile row {r}: composition row sums to 0 at stage {s}")
-            xs = [v/tot for v in xs]
-            X0[s-1] = xs
+            X0[s - 1] = [v / tot for v in xs]
 
-        found += 1
-        if found >= N:
-            # We may have duplicates but likely have enough; continue verifying below
-            pass
-
-    # Validate we filled all stages
     if any(p == 0.0 for p in P):
         raise RuntimeError("Stage Profile: did not populate P for all stages 1..N")
     if any(t == 0.0 for t in T):
         raise RuntimeError("Stage Profile: did not populate T for all stages 1..N")
-    if any(m < 0.0 for m in ML0):
-        raise RuntimeError("Stage Profile: negative ML0 detected")
-
     if len(comp_cols) != NC:
         raise RuntimeError(
             "Stage Profile: could not locate NC composition columns for X0. "
@@ -365,16 +324,7 @@ def _read_stage_profile(ws, hdr_row: int, hm: Dict[str,int], N: int, NC: int, co
     return P, T, ML0, X0
 
 
-# -----------------------------
-# Streams (Feed, Distillate, Bottoms)
-# -----------------------------
-
-def _find_streams_table(wb, comps: List[str]) -> Tuple[Any, int, Dict[str,int], List[int]]:
-    """
-    Find a table with at least:
-      Stream Name, Stage, Flow
-    and preferably comp columns (z).
-    """
+def _find_streams_table(wb, comps: List[str]) -> Tuple[Any, int, Dict[str, int], List[int]]:
     stream_keys = ["stream", "stream name", "name"]
     stage_keys = ["stage", "to stage", "tray", "feed stage"]
     flow_keys = ["flow (lbmol/hr)", "flow lbmol/hr", "lbmol/hr", "flow"]
@@ -394,7 +344,6 @@ def _find_streams_table(wb, comps: List[str]) -> Tuple[Any, int, Dict[str,int], 
             k_name = any_key(stream_keys)
             k_stage = any_key(stage_keys)
             k_flow = any_key(flow_keys)
-
             if not (k_name and k_stage and k_flow):
                 continue
 
@@ -405,7 +354,7 @@ def _find_streams_table(wb, comps: List[str]) -> Tuple[Any, int, Dict[str,int], 
 
             if len(comp_cols) != len(comps):
                 comp_cols = []
-                for j in range(1, len(comps)+1):
+                for j in range(1, len(comps) + 1):
                     for alt in [f"z{j}", f"z_{j}", f"x{j}", f"x_{j}"]:
                         if _norm(alt) in hm:
                             comp_cols.append(hm[_norm(alt)])
@@ -415,7 +364,8 @@ def _find_streams_table(wb, comps: List[str]) -> Tuple[Any, int, Dict[str,int], 
 
     raise RuntimeError("Could not locate a Streams table (Stream Name, Stage, Flow).")
 
-def _read_streams(ws, hdr_row: int, hm: Dict[str,int], comps: List[str], comp_cols: List[int]) -> Dict[str, Dict[str, Any]]:
+
+def _read_streams(ws, hdr_row: int, hm: Dict[str, int], comps: List[str], comp_cols: List[int]) -> Dict[str, Dict[str, Any]]:
     def pick(keys: List[str]) -> int:
         for k in keys:
             kk = _norm(k)
@@ -423,22 +373,19 @@ def _read_streams(ws, hdr_row: int, hm: Dict[str,int], comps: List[str], comp_co
                 return hm[kk]
         raise RuntimeError("Streams table missing expected column: " + ", ".join(keys))
 
-    c_name = pick(["stream","stream name","name"])
-    c_stage = pick(["stage","to stage","tray","feed stage"])
-    c_flow = pick(["flow (lbmol/hr)","flow lbmol/hr","lbmol/hr","flow"])
+    c_name = pick(["stream", "stream name", "name"])
+    c_stage = pick(["stage", "to stage", "tray", "feed stage"])
+    c_flow = pick(["flow (lbmol/hr)", "flow lbmol/hr", "lbmol/hr", "flow"])
 
     out: Dict[str, Dict[str, Any]] = {}
     NC = len(comps)
 
-    for r in range(hdr_row+1, min(hdr_row+1+400, ws.max_row)+1):
+    for r in range(hdr_row + 1, min(hdr_row + 1 + 400, ws.max_row) + 1):
         nm = _as_str(ws.cell(r, c_name).value)
         if not nm:
             continue
-        nm_l = _norm(nm)
-
         st = _int_or_none(ws.cell(r, c_stage).value)
         fl = _float_or_none(ws.cell(r, c_flow).value)
-
         if st is None or fl is None:
             continue
 
@@ -449,13 +396,13 @@ def _read_streams(ws, hdr_row: int, hm: Dict[str,int], comps: List[str], comp_co
                 v = _float_or_none(ws.cell(r, c).value)
                 zs.append(0.0 if v is None else float(v))
             tot = sum(zs)
-            if tot > 0:
-                zs = [v/tot for v in zs]
-                z = zs
+            if tot > 0.0:
+                z = [v / tot for v in zs]
 
-        out[nm_l] = {"name": nm, "stage": int(st), "flow": float(fl), "z": z}
+        out[_norm(nm)] = {"name": nm, "stage": int(st), "flow": float(fl), "z": z}
 
     return out
+
 
 def _pick_stream(streams: Dict[str, Dict[str, Any]], keywords: List[str]) -> Optional[Dict[str, Any]]:
     for k, rec in streams.items():
@@ -464,10 +411,6 @@ def _pick_stream(streams: Dict[str, Dict[str, Any]], keywords: List[str]) -> Opt
                 return rec
     return None
 
-
-# -----------------------------
-# Build case dump
-# -----------------------------
 
 def build_case_dump(excel_path: Path) -> List[str]:
     wb = load_workbook(excel_path, data_only=True)
@@ -479,30 +422,24 @@ def build_case_dump(excel_path: Path) -> List[str]:
 
     N = int(round(n))
     NC = int(round(nc))
-
     comps = _find_component_names(wb, NC)
 
-    # Stage geometry
     ws_geom, hdr_geom, hm_geom = _find_stage_geometry_table(wb)
     geom_rows = _read_stage_geometry(ws_geom, hdr_geom, hm_geom)
     geom_vecs = _expand_geometry(N, geom_rows)
 
-    # Stage profile
     ws_prof, hdr_prof, hm_prof, comp_cols = _find_stage_profile_table(wb, comps)
     P_psia, T0_F, ML0_lbmol, X0 = _read_stage_profile(ws_prof, hdr_prof, hm_prof, N, NC, comp_cols)
 
-    # Streams
     ws_str, hdr_str, hm_str, comp_cols_s = _find_streams_table(wb, comps)
     streams = _read_streams(ws_str, hdr_str, hm_str, comps, comp_cols_s)
 
-    rec_D = _pick_stream(streams, ["distillate","dist","d "])
-    rec_B = _pick_stream(streams, ["bottoms","bottom","btm","b "])
-    rec_F = _pick_stream(streams, ["feed","f "])
-
+    rec_D = _pick_stream(streams, ["distillate", "dist", "d "])
+    rec_B = _pick_stream(streams, ["bottoms", "bottom", "btm", "b "])
+    rec_F = _pick_stream(streams, ["feed", "f "])
     if rec_F is None:
         raise RuntimeError("Could not find FEED stream in Streams table (name containing 'feed').")
     if rec_D is None:
-        # Allow missing; but default distillate from stage 1 with 0 flow is wrong for you.
         raise RuntimeError("Could not find DISTILLATE stream in Streams table (name containing 'distillate').")
     if rec_B is None:
         raise RuntimeError("Could not find BOTTOMS stream in Streams table (name containing 'bottoms').")
@@ -514,10 +451,8 @@ def build_case_dump(excel_path: Path) -> List[str]:
 
     zF = rec_F.get("z", None)
     if zF is None:
-        # If streams table doesn't include composition columns, fallback to stage feed stage composition
-        zF = X0[FEED_STAGE-1][:]
+        zF = X0[FEED_STAGE - 1][:]
 
-    # MW
     MW_COMP = [_mw_lookup(nm) for nm in comps]
     MW_LIQ: List[float] = []
     for i in range(N):
@@ -526,17 +461,14 @@ def build_case_dump(excel_path: Path) -> List[str]:
             mw += X0[i][j] * MW_COMP[j]
         MW_LIQ.append(mw)
 
-    # Write dump
     lines: List[str] = []
     lines.append(f"N={N}")
     lines.append(f"NC={NC}")
     lines.append(f"COMPONENTS_EXCEL={','.join(comps)}")
-
     lines.append(f"P_PSIA={_csv(P_psia)}")
     lines.append(f"T0_F={_csv(T0_F)}")
     lines.append(f"ML0_LBMOL={_csv(ML0_lbmol)}")
 
-    # X0 and Z rows
     for i in range(N):
         lines.append(f"X0ROW={_csv(X0[i])}")
     for i in range(N):
@@ -548,14 +480,18 @@ def build_case_dump(excel_path: Path) -> List[str]:
     lines.append(f"B_LBMOLPH={B_LBMOLPH:.12g}")
     lines.append(f"ZF={_csv(zF)}")
 
-    # Geometry vectors
-    for k in ["TRAY_DIAM_FT", "TRAY_SPACING_FT", "GAS_VOID_FRAC", "WEIR_HEIGHT_IN", "WEIR_LENGTH_FT", "ACTIVE_AREA_FRACTION"]:
+    for k in [
+        "TRAY_DIAM_FT",
+        "TRAY_SPACING_FT",
+        "GAS_VOID_FRAC",
+        "WEIR_HEIGHT_IN",
+        "WEIR_LENGTH_FT",
+        "ACTIVE_AREA_FRACTION",
+    ]:
         lines.append(f"{k}={_csv(geom_vecs[k])}")
 
-    # MW
     lines.append(f"MW_COMP={_csv(MW_COMP)}")
     lines.append(f"MW_LIQ={_csv(MW_LIQ)}")
-
     return lines
 
 
@@ -566,7 +502,6 @@ def main(argv: List[str]) -> int:
 
     excel_path = Path(argv[1]).expanduser().resolve()
     out_path = Path(argv[2]).expanduser().resolve()
-
     if not excel_path.exists():
         print(f"ERROR: Excel file not found: {excel_path}", file=sys.stderr)
         return 2

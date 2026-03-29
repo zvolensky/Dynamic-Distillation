@@ -149,3 +149,27 @@ def test_tabular_provider_component_mismatch_raises(tmp_path):
 
     with pytest.raises(ValueError, match="components_excel mismatch"):
         TabularThermoProviderV1.from_json(str(p), expected_component_names_excel=["X", "Y"])
+
+
+def test_tabular_provider_can_blend_more_than_two_anchors(tmp_path):
+    doc = _build_table_doc()
+    third = {
+        "name": "a3",
+        "z_ref": [0.5, 0.5],
+        "K": (np.asarray(doc["anchors"][0]["K"], dtype=float) + 2.0).tolist(),
+        "HL_BTU_lbmol": (np.asarray(doc["anchors"][0]["HL_BTU_lbmol"], dtype=float) + 1000.0).tolist(),
+        "HV_BTU_lbmol": (np.asarray(doc["anchors"][0]["HV_BTU_lbmol"], dtype=float) + 1000.0).tolist(),
+        "Z": doc["anchors"][0]["Z"],
+        "rhoL_lbmol_ft3": doc["anchors"][0]["rhoL_lbmol_ft3"],
+    }
+    doc["anchors"].append(third)
+
+    p = tmp_path / "table3.json"
+    with p.open("w", encoding="utf-8") as f:
+        json.dump(doc, f, indent=2, ensure_ascii=True)
+
+    prov = TabularThermoProviderV1.from_json(str(p), n_anchor_blend=3)
+    res = prov.flash_TP_full(150.0, 150.0, [0.5, 0.5])
+
+    # The midpoint anchor should pull the blend away from the original 2-anchor midpoint.
+    assert res.HL_BTU_lbmol > 3050.0

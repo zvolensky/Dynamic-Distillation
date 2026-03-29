@@ -63,5 +63,3 @@ Later main-model checkpoint:
   - the final tray pressure profile is physically graded again
 - Recommended derived workbook for new 20-stage Huang studies:
   - `sandbox/mini8/input/distillation_column_template_20stage_huang_freep_900s_seed.xlsx`
-- See:
-  - `docs/huang_hybrid_main_model_2026-03-20.md`

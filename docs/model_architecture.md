@@ -3,6 +3,8 @@
 This document describes the current architecture of the dynamic distillation model in this repository.
 It is intended as an implementation-level reference for model behavior, coupling, and runtime execution.
 
+For project terminology, see `docs/glossary.md`.
+
 ## 1) Scope
 
 Primary execution path:
@@ -157,10 +159,6 @@ Current project convention for ChemSep parity work:
 - liquid-hydraulic override is kept off unless explicitly requested
 - this keeps the seeded/profile liquid traffic active while still logging `L_out_hyd` for hydraulic diagnosis
 
-- `huang`:
-forces a partitioned Huang-style hybrid path:
-hydraulic pressure + profile vapor traffic + liquid hydraulics override on with `huang-htc` liquid closure.
-
 - `legacy`:
 uses Excel/CLI-driven behavior and is the only mode where startup hydraulic sequencing is active.
 
@@ -168,8 +166,22 @@ uses Excel/CLI-driven behavior and is the only mode where startup hydraulic sequ
 
 Controllers are implemented in runner, not inside RHS:
 - level control:
-top holdup -> distillate draw,
-bottom holdup -> bottoms draw.
+top drum holdup or true level -> distillate draw,
+bottom sump holdup or true level -> bottoms draw.
+
+Bottom true-level mode:
+- uses sump liquid holdup plus liquid density to estimate live sump liquid volume
+- interprets sump level as a vertical cylindrical vessel fraction when sump total volume is provided
+
+Bottom-end topology in the standard explicit-sump model:
+- liquid from the bottom tray drains into the bottoms sump
+- bottoms product is drawn from the sump
+- reboiler liquid feed is also taken from the sump
+- reboiler boilup returns vapor to the bottom tray
+
+Current exception:
+- the special no-holdup reboiler shortcut still uses its legacy feed path until
+  an explicit sump-circulation model is added there
 
 - pressure control:
 top pressure PV -> condenser duty or top-pressure anchor MV.

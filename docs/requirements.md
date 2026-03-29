@@ -2,8 +2,8 @@
 
 ## 1. Document Control
 - Title: Dynamic Distillation Requirements Specification
-- Version: 1.2
-- Date: 2026-02-27
+- Version: 1.3
+- Date: 2026-03-28
 - Basis: Current implementation and tests in this repository.
 
 ## 2. Scope
@@ -25,12 +25,14 @@ This specification captures the as-built behavior of the current codebase.
 - `UR-009` Users shall be protected against accidental reruns of identical CLI commands unless explicitly overridden.
 - `UR-010` Users shall have automatic run provenance tracking and experiment-ledger regeneration.
 - `UR-011` Users shall be able to select runtime behavior mode (`parity`, `calibration`, `hydraulic`, `legacy`) from the CLI.
+- `UR-012` Users shall be able to import and export richer Excel restart state, including boundary, energy, and controller memory sheets when present.
 
 ## 4. Functional Requirements
 
 ### 4.1 Case Loading and Validation
 - `FR-001` The system shall load `.xlsx` case files and reject unsupported file types.
 - `FR-002` The loader shall parse `Specifications`, `Initial Conditions`, and (best-effort) `Streams`.
+- `FR-002a` The loader shall support optional restart-state sheets (`Boundary State`, `Energy State`, `Controller State`) when present.
 - `FR-003` The loader shall canonicalize Excel component names to DWSIM-compatible component IDs.
 - `FR-004` The system shall build a validated `ColumnSpec` and enforce stage/component consistency.
 - `FR-005` The runner shall perform preflight validation and stop before integration on blocking errors.
@@ -40,6 +42,7 @@ This specification captures the as-built behavior of the current codebase.
 - `FR-007` The runner shall initialize tray vapor holdup to match startup pressure profile assumptions.
 - `FR-008` The runner shall support optional startup thermo-consistent conditioning iterations.
 - `FR-009` The runner shall perform top-drum startup steadying pass for top-holdup residual reduction when top states are active.
+- `FR-009a` When explicit runtime restart state is present, the runner shall skip vapor reseeding and startup conditioning/steadying steps that would overwrite the restart state.
 
 ### 4.3 Thermodynamics Services
 - `FR-010` The system shall support thermo providers for TP flash, phase enthalpy, and optional Z-factor diagnostics.
@@ -47,6 +50,7 @@ This specification captures the as-built behavior of the current codebase.
 - `FR-012` The system shall support process-pool tabular thermo mode for parallel batched stage flashes.
 - `FR-013` The RHS shall use provider batch flash when available and fall back to scalar flash otherwise.
 - `FR-014` The system shall support thermo refresh throttling by step cadence and optional per-stage `dT/dP/dx` thresholds.
+- `FR-014a` The runner shall support optional live-PR override for the equilibrium-relaxation flash path while leaving the main thermo mode unchanged.
 
 ### 4.4 RHS, Physics, and Closures
 - `FR-015` The RHS shall compute tray/top/bottom component holdup derivatives with feed and boundary source terms.
@@ -55,6 +59,7 @@ This specification captures the as-built behavior of the current codebase.
 - `FR-018` The model shall support vapor-flow models `profile`, `energy`, and `conductance` with reboiler-neighbor vapor guardrails.
 - `FR-019` The model shall support optional equilibrium relaxation and optional energy-holdup states.
 - `FR-020` The model shall support optional top-drum PSV venting with linear gain and max-vent clamp.
+- `FR-020a` In the standard explicit-sump configuration, the reboiler liquid feed shall be drawn from the bottom sump rather than directly from the bottom tray.
 
 ### 4.5 Controls and Runtime Safeguards
 - `FR-021` The runner shall support level PI control for top and bottom inventories.
@@ -72,6 +77,7 @@ This specification captures the as-built behavior of the current codebase.
 - `FR-030` The system shall append run registry metadata and regenerate `docs/experiment_ledger.csv` and `docs/experiment_ledger.md` after logged runs.
 - `FR-032` Profile logs shall expose per-component dynamic-state K, thermo-equilibrium K, and their ratio (`K_state_*`, `K_thermo_*`, `K_state_over_K_thermo_*`).
 - `FR-033` Bottoms-composition MV diagnostics shall reflect the selected MV mode: duty mode logs `Q_reb_cmd_BTUph`/`Q_reb_used_BTUph` as active MV and may leave `Boilup_cmd_lbmolph` undefined (`NaN`).
+- `FR-034` The runner shall be able to export a restart workbook from a completed run, including optional `Boundary State`, `Energy State`, and `Controller State` sheets.
 
 ## 5. Traceability Matrix
 
@@ -86,6 +92,7 @@ This specification captures the as-built behavior of the current codebase.
 | `UR-008`, `FR-027`, `FR-028`, `FR-032`, `FR-033` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `src/dynamic_distillation/column_rhs_v1.py` | `tests/test_dynamic_run_scaffold_v1.py`, `tests/test_column_rhs_v1.py` |
 | `UR-009`, `FR-029` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `src/dynamic_distillation/experiment_ledger_v1.py` | N/A |
 | `UR-010`, `FR-030` | `src/dynamic_distillation/experiment_ledger_v1.py`, `tools/update_experiment_ledger.py` | N/A |
+| `UR-012`, `FR-002a`, `FR-009a`, `FR-034` | `src/dynamic_distillation/excel_case_loader_v1.py`, `src/dynamic_distillation/column_spec_builder_v1.py`, `src/dynamic_distillation/state_vector_layout_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_excel_case_loader_v1.py`, `tests/test_column_spec_builder_v1.py`, `tests/test_state_vector_layout_v1.py`, `tests/test_dynamic_run_scaffold_v1.py` |
 | `UR-011` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_dynamic_run_scaffold_v1.py` |
 | `FR-001`..`FR-004` | `src/dynamic_distillation/excel_case_loader_v1.py`, `src/dynamic_distillation/column_spec_builder_v1.py` | `tests/test_excel_case_loader_v1.py`, `tests/test_column_spec_builder_v1.py`, `tests/test_excel_case_validator_v1.py` |
 | `FR-006`..`FR-009`, `FR-026` | `src/dynamic_distillation/state_vector_layout_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_state_vector_layout_v1.py`, `tests/test_dynamic_run_scaffold_v1.py` |

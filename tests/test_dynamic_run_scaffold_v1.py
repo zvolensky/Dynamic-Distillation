@@ -577,6 +577,50 @@ def test_level_control_writes_dynamic_draws_to_summary_log(tmp_path: Path):
     assert float(r1["B_lbmolph"]) > 4761.98
 
 
+def test_bottom_true_level_control_logs_fractional_pv_and_sp(tmp_path: Path):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=1,
+        dt_sec=0.1,
+        log_every_n_steps=1,
+        include_temperature=True,
+        include_energy=False,
+        enable_equilibrium_relaxation=True,
+        thermo_mode="stub",
+        logs_dir=str(tmp_path),
+        write_logs=True,
+        enable_level_control=True,
+        top_level_sp_lbmol=397.0,
+        bottom_level_pv_mode="true-level",
+        bottom_level_sp_frac=0.5,
+        bottom_sump_total_volume_ft3=2500.0,
+    )
+
+    out = run_smoke_simulation(cfg)
+    summary_csv = Path(str(out["summary_csv"]))
+    assert summary_csv.exists()
+
+    import csv
+
+    with summary_csv.open("r", encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert rows, "summary log is empty"
+
+    r0 = rows[0]
+    assert "Bottom_level_ctrl_pv" in r0
+    assert "Bottom_level_ctrl_sp" in r0
+    sp = float(r0["Bottom_level_ctrl_sp"])
+    pv = float(r0["Bottom_level_ctrl_pv"])
+    assert np.isfinite(sp)
+    assert np.isfinite(pv)
+    assert sp == pytest.approx(0.5)
+    assert 0.0 <= pv <= 1.0
+
+
 def test_summary_row_prefers_logged_pressure_controller_pv():
     import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
 
@@ -1060,6 +1104,14 @@ def test_effective_hydraulic_ida_profile_applies_tuned_defaults():
     assert "enable_dae_pilot_algebraic_solve=True" in list(eff["defaults_applied"])
     assert "ida_max_iter=12" in list(eff["defaults_applied"])
     assert "dae_pilot_v_tol_lbmolph=100" in list(eff["defaults_applied"])
+
+
+def test_runner_config_defaults_to_table_pool_with_standard_cache():
+    cfg = RunnerConfig(excel_path="dummy.xlsx")
+    assert cfg.thermo_mode == "table-pool"
+    assert cfg.thermo_table_path == r"cache/thermo_table.json"
+    assert cfg.thermo_pool_workers == 2
+    assert cfg.thermo_pool_chunk_size == 4
 
 
 def test_effective_hydraulic_ida_profile_preserves_explicit_overrides():
@@ -2270,6 +2322,37 @@ def test_build_inputs_can_enable_selective_live_pr_for_equilibrium_relaxation(mo
     assert inputs.equilibrium_relaxation_thermo_provider is not None
 
 
+def test_build_inputs_can_enable_selective_live_pr_from_specs(monkeypatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+    import dynamic_distillation.thermo_provider_v1 as thermo_provider_v1
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Equilibrium Relaxation Live PR"] = True
+    object.__setattr__(col, "specs_raw", specs)
+
+    class _FakeThermoProvider:
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    monkeypatch.setattr(thermo_provider_v1, "ThermoProviderV1", _FakeThermoProvider)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert inputs.equilibrium_relaxation_thermo_provider is not None
+
+
 def test_build_inputs_reads_and_overrides_top_psv_settings():
     excel = Path("distillation_column_template.xlsx")
     if not excel.exists():
@@ -2340,6 +2423,56 @@ def test_build_inputs_computes_top_drum_vapor_volume_from_geometry():
     assert abs(float(inputs.top_drum_total_volume_ft3) - total_vol) < 1e-9
     assert inputs.top_drum_vapor_volume_ft3 is not None
     assert abs(float(inputs.top_drum_vapor_volume_ft3) - expected_vapor) < 1e-9
+
+
+def test_build_inputs_computes_bottom_sump_total_volume_from_diameter_and_height():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Bottom Sump Total Volume (ft3)"] = None
+    specs["Bottom Sump Diameter (ft)"] = 18.0
+    specs["Bottom Sump Height (ft)"] = 12.0
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+
+    total_vol = float(np.pi * 0.25 * 18.0 * 18.0 * 12.0)
+    assert inputs.bottom_sump_total_volume_ft3 is not None
+    assert abs(float(inputs.bottom_sump_total_volume_ft3) - total_vol) < 1e-9
+
+
+def test_build_inputs_reads_equilibrium_tuning_from_specs():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Equilibrium Tau (sec)"] = 4.0
+    specs["Equilibrium Energy Damping Gain"] = 0.2
+    specs["Hydraulic Energy Temperature Follow Tau (sec)"] = 1.25
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+
+    assert inputs.tau_eq_sec == pytest.approx(4.0)
+    assert inputs.equilibrium_energy_damping_gain == pytest.approx(0.2)
+    assert inputs.hydraulic_energy_temperature_follow_tau_sec == pytest.approx(1.25)
 
 
 def test_build_inputs_adds_overhead_and_condenser_vapor_capacitance():
@@ -2523,16 +2656,6 @@ def test_runtime_mode_calibration_forces_parity_closures():
 def test_normalize_runtime_mode_accepts_calibration():
     assert _normalize_runtime_mode("calibration") == "calibration"
     assert _normalize_runtime_mode(" Calibration ") == "calibration"
-
-
-def test_normalize_runtime_mode_accepts_huang():
-    assert _normalize_runtime_mode("huang") == "huang"
-    assert _normalize_runtime_mode(" Huang ") == "huang"
-
-
-def test_normalize_runtime_mode_accepts_huang_energy():
-    assert _normalize_runtime_mode("huang-energy") == "huang-energy"
-    assert _normalize_runtime_mode(" Huang-Energy ") == "huang-energy"
 
 
 def test_autocalibrate_francis_hydraulic_c_factors_from_seed_recovers_stage_targets():
@@ -2863,109 +2986,7 @@ def test_build_inputs_accepts_equilibrium_mode_override():
     assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "phase-holdup"
 
 
-def test_build_inputs_runtime_huang_forces_partitioned_huang_closures():
-    excel = Path("distillation_column_template.xlsx")
-    if not excel.exists():
-        return
-
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
-    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
-
-    case = load_case_from_excel(str(excel))
-    col = build_column_spec_from_case(case)
-    cfg = RunnerConfig(
-        excel_path=str(excel),
-        thermo_mode="stub",
-        runtime_mode="huang",
-    )
-    inputs, _ = build_inputs_for_runner(case, col, cfg)
-    assert str(inputs.pressure_model).strip().lower() == "hydraulic"
-    assert str(inputs.vapor_flow_model).strip().lower() == "profile"
-    assert str(inputs.liquid_hydraulic_model).strip().lower() == "huang-htc"
-    assert bool(inputs.enable_liquid_hydraulic_override) is True
-    assert float(inputs.top_drum_pressure_gate_soft_psi) == pytest.approx(0.0)
-    assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.8)
-    assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "composition-only"
-
-
-def test_build_inputs_runtime_huang_energy_forces_energy_vapor_with_huang_liquid_closure():
-    excel = Path("distillation_column_template.xlsx")
-    if not excel.exists():
-        return
-
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
-    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
-
-    case = load_case_from_excel(str(excel))
-    col = build_column_spec_from_case(case)
-    cfg = RunnerConfig(
-        excel_path=str(excel),
-        thermo_mode="stub",
-        runtime_mode="huang-energy",
-    )
-    inputs, _ = build_inputs_for_runner(case, col, cfg)
-    assert str(inputs.pressure_model).strip().lower() == "hydraulic"
-    assert str(inputs.vapor_flow_model).strip().lower() == "energy"
-    assert str(inputs.liquid_hydraulic_model).strip().lower() == "huang-htc"
-    assert bool(inputs.enable_liquid_hydraulic_override) is True
-    assert float(inputs.top_drum_pressure_gate_soft_psi) == pytest.approx(0.25)
-    assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.8)
-    assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "composition-only"
-
-
-def test_build_inputs_runtime_huang_raises_generic_stage_tau_fallback_for_htc():
-    excel = Path("distillation_column_template.xlsx")
-    if not excel.exists():
-        return
-
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
-    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
-
-    case = load_case_from_excel(str(excel))
-    col = build_column_spec_from_case(case)
-
-    specs = dict(getattr(col, "specs_raw", {}) or {})
-    specs.pop("Huang Liquid HTC (sec)", None)
-    specs.pop("Liquid Hydraulic HTC (sec)", None)
-    specs.pop("Hydraulic Time Constant (sec)", None)
-    specs["Stage time constant [tau] (sec)"] = 2.0
-    object.__setattr__(col, "specs_raw", specs)
-
-    cfg = RunnerConfig(
-        excel_path=str(excel),
-        thermo_mode="stub",
-        runtime_mode="huang",
-    )
-    inputs, _ = build_inputs_for_runner(case, col, cfg)
-    assert float(inputs.liquid_hydraulic_htc_sec) == pytest.approx(20.0)
-
-
-def test_build_inputs_runtime_huang_keeps_explicit_huang_htc_over_stage_tau():
-    excel = Path("distillation_column_template.xlsx")
-    if not excel.exists():
-        return
-
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
-    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
-
-    case = load_case_from_excel(str(excel))
-    col = build_column_spec_from_case(case)
-
-    specs = dict(getattr(col, "specs_raw", {}) or {})
-    specs["Huang Liquid HTC (sec)"] = 7.0
-    specs["Stage time constant [tau] (sec)"] = 2.0
-    object.__setattr__(col, "specs_raw", specs)
-
-    cfg = RunnerConfig(
-        excel_path=str(excel),
-        thermo_mode="stub",
-        runtime_mode="huang",
-    )
-    inputs, _ = build_inputs_for_runner(case, col, cfg)
-    assert float(inputs.liquid_hydraulic_htc_sec) == pytest.approx(7.0)
-
-
-def test_build_inputs_non_huang_keeps_legacy_top_drum_pressure_gate_softness():
+def test_build_inputs_hydraulic_keeps_legacy_top_drum_pressure_gate_softness():
     excel = Path("distillation_column_template.xlsx")
     if not excel.exists():
         return
@@ -2983,90 +3004,6 @@ def test_build_inputs_non_huang_keeps_legacy_top_drum_pressure_gate_softness():
     )
     inputs, _ = build_inputs_for_runner(case, col, cfg)
     assert float(inputs.top_drum_pressure_gate_soft_psi) == pytest.approx(0.25)
-
-
-def test_build_inputs_runtime_huang_uses_hard_gate_for_8stage_case():
-    excel = Path("sandbox/mini8/input/distillation_column_template_8stage.xlsx")
-    if not excel.exists():
-        return
-
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
-    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
-
-    case = load_case_from_excel(str(excel))
-    col = build_column_spec_from_case(case)
-
-    cfg = RunnerConfig(
-        excel_path=str(excel),
-        thermo_mode="stub",
-        runtime_mode="huang",
-    )
-    inputs, _ = build_inputs_for_runner(case, col, cfg)
-    assert int(col.n_stages) == 8
-    assert float(inputs.top_drum_pressure_gate_soft_psi) == pytest.approx(0.0)
-
-
-def test_build_inputs_runtime_huang_uses_hard_gate_for_larger_case():
-    excel = Path("sandbox/mini8/input/distillation_column_template_20stage_baseline.xlsx")
-    if not excel.exists():
-        return
-
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
-    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
-
-    case = load_case_from_excel(str(excel))
-    col = build_column_spec_from_case(case)
-
-    cfg = RunnerConfig(
-        excel_path=str(excel),
-        thermo_mode="stub",
-        runtime_mode="huang",
-    )
-    inputs, _ = build_inputs_for_runner(case, col, cfg)
-    assert int(col.n_stages) == 20
-    assert float(inputs.top_drum_pressure_gate_soft_psi) == pytest.approx(0.0)
-
-
-def test_build_inputs_runtime_huang_keeps_explicit_liquid_alpha_override():
-    excel = Path("sandbox/mini8/input/distillation_column_template_8stage.xlsx")
-    if not excel.exists():
-        return
-
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
-    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
-
-    case = load_case_from_excel(str(excel))
-    col = build_column_spec_from_case(case)
-
-    cfg = RunnerConfig(
-        excel_path=str(excel),
-        thermo_mode="stub",
-        runtime_mode="huang",
-        liquid_hydraulic_override_alpha=0.9,
-    )
-    inputs, _ = build_inputs_for_runner(case, col, cfg)
-    assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.9)
-
-
-def test_build_inputs_runtime_huang_keeps_explicit_top_drum_vapor_relaxation():
-    excel = Path("sandbox/mini8/input/distillation_column_template_8stage.xlsx")
-    if not excel.exists():
-        return
-
-    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
-    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
-
-    case = load_case_from_excel(str(excel))
-    col = build_column_spec_from_case(case)
-
-    cfg = RunnerConfig(
-        excel_path=str(excel),
-        thermo_mode="stub",
-        runtime_mode="huang",
-        huang_top_drum_vapor_relaxation_sec=12.0,
-    )
-    inputs, _ = build_inputs_for_runner(case, col, cfg)
-    assert float(inputs.huang_top_drum_vapor_relaxation_sec) == pytest.approx(12.0)
 
 
 def test_build_inputs_accepts_conductance_vapor_flow_model():

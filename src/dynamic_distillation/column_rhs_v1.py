@@ -179,6 +179,8 @@ class ColumnInputs:
     # Optional total reflux-drum volume for dynamic vapor-space update:
     # V_vap = V_total - V_liq(top holdup, rho_liq).
     top_drum_total_volume_ft3: Optional[float] = None
+    # Optional total bottom-sump volume for scaffold-side level calculations.
+    bottom_sump_total_volume_ft3: Optional[float] = None
     # Optional top-drum PSV relief model:
     # V_psv = clamp(gain * max(P_top_drum - setpoint, 0), 0, max_vent)
     enable_top_drum_psv: bool = False
@@ -202,9 +204,6 @@ class ColumnInputs:
     # Optional previous filtered top-drum pressure temperature (F). When
     # provided, this is used as the lag state instead of previous tray-1 T.
     top_drum_pressure_T_prev_F: Optional[float] = None
-    # Huang-only top-drum vapor-holdup relaxation timescale (sec). When None,
-    # falls back to hydraulic/vapor holdup timescales for backward compatibility.
-    huang_top_drum_vapor_relaxation_sec: Optional[float] = None
     # Enforce physically ordered top-end pressures after hydraulic solve:
     # condenser tray pressure should not fall below top-drum pressure.
     enforce_top_pressure_ordering: bool = True
@@ -215,13 +214,6 @@ class ColumnInputs:
     # and reflux drum from drifting arbitrarily far apart.
     enforce_top_drum_pressure_continuity: bool = False
     top_drum_pressure_continuity_max_gap_psi: float = 1.0
-    # Huang free-pressure path: keep the tray-to-tray hydraulic profile, but
-    # prevent the condenser-tray pressure from drifting arbitrarily far from
-    # the reflux-drum pressure state. If the absolute gap exceeds this
-    # threshold, the full free-pressure profile is shifted by a constant offset
-    # so the top end remains physically coupled without flattening the profile.
-    enforce_huang_top_drum_pressure_continuity: bool = True
-    huang_top_drum_pressure_continuity_max_gap_psi: float = 1.0
     # Vapor flow model
     # "profile" = use Excel V profile (or feed-adjusted profile)
     # "energy"  = compute V_out from energy balance with dT/dt target
@@ -259,10 +251,8 @@ class ColumnInputs:
     # 0.0 = profile-only, 1.0 = full hydraulic override.
     liquid_hydraulic_override_alpha: float = 1.0
     # Internal liquid hydraulics model:
-    # "francis"   = Francis weir outflow based on tray holdup and geometry
-    # "huang-htc" = Huang-inspired hydraulic time constant closure, L ~ ML / tau
+    # "francis" = Francis weir outflow based on tray holdup and geometry
     liquid_hydraulic_model: str = "francis"
-    # Hydraulic time constant (sec) used by liquid_hydraulic_model="huang-htc".
     liquid_hydraulic_htc_sec: Optional[float] = None
 
     # Optional: cached liquid density per stage (lbmol/ft3) for hydraulics throttling
@@ -289,27 +279,6 @@ def _finite_positive_or_zero(value: Any) -> float:
     if (not np.isfinite(v)) or v <= 0.0:
         return 0.0
     return v
-
-
-def _compute_huang_htc_liquid_outflow_lbmolph(
-    *,
-    ML_lbmol: np.ndarray,
-    tau_sec: float,
-) -> np.ndarray:
-    """
-    Huang-inspired partitioned liquid closure: tray downflow is liquid holdup
-    divided by a hydraulic time constant.
-
-    This is intentionally simpler than a full tray/downcomer model. It provides
-    a partitioned HTC-style liquid dynamics option without differentiating the
-    hydraulic algebraic constraints.
-    """
-    tau = _finite_positive_or_zero(tau_sec)
-    if tau <= 0.0:
-        raise ValueError("tau_sec must be finite and > 0 for Huang HTC liquid closure.")
-    ML = np.asarray(ML_lbmol, dtype=float).reshape((-1,))
-    ML = np.where(~np.isfinite(ML) | (ML < 0.0), 0.0, ML)
-    return ML * (3600.0 / tau)
 
 
 def _softplus_scaled(x: float, eps: float) -> float:
@@ -560,14 +529,25 @@ def column_rhs(
     x_botL = _safe_comp_from_holdup(bottom_L, fallback=x_tray[-1, :], eps=layout.epsilon_lbmol)
     y_botV = _safe_comp_from_holdup(bottom_V, fallback=y_tray[-1, :], eps=layout.epsilon_lbmol)
 
-    # Reboiler stage uses the tray-20 (stage N) composition/temperature.
-    # The bottom sump is a separate liquid holdup used only for bottoms draw.
+    # With an explicit bottom sump, the reboiler should draw liquid from the
+    # sump inventory rather than directly from the bottom tray. Preserve the
+    # old tray-fed behavior only for the no-holdup reboiler mode, which does
+    # not yet model an explicit sump-to-reboiler circulation rate.
+    reboiler_feed_from_sump = bool(
+        layout.include_bottom
+        and (bottom_L is not None)
+        and (not reboiler_no_holdup)
+    )
+
     x_reb_source = x_tray[-1, :]
     y_reb_source = y_tray[-1, :]
     if reboiler_no_holdup and N > 1:
         x_reb_source = x_tray[-2, :]
         y_reb_source = y_tray[-2, :]
-    x_rebL = _safe_comp_from_holdup(tray_L[-1, :], fallback=x_reb_source, eps=layout.epsilon_lbmol)
+    if reboiler_feed_from_sump:
+        x_rebL = _safe_comp_from_holdup(bottom_L, fallback=x_botL, eps=layout.epsilon_lbmol)
+    else:
+        x_rebL = _safe_comp_from_holdup(tray_L[-1, :], fallback=x_reb_source, eps=layout.epsilon_lbmol)
     y_rebV = _safe_comp_from_holdup(tray_V[-1, :], fallback=y_reb_source, eps=layout.epsilon_lbmol)
 
     # Sump temperature (if available)
@@ -599,9 +579,10 @@ def column_rhs(
     fres_reb = None
     K_reb = None
 
-    # Reboiler temperature tied to bottom tray (stage N), not sump.
-    T_reb = None
-    if "tray_T_f" in u:
+    # Reboiler temperature should follow the sump when the reboiler is fed
+    # from the explicit bottom holdup.
+    T_reb = float(T_sump) if reboiler_feed_from_sump else None
+    if T_reb is None and "tray_T_f" in u:
         try:
             T_reb = float(np.asarray(u["tray_T_f"], dtype=float).reshape((N,))[-1])
         except Exception:
@@ -681,15 +662,14 @@ def column_rhs(
     L_out = L_out_profile
     V_out = V_out_profile
 
-    # Optional stage hydraulics: compute internal liquid outflow from either a
-    # Francis-weir closure or a Huang-inspired hydraulic time constant (HTC)
-    # closure when geometry is available.
+    # Optional stage hydraulics: compute internal liquid outflow from a
+    # Francis-weir closure when geometry is available.
     rhoL_tray = None
     h_ow_ft = None
     L_out_hyd_lbmolph = None
     hydraulic_l_override_alpha = 1.0
     liquid_hydraulic_model = str(getattr(inputs, "liquid_hydraulic_model", "francis") or "francis").strip().lower()
-    if liquid_hydraulic_model not in ("francis", "huang-htc"):
+    if liquid_hydraulic_model != "francis":
         liquid_hydraulic_model = "francis"
     geom = getattr(col, "geometry", None)
     if geom is not None:
@@ -743,54 +723,21 @@ def column_rhs(
                     else:
                         holdup_area_arr = active_area_arr
                     weir_h_arr = np.asarray(weir_h, dtype=float).reshape((N,))
-                    if liquid_hydraulic_model == "huang-htc":
-                        tau_htc = inputs.liquid_hydraulic_htc_sec
-                        if tau_htc is None:
-                            tau_htc = inputs.vapor_holdup_relaxation_sec
-                        if tau_htc is None:
-                            tau_htc = inputs.tau_eq_sec
-                        tau_htc = _finite_positive_or_zero(tau_htc)
-                        if tau_htc <= 0.0:
-                            tau_htc = 10.0
-                        L_out_hyd_lbmolph = _compute_huang_htc_liquid_outflow_lbmolph(
-                            ML_lbmol=ML_tray,
-                            tau_sec=float(tau_htc),
-                        )
-                        liquid_level_ft = np.zeros(N, dtype=float)
-                        valid_level = (
-                            np.isfinite(ML_tray)
-                            & (ML_tray >= 0.0)
-                            & np.isfinite(rhoL_tray)
-                            & (rhoL_tray > 0.0)
-                            & np.isfinite(holdup_area_arr)
-                            & (holdup_area_arr > 0.0)
-                        )
-                        liquid_level_ft[valid_level] = (
-                            ML_tray[valid_level]
-                            / (rhoL_tray[valid_level] * holdup_area_arr[valid_level])
-                        )
-                        weir_h_ft = np.where(
-                            np.isfinite(weir_h_arr),
-                            np.maximum(weir_h_arr / 12.0, 0.0),
-                            0.0,
-                        )
-                        h_ow_ft = np.maximum(liquid_level_ft - weir_h_ft, 0.0)
-                    else:
-                        hyd = compute_francis_weir_liquid_outflow(
-                            ML_lbmol=ML_tray,
-                            rhoL_lbmol_ft3=rhoL_tray,
-                            active_area_ft2=active_area_arr,
-                            holdup_area_ft2=holdup_area_arr,
-                            weir_height_in=weir_h_arr,
-                            weir_length_ft=np.asarray(weir_L, dtype=float).reshape((N,)),
-                            c_multiplier=(
-                                None
-                                if c_fac is None
-                                else np.asarray(c_fac, dtype=float).reshape((N,))
-                            ),
-                        )
-                        L_out_hyd_lbmolph = np.asarray(hyd.ML_lbmolph, dtype=float).reshape((N,))
-                        h_ow_ft = np.asarray(hyd.h_ow, dtype=float).reshape((N,))
+                    hyd = compute_francis_weir_liquid_outflow(
+                        ML_lbmol=ML_tray,
+                        rhoL_lbmol_ft3=rhoL_tray,
+                        active_area_ft2=active_area_arr,
+                        holdup_area_ft2=holdup_area_arr,
+                        weir_height_in=weir_h_arr,
+                        weir_length_ft=np.asarray(weir_L, dtype=float).reshape((N,)),
+                        c_multiplier=(
+                            None
+                            if c_fac is None
+                            else np.asarray(c_fac, dtype=float).reshape((N,))
+                        ),
+                    )
+                    L_out_hyd_lbmolph = np.asarray(hyd.ML_lbmolph, dtype=float).reshape((N,))
+                    h_ow_ft = np.asarray(hyd.h_ow, dtype=float).reshape((N,))
                     L_out_hyd = np.asarray(L_out_hyd_lbmolph, dtype=float).reshape((N,)) / 3600.0
                     if c_fac is None:
                         c_fac_valid = np.ones(N, dtype=bool)
@@ -1629,14 +1576,8 @@ def column_rhs(
     P_tray_hyd_raw = None
     P_tray_hyd_relax_alpha = None
     top_pressure_ordering_lift_psia = 0.0
-    huang_top_pressure_continuity_shift_psia = np.nan
     P_top_drum_psia = None
     P_top_drum_psia_raw = np.nan
-    huang_top_anchor_free_psia = np.nan
-    huang_top_anchor_weight = np.nan
-    huang_top_anchor_gate_scale = np.nan
-    huang_top_drum_vapor_relax_target_psia = np.nan
-    huang_top_drum_vapor_relax_dmv_lbmolps = 0.0
     V_top_drum_vapor_ft3 = None
     V_top_drum_liquid_ft3 = None
     rho_top_drum_liquid_lbmol_ft3 = None
@@ -1645,7 +1586,6 @@ def column_rhs(
     top_drum_pressure_T_relax_alpha = np.nan
     top_drum_pressure_Z = np.nan
     top_drum_MV_lbmol = np.nan
-    huang_hybrid_mode = False
     p_hyd_details_pending: Optional[Dict[str, np.ndarray]] = None
     if (inputs.pressure_model or "").strip().lower() == "hydraulic":
         geom = getattr(col, "geometry", None)
@@ -1810,10 +1750,6 @@ def column_rhs(
                 and float(P_top_drum_psia) > 0.0
             ):
                 top_anchor_psia = float(P_top_drum_psia)
-            huang_hybrid_mode = (
-                str(vflow_model).strip().lower() == "profile"
-                and str(liquid_hydraulic_model).strip().lower() == "huang-htc"
-            )
             P_tray_hyd_free = None
             if top_anchor_psia is None and N > 1:
                 try:
@@ -1841,8 +1777,6 @@ def column_rhs(
                     else:
                         P_tray_hyd_free = P_hyd_free_out
                     P_tray_hyd_free = np.asarray(P_tray_hyd_free, dtype=float).reshape((N,))
-                    if np.isfinite(float(P_tray_hyd_free[0])) and float(P_tray_hyd_free[0]) > 0.0:
-                        huang_top_anchor_free_psia = float(P_tray_hyd_free[0])
                 except Exception:
                     P_tray_hyd_free = None
 
@@ -1877,7 +1811,6 @@ def column_rhs(
                         p_shifted = np.asarray(P_tray_hyd, dtype=float) + float(shift_psia)
                         if np.all(np.isfinite(p_shifted)) and np.all(p_shifted > 1.0):
                             P_tray_hyd = p_shifted
-                            huang_top_pressure_continuity_shift_psia = float(shift_psia)
             else:
                 P_hyd_out = _pressure_profile_hydraulic_psia(
                     P_bottom_psia=P_anchor,
@@ -2075,6 +2008,21 @@ def column_rhs(
                 top_drum_pressure_T_used_F = float(top_T_use_F)
                 if top_T_alpha is not None and np.isfinite(float(top_T_alpha)):
                     top_drum_pressure_T_relax_alpha = float(top_T_alpha)
+                p_seed_top_psia = None
+                if P_tray_hyd is not None:
+                    try:
+                        p_seed_top_try = float(np.asarray(P_tray_hyd, dtype=float).reshape((N,))[0])
+                        if np.isfinite(p_seed_top_try) and p_seed_top_try > 0.0:
+                            p_seed_top_psia = p_seed_top_try
+                    except Exception:
+                        p_seed_top_psia = None
+                if p_seed_top_psia is None:
+                    try:
+                        p_seed_top_try = float(np.asarray(col.P_psia, dtype=float).reshape((N,))[0])
+                        if np.isfinite(p_seed_top_try) and p_seed_top_try > 0.0:
+                            p_seed_top_psia = p_seed_top_try
+                    except Exception:
+                        p_seed_top_psia = None
                 p_top_res = _compute_top_drum_pressure_psia(
                     top_V=np.asarray(top_V, dtype=float).reshape((Nc,)),
                     top_T_F=float(top_T_use_F),
@@ -2082,7 +2030,7 @@ def column_rhs(
                     top_vapor_volume_ft3=float(top_vap_vol_ft3),
                     thermo_provider=inputs.thermo_provider,
                     y_top=np.asarray(y_topV, dtype=float).reshape((Nc,)),
-                    P_seed_psia=(float(P_profile[0]) if np.isfinite(float(P_profile[0])) else None),
+                    P_seed_psia=p_seed_top_psia,
                     return_details=True,
                 )
                 if isinstance(p_top_res, tuple):
@@ -2111,7 +2059,6 @@ def column_rhs(
         and np.isfinite(float(P_top_drum_psia))
         and float(P_top_drum_psia) > 0.0
         and N > 0
-        and not huang_hybrid_mode
         and top_anchor_psia is not None
     ):
         try:
@@ -2210,11 +2157,7 @@ def column_rhs(
             blocked = max(float(v_to_top_old) - float(V_to_top_drum_lbmolps), 0.0)
             V_to_top_drum_blocked_lbmolps = float(blocked)
             if float(blocked) > float(layout.epsilon_lbmol):
-                huang_profile_feedback = (
-                    str(vflow_model).strip().lower() == "profile"
-                    and str(liquid_hydraulic_model).strip().lower() == "huang-htc"
-                )
-                if (str(vflow_model).strip().lower() == "conductance" or huang_profile_feedback) and N > 1:
+                if str(vflow_model).strip().lower() == "conductance" and N > 1:
                     # In pressure-coupled modes, blocked top slip should feed
                     # back to stage-2 vapor outflow instead of creating artificial
                     # instantaneous condensation at the condenser boundary.
@@ -2293,12 +2236,15 @@ def column_rhs(
                 - V_out[i] * y_tray[i, k]
             )
 
-    # Reboiler phase change at the bottom stage (stage N).
-    # Converts liquid to vapor at the specified boilup rate.
+    # Reboiler phase change at the bottom end.
+    # When an explicit bottom sump is present, boilup is drawn from the sump
+    # and returned as vapor to the bottom tray. Otherwise preserve the legacy
+    # tray-fed reboiler behavior.
     if N > 0 and (not reboiler_no_holdup):
-        d_tray_L[-1, :] -= boilup_s * x_rebL
-        d_tray_V[-1, :] += boilup_s * x_rebL
-        d_tray_V[-1, :] -= boilup_s * y_rebV
+        if not reboiler_feed_from_sump:
+            d_tray_L[-1, :] -= boilup_s * x_rebL
+            d_tray_V[-1, :] += boilup_s * x_rebL
+            d_tray_V[-1, :] -= boilup_s * y_rebV
     if reboiler_no_holdup and N > 0:
         d_tray_L[-1, :] = 0.0
         d_tray_V[-1, :] = 0.0
@@ -2341,54 +2287,6 @@ def column_rhs(
             d_top_V -= D.total_V * y_topV
         if V_psv_top_lbmolps > 0.0:
             d_top_V -= float(V_psv_top_lbmolps) * y_topV
-
-        if (
-            huang_hybrid_mode
-            and inputs.pressure_top_anchor_psia is not None
-            and np.isfinite(float(P_top_drum_psia_raw))
-            and float(P_top_drum_psia_raw) > 0.0
-            and np.isfinite(float(huang_top_anchor_free_psia))
-            and float(huang_top_anchor_free_psia) > 0.0
-            and V_top_drum_vapor_ft3 is not None
-            and np.isfinite(float(V_top_drum_vapor_ft3))
-            and float(V_top_drum_vapor_ft3) > 0.0
-        ):
-            tau_top_v = inputs.huang_top_drum_vapor_relaxation_sec
-            if tau_top_v is None:
-                tau_top_v = inputs.hydraulic_pressure_relaxation_sec
-            if tau_top_v is None:
-                tau_top_v = inputs.vapor_holdup_relaxation_sec
-            try:
-                tau_top_v = float(tau_top_v) if tau_top_v is not None else 20.0
-            except Exception:
-                tau_top_v = 20.0
-            if (not np.isfinite(tau_top_v)) or tau_top_v <= 0.0:
-                tau_top_v = 20.0
-
-            p_target_top = min(float(P_top_drum_psia_raw), float(huang_top_anchor_free_psia))
-            if np.isfinite(p_target_top) and p_target_top > 0.0:
-                huang_top_drum_vapor_relax_target_psia = float(p_target_top)
-                t_top_mv_F = (
-                    float(top_drum_pressure_T_used_F)
-                    if np.isfinite(float(top_drum_pressure_T_used_F))
-                    else float(top_drum_pressure_T_raw_F)
-                    if np.isfinite(float(top_drum_pressure_T_raw_F))
-                    else float(T_tray[0])
-                )
-                T_top_R = float(t_top_mv_F) + 459.67
-                if (not np.isfinite(T_top_R)) or T_top_R <= 0.0:
-                    T_top_R = 520.0
-                MV_top_target = (
-                    float(p_target_top) * float(V_top_drum_vapor_ft3)
-                    / max(10.7316 * float(T_top_R), 1e-12)
-                )
-                MV_top_now = max(float(np.sum(np.asarray(top_V, dtype=float).reshape((Nc,)))), 0.0)
-                dMV_top = (float(MV_top_target) - float(MV_top_now)) / float(tau_top_v)
-                dMV_top = min(float(dMV_top), 0.0)
-                if dMV_top < -float(layout.epsilon_lbmol):
-                    huang_top_drum_vapor_relax_dmv_lbmolps = float(dMV_top)
-                    d_top_V += y_topV * float(dMV_top)
-                    d_top_L -= y_topV * float(dMV_top)
 
         # Condenser tray receives condensed liquid and drains to the drum.
         d_tray_L[0, :] = 0.0
@@ -2436,9 +2334,10 @@ def column_rhs(
             d_bottom_L -= B.total_L * x_botL
             d_bottom_V -= B.total_V * y_botV
 
-        # Sump is liquid-only holdup; do not couple reboiler boilup to the sump.
-        # Bottoms draw is taken from the sump only.
-        # (Boilup is handled on the reboiler stage via tray balances.)
+        # With an explicit sump-fed reboiler, boilup is withdrawn from the sump
+        # liquid holdup and returned to the bottom tray as vapor.
+        if reboiler_feed_from_sump:
+            d_bottom_L -= boilup_s * x_rebL
 
     # Vapor holdup relaxation: enforce ideal-gas holdup implied by computed pressure + geometry.
     tau_v = inputs.vapor_holdup_relaxation_sec
@@ -2563,29 +2462,10 @@ def column_rhs(
         diag["P_psia_hyd_relax_alpha"] = np.array([float(P_tray_hyd_relax_alpha)], dtype=float)
     if np.isfinite(float(top_pressure_ordering_lift_psia)) and float(top_pressure_ordering_lift_psia) > 0.0:
         diag["P_top_ordering_lift_psia"] = np.array([float(top_pressure_ordering_lift_psia)], dtype=float)
-    if (
-        np.isfinite(float(huang_top_pressure_continuity_shift_psia))
-        and abs(float(huang_top_pressure_continuity_shift_psia)) > 0.0
-    ):
-        diag["huang_top_pressure_continuity_shift_psia"] = np.array(
-            [float(huang_top_pressure_continuity_shift_psia)],
-            dtype=float,
-        )
     if P_top_drum_psia is not None and np.isfinite(float(P_top_drum_psia)):
         diag["P_top_drum_psia"] = np.array([float(P_top_drum_psia)], dtype=float)
     if np.isfinite(float(P_top_drum_psia_raw)) and float(P_top_drum_psia_raw) > 0.0:
         diag["P_top_drum_psia_raw"] = np.array([float(P_top_drum_psia_raw)], dtype=float)
-    diag["huang_top_anchor_free_psia"] = np.array([float(huang_top_anchor_free_psia)], dtype=float)
-    diag["huang_top_anchor_weight"] = np.array([float(huang_top_anchor_weight)], dtype=float)
-    diag["huang_top_anchor_gate_scale"] = np.array([float(huang_top_anchor_gate_scale)], dtype=float)
-    diag["huang_top_drum_vapor_relax_target_psia"] = np.array(
-        [float(huang_top_drum_vapor_relax_target_psia)],
-        dtype=float,
-    )
-    diag["huang_top_drum_vapor_relax_dmv_lbmolps"] = np.array(
-        [float(huang_top_drum_vapor_relax_dmv_lbmolps)],
-        dtype=float,
-    )
     if np.isfinite(float(top_drum_pressure_T_raw_F)):
         diag["T_top_drum_pressure_raw_F"] = np.array([float(top_drum_pressure_T_raw_F)], dtype=float)
     if np.isfinite(float(top_drum_pressure_T_used_F)):
@@ -2661,10 +2541,6 @@ def column_rhs(
     diag["liquid_hydraulic_override_alpha"] = np.array([float(hydraulic_l_override_alpha)], dtype=float)
     diag["liquid_hydraulic_override_enabled"] = np.array(
         [1.0 if bool(inputs.enable_liquid_hydraulic_override) else 0.0],
-        dtype=float,
-    )
-    diag["liquid_hydraulic_model_huang_htc"] = np.array(
-        [1.0 if liquid_hydraulic_model == "huang-htc" else 0.0],
         dtype=float,
     )
     if T_sump is not None:
@@ -3795,6 +3671,8 @@ def column_rhs(
                 dE_sump = 0.0
                 dE_sump += float(L_out[-1]) * h_in
                 dE_sump -= float(B.total_L) * h_sump
+                if reboiler_feed_from_sump:
+                    dE_sump -= float(boilup_s) * h_sump
 
                 C = max(M_sump * cp_sump, 1e-12)
                 dT_sump = dE_sump / C

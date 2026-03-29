@@ -75,6 +75,12 @@ def _validate_str_list(name: str, values: Sequence[str]) -> List[str]:
     return out
 
 
+def _parse_comp_csv(text: str, n_expected: Optional[int] = None) -> np.ndarray:
+    parts = [str(x).strip() for x in str(text).split(",")]
+    vals = [float(x) for x in parts if x]
+    return _normalize_comp(vals, n_expected)
+
+
 def _bracket(grid: np.ndarray, value: float) -> Tuple[int, int, float]:
     """
     Return (i0, i1, w) such that:
@@ -598,6 +604,7 @@ def build_anchor_table_from_case(
     include_stage_anchors: bool = True,
     include_pure_anchors: bool = True,
     max_stage_anchors: Optional[int] = None,
+    extra_anchor_compositions: Optional[Sequence[Sequence[float]]] = None,
     include_rhoL: bool = True,
     silence_backend_console: bool = True,
 ) -> Path:
@@ -663,6 +670,10 @@ def build_anchor_table_from_case(
             z_ref = np.zeros(col.n_components, dtype=float)
             z_ref[k] = 1.0
             anchor_candidates.append((f"pure_{k + 1}", z_ref))
+
+    if extra_anchor_compositions is not None:
+        for i, z_ref in enumerate(extra_anchor_compositions, start=1):
+            anchor_candidates.append((f"extra_{i}", _normalize_comp(z_ref, col.n_components)))
 
     # De-duplicate anchors by rounded composition.
     anchors_unique: List[Tuple[str, np.ndarray]] = []
@@ -739,6 +750,9 @@ def build_anchor_table_from_case(
             "include_stage_anchors": bool(include_stage_anchors),
             "include_pure_anchors": bool(include_pure_anchors),
             "max_stage_anchors": (None if max_stage_anchors is None else int(max_stage_anchors)),
+            "extra_anchor_count": (
+                0 if extra_anchor_compositions is None else int(len(list(extra_anchor_compositions)))
+            ),
         },
         "T_range_F": [float(T_min), float(T_max)],
         "P_range_psia": [float(P_min), float(P_max)],
@@ -768,9 +782,20 @@ def _cli() -> int:
     p.add_argument("--no-stage-anchors", dest="include_stage_anchors", action="store_false")
     p.add_argument("--no-pure-anchors", dest="include_pure_anchors", action="store_false")
     p.add_argument("--max-stage-anchors", dest="max_stage_anchors", type=int, default=None)
+    p.add_argument(
+        "--extra-anchor-z",
+        dest="extra_anchor_z",
+        action="append",
+        default=None,
+        help="Optional extra composition anchor as comma-separated mole fractions. Repeatable.",
+    )
     p.add_argument("--no-rho", dest="include_rhoL", action="store_false")
     p.add_argument("--verbose-backend", dest="silence_backend_console", action="store_false")
     args = p.parse_args()
+
+    extra_anchor_compositions = None
+    if args.extra_anchor_z:
+        extra_anchor_compositions = [_parse_comp_csv(str(s), None) for s in list(args.extra_anchor_z)]
 
     out = build_anchor_table_from_case(
         excel_path=str(args.excel_path),
@@ -782,6 +807,7 @@ def _cli() -> int:
         include_stage_anchors=bool(args.include_stage_anchors),
         include_pure_anchors=bool(args.include_pure_anchors),
         max_stage_anchors=args.max_stage_anchors,
+        extra_anchor_compositions=extra_anchor_compositions,
         include_rhoL=bool(args.include_rhoL),
         silence_backend_console=bool(args.silence_backend_console),
     )

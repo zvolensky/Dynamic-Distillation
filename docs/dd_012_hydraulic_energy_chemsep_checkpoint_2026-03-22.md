@@ -6,6 +6,14 @@ Related notes:
 - `docs/dd_011_hydraulic_parity_drift_report_2026-02-19.md`
 - `docs/dd_011_hydraulic_parity_followup_2026-02-21.md`
 
+Historical note (2026-03-28):
+This checkpoint remains useful as a record of the March 22 hydraulic-energy diagnosis, but it no longer reflects the current best stabilized baseline. Since this note:
+1. The stage-10 equilibrium-relaxation trigger was materially reduced by using live PR selectively in the eq-relax flash path.
+2. The remaining late instability was traced to a tiny-capacitance stage-1 condenser temperature ODE under specified-duty operation.
+3. The stage-1 condenser was converted to a condenser-transfer temperature closure, producing a stable `600 s` true-level hydraulic run (`20260328_145436`).
+
+Use this document as historical diagnostic context, not as the current best-reference branch summary. For current status, use [issue_log.md](/c:/Users/Thoma/Documents/Python%20Scripts/Dynamic_DistillationII/docs/issue_log.md).
+
 ## Purpose
 
 Capture the current state of the 20-stage ChemSep reconciliation effort after the March 22, 2026 hydraulic-energy fixes and diagnostic runs.

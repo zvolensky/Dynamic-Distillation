@@ -899,7 +899,7 @@ class RunnerConfig:
     n_steps: int = 600
     dt_sec: Optional[float] = None
     log_every_n_steps: Optional[int] = None
-    runtime_mode: str = "legacy"  # legacy | parity | calibration | hydraulic | huang
+    runtime_mode: str = "legacy"  # legacy | parity | calibration | hydraulic
     integrator: str = "explicit-euler"  # explicit-euler | bdf | radau | ida
     integrator_rtol: float = 1.0e-3
     integrator_atol: float = 1.0e-6
@@ -924,15 +924,17 @@ class RunnerConfig:
     hydraulic_energy_temperature_pressure_slope_F_per_psi: Optional[float] = None
     hydraulic_energy_temperature_target_refresh_steps: Optional[int] = None
 
-    thermo_mode: str = "stub"  # 'stub', 'dwsim', 'table', or 'table-pool'
+    thermo_mode: str = "table-pool"  # 'stub', 'dwsim', 'table', or 'table-pool'
     thermo_every_n_steps: int = 1  # 1=every step
     thermo_refresh_dT_F: Optional[float] = None
     thermo_refresh_dP_psia: Optional[float] = None
     thermo_refresh_dx: Optional[float] = None
     equilibrium_relaxation_live_pr: bool = False
     flash_feed_at_stage_conditions: Optional[bool] = None
-    thermo_table_path: Optional[str] = None
-    thermo_pool_workers: Optional[int] = None
+    thermo_table_path: Optional[str] = r"cache/thermo_table.json"
+    thermo_table_n_anchor_blend: int = 3
+    thermo_table_anchor_blend_power: float = 2.0
+    thermo_pool_workers: Optional[int] = 2
     thermo_pool_chunk_size: int = 4
     thermo_pool_task_timeout_sec: Optional[float] = None
     reboiler_neighbor_vflow_hi_ratio: Optional[float] = None
@@ -940,7 +942,6 @@ class RunnerConfig:
     vapor_holdup_relaxation_sec: Optional[float] = None
     hydraulic_pressure_relaxation_sec: Optional[float] = None
     top_drum_pressure_temperature_relaxation_sec: Optional[float] = None
-    huang_top_drum_vapor_relaxation_sec: Optional[float] = None
     vapor_flow_relaxation_sec: Optional[float] = None
     conductance_vflow_nominal_hi_ratio: Optional[float] = None
     # Optional smooth-clamp width (lbmol/h) used only for stiff integrator RHS
@@ -981,13 +982,16 @@ class RunnerConfig:
     top_level_pv_mode: str = "molar-holdup"  # molar-holdup|true-level
     top_level_sp_lbmol: Optional[float] = None
     top_level_sp_frac: Optional[float] = None
+    bottom_level_pv_mode: str = "molar-holdup"  # molar-holdup|true-level
     bottom_level_sp_lbmol: Optional[float] = None
+    bottom_level_sp_frac: Optional[float] = None
     top_level_kc: Optional[float] = None
     top_level_ti_sec: Optional[float] = None
     enable_top_level_feedforward: bool = False
     top_level_feedforward_gain: Optional[float] = None
     bottom_level_kc: Optional[float] = None
     bottom_level_ti_sec: Optional[float] = None
+    bottom_sump_total_volume_ft3: Optional[float] = None
     enable_pressure_control: bool = False
     pressure_control_mv: str = "auto"  # auto|condenser-duty|top-anchor
     allow_coupled_pressure_duty: bool = False
@@ -1164,6 +1168,20 @@ def _spec_float(specs: Dict[str, Any], key: str, *aliases: str) -> Optional[floa
         return None
 
 
+def _spec_bool(specs: Dict[str, Any], key: str, *aliases: str) -> Optional[bool]:
+    v_raw = _spec_get(specs, key, *aliases)
+    if v_raw is None:
+        return None
+    if isinstance(v_raw, bool):
+        return bool(v_raw)
+    txt = str(v_raw).strip().lower()
+    if txt in {"1", "true", "yes", "y", "on", "enabled"}:
+        return True
+    if txt in {"0", "false", "no", "n", "off", "disabled"}:
+        return False
+    return None
+
+
 def _clip_unit(x: Any, default: float = 0.0) -> float:
     try:
         v = float(x)
@@ -1176,7 +1194,7 @@ def _clip_unit(x: Any, default: float = 0.0) -> float:
 
 def _normalize_runtime_mode(mode: Any, default: str = "legacy") -> str:
     m = str(mode).strip().lower() if mode is not None else str(default).strip().lower()
-    if m in ("legacy", "parity", "calibration", "hydraulic", "huang", "huang-energy"):
+    if m in ("legacy", "parity", "calibration", "hydraulic"):
         return m
     return str(default).strip().lower()
 
@@ -1362,6 +1380,7 @@ def _resolve_startup_hydraulic_sequence_step(
 def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) -> Tuple[ColumnInputs, Any]:
     thermo_mode = (cfg.thermo_mode or "").strip().lower()
     eq_relax_prov = None
+    specs = getattr(col, "specs_raw", None) or {}
 
     if thermo_mode == "dwsim":
         from dynamic_distillation.thermo_provider_v1 import ThermoProviderV1
@@ -1380,6 +1399,8 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             str(cfg.thermo_table_path),
             expected_component_names_excel=col.components_excel,
             expected_component_ids_dwsim=col.components_dwsim,
+            n_anchor_blend=int(cfg.thermo_table_n_anchor_blend),
+            anchor_blend_power=float(cfg.thermo_table_anchor_blend_power),
         )
     elif thermo_mode == "table-pool":
         if not cfg.thermo_table_path:
@@ -1390,6 +1411,8 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             table_path=str(cfg.thermo_table_path),
             expected_component_names_excel=col.components_excel,
             expected_component_ids_dwsim=col.components_dwsim,
+            n_anchor_blend=int(cfg.thermo_table_n_anchor_blend),
+            anchor_blend_power=float(cfg.thermo_table_anchor_blend_power),
             max_workers=cfg.thermo_pool_workers,
             chunk_size=int(cfg.thermo_pool_chunk_size),
             task_timeout_sec=cfg.thermo_pool_task_timeout_sec,
@@ -1407,7 +1430,18 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             "(use 'stub', 'dwsim', 'table', or 'table-pool')"
         )
 
-    if bool(getattr(cfg, "equilibrium_relaxation_live_pr", False)):
+    eq_relax_live_pr = bool(getattr(cfg, "equilibrium_relaxation_live_pr", False))
+    if not eq_relax_live_pr:
+        eq_relax_live_pr = bool(
+            _spec_bool(
+                specs,
+                "Equilibrium Relaxation Live PR",
+                "Equilibrium Live PR",
+                "Selective PR for Equilibrium Relaxation",
+            )
+        )
+
+    if eq_relax_live_pr:
         if thermo_mode == "dwsim":
             eq_relax_prov = prov
         else:
@@ -1429,7 +1463,6 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     boundary = _infer_boundary_flows(case, col, cfg)
     vol = _build_volume_model(col, default_vapor_volume_ft3=1.0)
 
-    specs = getattr(col, "specs_raw", None) or {}
     pressure_model = str(_spec_get(specs, "Pressure Model") or "").strip().lower()
     if not pressure_model:
         pressure_model = "hydraulic" if col.geometry is not None else "spec"
@@ -1449,14 +1482,8 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     elif runtime_mode == "hydraulic":
         pressure_model = "hydraulic"
         vapor_flow_model = "energy"
-    elif runtime_mode == "huang":
-        pressure_model = "hydraulic"
-        vapor_flow_model = "profile"
-    elif runtime_mode == "huang-energy":
-        pressure_model = "hydraulic"
-        vapor_flow_model = "energy"
 
-    eq_mode_default = "composition-only" if runtime_mode in ("hydraulic", "huang", "huang-energy") else "phase-holdup"
+    eq_mode_default = "composition-only" if runtime_mode == "hydraulic" else "phase-holdup"
     eq_mode_spec = _spec_get(
         specs,
         "Equilibrium Relaxation Mode",
@@ -1473,7 +1500,7 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     eq_phase_guard_lbmol = cfg.equilibrium_phase_holdup_guard_lbmol
     if eq_phase_guard_lbmol is None:
         eq_phase_guard_lbmol = 0.0
-        if eq_mode == "phase-holdup" and runtime_mode in ("hydraulic", "huang", "huang-energy"):
+        if eq_mode == "phase-holdup" and runtime_mode == "hydraulic":
             eq_phase_guard_lbmol = 1.0
     try:
         eq_phase_guard_lbmol = float(eq_phase_guard_lbmol)
@@ -1481,7 +1508,19 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         eq_phase_guard_lbmol = 0.0
     if (not np.isfinite(eq_phase_guard_lbmol)) or eq_phase_guard_lbmol < 0.0:
         eq_phase_guard_lbmol = 0.0
+    eq_tau_spec = _spec_float(
+        specs,
+        "Equilibrium Tau (sec)",
+        "Equilibrium Relaxation Tau (sec)",
+        "Equilibrium Relaxation Time Constant (sec)",
+    )
     eq_energy_damping_gain = cfg.equilibrium_energy_damping_gain
+    if eq_energy_damping_gain is None:
+        eq_energy_damping_gain = _spec_float(
+            specs,
+            "Equilibrium Energy Damping Gain",
+            "Eq Energy Damping Gain",
+        )
     if eq_energy_damping_gain is None:
         eq_energy_damping_gain = 0.0
     try:
@@ -1512,6 +1551,13 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     ):
         hydraulic_energy_temp_mode = "legacy"
     hydraulic_energy_temp_follow_tau_sec = cfg.hydraulic_energy_temperature_follow_tau_sec
+    if hydraulic_energy_temp_follow_tau_sec is None:
+        hydraulic_energy_temp_follow_tau_sec = _spec_float(
+            specs,
+            "Hydraulic Energy Temperature Follow Tau (sec)",
+            "Hydraulic Energy Temperature Follow Time Constant (sec)",
+            "Condenser Transfer Temperature Tau (sec)",
+        )
     if hydraulic_energy_temp_follow_tau_sec is None:
         hydraulic_energy_temp_follow_tau_sec = 0.5
     try:
@@ -1589,18 +1635,6 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         tau_top_pT = float(cfg.top_drum_pressure_temperature_relaxation_sec)
     if tau_top_pT is not None and (not np.isfinite(tau_top_pT)):
         tau_top_pT = None
-
-    tau_huang_top_v = cfg.huang_top_drum_vapor_relaxation_sec
-    if tau_huang_top_v is None:
-        tau_huang_top_v = _spec_float(
-            specs,
-            "Huang Top Drum Vapor Relaxation (sec)",
-            "Huang Top Drum Vapor Holdup Relaxation (sec)",
-            "Top Drum Vapor Relaxation (sec)",
-            "Top Drum Vapor Holdup Relaxation (sec)",
-        )
-    if tau_huang_top_v is not None and (not np.isfinite(tau_huang_top_v) or tau_huang_top_v <= 0.0):
-        tau_huang_top_v = None
 
     tau_vflow = _spec_float(specs, "Vapor Flow Relaxation (sec)")
     if cfg.vapor_flow_relaxation_sec is not None:
@@ -2021,6 +2055,78 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
     ):
         top_drum_vapor_volume_ft3 = float(top_drum_total_volume_ft3)
 
+    bottom_sump_total_volume_ft3 = cfg.bottom_sump_total_volume_ft3
+    if bottom_sump_total_volume_ft3 is None:
+        bottom_sump_total_volume_ft3 = _spec_float(
+            specs,
+            "Bottom Sump Total Volume (ft3)",
+            "Bottom Sump Volume (ft3)",
+            "Bottom Total Volume (ft3)",
+            "Bottom Vessel Total Volume (ft3)",
+            "Bottom Vessel Volume (ft3)",
+            "Bottom Drum Total Volume (ft3)",
+            "Bottom Drum Volume (ft3)",
+        )
+    if bottom_sump_total_volume_ft3 is None:
+        d_ft = _spec_float(
+            specs,
+            "Bottom Sump Diameter (ft)",
+            "Bottom Sump ID (ft)",
+            "Bottom Vessel Diameter (ft)",
+            "Bottom Vessel ID (ft)",
+            "Bottom Drum Diameter (ft)",
+            "Bottom Drum ID (ft)",
+        )
+        l_ft = _spec_float(
+            specs,
+            "Bottom Sump Height (ft)",
+            "Bottom Sump height (ft)",
+            "Bottom Sump Length (ft)",
+            "Bottom Vessel Height (ft)",
+            "Bottom Vessel Length (ft)",
+            "Bottom Drum Height (ft)",
+            "Bottom Drum Length (ft)",
+        )
+        if d_ft is not None and l_ft is not None and d_ft > 0.0 and l_ft > 0.0:
+            bottom_sump_total_volume_ft3 = float(np.pi * 0.25 * float(d_ft) * float(d_ft) * float(l_ft))
+    if bottom_sump_total_volume_ft3 is None and hasattr(prov, "liquid_density_lbmol_ft3"):
+        bottom_liq_frac = _spec_float(
+            specs,
+            "Bottom Sump Liquid Fraction (-)",
+            "Bottom Sump Liquid Volume Fraction",
+            "Bottom Sump Liquid Fraction",
+            "Bottom Sump Fill Fraction",
+            "Bottom Liquid Fraction (-)",
+            "Bottom Liquid Volume Fraction",
+            "Bottom Liquid Fraction",
+            "Bottom Fill Fraction",
+        )
+        if bottom_liq_frac is not None and bottom_liq_frac > 1.0 and bottom_liq_frac <= 100.0:
+            bottom_liq_frac = float(bottom_liq_frac) / 100.0
+        if bottom_liq_frac is not None and 0.0 < float(bottom_liq_frac) <= 1.0:
+            bottom_holdup_lbmol = _spec_float(
+                specs,
+                "Bottom Holdup (lbmol)",
+                "Bottom Sump Holdup (lbmol)",
+            )
+            if bottom_holdup_lbmol is not None and bottom_holdup_lbmol >= 0.0 and hasattr(col, "x0") and hasattr(col, "T_f") and hasattr(col, "P_psia"):
+                try:
+                    x_bot = np.asarray(getattr(col, "x0"), dtype=float).reshape((col.n_stages, col.n_components))[-1, :]
+                    T_bot = float(np.asarray(getattr(col, "T_f"), dtype=float).reshape((col.n_stages,))[-1])
+                    P_bot = float(np.asarray(getattr(col, "P_psia"), dtype=float).reshape((col.n_stages,))[-1])
+                    rho_bot = float(prov.liquid_density_lbmol_ft3(T_bot, P_bot, x_bot))
+                    if np.isfinite(rho_bot) and rho_bot > 1e-12:
+                        bottom_liq_vol_ft3 = float(bottom_holdup_lbmol) / float(rho_bot)
+                        total_try = float(bottom_liq_vol_ft3) / max(float(bottom_liq_frac), 1e-12)
+                        if np.isfinite(total_try) and total_try > 0.0:
+                            bottom_sump_total_volume_ft3 = float(total_try)
+                except Exception:
+                    bottom_sump_total_volume_ft3 = None
+    if bottom_sump_total_volume_ft3 is not None and (
+        (not np.isfinite(bottom_sump_total_volume_ft3)) or bottom_sump_total_volume_ft3 <= 0.0
+    ):
+        bottom_sump_total_volume_ft3 = None
+
     mw_components = None
     if hasattr(prov, "component_mw_lbm_per_lbmol"):
         try:
@@ -2080,21 +2186,18 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             "Liquid Downflow Model",
         ) or "francis")
     ).strip().lower()
-    if liq_hyd_model not in ("francis", "huang-htc"):
+    if liq_hyd_model != "francis":
         liq_hyd_model = "francis"
 
     liq_hyd_htc_sec = cfg.liquid_hydraulic_htc_sec
-    liq_hyd_htc_from_stage_tau = False
     if liq_hyd_htc_sec is None:
         liq_hyd_htc_sec = _spec_float(
             specs,
-            "Huang Liquid HTC (sec)",
             "Liquid Hydraulic HTC (sec)",
             "Hydraulic Time Constant (sec)",
         )
         if liq_hyd_htc_sec is None:
             liq_hyd_htc_sec = _spec_float(specs, "Stage time constant [tau] (sec)")
-            liq_hyd_htc_from_stage_tau = liq_hyd_htc_sec is not None
     if liq_hyd_htc_sec is not None and (not np.isfinite(liq_hyd_htc_sec) or liq_hyd_htc_sec <= 0.0):
         liq_hyd_htc_sec = None
 
@@ -2119,23 +2222,9 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         # that effect and pull the initialized state away from the seed.
         if not feed_flash_explicit:
             feed_flash_at_stage = False
-    elif runtime_mode in ("huang", "huang-energy"):
-        liq_hyd_override_enable = True
-        liq_hyd_model = "huang-htc"
-        if not liq_hyd_override_alpha_explicit:
-            liq_hyd_override_alpha = 0.8
-        # A generic equilibrium tau is often too aggressive for the Huang-style
-        # liquid HTC closure, so promote that fallback to a safer default unless
-        # the case or CLI provided a more specific hydraulic HTC directly.
-        if cfg.liquid_hydraulic_htc_sec is None and liq_hyd_htc_from_stage_tau and liq_hyd_htc_sec is not None:
-            liq_hyd_htc_sec = max(float(liq_hyd_htc_sec), 20.0)
-
     top_drum_gate_soft_psi = cfg.top_drum_pressure_gate_soft_psi
     if top_drum_gate_soft_psi is None:
-        # Huang's partitioned profile-vapor path benefits from a hard top-drum
-        # pressure gate so zero/negative driving force does not leak vapor slip
-        # into the drum and inflate top pressure.
-        top_drum_gate_soft_psi = 0.0 if runtime_mode == "huang" else 0.25
+        top_drum_gate_soft_psi = 0.25
 
     inputs = ColumnInputs(
         boundary=boundary,
@@ -2162,7 +2251,11 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         tau_eq_sec=(
             float(cfg.equilibrium_tau_sec)
             if cfg.equilibrium_tau_sec is not None and np.isfinite(float(cfg.equilibrium_tau_sec))
-            else getattr(col, "tau_eq_sec", None)
+            else (
+                float(eq_tau_spec)
+                if eq_tau_spec is not None and np.isfinite(float(eq_tau_spec))
+                else getattr(col, "tau_eq_sec", None)
+            )
         ),
         reboiler_duty_btu_per_h=(float(cfg.reboiler_duty_btu_per_h) if cfg.reboiler_duty_btu_per_h is not None else None),
         pressure_model=str(pressure_model),
@@ -2182,6 +2275,11 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         top_drum_total_volume_ft3=(
             float(top_drum_total_volume_ft3)
             if top_drum_total_volume_ft3 is not None
+            else None
+        ),
+        bottom_sump_total_volume_ft3=(
+            float(bottom_sump_total_volume_ft3)
+            if bottom_sump_total_volume_ft3 is not None
             else None
         ),
         enforce_top_drum_pressure_gate=bool(cfg.enforce_top_drum_pressure_gate),
@@ -2212,9 +2310,6 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         hydraulic_pressure_relaxation_sec=(float(tau_p_hyd) if tau_p_hyd is not None else None),
         top_drum_pressure_temperature_relaxation_sec=(
             float(tau_top_pT) if tau_top_pT is not None else None
-        ),
-        huang_top_drum_vapor_relaxation_sec=(
-            float(tau_huang_top_v) if tau_huang_top_v is not None else None
         ),
         vapor_flow_relaxation_sec=(float(tau_vflow) if tau_vflow is not None else None),
         conductance_vflow_nominal_hi_ratio=(
@@ -4576,6 +4671,79 @@ def _estimate_top_drum_liquid_volume_ft3(
     return top_liq_vol_ft3, float(rho_top), top_liq_frac
 
 
+def _estimate_bottom_sump_liquid_volume_ft3(
+    col: ColumnSpec,
+    layout: StateVectorLayout,
+    y_vec: np.ndarray,
+    thermo_provider: Any,
+    bottom_sump_total_volume_ft3: Optional[float],
+    p_bottom_psia: Optional[float] = None,
+) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+    if (
+        bottom_sump_total_volume_ft3 is None
+        or (not np.isfinite(float(bottom_sump_total_volume_ft3)))
+        or float(bottom_sump_total_volume_ft3) <= 0.0
+        or (not layout.include_bottom)
+        or thermo_provider is None
+        or not hasattr(thermo_provider, "liquid_density_lbmol_ft3")
+    ):
+        return None, None, None
+    try:
+        u = layout.unpack(np.asarray(y_vec, dtype=float))
+    except Exception:
+        return None, None, None
+    if "bottom_L" not in u:
+        return None, None, None
+    try:
+        bottom_L = np.asarray(u["bottom_L"], dtype=float).reshape((-1,))
+    except Exception:
+        return None, None, None
+    m_bottom_liq = float(np.sum(bottom_L))
+    if (not np.isfinite(m_bottom_liq)) or m_bottom_liq < 0.0:
+        return None, None, None
+    if m_bottom_liq <= 0.0:
+        return 0.0, None, 0.0
+    x_bottom = np.zeros_like(bottom_L, dtype=float)
+    if m_bottom_liq > 1e-12:
+        x_bottom = np.clip(bottom_L / m_bottom_liq, 0.0, None)
+        s = float(np.sum(x_bottom))
+        if s > 0.0:
+            x_bottom = x_bottom / s
+    try:
+        if "tray_T_f" in u:
+            T_bottom = float(np.asarray(u["tray_T_f"], dtype=float).reshape((col.n_stages,))[-1])
+        else:
+            T_bottom = float(np.asarray(getattr(col, "T_f"), dtype=float).reshape((col.n_stages,))[-1])
+    except Exception:
+        return None, None, None
+    if p_bottom_psia is None:
+        try:
+            p_bottom_psia = float(np.asarray(getattr(col, "P_psia"), dtype=float).reshape((col.n_stages,))[-1])
+        except Exception:
+            p_bottom_psia = None
+    if p_bottom_psia is None or (not np.isfinite(float(p_bottom_psia))) or float(p_bottom_psia) <= 0.0:
+        return None, None, None
+    try:
+        rho_bottom = float(
+            thermo_provider.liquid_density_lbmol_ft3(
+                float(T_bottom),
+                float(p_bottom_psia),
+                np.asarray(x_bottom, dtype=float),
+            )
+        )
+    except Exception:
+        return None, None, None
+    if (not np.isfinite(rho_bottom)) or rho_bottom <= 1e-12:
+        return None, None, None
+    try:
+        total_vol = float(bottom_sump_total_volume_ft3)
+        bottom_liq_vol_ft3 = float(np.clip(m_bottom_liq / rho_bottom, 0.0, total_vol))
+        bottom_liq_frac = float(np.clip(bottom_liq_vol_ft3 / total_vol, 0.0, 1.0))
+    except Exception:
+        return None, None, None
+    return bottom_liq_vol_ft3, float(rho_bottom), bottom_liq_frac
+
+
 def _horizontal_cylinder_volume_fraction_from_height_fraction(h_over_d: float) -> float:
     try:
         hf = float(h_over_d)
@@ -5371,36 +5539,6 @@ def _profile_rows(
             MV_top_drum_lbmol = float(np.asarray(diag["MV_top_drum_lbmol"], dtype=float).reshape((-1,))[0])
         except Exception:
             MV_top_drum_lbmol = np.nan
-    huang_top_anchor_free_psia = np.nan
-    if "huang_top_anchor_free_psia" in diag:
-        try:
-            huang_top_anchor_free_psia = float(np.asarray(diag["huang_top_anchor_free_psia"], dtype=float).reshape((-1,))[0])
-        except Exception:
-            huang_top_anchor_free_psia = np.nan
-    huang_top_anchor_weight = np.nan
-    if "huang_top_anchor_weight" in diag:
-        try:
-            huang_top_anchor_weight = float(np.asarray(diag["huang_top_anchor_weight"], dtype=float).reshape((-1,))[0])
-        except Exception:
-            huang_top_anchor_weight = np.nan
-    huang_top_anchor_gate_scale = np.nan
-    if "huang_top_anchor_gate_scale" in diag:
-        try:
-            huang_top_anchor_gate_scale = float(np.asarray(diag["huang_top_anchor_gate_scale"], dtype=float).reshape((-1,))[0])
-        except Exception:
-            huang_top_anchor_gate_scale = np.nan
-    huang_top_drum_vapor_relax_target_psia = np.nan
-    if "huang_top_drum_vapor_relax_target_psia" in diag:
-        try:
-            huang_top_drum_vapor_relax_target_psia = float(np.asarray(diag["huang_top_drum_vapor_relax_target_psia"], dtype=float).reshape((-1,))[0])
-        except Exception:
-            huang_top_drum_vapor_relax_target_psia = np.nan
-    huang_top_drum_vapor_relax_dmv_lbmolps = np.nan
-    if "huang_top_drum_vapor_relax_dmv_lbmolps" in diag:
-        try:
-            huang_top_drum_vapor_relax_dmv_lbmolps = float(np.asarray(diag["huang_top_drum_vapor_relax_dmv_lbmolps"], dtype=float).reshape((-1,))[0])
-        except Exception:
-            huang_top_drum_vapor_relax_dmv_lbmolps = np.nan
     V_condensed_in_lbmolph = np.nan
     if "V_condensed_in_lbmolph" in diag:
         try:
@@ -6017,17 +6155,12 @@ def _profile_rows(
             "P_top_drum_psia_raw": _stage_value(i1, 1, P_top_drum_psia_raw),
             "Z_top_drum_vapor": _stage_value(i1, 1, Z_top_drum_vapor),
             "MV_top_drum_lbmol": _stage_value(i1, 1, MV_top_drum_lbmol),
-            "huang_top_anchor_free_psia": _stage_value(i1, 1, huang_top_anchor_free_psia),
-            "huang_top_anchor_weight": _stage_value(i1, 1, huang_top_anchor_weight),
-            "huang_top_anchor_gate_scale": _stage_value(i1, 1, huang_top_anchor_gate_scale),
             "V_condensed_in_lbmolph": _stage_value(i1, 1, V_condensed_in_lbmolph),
             "V_to_top_drum_lbmolph": _stage_value(i1, 1, V_to_top_drum_lbmolph),
             "dP_stage2_to_top_drum_psia": _stage_value(i1, 1, dP_stage2_to_top_drum_psia),
             "V_to_top_drum_pressure_gate_scale": _stage_value(i1, 1, V_to_top_drum_pressure_gate_scale),
             "V_to_top_drum_blocked_lbmolph": _stage_value(i1, 1, V_to_top_drum_blocked_lbmolph),
             "V_condensed_top_lbmolph": _stage_value(i1, 1, V_condensed_top_lbmolph),
-            "huang_top_drum_vapor_relax_target_psia": _stage_value(i1, 1, huang_top_drum_vapor_relax_target_psia),
-            "huang_top_drum_vapor_relax_dmv_lbmolps": _stage_value(i1, 1, huang_top_drum_vapor_relax_dmv_lbmolps),
             "V_psv_top_lbmolph": _stage_value(i1, 1, V_psv_top_lbmolph),
             "PSV_open_flag": _stage_value(i1, 1, PSV_open_flag),
             "PSV_setpoint_psia": _stage_value(i1, 1, PSV_setpoint_psia),
@@ -6131,17 +6264,12 @@ def _profile_rows(
             "P_top_drum_psia_raw",
             "Z_top_drum_vapor",
             "MV_top_drum_lbmol",
-            "huang_top_anchor_free_psia",
-            "huang_top_anchor_weight",
-            "huang_top_anchor_gate_scale",
             "V_condensed_in_lbmolph",
             "V_to_top_drum_lbmolph",
             "dP_stage2_to_top_drum_psia",
             "V_to_top_drum_pressure_gate_scale",
             "V_to_top_drum_blocked_lbmolph",
             "V_condensed_top_lbmolph",
-            "huang_top_drum_vapor_relax_target_psia",
-            "huang_top_drum_vapor_relax_dmv_lbmolps",
             "V_psv_top_lbmolph",
             "PSV_open_flag",
             "PSV_setpoint_psia",
@@ -6300,36 +6428,6 @@ def _summary_row(
             MV_top_drum_lbmol = float(np.asarray(diag["MV_top_drum_lbmol"], dtype=float).reshape((-1,))[0])
         except Exception:
             MV_top_drum_lbmol = np.nan
-    huang_top_anchor_free_psia = np.nan
-    if "huang_top_anchor_free_psia" in diag:
-        try:
-            huang_top_anchor_free_psia = float(np.asarray(diag["huang_top_anchor_free_psia"], dtype=float).reshape((-1,))[0])
-        except Exception:
-            huang_top_anchor_free_psia = np.nan
-    huang_top_anchor_weight = np.nan
-    if "huang_top_anchor_weight" in diag:
-        try:
-            huang_top_anchor_weight = float(np.asarray(diag["huang_top_anchor_weight"], dtype=float).reshape((-1,))[0])
-        except Exception:
-            huang_top_anchor_weight = np.nan
-    huang_top_anchor_gate_scale = np.nan
-    if "huang_top_anchor_gate_scale" in diag:
-        try:
-            huang_top_anchor_gate_scale = float(np.asarray(diag["huang_top_anchor_gate_scale"], dtype=float).reshape((-1,))[0])
-        except Exception:
-            huang_top_anchor_gate_scale = np.nan
-    huang_top_drum_vapor_relax_target_psia = np.nan
-    if "huang_top_drum_vapor_relax_target_psia" in diag:
-        try:
-            huang_top_drum_vapor_relax_target_psia = float(np.asarray(diag["huang_top_drum_vapor_relax_target_psia"], dtype=float).reshape((-1,))[0])
-        except Exception:
-            huang_top_drum_vapor_relax_target_psia = np.nan
-    huang_top_drum_vapor_relax_dmv_lbmolps = np.nan
-    if "huang_top_drum_vapor_relax_dmv_lbmolps" in diag:
-        try:
-            huang_top_drum_vapor_relax_dmv_lbmolps = float(np.asarray(diag["huang_top_drum_vapor_relax_dmv_lbmolps"], dtype=float).reshape((-1,))[0])
-        except Exception:
-            huang_top_drum_vapor_relax_dmv_lbmolps = np.nan
     V_condensed_in_lbmolph = np.nan
     if "V_condensed_in_lbmolph" in diag:
         try:
@@ -6786,9 +6884,6 @@ def _summary_row(
         "P_top_drum_psia_raw": float(P_top_drum_psia_raw) if np.isfinite(P_top_drum_psia_raw) else np.nan,
         "Z_top_drum_vapor": float(Z_top_drum_vapor) if np.isfinite(Z_top_drum_vapor) else np.nan,
         "MV_top_drum_lbmol": float(MV_top_drum_lbmol) if np.isfinite(MV_top_drum_lbmol) else np.nan,
-        "huang_top_anchor_free_psia": float(huang_top_anchor_free_psia) if np.isfinite(huang_top_anchor_free_psia) else np.nan,
-        "huang_top_anchor_weight": float(huang_top_anchor_weight) if np.isfinite(huang_top_anchor_weight) else np.nan,
-        "huang_top_anchor_gate_scale": float(huang_top_anchor_gate_scale) if np.isfinite(huang_top_anchor_gate_scale) else np.nan,
         "V_condensed_in_lbmolph": float(V_condensed_in_lbmolph) if np.isfinite(V_condensed_in_lbmolph) else np.nan,
         "V_to_top_drum_lbmolph": float(V_to_top_drum_lbmolph) if np.isfinite(V_to_top_drum_lbmolph) else np.nan,
         "dP_stage2_to_top_drum_psia": (
@@ -6801,16 +6896,6 @@ def _summary_row(
             float(V_to_top_drum_blocked_lbmolph) if np.isfinite(V_to_top_drum_blocked_lbmolph) else np.nan
         ),
         "V_condensed_top_lbmolph": float(V_condensed_top_lbmolph) if np.isfinite(V_condensed_top_lbmolph) else np.nan,
-        "huang_top_drum_vapor_relax_target_psia": (
-            float(huang_top_drum_vapor_relax_target_psia)
-            if np.isfinite(huang_top_drum_vapor_relax_target_psia)
-            else np.nan
-        ),
-        "huang_top_drum_vapor_relax_dmv_lbmolps": (
-            float(huang_top_drum_vapor_relax_dmv_lbmolps)
-            if np.isfinite(huang_top_drum_vapor_relax_dmv_lbmolps)
-            else np.nan
-        ),
         "V_psv_top_lbmolph": float(V_psv_top_lbmolph) if np.isfinite(V_psv_top_lbmolph) else np.nan,
         "PSV_open_flag": float(PSV_open_flag) if np.isfinite(PSV_open_flag) else np.nan,
         "PSV_setpoint_psia": float(PSV_setpoint_psia) if np.isfinite(PSV_setpoint_psia) else np.nan,
@@ -7043,13 +7128,13 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     ida_defaults_applied = list(eff_ida.get("defaults_applied", []))
 
     startup_sequence_enabled = bool(cfg.enable_startup_hydraulic_sequence)
-    if runtime_mode in ("parity", "calibration", "hydraulic", "huang", "huang-energy"):
+    if runtime_mode in ("parity", "calibration", "hydraulic"):
         if startup_sequence_enabled:
             print(
                 f"[Init] runtime_mode={runtime_mode} disables startup hydraulic sequencing; using direct mode behavior."
             )
         startup_sequence_enabled = False
-    if runtime_mode in ("parity", "calibration", "hydraulic", "huang", "huang-energy"):
+    if runtime_mode in ("parity", "calibration", "hydraulic"):
         print(f"[Init] Runtime mode active: {runtime_mode}")
     if ida_defaults_applied:
         print("[Init] Applied hydraulic+ida defaults: " + ", ".join(str(x) for x in ida_defaults_applied))
@@ -7375,12 +7460,37 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         dist_tag=dist_tag,
         bots_tag=bots_tag,
     )
-    top_level_pv_mode = str(getattr(cfg, "top_level_pv_mode", "molar-holdup") or "molar-holdup").strip().lower()
+    top_level_pv_mode_spec = _spec_get(
+        getattr(col, "specs_raw", None) or {},
+        "Top Level PV Mode",
+        "Top Drum PV Mode",
+        "Reflux Drum PV Mode",
+    )
+    top_level_pv_mode = str(
+        top_level_pv_mode_spec
+        if top_level_pv_mode_spec is not None and str(getattr(cfg, "top_level_pv_mode", "molar-holdup") or "molar-holdup").strip().lower() == "molar-holdup"
+        else (getattr(cfg, "top_level_pv_mode", "molar-holdup") or "molar-holdup")
+    ).strip().lower()
     if top_level_pv_mode not in {"molar-holdup", "true-level"}:
         top_level_pv_mode = "molar-holdup"
+    bottom_level_pv_mode_spec = _spec_get(
+        getattr(col, "specs_raw", None) or {},
+        "Bottom Level PV Mode",
+        "Bottom Sump PV Mode",
+    )
+    bottom_level_pv_mode = str(
+        bottom_level_pv_mode_spec
+        if bottom_level_pv_mode_spec is not None and str(getattr(cfg, "bottom_level_pv_mode", "molar-holdup") or "molar-holdup").strip().lower() == "molar-holdup"
+        else (getattr(cfg, "bottom_level_pv_mode", "molar-holdup") or "molar-holdup")
+    ).strip().lower()
+    if bottom_level_pv_mode not in {"molar-holdup", "true-level"}:
+        bottom_level_pv_mode = "molar-holdup"
     top_level_rho_ref_lbmol_ft3: Optional[float] = None
     top_level_scale_lbmol_per_frac: Optional[float] = None
     top_level_sp_frac: Optional[float] = None
+    bottom_level_rho_ref_lbmol_ft3: Optional[float] = None
+    bottom_level_scale_lbmol_per_frac: Optional[float] = None
+    bottom_level_sp_frac: Optional[float] = None
     if (
         level_control_enabled
         and top_level_pv_mode == "true-level"
@@ -7470,18 +7580,117 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                         gain_scale = float(top_level_scale_lbmol_per_frac) * float(dv_dh)
                     if gain_scale is not None and np.isfinite(float(gain_scale)) and float(gain_scale) > 1e-12:
                         top_level_ctrl.kc = float(top_level_ctrl.kc) * float(gain_scale)
+    if (
+        level_control_enabled
+        and bottom_level_pv_mode == "true-level"
+        and base_inputs.bottom_sump_total_volume_ft3 is not None
+    ):
+        try:
+            _bot_v0, bottom_level_rho_ref_lbmol_ft3, _bot_frac0 = _estimate_bottom_sump_liquid_volume_ft3(
+                col=col,
+                layout=layout,
+                y_vec=y,
+                thermo_provider=base_inputs.thermo_provider,
+                bottom_sump_total_volume_ft3=base_inputs.bottom_sump_total_volume_ft3,
+                p_bottom_psia=(float(np.asarray(col.P_psia, dtype=float).reshape((col.n_stages,))[-1]) if hasattr(col, "P_psia") else None),
+            )
+        except Exception:
+            bottom_level_rho_ref_lbmol_ft3 = None
+        if (
+            bottom_level_rho_ref_lbmol_ft3 is None
+            or (not np.isfinite(float(bottom_level_rho_ref_lbmol_ft3)))
+            or float(bottom_level_rho_ref_lbmol_ft3) <= 1e-12
+        ):
+            bottom_level_pv_mode = "molar-holdup"
+        else:
+            try:
+                bottom_level_scale_lbmol_per_frac = float(bottom_level_rho_ref_lbmol_ft3) * float(base_inputs.bottom_sump_total_volume_ft3)
+            except Exception:
+                bottom_level_scale_lbmol_per_frac = None
+            bottom_level_sp_frac = cfg.bottom_level_sp_frac
+            if bottom_level_sp_frac is None:
+                bottom_level_sp_frac = _spec_float(
+                    getattr(col, "specs_raw", None) or {},
+                    "Bottom Sump Liquid Fraction (-)",
+                    "Bottom Sump Liquid Volume Fraction",
+                    "Bottom Sump Liquid Fraction",
+                    "Bottom Sump Fill Fraction",
+                    "Bottom Liquid Fraction (-)",
+                    "Bottom Liquid Volume Fraction",
+                    "Bottom Liquid Fraction",
+                    "Bottom Fill Fraction",
+                )
+            if bottom_level_sp_frac is not None and bottom_level_sp_frac > 1.0 and bottom_level_sp_frac <= 100.0:
+                bottom_level_sp_frac = float(bottom_level_sp_frac) / 100.0
+            if bottom_level_sp_frac is None and bot_level_sp is not None and bottom_level_scale_lbmol_per_frac is not None:
+                try:
+                    vfrac_guess = float(bot_level_sp) / max(float(bottom_level_scale_lbmol_per_frac), 1.0e-12)
+                    vfrac_guess = float(np.clip(vfrac_guess, 0.0, 1.0))
+                    bottom_level_sp_frac = float(vfrac_guess)
+                except Exception:
+                    bottom_level_sp_frac = None
+            if bottom_level_sp_frac is None:
+                try:
+                    _bot_v0, _bot_rho0, _bot_frac0 = _estimate_bottom_sump_liquid_volume_ft3(
+                        col=col,
+                        layout=layout,
+                        y_vec=y,
+                        thermo_provider=base_inputs.thermo_provider,
+                        bottom_sump_total_volume_ft3=base_inputs.bottom_sump_total_volume_ft3,
+                        p_bottom_psia=(float(np.asarray(col.P_psia, dtype=float).reshape((col.n_stages,))[-1]) if hasattr(col, "P_psia") else None),
+                    )
+                    if _bot_frac0 is not None and np.isfinite(float(_bot_frac0)):
+                        bottom_level_sp_frac = float(_bot_frac0)
+                except Exception:
+                    bottom_level_sp_frac = None
+            if (
+                bottom_level_sp_frac is None
+                or (not np.isfinite(float(bottom_level_sp_frac)))
+                or float(bottom_level_sp_frac) < 0.0
+                or float(bottom_level_sp_frac) > 1.0
+            ):
+                bottom_level_pv_mode = "molar-holdup"
+            else:
+                bot_level_sp = float(bottom_level_sp_frac)
+                if bot_level_ctrl is not None:
+                    dv_dh = 1.0
+                    gain_scale = None
+                    if (
+                        bottom_level_scale_lbmol_per_frac is not None
+                        and np.isfinite(float(bottom_level_scale_lbmol_per_frac))
+                        and float(bottom_level_scale_lbmol_per_frac) > 1e-12
+                        and np.isfinite(float(dv_dh))
+                        and float(dv_dh) > 1e-12
+                    ):
+                        gain_scale = float(bottom_level_scale_lbmol_per_frac) * float(dv_dh)
+                    if gain_scale is not None and np.isfinite(float(gain_scale)) and float(gain_scale) > 1e-12:
+                        bot_level_ctrl.kc = float(bot_level_ctrl.kc) * float(gain_scale)
     if level_control_enabled:
         if top_level_pv_mode == "true-level" and top_level_sp_frac is not None:
             print(
                 "[Control] Level control enabled  "
-                f"top_SP={100.0*float(top_level_sp_frac):.2f}% full  bottom_SP={float(bot_level_sp):.3f} lbmol  "
-                f"top_PV_mode={top_level_pv_mode}"
+                f"top_SP={100.0*float(top_level_sp_frac):.2f}% full  "
+                + (
+                    f"bottom_SP={100.0*float(bottom_level_sp_frac):.2f}% full  "
+                    if bottom_level_pv_mode == "true-level" and bottom_level_sp_frac is not None
+                    else f"bottom_SP={float(bot_level_sp):.3f} lbmol  "
+                )
+                + f"top_PV_mode={top_level_pv_mode}  bottom_PV_mode={bottom_level_pv_mode}"
             )
         else:
             print(
                 "[Control] Level control enabled  "
-                f"top_SP={float(top_level_sp):.3f} lbmol  bottom_SP={float(bot_level_sp):.3f} lbmol  "
-                f"top_PV_mode={top_level_pv_mode}"
+                + (
+                    f"top_SP={float(top_level_sp):.3f} lbmol  "
+                    if top_level_sp is not None
+                    else "top_SP=nan  "
+                )
+                + (
+                    f"bottom_SP={100.0*float(bottom_level_sp_frac):.2f}% full  "
+                    if bottom_level_pv_mode == "true-level" and bottom_level_sp_frac is not None
+                    else f"bottom_SP={float(bot_level_sp):.3f} lbmol  "
+                )
+                + f"top_PV_mode={top_level_pv_mode}  bottom_PV_mode={bottom_level_pv_mode}"
             )
     (
         pressure_control_enabled,
@@ -7843,6 +8052,31 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     except Exception:
                         pass
                 bot_level_pv = float(np.sum(np.asarray(u_now.get("bottom_L", []), dtype=float)))
+                if (
+                    bottom_level_pv_mode == "true-level"
+                    and base_inputs.bottom_sump_total_volume_ft3 is not None
+                    and base_inputs.thermo_provider is not None
+                ):
+                    try:
+                        p_bottom_for_level = None
+                        if last_P_hyd is not None:
+                            p_bottom_for_level = float(np.asarray(last_P_hyd, dtype=float).reshape((col.n_stages,))[-1])
+                        elif last_P_diag is not None:
+                            p_bottom_for_level = float(np.asarray(last_P_diag, dtype=float).reshape((col.n_stages,))[-1])
+                        elif hasattr(col, "P_psia"):
+                            p_bottom_for_level = float(np.asarray(col.P_psia, dtype=float).reshape((col.n_stages,))[-1])
+                        bottom_liq_vol_now_ft3, _bot_rho_now, _bot_level_frac_now = _estimate_bottom_sump_liquid_volume_ft3(
+                            col=col,
+                            layout=layout,
+                            y_vec=y,
+                            thermo_provider=base_inputs.thermo_provider,
+                            bottom_sump_total_volume_ft3=base_inputs.bottom_sump_total_volume_ft3,
+                            p_bottom_psia=p_bottom_for_level,
+                        )
+                        if _bot_level_frac_now is not None and np.isfinite(float(_bot_level_frac_now)):
+                            bot_level_pv = float(np.clip(float(_bot_level_frac_now), 0.0, 1.0))
+                    except Exception:
+                        pass
                 step_top_level_ctrl_pv = float(top_level_pv)
                 step_top_level_ctrl_sp = float(top_level_sp)
                 step_bottom_level_ctrl_pv = float(bot_level_pv)
@@ -8372,9 +8606,6 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     top_drum_pressure_temperature_relaxation_sec=(
                         base_inputs.top_drum_pressure_temperature_relaxation_sec
                     ),
-                    huang_top_drum_vapor_relaxation_sec=(
-                        base_inputs.huang_top_drum_vapor_relaxation_sec
-                    ),
                     top_drum_pressure_T_prev_F=last_top_drum_pressure_T,
                     vapor_flow_relaxation_sec=base_inputs.vapor_flow_relaxation_sec,
                     conductance_vflow_nominal_hi_ratio=(
@@ -8486,9 +8717,6 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     hydraulic_pressure_relaxation_sec=base_inputs.hydraulic_pressure_relaxation_sec,
                     top_drum_pressure_temperature_relaxation_sec=(
                         base_inputs.top_drum_pressure_temperature_relaxation_sec
-                    ),
-                    huang_top_drum_vapor_relaxation_sec=(
-                        base_inputs.huang_top_drum_vapor_relaxation_sec
                     ),
                     top_drum_pressure_T_prev_F=last_top_drum_pressure_T,
                     vapor_flow_relaxation_sec=base_inputs.vapor_flow_relaxation_sec,
@@ -9800,15 +10028,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument(
         "--runtime-mode",
         dest="runtime_mode",
-        choices=["legacy", "parity", "calibration", "hydraulic", "huang", "huang-energy"],
+        choices=["legacy", "parity", "calibration", "hydraulic"],
         default="parity",
         help=(
             "Runner behavior mode: "
             "parity=Pressure(spec)+Vapor(profile)+LiquidHydraulics(off), "
             "calibration=same closures as parity with explicit parity-check intent, "
             "hydraulic=Pressure(hydraulic)+Vapor(energy)+LiquidHydraulics(off unless explicitly enabled), "
-            "huang=Pressure(hydraulic)+Vapor(profile)+Liquid(HTC) in a partitioned Huang-style hybrid path, "
-            "huang-energy=Pressure(hydraulic)+Vapor(energy)+Liquid(HTC) experimental hybrid path, "
             "legacy=use existing spec-driven behavior."
         ),
     )
@@ -10003,7 +10229,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "--thermo",
         dest="thermo_mode",
         choices=["stub", "dwsim", "table", "table-pool"],
-        default="stub",
+        default="table-pool",
     )
 
     # Thermo throttling
@@ -10032,8 +10258,22 @@ def main(argv: Optional[List[str]] = None) -> int:
         dest="flash_feed_at_stage_conditions",
         action="store_false",
     )
-    p.add_argument("--thermo-table", dest="thermo_table_path", default=None)
-    p.add_argument("--thermo-pool-workers", dest="thermo_pool_workers", type=int, default=None)
+    p.add_argument("--thermo-table", dest="thermo_table_path", default=r"cache/thermo_table.json")
+    p.add_argument(
+        "--thermo-table-anchor-blend-count",
+        dest="thermo_table_n_anchor_blend",
+        type=int,
+        default=3,
+        help="Number of nearest composition anchors to blend in table/table-pool thermo modes.",
+    )
+    p.add_argument(
+        "--thermo-table-anchor-blend-power",
+        dest="thermo_table_anchor_blend_power",
+        type=float,
+        default=2.0,
+        help="Inverse-distance power for composition-anchor blending in table/table-pool thermo modes.",
+    )
+    p.add_argument("--thermo-pool-workers", dest="thermo_pool_workers", type=int, default=2)
     p.add_argument("--thermo-pool-chunk-size", dest="thermo_pool_chunk_size", type=int, default=4)
     p.add_argument("--thermo-pool-timeout-sec", dest="thermo_pool_task_timeout_sec", type=float, default=None)
     p.add_argument("--reb-neighbor-vflow-hi-ratio", dest="reboiler_neighbor_vflow_hi_ratio", type=float, default=None)
@@ -10049,12 +10289,6 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument(
         "--top-drum-pressure-temperature-relaxation-sec",
         dest="top_drum_pressure_temperature_relaxation_sec",
-        type=float,
-        default=None,
-    )
-    p.add_argument(
-        "--huang-top-drum-vapor-relaxation-sec",
-        dest="huang_top_drum_vapor_relaxation_sec",
         type=float,
         default=None,
     )
@@ -10222,16 +10456,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument(
         "--liquid-hydraulic-model",
         dest="liquid_hydraulic_model",
-        choices=["francis", "huang-htc"],
+        choices=["francis"],
         default=None,
-        help="Internal liquid hydraulic closure: 'francis' or Huang-inspired 'huang-htc'.",
+        help="Internal liquid hydraulic closure.",
     )
     p.add_argument(
         "--liquid-hydraulic-htc-sec",
         dest="liquid_hydraulic_htc_sec",
         type=float,
         default=None,
-        help="Hydraulic time constant (s) used when liquid-hydraulic-model=huang-htc.",
+        help="Optional hydraulic time constant (s) reserved for non-Francis liquid closures.",
     )
     p.add_argument(
         "--enable-startup-hydraulic-sequence",
@@ -10361,7 +10595,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     p.add_argument("--top-level-sp", dest="top_level_sp_lbmol", type=float, default=None)
     p.add_argument("--top-level-sp-frac", dest="top_level_sp_frac", type=float, default=None)
+    p.add_argument(
+        "--bottom-level-pv-mode",
+        dest="bottom_level_pv_mode",
+        choices=["molar-holdup", "true-level"],
+        default="molar-holdup",
+    )
     p.add_argument("--bottom-level-sp", dest="bottom_level_sp_lbmol", type=float, default=None)
+    p.add_argument("--bottom-level-sp-frac", dest="bottom_level_sp_frac", type=float, default=None)
     p.add_argument("--top-level-kc", dest="top_level_kc", type=float, default=None)
     p.add_argument("--top-level-ti", dest="top_level_ti_sec", type=float, default=None)
     p.add_argument("--enable-top-level-feedforward", dest="enable_top_level_feedforward", action="store_true")
@@ -10398,6 +10639,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--condenser-pressure-drop-psi", dest="condenser_pressure_drop_psi", type=float, default=None)
     p.add_argument("--top-drum-vapor-volume-ft3", dest="top_drum_vapor_volume_ft3", type=float, default=None)
     p.add_argument("--top-drum-total-volume-ft3", dest="top_drum_total_volume_ft3", type=float, default=None)
+    p.add_argument("--bottom-sump-total-volume-ft3", dest="bottom_sump_total_volume_ft3", type=float, default=None)
     p.add_argument(
         "--disable-top-drum-pressure-gate",
         dest="enforce_top_drum_pressure_gate",
@@ -10554,6 +10796,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         thermo_refresh_dx=args.thermo_refresh_dx,
         equilibrium_relaxation_live_pr=bool(args.equilibrium_relaxation_live_pr),
         thermo_table_path=args.thermo_table_path,
+        thermo_table_n_anchor_blend=int(args.thermo_table_n_anchor_blend),
+        thermo_table_anchor_blend_power=float(args.thermo_table_anchor_blend_power),
         thermo_pool_workers=args.thermo_pool_workers,
         thermo_pool_chunk_size=args.thermo_pool_chunk_size,
         thermo_pool_task_timeout_sec=args.thermo_pool_task_timeout_sec,
@@ -10562,7 +10806,6 @@ def main(argv: Optional[List[str]] = None) -> int:
         vapor_holdup_relaxation_sec=args.vapor_holdup_relaxation_sec,
         hydraulic_pressure_relaxation_sec=args.hydraulic_pressure_relaxation_sec,
         top_drum_pressure_temperature_relaxation_sec=args.top_drum_pressure_temperature_relaxation_sec,
-        huang_top_drum_vapor_relaxation_sec=args.huang_top_drum_vapor_relaxation_sec,
         vapor_flow_relaxation_sec=args.vapor_flow_relaxation_sec,
         conductance_vflow_nominal_hi_ratio=args.conductance_vflow_nominal_hi_ratio,
         stiff_vflow_smooth_clamp_lbmolph=args.stiff_vflow_smooth_clamp_lbmolph,
@@ -10590,7 +10833,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         top_level_pv_mode=str(args.top_level_pv_mode),
         top_level_sp_lbmol=args.top_level_sp_lbmol,
         top_level_sp_frac=args.top_level_sp_frac,
+        bottom_level_pv_mode=str(args.bottom_level_pv_mode),
         bottom_level_sp_lbmol=args.bottom_level_sp_lbmol,
+        bottom_level_sp_frac=args.bottom_level_sp_frac,
         top_level_kc=args.top_level_kc,
         top_level_ti_sec=args.top_level_ti_sec,
         enable_top_level_feedforward=bool(args.enable_top_level_feedforward),
@@ -10614,6 +10859,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         condenser_pressure_drop_psi=args.condenser_pressure_drop_psi,
         top_drum_vapor_volume_ft3=args.top_drum_vapor_volume_ft3,
         top_drum_total_volume_ft3=args.top_drum_total_volume_ft3,
+        bottom_sump_total_volume_ft3=args.bottom_sump_total_volume_ft3,
         enforce_top_drum_pressure_gate=bool(args.enforce_top_drum_pressure_gate),
         top_drum_pressure_gate_soft_psi=args.top_drum_pressure_gate_soft_psi,
         enforce_top_pressure_ordering=bool(args.enforce_top_pressure_ordering),

@@ -76,10 +76,15 @@ If `Streams` is missing or malformed, the loader continues with `streams={}`.
 
 The runner supports these keys in `col.specs_raw`:
 - `Enable Level Control` / `Level Control Enabled`
+- `Top Level PV Mode`, `Bottom Level PV Mode`
 - `Top Level SP (lbmol)` / `Top Drum Level SP (lbmol)` / `Reflux Drum Level SP (lbmol)`
 - `Bottom Level SP (lbmol)` / `Bottom Sump Level SP (lbmol)`
+- `Top Drum Liquid Fraction (-)` / related fill-fraction aliases
+- `Bottom Sump Liquid Fraction (-)` / related fill-fraction aliases
 - `Top Level Kc`, `Top Level Ti (sec)`
 - `Bottom Level Kc`, `Bottom Level Ti (sec)`
+- `Top Drum Total Volume (ft3)` / `Top Drum Diameter (ft)` + `Top Drum Length (ft)`
+- `Bottom Sump Total Volume (ft3)` / `Bottom Sump Diameter (ft)` + `Bottom Sump Height (ft)`
 - `Enable Pressure Control` / `Pressure Control Enabled`
 - `Top Pressure SP (psia)` / `Condenser Pressure SP (psia)`
 - `Top Pressure Kc`, `Top Pressure Ti (sec)`
@@ -88,6 +93,11 @@ The runner supports these keys in `col.specs_raw`:
 - `Top PSV SP (psia)` / `Top PSV Setpoint (psia)`
 - `Top PSV Gain (lbmol/s/psi)` / `Top PSV Gain (lbmolps/psi)`
 - `Top PSV Max Vent (lbmol/s)` / `Top PSV Max (lbmol/s)`
+- `Equilibrium Relaxation Mode`
+- `Equilibrium Tau (sec)` / `Equilibrium Relaxation Tau (sec)`
+- `Equilibrium Energy Damping Gain`
+- `Equilibrium Relaxation Live PR`
+- `Hydraulic Energy Temperature Follow Tau (sec)`
 - `Distillate Composition SP` / `Distillate C4 SP` / `Distillate x SP`
 - `Bottoms Composition SP` / `Bottoms C5 SP` / `Bottoms x SP`
 
@@ -154,10 +164,9 @@ At present, the loader persists explicitly supported keys (including `Pressure M
 Runtime precedence for pressure/vapor model selection is:
 - `--runtime-mode parity` (CLI default): forces `pressure_model=spec`, `vapor_flow_model=profile`, and liquid-hydraulic override off.
 - `--runtime-mode hydraulic`: forces `pressure_model=hydraulic`, `vapor_flow_model=energy`, leaves liquid-hydraulic override plus vapor-holdup relaxation off unless explicitly enabled, and defaults feed-stage flashing off unless explicitly requested so imported steady profiles stay closer to the workbook seed.
-- `--runtime-mode huang`: forces `pressure_model=hydraulic`, `vapor_flow_model=profile`, and liquid-hydraulic override on with `liquid_hydraulic_model=huang-htc`.
 - `--runtime-mode legacy`: uses Excel/CLI behavior; `Pressure Model` and `Vapor Flow Model` are honored when valid.
 - In `legacy`, if no valid model strings are provided, defaults are: `pressure_model=hydraulic` when geometry exists (else `spec`), then `vapor_flow_model=energy` when pressure is hydraulic (else `profile`).
-- Startup hydraulic sequencing flags apply only in `legacy`; they are ignored in `parity`, `hydraulic`, and `huang`.
+- Startup hydraulic sequencing flags apply only in `legacy`; they are ignored in `parity` and `hydraulic`.
 
 ## Initial Conditions Sheet
 
@@ -216,6 +225,8 @@ If optional holdup columns are absent/all-NaN, model defaults from existing spec
 - Feed/top/bottom boundary flows and compositions.
 - Initial top drum / bottom sump composition hints in state initialization.
 - Optional bottom sump temperature initialization from bottoms stream temperature.
+- In the standard explicit-sump model, the bottom sump is the source state for
+  both bottoms draw and reboiler liquid feed.
 
 ## What Gets Used in Simulation
 

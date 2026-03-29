@@ -3,15 +3,25 @@
 This document covers:
 - `python -m dynamic_distillation.dynamic_run_scaffold_v1`
 
+For project terminology used below, see `docs/glossary.md`.
+
 The runner performs Excel preflight validation before integration starts.
 For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
+
+Current default thermo execution is the pooled table path:
+- `--thermo table-pool`
+- `--thermo-table cache/thermo_table.json`
+- `--thermo-pool-workers 2`
+- `--thermo-pool-chunk-size 4`
+
+Use explicit CLI flags to override that per run when needed.
 
 **Parameters**
 
 | Flag(s) | Type | Default | Explanation |
 |---|---|---|---|
 | `--excel` | path | `distillation_column_template.xlsx` | Excel case file to load. |
-| `--runtime-mode` | `legacy` \| `parity` \| `calibration` \| `hydraulic` \| `huang` | `parity` | Runtime behavior mode: `parity` forces pressure/spec + vapor/profile + liquid hydraulics off; `calibration` uses the same closures as `parity` with explicit parity-check intent; `hydraulic` forces pressure/hydraulic + vapor/energy while leaving liquid hydraulics and vapor-holdup relaxation off unless explicitly enabled; `huang` forces a partitioned Huang-style hybrid path with pressure/hydraulic + vapor/profile + liquid `huang-htc`; `legacy` keeps spec/CLI-driven behavior. |
+| `--runtime-mode` | `legacy` \| `parity` \| `calibration` \| `hydraulic` | `parity` | Runtime behavior mode: `parity` forces pressure/spec + vapor/profile + liquid hydraulics off; `calibration` uses the same closures as `parity` with explicit parity-check intent; `hydraulic` forces pressure/hydraulic + vapor/energy while leaving liquid hydraulics and vapor-holdup relaxation off unless explicitly enabled; `legacy` keeps spec/CLI-driven behavior. |
 | `--n-steps` | int | `600` | Number of integration steps. |
 | `--steps` | int | `None` | Alias for `--n-steps`. If provided, overrides `--n-steps`. |
 | `--dt` | float | `None` | Time step in seconds; if omitted uses `col.sim.dt_sec` from the case. |
@@ -32,15 +42,15 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 | `--no-equilibrium` | flag | `False` | Disables equilibrium relaxation (default is enabled). |
 | `--no-eq` | flag | `False` | Alias for `--no-equilibrium`. |
 | `--equilibrium-relaxation-mode`, `--eq-mode` | `auto` \| `phase-holdup` \| `composition-only` | `auto` | Equilibrium transfer target. `phase-holdup` keeps legacy flash phase-split transfer, `composition-only` relaxes vapor composition at fixed vapor holdup. `auto` selects mode by runtime context (hydraulic mode defaults to `composition-only`). |
-| `--thermo` | `stub` \| `dwsim` \| `table` \| `table-pool` | `stub` | Thermo backend selection. |
+| `--thermo` | `stub` \| `dwsim` \| `table` \| `table-pool` | `table-pool` | Thermo backend selection. |
 | `--thermo-every` | int | `1` | Compute thermo every N steps; intermediate steps reuse cached thermo diagnostics. |
 | `--thermo-refresh-dt` | float | `None` | Optional per-stage thermo refresh threshold `dT` (F). |
 | `--thermo-refresh-dp` | float | `None` | Optional per-stage thermo refresh threshold `dP` (psia). |
 | `--thermo-refresh-dx` | float | `None` | Optional per-stage thermo refresh threshold `max(abs(dz_k))`. |
 | `--flash-feed-at-stage-conditions` | flag | `None` | Force TP-flash feed splitting at the feed-stage pressure instead of using the workbook feed vapor fraction directly. |
 | `--no-flash-feed-at-stage-conditions` | flag | `None` | Force startup to use the workbook feed split directly without re-flashing at feed-stage pressure. |
-| `--thermo-table` | path | `None` | Tabular thermo JSON path (required for `--thermo table` and `--thermo table-pool`). |
-| `--thermo-pool-workers` | int | `None` | Worker count for `table-pool`; `None` maps to `max(cpu_count-1, 1)`. |
+| `--thermo-table` | path | `cache/thermo_table.json` | Tabular thermo JSON path used by default table/table-pool runs. |
+| `--thermo-pool-workers` | int | `2` | Worker count for `table-pool`; CLI can still override per run. |
 | `--thermo-pool-chunk-size` | int | `4` | Batch chunk size submitted per pool task in `table-pool`. |
 | `--thermo-pool-timeout-sec` | float | `None` | Per-task timeout for `table-pool`; timed-out/failed chunks fall back to local evaluation. |
 | `--disable-startup-thermo-conditioning` | flag | `False` | Disables startup thermo-consistent conditioning pass (enabled by default). |
@@ -49,8 +59,8 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 | `--enable-liquid-hydraulic-override` | flag | `None` | Force-enable internal liquid hydraulic downflow override. |
 | `--disable-liquid-hydraulic-override` | flag | `None` | Disable internal liquid hydraulic downflow override (profile-only internal `L_out`). |
 | `--liquid-hydraulic-override-alpha` | float | `None` | Blend for liquid hydraulics override (`0=profile`, `1=full hydraulic`). |
-| `--liquid-hydraulic-model` | `francis` \| `huang-htc` | `None` | Internal liquid hydraulic closure model. |
-| `--liquid-hydraulic-htc-sec` | float | `None` | Hydraulic time constant used when `--liquid-hydraulic-model huang-htc`. |
+| `--liquid-hydraulic-model` | `francis` | `None` | Internal liquid hydraulic closure model. |
+| `--liquid-hydraulic-htc-sec` | float | `None` | Reserved hydraulic time constant for non-Francis liquid closures. |
 | `--enable-startup-hydraulic-sequence` | flag | `False` | Enable startup sequence: pressure first, then energy vapor closure, then residual-gated liquid hydraulics (`legacy` mode only; ignored by `parity`/`calibration`/`hydraulic`). |
 | `--startup-sequence-energy-on-sec` | float | `30.0` | Sequence time (`s`) to allow `vapor_flow_model="energy"`. |
 | `--startup-sequence-liquid-on-sec` | float | `120.0` | Sequence time (`s`) to begin liquid-hydraulics ramp. |
@@ -90,9 +100,13 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 | `--condenser-duty-mode` | `total-condense` \| `specified` | `total-condense` | Condenser duty model. |
 | `--condenser-duty-btuph` | float | `None` | Override condenser duty (`Btu/h`), used in `specified` mode. |
 | `--condenser-duty-trim-btuph` | float | `None` | Additive condenser duty trim (`Btu/h`); in `total-condense` this is added to computed duty. |
-| `--enable-level-control` | flag | `False` | Enable inventory PI loops: top holdup -> distillate draw, bottom holdup -> bottoms draw. |
-| `--top-level-sp` | float | `None` | Top inventory setpoint (`sum(top_L)`, `lbmol`); defaults to initial top holdup. |
-| `--bottom-level-sp` | float | `None` | Bottom inventory setpoint (`sum(bottom_L)`, `lbmol`); defaults to initial bottom holdup. |
+| `--enable-level-control` | flag | `False` | Enable inventory PI loops: top drum PV -> distillate draw, bottom sump PV -> bottoms draw. |
+| `--top-level-pv-mode` | `molar-holdup` \| `true-level` | `molar-holdup` | Top controller PV mode. |
+| `--top-level-sp` | float | `None` | Top inventory setpoint (`sum(top_L)`, `lbmol`) when top PV mode is `molar-holdup`. |
+| `--top-level-sp-frac` | float | `None` | Top drum level setpoint as fraction of drum diameter when top PV mode is `true-level`. |
+| `--bottom-level-pv-mode` | `molar-holdup` \| `true-level` | `molar-holdup` | Bottom controller PV mode. `true-level` treats the sump as a vertical cylindrical vessel when sump volume is available. |
+| `--bottom-level-sp` | float | `None` | Bottom inventory setpoint (`sum(bottom_L)`, `lbmol`) when bottom PV mode is `molar-holdup`. |
+| `--bottom-level-sp-frac` | float | `None` | Bottom sump level setpoint as fraction of sump diameter when bottom PV mode is `true-level`. |
 | `--top-level-kc` | float | `None` | Top level PI proportional gain (default `8.0`). |
 | `--top-level-ti` | float | `None` | Top level PI integral time (sec, default `120`). |
 | `--bottom-level-kc` | float | `None` | Bottom level PI proportional gain (default `8.0`). |
@@ -114,6 +128,7 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 | `--condenser-pressure-drop-psi` | float | `None` | Fixed condenser pressure drop from stage 2 to stage 1 in hydraulic mode. |
 | `--top-drum-vapor-volume-ft3` | float | `None` | Reflux-drum vapor volume used for top pressure state. |
 | `--top-drum-total-volume-ft3` | float | `None` | Reflux-drum total volume; enables dynamic vapor-space updates from liquid holdup. |
+| `--bottom-sump-total-volume-ft3` | float | `None` | Bottom-sump total volume; enables bottom `true-level` control calculations. |
 | `--enable-top-psv` | flag | `False` | Enable top-drum PSV relief model. |
 | `--top-psv-sp` | float | `None` | Top PSV setpoint (`psia`). |
 | `--top-psv-gain-lbmolps-psi` | float | `None` | Top PSV vent gain (`lbmol/s/psi`) on pressure above setpoint. |
@@ -150,12 +165,7 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
   - `--runtime-mode parity` (default): forces `Pressure=spec`, `VaporFlow=profile`, liquid-hydraulic override disabled.
   - `--runtime-mode calibration`: same closure set as `parity`, intended for parity/calibration checks.
   - `--runtime-mode hydraulic`: forces `Pressure=hydraulic`, `VaporFlow=energy`, keeps liquid-hydraulic override plus vapor-holdup relaxation off unless explicitly enabled, and defaults feed flashing at stage conditions off unless explicitly requested.
-  - `--runtime-mode huang`: forces `Pressure=hydraulic`, `VaporFlow=profile`, `LiquidHydraulicModel=huang-htc`, and liquid-hydraulic override enabled.
   - `--runtime-mode legacy`: uses existing spec/CLI behavior (backward-compatible path).
-  - Current Huang note:
-    - `runtime-mode huang` is still a partial Huang-inspired hybrid, not a full paper-faithful pressure update.
-    - On the corrected 20-stage branch, Huang tray pressure now stays on the free hydraulic tray profile unless an explicit top anchor is provided.
-    - For new 20-stage Huang restart/disturbance work, prefer `sandbox/mini8/input/distillation_column_template_20stage_huang_freep_900s_seed.xlsx`.
 - Integrator:
   - `--integrator explicit-euler` keeps legacy explicit stepping (`y += dt*dydt`).
   - `--integrator bdf|radau` uses SciPy stiff stepping per outer timestep, with automatic per-step fallback to explicit Euler if a solve fails.
@@ -163,12 +173,16 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
   - In `--runtime-mode hydraulic` with `--integrator ida`, runner applies tuned defaults when legacy defaults are still present: auto-enable DAE pilot algebraic solve, `ida_max_iter=12`, and `dae_pilot_v_tol_lbmolph=100` (explicit CLI overrides still win).
   - In stiff mode, hydraulic vapor-flow clamp regularization can be tuned via `--stiff-vflow-smooth-clamp-lbmolph`.
   - When `--enable-dae-pilot-algebraic-solve` is active with `bdf|radau`, the pilot DAE Newton solve runs once per outer step; implicit substeps reuse the solved algebraic seed via the PV-coupled RHS path.
-- In `parity`, `calibration`, `hydraulic`, and `huang` modes, startup hydraulic sequencing flags are ignored (sequence disabled by design).
+- In `parity`, `calibration`, and `hydraulic` modes, startup hydraulic sequencing flags are ignored (sequence disabled by design).
 - In `vapor_flow_model="energy"`, feed-stage vapor outflow is solved dynamically.
 - `--no-flash-feed-at-stage-conditions` keeps the workbook feed split instead of re-flashing the feed at stage pressure.
 - Current "level control" is inventory control in `lbmol` (top/bottom holdup states), not geometric vessel `% level`.
 - Controller action is held at initialization row (`step=0`); PI updates begin at `step=1`.
 - Distillate and bottoms flow rates in logs (`D_lbmolph`, `B_lbmolph`) are dynamic when level control is enabled.
+- In the standard explicit-sump configuration, the reboiler is sump-fed:
+  liquid drains from the bottom tray to the sump, bottoms is drawn from the
+  sump, and boilup is withdrawn from the sump and returned as vapor to the
+  bottom tray.
 - `column_summary_*.csv` includes integrator diagnostics (`integrator_*`, `ida_*`) so fallback/convergence behavior is directly traceable in time-series logs.
 - Runtime steady-state detector:
   - Progress lines include `SS=...` and active metric magnitudes when enabled.
@@ -176,7 +190,8 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 - `column_profile_*.csv` includes `node_type`:
   - `stage` rows for trays (`stage=1..N`)
   - `distillate_drum` row (`stage=0`) with top-drum/condenser inventory+PSV fields
-  - `bottoms_sump` row (`stage=N+1`) with sump/reboiler inventory fields
+  - `bottoms_sump` row (`stage=N+1`) with explicit sump inventory/state fields
+    used for bottoms draw and, in the standard model, reboiler liquid feed
 - Pressure-control PV source depends on MV mode:
   - `top-anchor` mode: `P_psia_hyd(stage1)` -> `P_psia_diag(stage1)` -> `P_top_drum_psia`.
   - `condenser-duty` mode: `P_top_drum_psia` -> `P_psia_hyd(stage1)` -> `P_psia_diag(stage1)`.
@@ -191,7 +206,7 @@ For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 - Equilibrium-relaxation transfer mode:
   - `--eq-mode phase-holdup`: legacy behavior, relaxes toward flash phase split.
   - `--eq-mode composition-only`: relaxes vapor composition at fixed `MV_tot` (reduces conflict with vapor-holdup pressure closure).
-  - `--eq-mode auto`: uses `composition-only` in `--runtime-mode hydraulic` and `--runtime-mode huang`, otherwise `phase-holdup`.
+  - `--eq-mode auto`: uses `composition-only` in `--runtime-mode hydraulic`, otherwise `phase-holdup`.
 - When thermo is skipped on a step (cadence/threshold gating), cached thermo is reused and that step forces `vapor_flow_model="profile"` for robustness.
 - `--thermo table-pool` uses process-pool batch flashes when available. Failed/timed-out chunks fall back to local tabular evaluation.
 

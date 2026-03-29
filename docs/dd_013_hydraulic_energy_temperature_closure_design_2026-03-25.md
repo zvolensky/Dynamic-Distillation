@@ -7,6 +7,14 @@ Related notes:
 - `docs/dd_011_hydraulic_parity_drift_report_2026-02-19.md`
 - `docs/dd_011_hydraulic_parity_followup_2026-02-21.md`
 
+Historical note (2026-03-28):
+This design note still captures the reasoning that led to the later fix, but it predates the final narrowing of the top-end instability. Since this note:
+1. A hybrid selective-PR run showed that the table-based equilibrium-relaxation flash path was a major stage-10 trigger.
+2. The remaining `510–600 s` failure was traced to stage 1, where a very small condenser-tray heat capacity made the specified-duty `dT=dE/C` path blow up.
+3. Stage 1 was then converted to a condenser-transfer temperature closure, which removed the late thermal runaway and yielded a stable `600 s` baseline (`20260328_145436`).
+
+So this note is still useful as design history, but the current branch no longer supports the older statement that the plain cap-law branch is the best general-purpose reference. Current status lives in [issue_log.md](/c:/Users/Thoma/Documents/Python%20Scripts/Dynamic_DistillationII/docs/issue_log.md), especially `DD-006`, `DD-007`, and `DD-016`.
+
 ## Purpose
 
 Record the current understanding of the remaining hydraulic-energy mismatch in the 20-stage warmer-feed ChemSep case, summarize the experiments performed on temperature handling, and define the recommended architectural direction for a general-purpose fix.

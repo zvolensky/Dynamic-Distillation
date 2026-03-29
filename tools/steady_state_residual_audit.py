@@ -318,7 +318,7 @@ def main() -> int:
     ap.add_argument(
         "--runtime-mode",
         dest="runtime_mode",
-        choices=["legacy", "parity", "calibration", "hydraulic", "huang", "huang-energy"],
+        choices=["legacy", "parity", "calibration", "hydraulic"],
         default="legacy",
         help="Runner runtime-mode preset to audit against.",
     )

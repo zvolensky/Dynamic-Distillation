@@ -11,7 +11,7 @@ from dynamic_distillation.uv_flash_sandbox_v1 import (
     _StageBoundaryState,
     _VaporFlowClosure,
     UvMini8PrototypeSpec,
-    _compute_huang_htc_liquid_flow_closure,
+    _compute_holdup_tau_liquid_flow_closure,
     _compute_vapor_flow_closure,
     _compute_rhs,
     _pack_state,
@@ -101,7 +101,7 @@ def test_compare_uv_run_to_reference_skips_placeholder_stage_holdup():
     assert ("2", "stage", "m_total_lbmol") not in metric_keys
 
 
-def test_compute_huang_htc_liquid_flow_closure_uses_holdup_over_tau():
+def test_compute_holdup_tau_liquid_flow_closure_uses_holdup_over_tau():
     spec = UvMini8PrototypeSpec(
         excel_path="dummy.xlsx",
         component_names=["n-Propane"],
@@ -154,7 +154,7 @@ def test_compute_huang_htc_liquid_flow_closure_uses_holdup_over_tau():
         bottoms_total_lbmolps=0.25,
         dry_tray_K=1.0,
         conductance_nominal_hi_ratio=1.25,
-        huang_liquid_htc_sec=5.0,
+        liquid_hydraulic_tau_sec=5.0,
         geometry=SimpleNamespace(active_area_ft2_per_stage=np.ones(4), area_ft2_per_stage=np.ones(4)),
         component_mw_lbm_per_lbmol=None,
         condenser_is_total=True,
@@ -210,7 +210,7 @@ def test_compute_huang_htc_liquid_flow_closure_uses_holdup_over_tau():
             iterations=1,
         ),
     ]
-    out = _compute_huang_htc_liquid_flow_closure(
+    out = _compute_holdup_tau_liquid_flow_closure(
         spec=spec,
         y=y,
         stage_results=stage_results,
@@ -276,7 +276,7 @@ def test_compute_rhs_uses_liquid_flow_closure_instead_of_profile():
         bottoms_total_lbmolps=0.25,
         dry_tray_K=1.0,
         conductance_nominal_hi_ratio=1.25,
-        huang_liquid_htc_sec=10.0,
+        liquid_hydraulic_tau_sec=10.0,
         geometry=SimpleNamespace(),
         component_mw_lbm_per_lbmol=None,
         condenser_is_total=True,
@@ -481,7 +481,7 @@ def test_compute_rhs_bottom_node_subtracts_partial_reboiler_boilup():
         bottoms_total_lbmolps=0.25,
         dry_tray_K=1.0,
         conductance_nominal_hi_ratio=1.25,
-        huang_liquid_htc_sec=10.0,
+        liquid_hydraulic_tau_sec=10.0,
         geometry=SimpleNamespace(),
         component_mw_lbm_per_lbmol=None,
         condenser_is_total=True,
@@ -681,7 +681,7 @@ def test_vapor_flow_closure_uses_reboiler_duty_for_boilup():
         bottoms_total_lbmolps=0.25,
         dry_tray_K=1.0,
         conductance_nominal_hi_ratio=1.25,
-        huang_liquid_htc_sec=10.0,
+        liquid_hydraulic_tau_sec=10.0,
         geometry=SimpleNamespace(area_ft2_per_stage=np.ones(4), active_area_ft2_per_stage=np.ones(4)),
         component_mw_lbm_per_lbmol=None,
         q_stage_BTUps=np.asarray([0.0, 0.0, 0.0, 10.0], dtype=float),

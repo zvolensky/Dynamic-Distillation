@@ -33,14 +33,26 @@ class _FakeBackend:
     def __init__(self):
         self.set_ids_called = None
         self.set_names_called = None
+        self.set_property_package_called = None
         self.flash_calls = []
         self.coeff_calls = []
+        self.debug_trace_hook = None
+        self.debug_trace_context = None
 
     def set_component_ids(self, ids):
         self.set_ids_called = list(ids)
 
     def set_component_names(self, names):
         self.set_names_called = list(names)
+
+    def set_property_package(self, package):
+        self.set_property_package_called = str(package)
+
+    def set_debug_trace_hook(self, hook):
+        self.debug_trace_hook = hook
+
+    def set_debug_trace_context(self, context):
+        self.debug_trace_context = context
 
     def silence_console(self, enabled=True):
         class _CM:
@@ -133,3 +145,36 @@ def test_provider_cp_fallback_if_coefficients_missing(monkeypatch):
     # HL = 100 + 2*T so cpL should be ~2, HV = 200 + 3*T so cpV ~3
     assert abs(res.cpL_BTU_lbmolF - 2.0) < 1e-12
     assert abs(res.cpV_BTU_lbmolF - 3.0) < 1e-12
+
+
+def test_provider_lightweight_flash_skips_cp_coefficients(monkeypatch):
+    import dynamic_distillation.thermo_provider_v1 as tp_mod
+
+    fake = _FakeBackend()
+    monkeypatch.setattr(tp_mod, "backend", fake, raising=True)
+
+    prov = ThermoProviderV1(["A", "B"], ["A", "B"], cp_dt_F=2.0)
+    x, y, K, HL, HV, Z = prov.flash_TP_full_F_psia(10.0, 100.0, [0.5, 0.5])
+
+    assert np.allclose(x, [0.5, 0.5])
+    assert np.allclose(y, np.asarray([0.6, 0.6]) / 1.2)
+    assert np.allclose(K, y / x)
+    assert HL == pytest.approx(120.0)
+    assert HV == pytest.approx(230.0)
+    assert Z is None
+    assert len(fake.flash_calls) == 1
+    assert fake.coeff_calls == []
+
+
+def test_provider_stage_aware_lightweight_flash_skips_cp_coefficients(monkeypatch):
+    import dynamic_distillation.thermo_provider_v1 as tp_mod
+
+    fake = _FakeBackend()
+    monkeypatch.setattr(tp_mod, "backend", fake, raising=True)
+
+    prov = ThermoProviderV1(["A", "B"], ["A", "B"])
+    res = prov.flash_TP_full_stage_F_psia(3, 15.0, 120.0, [0.8, 0.2])
+
+    assert len(res) == 6
+    assert len(fake.flash_calls) == 1
+    assert fake.coeff_calls == []

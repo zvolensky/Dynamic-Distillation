@@ -189,9 +189,18 @@ def validate_loaded_case(case: CaseData, col: ColumnSpec) -> ExcelValidationRepo
 
         for c in ("Liquid Holdup (lbmol)", "Vapor Holdup (lbmol)"):
             if c not in ic.columns:
+                if c == "Liquid Holdup (lbmol)":
+                    errors.append(
+                        "Initial Conditions missing optional-in-schema but runtime-required column "
+                        "'Liquid Holdup (lbmol)'."
+                    )
                 continue
             vals = pd.to_numeric(ic[c], errors="coerce").to_numpy(dtype=float)
             good = vals[np.isfinite(vals)]
+            if c == "Liquid Holdup (lbmol)" and good.size == 0:
+                errors.append(
+                    "Initial Conditions column 'Liquid Holdup (lbmol)' is present but contains no finite values."
+                )
             if good.size > 0 and np.any(good < 0.0):
                 warnings.append(f"Initial Conditions has negative values in optional column '{c}'.")
 
@@ -271,6 +280,72 @@ def validate_loaded_case(case: CaseData, col: ColumnSpec) -> ExcelValidationRepo
         warnings.append(
             f"Vapor Flow Model not specified; runner default is '{vapor_effective}'."
         )
+    if getattr(col, "geometry", None) is None:
+        warnings.append(
+            "No Geometry Sections were loaded; hydraulic pressure and Francis liquid-hydraulic features "
+            "will be unavailable."
+        )
+
+    top_liq_seed = getattr(col, "top_L0_lbmol", None)
+    if top_liq_seed is None and specs.get("Top Accumulator Holdup (lbmol)") is None:
+        warnings.append(
+            "Top Accumulator Holdup (lbmol) is not specified; fresh startup will fall back to a tiny "
+            "seeded top-boundary liquid inventory."
+        )
+
+    bottom_liq_seed = getattr(col, "bottom_L0_lbmol", None)
+    if bottom_liq_seed is None and specs.get("Bottom Holdup (lbmol)") is None:
+        warnings.append(
+            "Bottom Holdup (lbmol) is not specified; fresh startup will fall back to a tiny "
+            "seeded bottom-boundary liquid inventory."
+        )
+
+    condenser_type = str(specs.get("Condenser Type") or "").strip().lower()
+    if condenser_type == "total":
+        missing_vapor_adders: List[str] = []
+        if _to_float(specs.get("Overhead Vapor Line Volume (ft3)")) is None:
+            missing_vapor_adders.append("Overhead Vapor Line Volume (ft3)")
+        if _to_float(specs.get("Condenser Vapor Volume (ft3)")) is None:
+            missing_vapor_adders.append("Condenser Vapor Volume (ft3)")
+        if missing_vapor_adders:
+            warnings.append(
+                "Total-condenser case is missing top-end vapor-space adders: "
+                + ", ".join(missing_vapor_adders)
+                + ". Top pressure/capacitance behavior may be misrepresented."
+            )
+
+    workbook_hydraulic_intent = (
+        pressure_raw == "hydraulic"
+        or vapor_raw in ("energy", "conductance")
+    )
+    if workbook_hydraulic_intent:
+        if _to_float(specs.get("Stage time constant [tau] (sec)")) is None:
+            warnings.append(
+                "Hydraulic workbook is missing Stage time constant [tau] (sec); hydraulic/vapor-holdup "
+                "relaxation will fall back to runner defaults."
+            )
+        if _to_float(specs.get("Condenser Pressure Drop (psi)")) is None:
+            warnings.append(
+                "Hydraulic workbook is missing Condenser Pressure Drop (psi); top-stage pressure drop will "
+                "fall back to the runner default."
+            )
+        if not str(specs.get("Equilibrium Relaxation Mode") or "").strip():
+            warnings.append(
+                "Hydraulic workbook is missing Equilibrium Relaxation Mode; runner default behavior will be used."
+            )
+        if _to_float(specs.get("Equilibrium Tau (sec)")) is None:
+            warnings.append(
+                "Hydraulic workbook is missing Equilibrium Tau (sec); runner default relaxation timescale will be used."
+            )
+        if _to_float(specs.get("Equilibrium Energy Damping Gain")) is None:
+            warnings.append(
+                "Hydraulic workbook is missing Equilibrium Energy Damping Gain; runner default damping will be used."
+            )
+        if specs.get("Equilibrium Relaxation Live PR") is None:
+            warnings.append(
+                "Hydraulic workbook is missing Equilibrium Relaxation Live PR; runner default live-pressure "
+                "relaxation behavior will be used."
+            )
 
     return ExcelValidationReport(errors=errors, warnings=warnings)
 

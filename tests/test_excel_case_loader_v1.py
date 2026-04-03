@@ -27,7 +27,10 @@ from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
 
 
 def test_load_case_from_excel_smoke():
-    c = load_case_from_excel("distillation_column_template.xlsx")
+    p = Path("distillation_column_template.xlsx")
+    if not p.exists():
+        p = Path("distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx")
+    c = load_case_from_excel(str(p))
     assert len(c.components) == 3
     assert c.component_ids_dwsim == ["Propane", "N-butane", "N-pentane"]
     assert "Number of Stages" in c.specs
@@ -130,6 +133,20 @@ def test_load_case_from_excel_boundary_state_sheet():
         ws_ctrl.append(["top_level_integ", 1.5])
         ws_ctrl.append(["top_pressure_integ", -2.5])
         ws_ctrl.append(["top_pressure_pv_filt_psia", 221.25])
+        ws_ctrl.append(["top_pressure_mv_cmd_btuph", -49640000.0])
+        ws_ctrl.append(["top_pressure_resid_abs_btups", 922.55])
+        ws_ctrl.append(["top_drum_pressure_T_prev_F", 115.75])
+        ws_ctrl.append(["distillate_cmd_lbmolph", 2412.83])
+        ws_ctrl.append(["bottoms_cmd_lbmolph", 4761.97])
+        ws_ctrl.append(["reflux_cmd_lbmolph", 5945.41])
+        ws_ctrl.append(["boilup_cmd_lbmolph", 8014.56])
+        ws_ctrl.append(["distillate_comp_integ", 12.5])
+        ws_ctrl.append(["bottoms_comp_integ", -7.25])
+
+        ws_mem = wb.create_sheet("Dynamic Memory")
+        ws_mem.append(["Stage", "Prev Tray Pressure (psia)", "Prev Tray Temperature (F)"])
+        ws_mem.append([1, 200.0, 100.0])
+        ws_mem.append([2, 210.0, 120.0])
 
         wb.save(p)
 
@@ -143,3 +160,179 @@ def test_load_case_from_excel_boundary_state_sheet():
         assert c.controller_state["top_level_integ"] == 1.5
         assert c.controller_state["top_pressure_integ"] == -2.5
         assert c.controller_state["top_pressure_pv_filt_psia"] == 221.25
+        assert c.controller_state["top_pressure_mv_cmd_btuph"] == -49640000.0
+        assert c.controller_state["top_pressure_resid_abs_btups"] == 922.55
+        assert c.controller_state["top_drum_pressure_T_prev_F"] == 115.75
+        assert c.controller_state["distillate_cmd_lbmolph"] == 2412.83
+        assert c.controller_state["bottoms_cmd_lbmolph"] == 4761.97
+        assert c.controller_state["reflux_cmd_lbmolph"] == 5945.41
+        assert c.controller_state["boilup_cmd_lbmolph"] == 8014.56
+        assert c.controller_state["distillate_comp_integ"] == 12.5
+        assert c.controller_state["bottoms_comp_integ"] == -7.25
+        assert c.memory_state["P_tray_prev_psia"] == [200.0, 210.0]
+        assert c.memory_state["T_tray_prev_F"] == [100.0, 120.0]
+
+
+def test_load_case_from_excel_preserves_control_and_eq_spec_rows():
+    with tempfile.TemporaryDirectory() as td:
+        p = Path(td) / "controls.xlsx"
+        wb = Workbook()
+
+        ws_specs = wb.active
+        ws_specs.title = "Specifications"
+        specs_rows = [
+            ("Number of Stages", 2),
+            ("Number of Components", 2),
+            ("Runtime Mode", "hydraulic"),
+            ("Thermo Mode", "table"),
+            ("Thermo Table", "cache/thermo_table.json"),
+            ("Include Energy", True),
+            ("Condenser Duty Mode", "specified"),
+            ("Simulation Length (min)", 10.0),
+            ("Timestep (sec)", 0.2),
+            ("Log Frequency (timesteps)", 150),
+            ("Stage time constant [tau] (sec)", 4.0),
+            ("Equilibrium Relaxation Mode", "phase-holdup"),
+            ("Equilibrium Tau (sec)", 4.0),
+            ("Equilibrium Energy Damping Gain", 0.2),
+            ("Equilibrium Relaxation Live PR", True),
+            ("Hydraulic Energy Temperature Follow Tau (sec)", 0.5),
+            ("Enable Level Control", True),
+            ("Top Level PV Mode", "true-level"),
+            ("Top Level SP Frac", 0.5),
+            ("Top Level Kc", 0.5),
+            ("Top Level Ti (sec)", 1200.0),
+            ("Bottom Level PV Mode", "true-level"),
+            ("Bottom Level SP (lbmol)", 794.0),
+            ("Bottom Level SP Frac", 0.5),
+            ("Bottom Level Kc", 8.0),
+            ("Bottom Level Ti (sec)", 120.0),
+            ("Enable Pressure Control", True),
+            ("Pressure Control MV", "condenser-duty"),
+            ("Top Pressure SP (psia)", 220.44),
+            ("Top Pressure Kc", -150000.0),
+            ("Top Pressure Ti (sec)", 120.0),
+            ("Enable Distillate Composition Control", True),
+            ("Distillate Composition Component", "C4"),
+            ("Distillate Composition SP", 0.11),
+            ("Distillate Composition Kc", 500.0),
+            ("Distillate Composition Ti (sec)", 600.0),
+            ("Distillate Composition Reflux Min (lbmol/h)", 2000.0),
+            ("Distillate Composition Reflux Max (lbmol/h)", 10000.0),
+        ]
+        for r, (k, v) in enumerate(specs_rows, start=1):
+            ws_specs.cell(r, 1).value = k
+            ws_specs.cell(r, 2).value = v
+
+        ws_ic = wb.create_sheet("Initial Conditions")
+        headers = [
+            "Stage",
+            "Temperature (F)",
+            "Pressure (psia)",
+            "Vapor Flow (lbmol/h)",
+            "Liquid Flow (lbmol/h)",
+            "Liquid Holdup (lbmol)",
+            "Vapor Composition Component 1",
+            "Vapor Composition Component 2",
+            "Liquid Composition Component 1",
+            "Liquid Composition Component 2",
+        ]
+        for c, h in enumerate(headers, start=1):
+            ws_ic.cell(1, c).value = h
+        rows = [
+            (1, 100.0, 200.0, 10.0, 20.0, 5.0, 0.6, 0.4, 0.3, 0.7),
+            (2, 120.0, 210.0, 11.0, 21.0, 6.0, 0.5, 0.5, 0.4, 0.6),
+        ]
+        for r, row in enumerate(rows, start=2):
+            for c, v in enumerate(row, start=1):
+                ws_ic.cell(r, c).value = v
+
+        ws_comp = wb.create_sheet("Components")
+        ws_comp.cell(1, 1).value = "Component Name"
+        ws_comp.cell(2, 1).value = "Propane"
+        ws_comp.cell(3, 1).value = "N-butane"
+
+        wb.save(p)
+
+        c = load_case_from_excel(str(p))
+        assert c.specs["Runtime Mode"] == "hydraulic"
+        assert c.specs["Thermo Mode"] == "table"
+        assert c.specs["Thermo Table"] == "cache/thermo_table.json"
+        assert c.specs["Include Energy"] is True
+        assert c.specs["Condenser Duty Mode"] == "specified"
+        assert c.specs["Equilibrium Relaxation Mode"] == "phase-holdup"
+        assert c.specs["Equilibrium Tau (sec)"] == 4.0
+        assert c.specs["Equilibrium Energy Damping Gain"] == 0.2
+        assert c.specs["Equilibrium Relaxation Live PR"] is True
+        assert c.specs["Hydraulic Energy Temperature Follow Tau (sec)"] == 0.5
+        assert c.specs["Enable Level Control"] is True
+        assert c.specs["Top Level PV Mode"] == "true-level"
+        assert c.specs["Top Level SP Frac"] == 0.5
+        assert c.specs["Top Level Kc"] == 0.5
+        assert c.specs["Top Level Ti (sec)"] == 1200.0
+        assert c.specs["Bottom Level PV Mode"] == "true-level"
+        assert c.specs["Bottom Level SP (lbmol)"] == 794.0
+        assert c.specs["Bottom Level SP Frac"] == 0.5
+        assert c.specs["Bottom Level Kc"] == 8.0
+        assert c.specs["Bottom Level Ti (sec)"] == 120.0
+        assert c.specs["Enable Pressure Control"] is True
+        assert c.specs["Pressure Control MV"] == "condenser-duty"
+        assert c.specs["Top Pressure SP (psia)"] == 220.44
+        assert c.specs["Top Pressure Kc"] == -150000.0
+        assert c.specs["Top Pressure Ti (sec)"] == 120.0
+        assert c.specs["Enable Distillate Composition Control"] is True
+        assert c.specs["Distillate Composition Component"] == "C4"
+        assert c.specs["Distillate Composition SP"] == 0.11
+
+
+def test_load_case_from_excel_accepts_bottom_level_holdup_alias():
+    with tempfile.TemporaryDirectory() as td:
+        p = Path(td) / "bottom_level_holdup_alias.xlsx"
+        wb = Workbook()
+
+        ws_specs = wb.active
+        ws_specs.title = "Specifications"
+        specs_rows = [
+            ("Number of Stages", 2),
+            ("Number of Components", 2),
+            ("Simulation Length (min)", 1.0),
+            ("Timestep (sec)", 1.0),
+            ("Log Frequency (timesteps)", 1),
+            ("Bottom Level Holdup (lbmol)", 794.0),
+        ]
+        for r, (k, v) in enumerate(specs_rows, start=1):
+            ws_specs.cell(r, 1).value = k
+            ws_specs.cell(r, 2).value = v
+
+        ws_ic = wb.create_sheet("Initial Conditions")
+        headers = [
+            "Stage",
+            "Temperature (F)",
+            "Pressure (psia)",
+            "Vapor Flow (lbmol/h)",
+            "Liquid Flow (lbmol/h)",
+            "Liquid Holdup (lbmol)",
+            "Vapor Composition Component 1",
+            "Vapor Composition Component 2",
+            "Liquid Composition Component 1",
+            "Liquid Composition Component 2",
+        ]
+        for c, h in enumerate(headers, start=1):
+            ws_ic.cell(1, c).value = h
+        rows = [
+            (1, 100.0, 200.0, 10.0, 20.0, 5.0, 0.6, 0.4, 0.3, 0.7),
+            (2, 120.0, 210.0, 11.0, 21.0, 6.0, 0.5, 0.5, 0.4, 0.6),
+        ]
+        for r, row in enumerate(rows, start=2):
+            for c, v in enumerate(row, start=1):
+                ws_ic.cell(r, c).value = v
+
+        ws_comp = wb.create_sheet("Components")
+        ws_comp.cell(1, 1).value = "Component Name"
+        ws_comp.cell(2, 1).value = "Propane"
+        ws_comp.cell(3, 1).value = "N-butane"
+
+        wb.save(p)
+
+        c = load_case_from_excel(str(p))
+        assert c.specs["Bottom Holdup (lbmol)"] == 794.0

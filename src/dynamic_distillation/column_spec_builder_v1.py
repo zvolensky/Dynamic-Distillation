@@ -138,6 +138,7 @@ class ColumnSpec:
     tray_EL0_BTU: Optional[np.ndarray] = None
     tray_EV0_BTU: Optional[np.ndarray] = None
     controller_state: Optional[Dict[str, float]] = None
+    memory_state: Optional[Dict[str, np.ndarray]] = None
 
     # Optional expanded geometry (used for vapor volume diagnostics)
     geometry: Optional[ColumnGeometry] = None
@@ -434,6 +435,17 @@ def build_column_spec_from_case(case: Any) -> ColumnSpec:
         if np.isfinite(fv):
             controller_state[str(key)] = fv
 
+    memory_state_raw = getattr(case, "memory_state", {}) or {}
+    memory_state: Dict[str, np.ndarray] = {}
+    for key, vals in memory_state_raw.items():
+        try:
+            arr = np.asarray(vals, dtype=float).reshape((-1,))
+        except Exception:
+            continue
+        if arr.size != n_stages or np.any(~np.isfinite(arr)):
+            raise ColumnSpecError(f"Dynamic Memory '{key}' must have {n_stages} finite values.")
+        memory_state[str(key)] = arr.copy()
+
     streams_in = getattr(case, "streams", {}) or {}
     streams_norm = _normalize_streams(streams_in)
 
@@ -462,6 +474,7 @@ def build_column_spec_from_case(case: Any) -> ColumnSpec:
         tray_EL0_BTU=tray_EL0,
         tray_EV0_BTU=tray_EV0,
         controller_state=(controller_state or None),
+        memory_state=(memory_state or None),
         streams=streams_norm,
         geometry=geometry,
         tau_eq_sec=float(tau),

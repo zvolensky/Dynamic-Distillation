@@ -73,19 +73,28 @@ class ThermoProviderV1:
         component_ids_dwsim: Sequence[str],
         cp_dt_F: float = 1.0,
         silence_backend_console: bool = True,
+        property_package: str = "pr",
     ):
         self.component_names_excel = [str(s) for s in component_names_excel]
         self.component_ids_dwsim = [str(s) for s in component_ids_dwsim]
         self.cp_dt_F = float(cp_dt_F)
         self.silence_backend_console = bool(silence_backend_console)
+        self.property_package = str(property_package or "pr")
         self._rhoL_cache: dict[tuple, float] = {}
         self._rhoL_cache_max = 2000
         self._cp_cache: dict[tuple, tuple[Optional[float], Optional[float]]] = {}
         self._cp_cache_max = 2000
         self._mw_components_cache: Optional[np.ndarray] = None
+        self.debug_trace_hook = None
+        self.debug_trace_context = ""
 
     def configure_backend(self) -> None:
         backend.set_component_ids(self.component_ids_dwsim)
+        backend.set_property_package(self.property_package)
+        if hasattr(backend, "set_debug_trace_hook"):
+            backend.set_debug_trace_hook(self.debug_trace_hook)
+        if hasattr(backend, "set_debug_trace_context"):
+            backend.set_debug_trace_context(self.debug_trace_context)
 
         # Backward-compatible name setter (tests use set_component_names)
         if hasattr(backend, "set_component_names_excel"):
@@ -95,6 +104,11 @@ class ThermoProviderV1:
         else:
             # Not fatal for many backends; leave it as a no-op.
             pass
+
+    def set_debug_trace_context(self, context: Optional[str]) -> None:
+        self.debug_trace_context = str(context or "")
+        if hasattr(backend, "set_debug_trace_context"):
+            backend.set_debug_trace_context(self.debug_trace_context)
 
 
     @staticmethod
@@ -107,8 +121,19 @@ class ThermoProviderV1:
             raise ValueError("z sum must be > 0")
         return z / s
 
-    def flash_TP_full(self, T_F: float, P_psia: float, z: Sequence[float]) -> FlashResult:
-        """Full TP flash: x,y,K plus liquid/vapor molar enthalpies."""
+    def _flash_backend_only(
+        self,
+        T_F: float,
+        P_psia: float,
+        z: Sequence[float],
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float, float, Optional[float]]:
+        """
+        Raw backend TP flash without Cp evaluation.
+
+        This is the lightweight path used by stage_thermo_v1 and other tight
+        tray-loop callers that only need flash outputs. Cp remains available
+        through explicit cp_liq_vap_btu_per_lbmolF() calls.
+        """
         self.configure_backend()
         Nc = len(self.component_ids_dwsim)
         z_norm = self._normalize_z(z, Nc)
@@ -127,6 +152,41 @@ class ThermoProviderV1:
         else:
             raise RuntimeError("backend.flash_TP_full_F_psia must return a tuple/list")
 
+        return (
+            np.asarray(x, dtype=float),
+            np.asarray(y, dtype=float),
+            np.asarray(K, dtype=float),
+            float(HL),
+            float(HV),
+            (float(Zfac) if Zfac is not None else None),
+        )
+
+    def flash_TP_full_F_psia(self, T_F: float, P_psia: float, z: Sequence[float]):
+        """
+        Lightweight TP flash tuple for adapter callers that do not need Cp.
+        """
+        return self._flash_backend_only(float(T_F), float(P_psia), z)
+
+    def flash_TP_full_stage_F_psia(
+        self,
+        stage_index0: int,
+        T_F: float,
+        P_psia: float,
+        z: Sequence[float],
+    ):
+        """
+        Stage-aware alias for compatibility with stage_thermo_v1.
+
+        The DWSIM backend is currently stage-agnostic, so stage_index0 is
+        accepted for interface compatibility but not used in the flash itself.
+        """
+        _ = int(stage_index0)
+        return self._flash_backend_only(float(T_F), float(P_psia), z)
+
+    def flash_TP_full(self, T_F: float, P_psia: float, z: Sequence[float]) -> FlashResult:
+        """Full TP flash: x,y,K plus liquid/vapor molar enthalpies."""
+        x, y, K, HL, HV, Zfac = self._flash_backend_only(float(T_F), float(P_psia), z)
+        z_norm = self._normalize_z(z, len(self.component_ids_dwsim))
         cpL, cpV = self._cp_from_backend(float(T_F), float(P_psia), z_norm)
 
         return FlashResult(

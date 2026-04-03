@@ -173,3 +173,22 @@ def test_tabular_provider_can_blend_more_than_two_anchors(tmp_path):
 
     # The midpoint anchor should pull the blend away from the original 2-anchor midpoint.
     assert res.HL_BTU_lbmol > 3050.0
+
+
+def test_tabular_provider_can_overlay_upper_section_flash_provider(tmp_path):
+    p = tmp_path / "table.json"
+    with p.open("w", encoding="utf-8") as f:
+        json.dump(_build_table_doc(), f, indent=2, ensure_ascii=True)
+
+    base = TabularThermoProviderV1.from_json(str(p), n_anchor_blend=1)
+    upper = TabularThermoProviderV1.from_json(str(p), n_anchor_blend=1)
+    base.attach_upper_section_flash_provider(upper, max_stage_index0=4)
+
+    assert base.upper_section_flash_provider is upper
+    assert base.upper_section_max_stage_index0 == 4
+
+    res_top = base.flash_TP_full_stage_F_psia(0, 150.0, 150.0, [0.85, 0.15])
+    res_bot = base.flash_TP_full_stage_F_psia(10, 150.0, 150.0, [0.85, 0.15])
+
+    assert np.allclose(res_top.K, res_bot.K)
+    assert abs(res_top.HL_BTU_lbmol - 2800.0) < 1e-12

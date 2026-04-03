@@ -24,14 +24,17 @@ KEY DEPENDENCIES
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
 import pytest
 from openpyxl import Workbook, load_workbook
 
+import dynamic_distillation.dynamic_run_scaffold_v1 as runmod
 from dynamic_distillation.dynamic_run_scaffold_v1 import (
     PIController,
+    _advance_explicit_euler_step,
     _autocalibrate_francis_hydraulic_c_factors_from_seed,
     _max_abs_temperature_fd_rate_per_s,
     _max_rel_inventory_fd_rate_detail_per_s,
@@ -49,6 +52,7 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _component_index_by_name,
     _clip_temperature_states_to_provider_bounds,
     _initialize_hydraulic_energy_consistent_state,
+    _initialize_restart_reentry_settling,
     _initialize_thermo_consistent_state,
     _initialize_vapor_holdup_from_spec_pressure,
     _initialize_top_drum_dynamic_steady,
@@ -56,7 +60,9 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _pi_update,
     _pressure_resid_gain_scale,
     _update_tray_temp_pressure_slope_F_per_psi,
+    _resolve_parity_runtime_thermo_defer_visible_steps,
     _resolve_startup_hydraulic_sequence_step,
+    _resolve_startup_execution_flags,
     _sync_algebraic_tray_temperature_state,
     build_inputs_for_runner,
     run_smoke_simulation,
@@ -164,6 +170,15 @@ def test_write_restart_workbook_from_run_result_writes_boundary_state_sheet(tmp_
                 "top_level_integ": 1.5,
                 "top_pressure_integ": -2.5,
                 "top_pressure_pv_filt_psia": 221.25,
+                "top_pressure_mv_cmd_btuph": -49640000.0,
+                "top_pressure_resid_abs_btups": 922.55,
+                "top_drum_pressure_T_prev_F": 115.75,
+                "distillate_cmd_lbmolph": 2412.83,
+                "bottoms_cmd_lbmolph": 4761.97,
+                "reflux_cmd_lbmolph": 5945.41,
+                "boilup_cmd_lbmolph": 8014.56,
+                "distillate_comp_integ": 12.5,
+                "bottoms_comp_integ": -7.25,
             },
             "last_diag": {
                 "x_tray": col.x0,
@@ -179,6 +194,7 @@ def test_write_restart_workbook_from_run_result_writes_boundary_state_sheet(tmp_
     wb2 = load_workbook(out_path, data_only=True)
     assert "Boundary State" in wb2.sheetnames
     assert "Energy State" in wb2.sheetnames
+    assert "Dynamic Memory" in wb2.sheetnames
     assert "Controller State" in wb2.sheetnames
     wsb = wb2["Boundary State"]
     assert wsb.cell(2, 1).value == "top_L"
@@ -196,6 +212,13 @@ def test_write_restart_workbook_from_run_result_writes_boundary_state_sheet(tmp_
     assert wse.cell(3, 1).value == 2
     assert wse.cell(3, 2).value == pytest.approx(102.0)
     assert wse.cell(3, 3).value == pytest.approx(202.0)
+    wsm = wb2["Dynamic Memory"]
+    assert wsm.cell(2, 1).value == 1
+    assert wsm.cell(2, 2).value == pytest.approx(200.0)
+    assert wsm.cell(2, 3).value == pytest.approx(111.0)
+    assert wsm.cell(3, 1).value == 2
+    assert wsm.cell(3, 2).value == pytest.approx(210.0)
+    assert wsm.cell(3, 3).value == pytest.approx(222.0)
     wsc = wb2["Controller State"]
     ctrl_map = {
         wsc.cell(r, 1).value: wsc.cell(r, 2).value
@@ -205,6 +228,164 @@ def test_write_restart_workbook_from_run_result_writes_boundary_state_sheet(tmp_
     assert ctrl_map["top_level_integ"] == pytest.approx(1.5)
     assert ctrl_map["top_pressure_integ"] == pytest.approx(-2.5)
     assert ctrl_map["top_pressure_pv_filt_psia"] == pytest.approx(221.25)
+    assert ctrl_map["top_pressure_mv_cmd_btuph"] == pytest.approx(-49640000.0)
+    assert ctrl_map["top_pressure_resid_abs_btups"] == pytest.approx(922.55)
+    assert ctrl_map["top_drum_pressure_T_prev_F"] == pytest.approx(115.75)
+    assert ctrl_map["distillate_cmd_lbmolph"] == pytest.approx(2412.83)
+    assert ctrl_map["bottoms_cmd_lbmolph"] == pytest.approx(4761.97)
+    assert ctrl_map["reflux_cmd_lbmolph"] == pytest.approx(5945.41)
+    assert ctrl_map["boilup_cmd_lbmolph"] == pytest.approx(8014.56)
+    assert ctrl_map["distillate_comp_integ"] == pytest.approx(12.5)
+    assert ctrl_map["bottoms_comp_integ"] == pytest.approx(-7.25)
+
+
+def test_fast_startup_uses_balanced_startup_passes():
+    cfg = RunnerConfig(
+        excel_path="dummy.xlsx",
+        fast_startup=True,
+        enable_startup_thermo_conditioning=True,
+        enable_startup_hydraulic_energy_consistency=True,
+    )
+
+    flags = _resolve_startup_execution_flags(cfg)
+
+    assert flags["fast_startup"] is True
+    assert flags["enable_startup_thermo_conditioning"] is True
+    assert flags["startup_thermo_conditioning_iters"] == 1
+    assert flags["startup_thermo_conditioning_relaxation"] == pytest.approx(1.0)
+    assert flags["enable_startup_hydraulic_energy_consistency"] is False
+    assert flags["enable_top_drum_startup_steadying"] is True
+    assert flags["top_drum_steady_max_iter"] == 2
+    assert flags["top_drum_steady_tol_lbmolps"] == pytest.approx(1.0e-4)
+    assert flags["top_drum_steady_wall_limit_sec"] == pytest.approx(30.0)
+
+
+def test_default_startup_execution_flags_preserve_existing_behavior():
+    cfg = RunnerConfig(
+        excel_path="dummy.xlsx",
+        fast_startup=False,
+        enable_startup_thermo_conditioning=True,
+        enable_startup_hydraulic_energy_consistency=False,
+    )
+
+    flags = _resolve_startup_execution_flags(cfg)
+
+    assert flags["fast_startup"] is False
+    assert flags["enable_startup_thermo_conditioning"] is True
+    assert flags["startup_thermo_conditioning_iters"] == 2
+    assert flags["startup_thermo_conditioning_relaxation"] == pytest.approx(1.0)
+    assert flags["enable_startup_hydraulic_energy_consistency"] is False
+    assert flags["enable_top_drum_startup_steadying"] is True
+    assert flags["top_drum_steady_max_iter"] == 6
+    assert flags["top_drum_steady_tol_lbmolps"] == pytest.approx(1.0e-6)
+    assert flags["top_drum_steady_wall_limit_sec"] is None
+    assert flags["enable_restart_reentry_settling"] is True
+    assert flags["restart_reentry_thermo_conditioning_iters"] == 1
+    assert flags["restart_reentry_top_drum_max_iter"] == 2
+    assert flags["restart_reentry_top_drum_wall_limit_sec"] == pytest.approx(10.0)
+
+
+def test_parity_startup_execution_flags_skip_top_drum_steadying():
+    cfg = RunnerConfig(
+        excel_path="dummy.xlsx",
+        runtime_mode="parity",
+        fast_startup=True,
+        enable_startup_thermo_conditioning=True,
+    )
+
+    flags = _resolve_startup_execution_flags(cfg)
+
+    assert flags["enable_startup_thermo_conditioning"] is False
+    assert flags["enable_top_drum_startup_steadying"] is False
+
+
+def test_parity_startup_execution_flags_skip_thermo_conditioning():
+    cfg = RunnerConfig(
+        excel_path="dummy.xlsx",
+        runtime_mode="parity",
+        fast_startup=True,
+        enable_startup_thermo_conditioning=True,
+    )
+
+    flags = _resolve_startup_execution_flags(cfg)
+
+    assert flags["enable_startup_thermo_conditioning"] is False
+    assert flags["enable_top_drum_startup_steadying"] is False
+
+
+def test_resolve_parity_runtime_thermo_defer_visible_steps_uses_log_boundary():
+    parity_cfg = RunnerConfig(excel_path="dummy.xlsx", runtime_mode="parity")
+    legacy_cfg = RunnerConfig(excel_path="dummy.xlsx", runtime_mode="legacy")
+
+    assert _resolve_parity_runtime_thermo_defer_visible_steps(parity_cfg, log_every_n_steps=5) == 5
+    assert _resolve_parity_runtime_thermo_defer_visible_steps(parity_cfg, log_every_n_steps=1) == 1
+    assert _resolve_parity_runtime_thermo_defer_visible_steps(legacy_cfg, log_every_n_steps=5) == 0
+
+
+def test_initialize_restart_reentry_settling_runs_bounded_hidden_pass(monkeypatch: pytest.MonkeyPatch):
+    calls: dict[str, object] = {"thermo_calls": []}
+
+    def _fake_thermo(*, col, layout, y, inputs, include_temperature, max_iter, relaxation):
+        thermo_calls = calls.setdefault("thermo_calls", [])
+        assert isinstance(thermo_calls, list)
+        thermo_calls.append((include_temperature, max_iter, relaxation))
+        info = {
+            "attempted": True,
+            "success": True,
+            "n_iter": int(max_iter),
+            "max_dx": 0.0,
+            "max_dy": 0.0,
+            "eq_phase_change_init_lbmolps": 1.0,
+            "eq_phase_change_final_lbmolps": 0.5,
+        }
+        return np.asarray(y, dtype=float) + 1.0, info
+
+    def _fake_top_drum(*, col, layout, y, inputs, max_iter, tol_lbmolps, wall_limit_sec):
+        calls["top_drum"] = (max_iter, tol_lbmolps, wall_limit_sec)
+        info = {
+            "attempted": True,
+            "success": True,
+            "n_iter": int(max_iter),
+            "pressure_coupled": True,
+            "hit_wall_limit": False,
+            "d_top_L_init_lbmolps": 1.0,
+            "d_top_V_init_lbmolps": 1.0,
+            "d_top_L_final_lbmolps": 0.0,
+            "d_top_V_final_lbmolps": 0.0,
+        }
+        return np.asarray(y, dtype=float) + 2.0, info
+
+    monkeypatch.setattr(runmod, "_initialize_thermo_consistent_state", _fake_thermo)
+    monkeypatch.setattr(runmod, "_initialize_top_drum_dynamic_steady", _fake_top_drum)
+
+    y0 = np.array([1.0, 2.0], dtype=float)
+    y_out, info = _initialize_restart_reentry_settling(
+        col=object(),
+        layout=object(),
+        y=y0,
+        inputs=object(),
+        include_temperature=True,
+        thermo_max_iter=1,
+        thermo_relaxation=0.75,
+        top_drum_max_iter=2,
+        top_drum_tol_lbmolps=1.0e-4,
+        top_drum_wall_limit_sec=12.0,
+    )
+
+    assert np.allclose(y_out, y0 + 3.0)
+    thermo_calls = calls["thermo_calls"]
+    assert isinstance(thermo_calls, list)
+    assert len(thermo_calls) == 1
+    assert thermo_calls[0][0] is True
+    assert thermo_calls[0][1] == 1
+    assert thermo_calls[0][2] == pytest.approx(0.75)
+    assert calls["top_drum"][0] == 2
+    assert calls["top_drum"][1] == pytest.approx(1.0e-4)
+    assert calls["top_drum"][2] == pytest.approx(12.0)
+    assert info["attempted"] is True
+    assert info["success"] is True
+    assert info["thermo"]["n_iter"] == 1
+    assert info["top_drum"]["n_iter"] == 2
 
 
 def test_inventory_rate_detail_reports_tray_stage_and_component():
@@ -416,6 +597,63 @@ def test_smoke_runner_builds_and_rhs_runs(tmp_path: Path):
     assert "y_eq_tray" in diag
 
 
+def test_smoke_runner_writes_startup_trace(tmp_path: Path):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=0,
+        dt_sec=0.1,
+        log_every_n_steps=1,
+        include_temperature=True,
+        include_energy=False,
+        enable_equilibrium_relaxation=True,
+        thermo_mode="stub",
+        logs_dir=str(tmp_path),
+        write_logs=False,
+        run_name="startup_trace_smoke",
+    )
+
+    out = run_smoke_simulation(cfg)
+
+    trace_path = Path(str(out["startup_trace_log"]))
+    assert trace_path.exists()
+    text = trace_path.read_text(encoding="utf-8")
+    assert "[Milestone] start" in text
+    assert "[Init] Building runner inputs and thermo provider" in text
+
+
+def test_smoke_runner_writes_runtime_trace_markers(tmp_path: Path):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=1,
+        dt_sec=0.1,
+        log_every_n_steps=1,
+        include_temperature=True,
+        include_energy=False,
+        enable_equilibrium_relaxation=True,
+        thermo_mode="stub",
+        logs_dir=str(tmp_path),
+        write_logs=False,
+        run_name="runtime_trace_smoke",
+    )
+
+    out = run_smoke_simulation(cfg)
+
+    trace_path = Path(str(out["startup_trace_log"]))
+    assert trace_path.exists()
+    text = trace_path.read_text(encoding="utf-8")
+    assert "[RuntimeTrace] step=0 setup" in text
+    assert "[RuntimeTrace] step=0 integrate start" in text
+    assert "[Progress] step=" in text
+
+
 def test_runner_initializes_vapor_holdup_to_match_spec_pressure(tmp_path: Path):
     """At t=0, MV should be initialized so PV diagnostic pressure ~ P_spec.
 
@@ -577,6 +815,38 @@ def test_level_control_writes_dynamic_draws_to_summary_log(tmp_path: Path):
     assert float(r1["B_lbmolph"]) > 4761.98
 
 
+def test_runner_writes_run_metadata_json(tmp_path: Path):
+    excel = Path("distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx")
+    if not excel.exists():
+        return
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=0,
+        dt_sec=0.2,
+        log_every_n_steps=1,
+        include_temperature=True,
+        include_energy=False,
+        thermo_mode="stub",
+        logs_dir=str(tmp_path),
+        write_logs=True,
+        run_name="UI metadata smoke",
+        run_description="Ensure run metadata artifact is created.",
+    )
+
+    out = run_smoke_simulation(cfg)
+    metadata_path = Path(str(out["run_metadata_json"]))
+    assert metadata_path.exists()
+    doc = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert doc["run_name"] == "UI metadata smoke"
+    assert doc["run_description"] == "Ensure run metadata artifact is created."
+    assert doc["run_id"] == out["run_id"]
+    assert doc["status"] == "completed"
+    assert str(doc.get("restart_workbook", "")).endswith(".xlsx")
+    assert Path(str(doc["restart_workbook"])).exists()
+    assert Path(str(out["restart_workbook"])).exists()
+
+
 def test_bottom_true_level_control_logs_fractional_pv_and_sp(tmp_path: Path):
     excel = Path("distillation_column_template.xlsx")
     if not excel.exists():
@@ -619,6 +889,62 @@ def test_bottom_true_level_control_logs_fractional_pv_and_sp(tmp_path: Path):
     assert np.isfinite(pv)
     assert sp == pytest.approx(0.5)
     assert 0.0 <= pv <= 1.0
+
+
+def test_top_true_level_control_preserves_fractional_pv_when_runtime_estimate_fails(tmp_path: Path, monkeypatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    call_counter = {"n": 0}
+
+    def _fake_top_level_estimator(*args, **kwargs):
+        call_counter["n"] += 1
+        # First two calls cover controller setup + initial valid cached PV.
+        if call_counter["n"] <= 2:
+            return 2000.0, 0.65, 0.52
+        # Later runtime estimate fails; controller should keep last valid true-level PV.
+        return None, None, None
+
+    monkeypatch.setattr(scaffold, "_estimate_top_drum_liquid_volume_ft3", _fake_top_level_estimator)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=1,
+        dt_sec=0.1,
+        log_every_n_steps=1,
+        include_temperature=True,
+        include_energy=False,
+        enable_equilibrium_relaxation=True,
+        thermo_mode="stub",
+        logs_dir=str(tmp_path),
+        write_logs=True,
+        enable_level_control=True,
+        top_level_pv_mode="true-level",
+        top_level_sp_frac=0.5,
+        top_drum_total_volume_ft3=4000.0,
+        bottom_level_sp_lbmol=794.0,
+    )
+
+    out = run_smoke_simulation(cfg)
+    summary_csv = Path(str(out["summary_csv"]))
+    assert summary_csv.exists()
+
+    import csv
+
+    with summary_csv.open("r", encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    assert len(rows) >= 2, "expected startup and first runtime rows"
+
+    pv0 = float(rows[0]["Top_level_ctrl_pv"])
+    pv1 = float(rows[1]["Top_level_ctrl_pv"])
+    assert np.isfinite(pv0)
+    assert np.isfinite(pv1)
+    assert 0.0 <= pv0 <= 1.0
+    assert 0.0 <= pv1 <= 1.0
+    assert pv1 == pytest.approx(0.52)
 
 
 def test_summary_row_prefers_logged_pressure_controller_pv():
@@ -801,6 +1127,71 @@ def test_summary_row_includes_integrator_diagnostics():
     assert float(row["integrator_nfev"]) == pytest.approx(9.0)
     assert float(row["ida_iter_max"]) == pytest.approx(3.0)
     assert float(row["ida_alg_weighted"]) == pytest.approx(0.6)
+
+
+def test_summary_row_includes_reboiler_duty_diagnostics():
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    class TinyCol:
+        n_stages = 2
+        n_components = 2
+        components_excel = ["C3", "C4"]
+        T_f = np.array([120.0, 130.0], dtype=float)
+        P_psia = np.array([220.0, 230.0], dtype=float)
+        M_L_lbmol = np.array([5.0, 6.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.0], dtype=float)
+        x0 = np.array([[0.80, 0.20], [0.30, 0.70]], dtype=float)
+        y0 = np.array([[0.75, 0.25], [0.25, 0.75]], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=col.n_stages,
+        n_components=col.n_components,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y = layout.pack_y0(col)
+    diag = {
+        "x_tray": np.asarray(col.x0, dtype=float).copy(),
+        "y_tray": np.asarray(col.y0, dtype=float).copy(),
+        "P_psia_diag": np.array([222.0, 231.0], dtype=float),
+        "boilup_from_duty_lbmolph": np.array([8123.4], dtype=float),
+        "boilup_realized_lbmolph": np.array([8044.4], dtype=float),
+        "reboiler_latent_heat_BTU_per_lbmol": np.array([7100.0], dtype=float),
+        "reboiler_temperature_F": np.array([221.5], dtype=float),
+        "reboiler_mode_duty_active": np.array([1.0], dtype=float),
+        "reboiler_neighbor_stage_1based": np.array([1.0], dtype=float),
+        "reboiler_neighbor_vflow_calc_lbmolph": np.array([7900.0], dtype=float),
+        "reboiler_neighbor_vflow_used_lbmolph": np.array([7800.0], dtype=float),
+        "reboiler_neighbor_vflow_limit_hi_lbmolph": np.array([8050.0], dtype=float),
+        "reboiler_neighbor_vflow_limit_lo_lbmolph": np.array([7950.0], dtype=float),
+        "reboiler_neighbor_vflow_clamped_flag": np.array([1.0], dtype=float),
+    }
+
+    row = scaffold._summary_row(
+        t_s=0.0,
+        case=None,
+        col=col,
+        layout=layout,
+        y=y,
+        diag=diag,
+        include_temperature=False,
+        volume_model=scaffold.VolumeModel(default_vapor_volume_ft3=10.0),
+        wall_clock_iso="2026-03-31T00:00:00",
+        wall_elapsed_s=0.0,
+        feed_tag=scaffold.StreamTag(name="Feed", flow_lbmolph=1000.0, stage_1based=2),
+        dist_tag=scaffold.StreamTag(name="Distillate", flow_lbmolph=200.0, stage_1based=1),
+        bots_tag=scaffold.StreamTag(name="Bottoms", flow_lbmolph=800.0, stage_1based=2),
+    )
+
+    assert float(row["boilup_from_duty_lbmolph"]) == pytest.approx(8123.4)
+    assert float(row["boilup_realized_lbmolph"]) == pytest.approx(8044.4)
+    assert float(row["reboiler_latent_heat_BTU_per_lbmol"]) == pytest.approx(7100.0)
+    assert float(row["reboiler_neighbor_vflow_used_lbmolph"]) == pytest.approx(7800.0)
+    assert float(row["reboiler_neighbor_vflow_clamped_flag"]) == pytest.approx(1.0)
 
 
 def test_summary_row_includes_steady_state_diagnostics():
@@ -1166,6 +1557,34 @@ def test_integrate_one_step_explicit_linear_decay():
     assert y1[0] == pytest.approx(1.8)
     assert str(info["used_mode"]) == "explicit-euler"
     assert bool(info["fallback_used"]) is False
+
+
+def test_advance_explicit_euler_step_reuses_precomputed_rhs():
+    layout = StateVectorLayout(
+        n_stages=1,
+        n_components=1,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=False,
+        include_temperature=False,
+    )
+    y0 = np.array([2.0], dtype=float)
+    dydt = np.array([-2.0], dtype=float)
+
+    y1, info = _advance_explicit_euler_step(
+        y=y0,
+        dydt=dydt,
+        dt_sec=0.1,
+        layout=layout,
+        thermo_provider=None,
+        requested_mode="explicit-euler",
+    )
+    assert y1.shape == (1,)
+    assert y1[0] == pytest.approx(1.8)
+    assert str(info["used_mode"]) == "explicit-euler"
+    assert bool(info["fallback_used"]) is False
+    assert bool(info["used_precomputed_rhs"]) is True
+    assert float(info["nfev"]) == pytest.approx(0.0)
 
 
 def test_integrate_one_step_bdf_falls_back_without_scipy(monkeypatch):
@@ -2353,6 +2772,94 @@ def test_build_inputs_can_enable_selective_live_pr_from_specs(monkeypatch):
     assert inputs.equilibrium_relaxation_thermo_provider is not None
 
 
+def test_build_inputs_can_select_dwsim_property_package(monkeypatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+    import dynamic_distillation.thermo_provider_v1 as thermo_provider_v1
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    calls = []
+
+    class _FakeThermoProvider:
+        def __init__(self, *args, **kwargs):
+            calls.append(kwargs)
+
+    monkeypatch.setattr(thermo_provider_v1, "ThermoProviderV1", _FakeThermoProvider)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="dwsim",
+        dwsim_property_package="unifac",
+    )
+    _inputs, _prov = build_inputs_for_runner(case, col, cfg)
+    assert calls
+    assert calls[0]["property_package"] == "unifac"
+
+
+def test_run_smoke_explicit_euler_skips_integrator_rhs_recompute(monkeypatch, tmp_path: Path):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    def _forbid_integrate_one_step(**kwargs):
+        raise AssertionError("_integrate_one_step should not be called for explicit-euler runtime steps")
+
+    monkeypatch.setattr(runmod, "_integrate_one_step", _forbid_integrate_one_step)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=1,
+        dt_sec=0.2,
+        log_every_n_steps=1,
+        runtime_mode="parity",
+        include_temperature=False,
+        include_energy=False,
+        thermo_mode="stub",
+        write_logs=False,
+        integrator="explicit-euler",
+        logs_dir=str(tmp_path),
+    )
+
+    out = run_smoke_simulation(cfg)
+    assert float(out.get("final_time_s", 0.0)) == pytest.approx(0.2)
+
+
+def test_build_inputs_dwsim_unifac_mode_alias_sets_unifac_package(monkeypatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+    import dynamic_distillation.thermo_provider_v1 as thermo_provider_v1
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    calls = []
+
+    class _FakeThermoProvider:
+        def __init__(self, *args, **kwargs):
+            calls.append(kwargs)
+
+    monkeypatch.setattr(thermo_provider_v1, "ThermoProviderV1", _FakeThermoProvider)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="dwsim-unifac",
+        dwsim_property_package="pr",
+    )
+    _inputs, _prov = build_inputs_for_runner(case, col, cfg)
+    assert calls
+    assert calls[0]["property_package"] == "unifac"
+
+
 def test_build_inputs_reads_and_overrides_top_psv_settings():
     excel = Path("distillation_column_template.xlsx")
     if not excel.exists():
@@ -2419,6 +2926,42 @@ def test_build_inputs_computes_top_drum_vapor_volume_from_geometry():
 
     total_vol = float(np.pi * 0.25 * 10.0 * 10.0 * 40.0)
     expected_vapor = total_vol * (1.0 - 0.60)
+    assert inputs.top_drum_total_volume_ft3 is not None
+    assert abs(float(inputs.top_drum_total_volume_ft3) - total_vol) < 1e-9
+    assert inputs.top_drum_vapor_volume_ft3 is not None
+    assert abs(float(inputs.top_drum_vapor_volume_ft3) - expected_vapor) < 1e-9
+
+
+def test_build_inputs_prefers_explicit_top_holdup_over_liquid_fraction_for_startup():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    specs = dict(getattr(col, "specs_raw", {}) or {})
+    specs["Top Drum Vapor Volume (ft3)"] = None
+    specs["Top Drum Total Volume (ft3)"] = None
+    specs["Top Drum Diameter (ft)"] = 10.0
+    specs["Top Drum Length (ft)"] = 40.0
+    specs["Top Drum Liquid Fraction (-)"] = 0.60
+    specs["Top Accumulator Holdup (lbmol)"] = 397.0
+    specs["Overhead Vapor Line Volume (ft3)"] = None
+    specs["Condenser Vapor Volume (ft3)"] = None
+    object.__setattr__(col, "specs_raw", specs)
+
+    cfg = RunnerConfig(excel_path=str(excel), thermo_mode="stub")
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+
+    total_vol = float(np.pi * 0.25 * 10.0 * 10.0 * 40.0)
+    rho_top = float(col.rhoL_lbmol_ft3[0])
+    expected_liq_vol = float(specs["Top Accumulator Holdup (lbmol)"]) / rho_top
+    expected_vapor = total_vol - expected_liq_vol
+
     assert inputs.top_drum_total_volume_ft3 is not None
     assert abs(float(inputs.top_drum_total_volume_ft3) - total_vol) < 1e-9
     assert inputs.top_drum_vapor_volume_ft3 is not None
@@ -2651,6 +3194,31 @@ def test_runtime_mode_calibration_forces_parity_closures():
     assert bool(inputs.enable_liquid_hydraulic_override) is False
     assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.0)
     assert str(inputs.equilibrium_relaxation_mode).strip().lower() == "phase-holdup"
+
+
+def test_runtime_mode_parity_disables_legacy_temperature_state():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="parity",
+        include_temperature=True,
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+
+    assert bool(inputs.enable_legacy_temperature_state) is False
+    assert bool(inputs.enable_live_total_condenser_duty) is False
+    assert bool(inputs.reboiler_equilibrium) is False
+    assert str(inputs.reboiler_mode).strip().lower() == "specified"
 
 
 def test_normalize_runtime_mode_accepts_calibration():
@@ -3096,3 +3664,116 @@ def test_bottoms_composition_control_logs_command(tmp_path: Path):
     assert "Boilup_cmd_lbmolph" in r0
     assert np.isfinite(float(r0["xB_comp_sp"]))
     assert np.isfinite(float(r0["Boilup_cmd_lbmolph"]))
+
+
+def test_run_writes_initial_log_snapshot_before_first_runtime_step(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("forced step failure")
+
+    monkeypatch.setattr(runmod, "_integrate_one_step", _boom)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=1,
+        dt_sec=0.2,
+        log_every_n_steps=5,
+        include_temperature=True,
+        include_energy=False,
+        enable_equilibrium_relaxation=True,
+        thermo_mode="stub",
+        logs_dir=str(tmp_path),
+        write_logs=True,
+    )
+
+    with pytest.raises(RuntimeError, match="forced step failure"):
+        run_smoke_simulation(cfg)
+
+    summary_files = list(tmp_path.glob("column_summary_*.csv"))
+    profile_files = list(tmp_path.glob("column_profile_*.csv"))
+    assert summary_files, "summary CSV was not created"
+    assert profile_files, "profile CSV was not created"
+
+    import csv
+
+    with summary_files[0].open("r", encoding="utf-8", newline="") as f:
+        summary_rows = list(csv.DictReader(f))
+    with profile_files[0].open("r", encoding="utf-8", newline="") as f:
+        profile_rows = list(csv.DictReader(f))
+
+    assert summary_rows, "summary CSV did not include the initial snapshot row"
+    assert profile_rows, "profile CSV did not include the initial snapshot rows"
+
+
+def test_parity_defers_live_thermo_on_first_visible_runtime_step(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    real_column_rhs = runmod.column_rhs
+    captured: dict[str, object] = {}
+
+    def _spy_column_rhs(t_s, y_vec, col, layout, inputs=None):
+        label = str(getattr(inputs, "thermo_stage_trace_label", "") or "").strip()
+        if label == "runtime_step_0:outer_rhs":
+            captured["thermo_provider_is_none"] = getattr(inputs, "thermo_provider", None) is None
+            captured["equilibrium_relaxation"] = bool(getattr(inputs, "equilibrium_relaxation", False))
+            captured["progress_hook_callable"] = callable(getattr(inputs, "progress_hook", None))
+            captured["legacy_temperature_state"] = bool(getattr(inputs, "enable_legacy_temperature_state", True))
+        return real_column_rhs(t_s, y_vec, col, layout, inputs=inputs)
+
+    monkeypatch.setattr(runmod, "column_rhs", _spy_column_rhs)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        runtime_mode="parity",
+        n_steps=1,
+        dt_sec=0.1,
+        log_every_n_steps=5,
+        include_temperature=True,
+        include_energy=False,
+        enable_equilibrium_relaxation=True,
+        thermo_mode="stub",
+        logs_dir=str(tmp_path),
+        write_logs=False,
+        fast_startup=True,
+    )
+
+    run_smoke_simulation(cfg)
+
+    assert captured["thermo_provider_is_none"] is True
+    assert captured["equilibrium_relaxation"] is False
+    assert captured["progress_hook_callable"] is True
+    assert captured["legacy_temperature_state"] is False
+
+
+def test_parity_initial_snapshot_does_not_skip_step_integration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("parity step reached integrator")
+
+    monkeypatch.setattr(runmod, "_integrate_one_step", _boom)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        runtime_mode="parity",
+        n_steps=1,
+        dt_sec=0.2,
+        log_every_n_steps=5,
+        include_temperature=True,
+        include_energy=False,
+        enable_equilibrium_relaxation=True,
+        thermo_mode="stub",
+        logs_dir=str(tmp_path),
+        write_logs=True,
+        fast_startup=True,
+    )
+
+    with pytest.raises(RuntimeError, match="parity step reached integrator"):
+        run_smoke_simulation(cfg)

@@ -387,7 +387,7 @@ class StateVectorLayout:
             if botL is None:
                 specs = getattr(col, "specs_raw", None)
                 if isinstance(specs, dict):
-                    for key in ("Bottom Holdup (lbmol)", "Bottom Sump Holdup (lbmol)"):
+                    for key in ("Bottom Holdup (lbmol)", "Bottom Sump Holdup (lbmol)", "Bottom Level Holdup (lbmol)"):
                         v = specs.get(key)
                         if v is not None:
                             try:

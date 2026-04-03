@@ -228,6 +228,108 @@ _dwsim_initialized = False
 _dtlc = None
 _prop_package = None
 _carray = None
+_property_package_key = "pr"
+_debug_trace_hook = None
+_debug_trace_context = ""
+
+
+def _emit_debug_trace(message: str) -> None:
+    hook = _debug_trace_hook
+    if not callable(hook):
+        return
+    ctx = str(_debug_trace_context or "").strip()
+    text = str(message)
+    if ctx:
+        text = f"[BackendTrace][{ctx}] {text}"
+    else:
+        text = f"[BackendTrace] {text}"
+    try:
+        hook(text)
+    except Exception:
+        pass
+
+
+def _normalize_property_package_key(name: Optional[str]) -> str:
+    key = str(name or "pr").strip().lower().replace("_", "-")
+    aliases = {
+        "pr": "pr",
+        "peng-robinson": "pr",
+        "pengrobinson": "pr",
+        "peng-robinson-1978": "pr78",
+        "pr78": "pr78",
+        "srk": "srk",
+        "soave-rk": "srk",
+        "soave-redlich-kwong": "srk",
+        "unifac": "unifac",
+        "unifac-ll": "unifacll",
+        "unifacll": "unifacll",
+        "modfac": "modfac",
+        "modified-unifac": "modfac",
+        "modified-unifac-dortmund": "modfac",
+        "nrtl": "nrtl",
+        "uniquac": "uniquac",
+        "raoult": "raoult",
+        "ideal": "raoult",
+    }
+    return aliases.get(key, key)
+
+
+def set_property_package(property_package: Optional[str]) -> None:
+    """
+    Select the DWSIM property package used for subsequent flash calls.
+
+    Supported keys:
+      pr, pr78, srk, unifac, unifacll, modfac, nrtl, uniquac, raoult
+    """
+    global _property_package_key, _dwsim_initialized, _dtlc, _prop_package
+    key = _normalize_property_package_key(property_package)
+    supported = {"pr", "pr78", "srk", "unifac", "unifacll", "modfac", "nrtl", "uniquac", "raoult"}
+    if key not in supported:
+        raise ValueError(
+            f"Unsupported DWSIM property package: {property_package!r}. "
+            f"Use one of: {', '.join(sorted(supported))}"
+        )
+    _property_package_key = key
+    _dwsim_initialized = False
+    _dtlc = None
+    _prop_package = None
+
+
+def get_property_package() -> str:
+    return str(_property_package_key)
+
+
+def set_debug_trace_hook(hook) -> None:
+    global _debug_trace_hook
+    _debug_trace_hook = hook if callable(hook) else None
+
+
+def set_debug_trace_context(context: Optional[str]) -> None:
+    global _debug_trace_context
+    _debug_trace_context = str(context or "")
+
+
+def _build_property_package(PropertyPackages):
+    key = _normalize_property_package_key(_property_package_key)
+    if key == "pr":
+        return PropertyPackages.PengRobinsonPropertyPackage(True)
+    if key == "pr78":
+        return PropertyPackages.PengRobinson1978PropertyPackage()
+    if key == "srk":
+        return PropertyPackages.SRKPropertyPackage()
+    if key == "unifac":
+        return PropertyPackages.UNIFACPropertyPackage()
+    if key == "unifacll":
+        return PropertyPackages.UNIFACLLPropertyPackage()
+    if key == "modfac":
+        return PropertyPackages.MODFACPropertyPackage()
+    if key == "nrtl":
+        return PropertyPackages.NRTLPropertyPackage()
+    if key == "uniquac":
+        return PropertyPackages.UNIQUACPropertyPackage()
+    if key == "raoult":
+        return PropertyPackages.RaoultPropertyPackage()
+    raise ValueError(f"Unsupported DWSIM property package key: {key!r}")
 
 
 def set_component_ids(component_ids: List[str]) -> None:
@@ -321,7 +423,7 @@ def _init_dwsim():
     _dtlc = CalculatorInterface.Calculator()
     _dtlc.Initialize()
 
-    _prop_package = PropertyPackages.PengRobinsonPropertyPackage(True)
+    _prop_package = _build_property_package(PropertyPackages)
     _dtlc.TransferCompounds(_prop_package)
 
     _carray = Array[String](_component_ids)
@@ -347,7 +449,12 @@ def _flash_TP_F_psia(T_F: float, P_psia: float, z):
     comparray = Array[float](list(z))
 
     # spec=0 means T & P specified
+    _emit_debug_trace(
+        f"_flash_TP_F_psia enter package={_property_package_key} T_F={float(T_F):.3f} P_psia={float(P_psia):.3f}"
+    )
+    _emit_debug_trace("_flash_TP_F_psia PTFlash start")
     result = _dtlc.PTFlash(_prop_package, 0, P_Pa, T_K, _carray, comparray)
+    _emit_debug_trace("_flash_TP_F_psia PTFlash done")
 
     n_rows = result.GetLength(0)
     n_cols = result.GetLength(1)
@@ -385,7 +492,9 @@ def _flash_TP_F_psia(T_F: float, P_psia: float, z):
         y = z.copy()
         K = np.ones_like(z)
         y_array = Array[float](list(y))
+        _emit_debug_trace("_flash_TP_F_psia single-phase vapor enthalpy CalcProp start")
         h_vals = _dtlc.CalcProp(_prop_package, "enthalpy", "Mole", "Vapor", _carray, T_K, P_Pa, y_array)
+        _emit_debug_trace("_flash_TP_F_psia single-phase vapor enthalpy CalcProp done")
         H_BTU_lbmol = float(h_vals[0]) * J_PER_MOL_TO_BTU_PER_LBMOL
         return x, y, K, H_BTU_lbmol, H_BTU_lbmol
 
@@ -407,8 +516,12 @@ def _flash_TP_F_psia(T_F: float, P_psia: float, z):
     x_array = Array[float](list(x))
     y_array = Array[float](list(y))
 
+    _emit_debug_trace("_flash_TP_F_psia liquid enthalpy CalcProp start")
     hL_vals = _dtlc.CalcProp(_prop_package, "enthalpy", "Mole", "Liquid", _carray, T_K, P_Pa, x_array)
+    _emit_debug_trace("_flash_TP_F_psia liquid enthalpy CalcProp done")
+    _emit_debug_trace("_flash_TP_F_psia vapor enthalpy CalcProp start")
     hV_vals = _dtlc.CalcProp(_prop_package, "enthalpy", "Mole", "Vapor", _carray, T_K, P_Pa, y_array)
+    _emit_debug_trace("_flash_TP_F_psia vapor enthalpy CalcProp done")
 
     HL_BTU_lbmol = float(hL_vals[0]) * J_PER_MOL_TO_BTU_PER_LBMOL
     HV_BTU_lbmol = float(hV_vals[0]) * J_PER_MOL_TO_BTU_PER_LBMOL
@@ -466,7 +579,9 @@ def _flash_TP_F_psia(T_F: float, P_psia: float, z):
         Zfac = None
 
     if Zfac is None:
+        _emit_debug_trace("_flash_TP_F_psia return without Z")
         return x, y, K, HL_BTU_lbmol, HV_BTU_lbmol
+    _emit_debug_trace(f"_flash_TP_F_psia return with Z={float(Zfac):.5g}")
     return x, y, K, HL_BTU_lbmol, HV_BTU_lbmol, float(Zfac)
 
 
@@ -819,6 +934,8 @@ __all__ = [
     "ZArray",
     "set_component_ids",
     "set_component_names",
+    "set_property_package",
+    "get_property_package",
     "pr_flash_TP_F_psia",
     "flash_TP_full_F_psia",
     "phase_enthalpy_BTU_lbmol",

@@ -17,6 +17,7 @@ Primary inputs:
 Primary outputs:
 - `logs/column_summary_<run_id>.csv`
 - `logs/column_profile_<run_id>.csv`
+- `logs/<run_folder>/<input_stem>__restart_<run_id>.xlsx`
 - `logs/run_registry.csv`
 - regenerated ledgers in `docs/experiment_ledger.csv` and `docs/experiment_ledger.md`
 
@@ -77,6 +78,18 @@ High-level flow:
 - initialize vapor holdup from pressure profile
 - optional startup thermo conditioning
 - optional top-drum startup steadying
+
+Fresh-startup note:
+- A "fresh" run means the Excel input does not include explicit runtime restart sheets.
+- On this column, a full fresh startup has recently taken about `10-12 minutes` of wall-clock time before the first logged integration row appears.
+- That time is spent in pre-integration conditioning, especially vapor-holdup initialization from startup pressure, thermo-consistent startup conditioning, and top-drum startup steadying.
+- These passes are important because they reduce pressure/holdup/thermo mismatch at `t=0`. When they are skipped or weakened, the model may start faster but the early dynamic trajectory can diverge materially from the fully conditioned path.
+- When explicit runtime restart sheets are present, the runner can skip most of this fresh-startup work and move much more directly into integration.
+- Before normal logging begins, restart runs now apply a short hidden re-entry settling pass to reduce the immediate pressure/composition bump that would otherwise appear on the first resumed steps.
+
+Top-drum startup inventory precedence:
+- if explicit top liquid holdup is provided (`Top Accumulator Holdup (lbmol)` and aliases), that value is treated as authoritative for startup reflux-drum liquid inventory
+- `Top Drum Liquid Fraction (-)` remains useful for level/control/display interpretation and geometry-based inference, but it is secondary and is only used to infer startup liquid inventory when explicit top holdup is absent
 6. Build optional controllers (level, pressure, distillate composition, bottoms composition).
 7. Time loop (`step = 0..n_steps`):
 - update step boundary commands and control MVs
@@ -225,6 +238,17 @@ Current project guidance for this column configuration:
 Per run:
 - profile CSV with stage-level and node-level diagnostics.
 - summary CSV with global and top-level metrics plus per-step integrator diagnostics (`integrator_*`, `ida_*` fields).
+- restart workbook copied from the input case file and updated with final dynamic state:
+  - `Initial Conditions`
+  - `Boundary State`
+  - `Energy State`
+  - `Controller State`
+  - `Dynamic Memory`
+
+Restart-workbook intent:
+- The base workbook remains the case definition.
+- The restart workbook is the continuation artifact.
+- Using the restart workbook for a follow-on run allows the model to start from the reached dynamic condition and avoid repeating most of the expensive fresh-startup calculations.
 
 K-value diagnostics in profile CSV:
 - `K_state_<comp>`: instantaneous dynamic-state ratio `y/x` on the tray.

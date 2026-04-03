@@ -48,6 +48,7 @@ import numpy as np
 
 from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
 from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+from dynamic_distillation.top_end_saturation_table_v1 import TopEndSaturationTableV1
 from dynamic_distillation.thermo_provider_v1 import FlashResult, ThermoProviderV1
 
 
@@ -272,6 +273,9 @@ class TabularThermoProviderV1:
             mw = np.asarray(mw_components_lbm_per_lbmol, dtype=float).reshape((-1,))
             if mw.size == self.n_components and np.all(np.isfinite(mw)) and np.all(mw > 0.0):
                 self._mw = mw.copy()
+        self.top_saturation_table: Optional[TopEndSaturationTableV1] = None
+        self.upper_section_flash_provider: Optional["TabularThermoProviderV1"] = None
+        self.upper_section_max_stage_index0: Optional[int] = None
 
     @classmethod
     def from_json(
@@ -591,6 +595,61 @@ class TabularThermoProviderV1:
 
     def component_mw_lbm_per_lbmol(self) -> Optional[np.ndarray]:
         return None if self._mw is None else self._mw.copy()
+
+    def attach_top_saturation_table(self, table: Optional[TopEndSaturationTableV1]) -> None:
+        self.top_saturation_table = table
+
+    def attach_upper_section_flash_provider(
+        self,
+        provider: Optional["TabularThermoProviderV1"],
+        *,
+        max_stage_index0: Optional[int],
+    ) -> None:
+        self.upper_section_flash_provider = provider
+        if max_stage_index0 is None:
+            self.upper_section_max_stage_index0 = None
+        else:
+            try:
+                stage_max = int(max_stage_index0)
+            except Exception:
+                stage_max = -1
+            self.upper_section_max_stage_index0 = stage_max if stage_max >= 0 else None
+
+    def flash_TP_full_stage_F_psia(
+        self,
+        stage_index0: int,
+        T_F: float,
+        P_psia: float,
+        z: Sequence[float],
+    ) -> FlashResult:
+        try:
+            i0 = int(stage_index0)
+        except Exception:
+            i0 = -1
+        if (
+            self.upper_section_flash_provider is not None
+            and self.upper_section_max_stage_index0 is not None
+            and i0 >= 0
+            and i0 <= int(self.upper_section_max_stage_index0)
+        ):
+            return self.upper_section_flash_provider.flash_TP_full(float(T_F), float(P_psia), z)
+        return self.flash_TP_full(float(T_F), float(P_psia), z)
+
+    def bubble_point_temperature_F_psia(self, P_psia: float, x: Sequence[float]) -> Optional[float]:
+        if self.top_saturation_table is None:
+            return None
+        try:
+            return float(self.top_saturation_table.bubble_temperature_F(float(P_psia), x))
+        except Exception:
+            return None
+
+    def bubble_point_pressure_psia_F(self, T_F: float, x: Sequence[float]) -> Optional[float]:
+        if self.top_saturation_table is None:
+            return None
+        try:
+            return float(self.top_saturation_table.bubble_pressure_psia(float(T_F), x))
+        except Exception:
+            return None
 
 
 def build_anchor_table_from_case(

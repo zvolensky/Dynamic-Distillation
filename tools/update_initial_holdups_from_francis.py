@@ -80,6 +80,15 @@ def _find_column_index(ws: openpyxl.worksheet.worksheet.Worksheet, name: str) ->
     raise RuntimeError(f"Column '{name}' not found in Initial Conditions.")
 
 
+def _find_or_create_column_index(ws: openpyxl.worksheet.worksheet.Worksheet, name: str) -> int:
+    try:
+        return _find_column_index(ws, name)
+    except RuntimeError:
+        c = ws.max_column + 1
+        ws.cell(row=1, column=c, value=name)
+        return c
+
+
 def _backup_path(p: Path) -> Path:
     ts = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
     return p.with_name(f"{p.stem}.holdup_update_{ts}.bak{p.suffix}")
@@ -95,6 +104,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Update Initial Conditions holdups from Francis inversion.")
     ap.add_argument("--excel", dest="excel_path", default="distillation_column_template.xlsx")
     ap.add_argument("--thermo", dest="thermo_mode", choices=["stub", "table", "table-pool", "dwsim"], default="table-pool")
+    ap.add_argument("--dwsim-property-package", dest="dwsim_property_package", default="pr")
     ap.add_argument("--thermo-table", dest="thermo_table_path", default="cache/thermo_table.json")
     ap.add_argument("--thermo-pool-workers", dest="thermo_pool_workers", type=int, default=6)
     ap.add_argument("--thermo-pool-chunk-size", dest="thermo_pool_chunk_size", type=int, default=4)
@@ -120,7 +130,11 @@ def main() -> int:
         raise RuntimeError("No geometry found in case. Add Geometry Sections before holdup update.")
 
     n = int(col.n_stages)
-    ml_old = np.asarray(col.M_L_lbmol, dtype=float).reshape((n,))
+    if getattr(col, "M_L_lbmol", None) is None:
+        ml_old = np.zeros(n, dtype=float)
+    else:
+        ml_old = np.asarray(col.M_L_lbmol, dtype=float).reshape((n,))
+    ml_old = np.where(np.isfinite(ml_old), ml_old, 0.0)
     l_target = np.asarray(col.L_lbmolph, dtype=float).reshape((n,))
     weir_h_in = np.asarray(geom.weir_height_in_per_stage, dtype=float).reshape((n,))
     weir_l_ft = np.asarray(geom.weir_length_ft_per_stage, dtype=float).reshape((n,))
@@ -133,6 +147,7 @@ def main() -> int:
     cfg = RunnerConfig(
         excel_path=str(excel_path),
         thermo_mode=str(args.thermo_mode),
+        dwsim_property_package=str(args.dwsim_property_package),
         thermo_table_path=(None if thermo_table_path is None else str(thermo_table_path)),
         thermo_pool_workers=int(args.thermo_pool_workers),
         thermo_pool_chunk_size=max(int(args.thermo_pool_chunk_size), 1),
@@ -180,7 +195,8 @@ def main() -> int:
         h_ow[i] = hov
         l_reconstructed[i] = FRANCIS_C * c * wl * (max(hov, 0.0) ** 1.5) * r * SEC_PER_HOUR
 
-    # Persist only Stage 2..N-1 holdup values in Initial Conditions.
+    # Persist all stage holdups. Internal stages are updated by Francis
+    # inversion; boundary rows keep their seeded values (or zero when absent).
     if not bool(args.dry_run):
         if not bool(args.no_backup):
             bkp = _backup_path(excel_path)
@@ -190,7 +206,7 @@ def main() -> int:
         wb = openpyxl.load_workbook(excel_path)
         ws = wb["Initial Conditions"]
         c_stage = _find_column_index(ws, "Stage")
-        c_holdup = _find_column_index(ws, "Liquid Holdup (lbmol)")
+        c_holdup = _find_or_create_column_index(ws, "Liquid Holdup (lbmol)")
 
         updated_rows = 0
         for r in range(2, ws.max_row + 1):
@@ -203,8 +219,6 @@ def main() -> int:
                 continue
             i = st - 1
             if i < 0 or i >= n:
-                continue
-            if not bool(internal[i]):
                 continue
             ws.cell(row=r, column=c_holdup, value=float(ml_new[i]))
             updated_rows += 1
@@ -239,4 +253,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

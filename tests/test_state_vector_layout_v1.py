@@ -247,6 +247,47 @@ def test_bottom_holdup_initialization_from_specs():
     assert np.allclose(z_bottom, col.x0[-1, :], atol=1e-12)
 
 
+def test_bottom_level_holdup_alias_initialization_from_specs():
+    N, Nc = 2, 2
+    x0 = np.array([[0.2, 0.8], [0.3, 0.7]], dtype=float)
+    y0 = np.array([[0.5, 0.5], [0.4, 0.6]], dtype=float)
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={
+            "Number of Stages": 2,
+            "Number of Components": 2,
+            "Timestep (sec)": 1.0,
+            "Simulation Length (min)": 0.1,
+            "Log Frequency (timesteps)": 1,
+            "Bottom Level Holdup (lbmol)": 794.0,
+        },
+        T_f=np.array([100.0, 120.0], dtype=float),
+        P_psia=np.array([200.0, 210.0], dtype=float),
+        V_lbmolph=np.array([10.0, 10.0], dtype=float),
+        L_lbmolph=np.array([10.0, 10.0], dtype=float),
+        M_L_lbmol=np.array([5.0, 5.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+    )
+
+    layout = StateVectorLayout(n_stages=N, n_components=Nc, include_top=True, include_bottom=True, include_vapor=True)
+    y_init = layout.pack_y0(col)
+    sl = layout.slices()
+    bottom_L = y_init[sl["bottom_L"]]
+
+    assert abs(float(np.sum(bottom_L)) - 794.0) < 1e-9
+
+
 def test_pack_y0_honors_explicit_boundary_vapor_restart_state():
     N, Nc = 2, 2
     x0 = np.array([[0.2, 0.8], [0.3, 0.7]], dtype=float)

@@ -81,6 +81,7 @@ def flash_TP_full_F_psia(
     P_psia: float,
     z: Sequence[float],
     n_components: int,
+    stage_index0: Optional[int] = None,
 ) -> StageFlashResult:
     """
     Call a provider flash and normalize/standardize outputs.
@@ -95,6 +96,56 @@ def flash_TP_full_F_psia(
     z_arr = _normalize_comp(z_arr)
 
     # Preferred method
+    stage_flash_fn = getattr(provider, "flash_TP_full_stage_F_psia", None)
+    if stage_index0 is not None and callable(stage_flash_fn):
+        res = stage_flash_fn(int(stage_index0), float(T_F), float(P_psia), z_arr.tolist())
+        if isinstance(res, StageFlashResult):
+            return res
+        if isinstance(res, (tuple, list)):
+            Zfac: Optional[float] = None
+            if len(res) == 5:
+                x, y, K, HL, HV = res
+            elif len(res) == 6:
+                x, y, K, HL, HV, Zfac = res
+            else:
+                raise RuntimeError("flash_TP_full_stage_F_psia() must return 5 or 6 values.")
+
+            x = _normalize_comp(_as_1d_float_array(x, n_components))
+            y = _normalize_comp(_as_1d_float_array(y, n_components))
+            K = _as_1d_float_array(K, n_components)
+            return StageFlashResult(
+                x=x,
+                y=y,
+                K=K,
+                HL_BTU_lbmol=float(HL),
+                HV_BTU_lbmol=float(HV),
+                Z=(float(Zfac) if Zfac is not None else None),
+            )
+
+        x = _normalize_comp(_as_1d_float_array(getattr(res, "x"), n_components))
+        y = _normalize_comp(_as_1d_float_array(getattr(res, "y"), n_components))
+        K = _as_1d_float_array(getattr(res, "K"), n_components)
+        HL = float(getattr(res, "HL_BTU_lbmol"))
+        HV = float(getattr(res, "HV_BTU_lbmol"))
+
+        Zfac = None
+        for attr in ("Z", "Z_factor", "Zfac", "z_factor"):
+            if hasattr(res, attr):
+                try:
+                    Zfac = float(getattr(res, attr))
+                    break
+                except Exception:
+                    pass
+
+        return StageFlashResult(
+            x=x,
+            y=y,
+            K=K,
+            HL_BTU_lbmol=HL,
+            HV_BTU_lbmol=HV,
+            Z=Zfac,
+        )
+
     if hasattr(provider, "flash_TP_full_F_psia") and callable(getattr(provider, "flash_TP_full_F_psia")):
         res = provider.flash_TP_full_F_psia(float(T_F), float(P_psia), z_arr.tolist())
 

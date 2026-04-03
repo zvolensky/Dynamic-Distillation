@@ -28,7 +28,7 @@ import pandas as pd
 
 
 def test_build_column_spec_from_template():
-    case = load_case_from_excel("distillation_column_template.xlsx")
+    case = load_case_from_excel("distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx")
     spec = build_column_spec_from_case(case)
 
     assert spec.n_stages == 20
@@ -39,7 +39,7 @@ def test_build_column_spec_from_template():
     # Module 8B: tau loaded (or defaults)
     assert hasattr(spec, "tau_eq_sec")
     assert spec.tau_eq_sec > 0.0
-    assert float(spec.tau_eq_sec) == 2.0
+    assert float(spec.tau_eq_sec) == 4.0
 
     # Geometry expansion (optional in the template)
     if spec.geometry is not None:
@@ -85,6 +85,10 @@ def test_build_column_spec_carries_restart_energy_and_controller_state():
             "top_level_integ": 1.5,
             "top_pressure_integ": -2.5,
         },
+        memory_state={
+            "P_tray_prev_psia": [200.0, 210.0],
+            "T_tray_prev_F": [100.0, 120.0],
+        },
         streams={},
     )
 
@@ -93,3 +97,5 @@ def test_build_column_spec_carries_restart_energy_and_controller_state():
     assert np.allclose(spec.tray_EV0_BTU, np.array([201.0, 202.0], dtype=float))
     assert spec.controller_state["top_level_integ"] == 1.5
     assert spec.controller_state["top_pressure_integ"] == -2.5
+    assert np.allclose(spec.memory_state["P_tray_prev_psia"], np.array([200.0, 210.0], dtype=float))
+    assert np.allclose(spec.memory_state["T_tray_prev_F"], np.array([100.0, 120.0], dtype=float))

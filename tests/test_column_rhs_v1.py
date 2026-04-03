@@ -851,6 +851,45 @@ def test_total_condense_mass_split_can_condense_top_vapor_with_extra_duty(monkey
     assert abs(float(v_cond_top) - 0.0) < 1e-12
 
 
+def test_total_condense_mass_split_skips_live_thermo_when_disabled(monkeypatch):
+    col = _make_tiny_column()
+    N = int(col.n_stages)
+    Nc = int(col.n_components)
+    tray_T = np.asarray(col.T_f, dtype=float).reshape((N,))
+    P_tray = np.asarray(col.P_psia, dtype=float).reshape((N,))
+    V_in = np.array([1.0, 0.0], dtype=float)
+    y_in = np.full((N, Nc), 1.0 / max(Nc, 1), dtype=float)
+    top_V = np.array([0.2, 0.2], dtype=float)
+
+    def _boom(**kwargs):
+        raise AssertionError("live total-condenser thermo should be skipped")
+
+    monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _boom)
+
+    v_cond_in, v_to_top, v_cond_top, q_used, q_req, mode = _condenser_mass_split_from_duty(
+        col=col,
+        inputs=ColumnInputs(
+            condenser_duty_mode="total-condense",
+            condenser_duty_btu_per_h=-100.0,
+            thermo_provider=object(),
+            enable_live_total_condenser_duty=False,
+        ),
+        tray_T_F=tray_T,
+        P_tray_psia=P_tray,
+        V_in_lbmolps=V_in,
+        y_in=y_in,
+        top_V=top_V,
+        epsilon_lbmol=1e-12,
+    )
+
+    assert mode == "total-condense"
+    assert q_req is None
+    assert abs(float(q_used) + 100.0) < 1e-12
+    assert abs(float(v_cond_in) - 1.0) < 1e-12
+    assert abs(float(v_to_top) - 0.0) < 1e-12
+    assert abs(float(v_cond_top) - 0.0) < 1e-12
+
+
 def test_top_drum_pressure_gate_blocks_reverse_vapor_slip(monkeypatch):
     col = _make_tiny_column()
     col2 = ColumnSpec(
@@ -2939,6 +2978,44 @@ def test_no_holdup_reboiler_sump_temperature_uses_energy_balance_not_bubblepoint
     assert np.sign(dT_base) == np.sign(dT_prov)
     rel = abs(dT_base - dT_prov) / max(abs(dT_base), 1e-12)
     assert rel < 0.2
+
+
+def test_disable_legacy_temperature_state_skips_temperature_block():
+    col = _make_tiny_column()
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col)
+    sl = layout.slices()
+    y0[sl["tray_T_f"]] = np.array([105.0, 125.0], dtype=float)
+
+    trace_messages = []
+
+    def _trace(msg: str) -> None:
+        trace_messages.append(str(msg))
+
+    inputs = ColumnInputs(
+        thermo=ConstantCpThermo(
+            cp_liq_components=np.array([30.0, 25.0], dtype=float),
+            cp_vap_components=np.array([20.0, 18.0], dtype=float),
+            tref_f=60.0,
+        ),
+        enable_legacy_temperature_state=False,
+        progress_hook=_trace,
+        trace_stage_thermo=True,
+        thermo_stage_trace_label="unit",
+    )
+
+    dydt, _diag = column_rhs(0.0, y0, col, layout, inputs=inputs)
+
+    assert np.allclose(dydt[sl["tray_T_f"]], 0.0)
+    assert not any("temperature_state block start" in msg for msg in trace_messages)
 
 
 def test_no_holdup_reboiler_duty_flash_not_frozen_by_cached_state():

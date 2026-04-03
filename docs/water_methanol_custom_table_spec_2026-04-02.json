@@ -1,0 +1,87 @@
+{
+  "case_excel": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\water_methanol_template_10stage_chemsep_seed_20260401.xlsx",
+  "source_chemsep": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\water-methanol-ChemSep.xls",
+  "system": [
+    "Water",
+    "Methanol"
+  ],
+  "observed_seed_envelope": {
+    "T_min_F": 148.658,
+    "T_max_F": 206.942,
+    "P_min_psia": 14.6959,
+    "P_max_psia": 14.6959,
+    "x_water_min": 0.0144239,
+    "x_water_max": 0.985576,
+    "y_water_min": 0.00597427,
+    "y_water_max": 0.898693,
+    "feed_stage_1based": 8,
+    "feed_T_F": 163.642,
+    "feed_P_psia": 14.6959
+  },
+  "observed_dynamic_envelope": {
+    "top_pressure_min_psia": 14.36376941209815,
+    "bottom_pressure_max_psia": 14.695730264113603,
+    "tray_T_min_F": 148.658,
+    "tray_T_max_F": 206.942
+  },
+  "proposed_table_envelope": {
+    "T_min_F": 140.0,
+    "T_max_F": 235.0,
+    "P_min_psia": 12.0,
+    "P_max_psia": 25.0
+  },
+  "grid": {
+    "n_T": 21,
+    "n_P": 11
+  },
+  "composition_basis": "x_water",
+  "x_water_anchors": [
+    0.0,
+    0.005,
+    0.01,
+    0.0144239,
+    0.02,
+    0.03,
+    0.0348168,
+    0.05,
+    0.0675978,
+    0.1,
+    0.120157,
+    0.16,
+    0.20379,
+    0.28,
+    0.333678,
+    0.42,
+    0.518999,
+    0.62,
+    0.719926,
+    0.82,
+    0.920414,
+    0.96,
+    0.985576,
+    0.995,
+    1.0
+  ],
+  "top_end_focus": {
+    "x_water_min": 0.0,
+    "x_water_max": 0.2,
+    "x_water_dense_anchors": [
+      0.0,
+      0.002,
+      0.005,
+      0.01,
+      0.0144239,
+      0.02,
+      0.03,
+      0.05,
+      0.08,
+      0.12,
+      0.16,
+      0.2
+    ]
+  },
+  "recommended_source_models": [
+    "unifac",
+    "nrtl"
+  ]
+}

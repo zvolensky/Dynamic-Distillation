@@ -45,7 +45,7 @@ NOTES
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -67,7 +67,8 @@ class CaseData:
     boundary_state: Dict[str, List[float]]
     energy_state: Dict[str, List[float]]
     controller_state: Dict[str, float]
-    streams: Dict[str, Dict[str, Any]]
+    memory_state: Dict[str, List[float]] = field(default_factory=dict)
+    streams: Dict[str, Dict[str, Any]] = field(default_factory=dict)
 
 
 def _norm_str(x: Any) -> str:
@@ -78,14 +79,19 @@ def _norm_str(x: Any) -> str:
     return str(x).strip()
 
 
+def _norm_spec_label(x: Any) -> str:
+    """Normalize spec labels for tolerant matching: trim and collapse whitespace."""
+    return " ".join(_norm_str(x).split()).lower()
+
+
 def _get_spec_value(specs_df: pd.DataFrame, label: str) -> Optional[Any]:
     """
     Specs sheet is read with header=None.
     We expect label in column 0, value in column 1 (but tolerate extra columns).
     """
-    target = label.strip().lower()
+    target = _norm_spec_label(label)
     for i in range(len(specs_df)):
-        k = _norm_str(specs_df.iloc[i, 0]).lower()
+        k = _norm_spec_label(specs_df.iloc[i, 0])
         if k == target:
             # choose last non-empty value across columns 1..end
             last = None
@@ -124,6 +130,22 @@ def _get_optional_str(specs_df: pd.DataFrame, label: str) -> Optional[str]:
     v = _get_spec_value(specs_df, label)
     s = _norm_str(v)
     return s if s else None
+
+
+def _get_optional_bool(specs_df: pd.DataFrame, label: str) -> Optional[bool]:
+    v = _get_spec_value(specs_df, label)
+    if v is None:
+        return None
+    if isinstance(v, (bool, np.bool_)):
+        return bool(v)
+    s = _norm_str(v).strip().lower()
+    if not s:
+        return None
+    if s in {"1", "true", "yes", "y", "on"}:
+        return True
+    if s in {"0", "false", "no", "n", "off"}:
+        return False
+    return None
 
 
 def _coerce_void_fraction(gv: float) -> float:
@@ -317,7 +339,18 @@ def _try_read_controller_state_sheet(p: Path) -> Dict[str, float]:
         "toppressureinteg": "top_pressure_integ",
         "toppressurecontrollerinteg": "top_pressure_integ",
         "toppressurepvfiltpsia": "top_pressure_pv_filt_psia",
+        "toppressuremvcmdbtuph": "top_pressure_mv_cmd_btuph",
+        "toppressuremvcmdbtuperh": "top_pressure_mv_cmd_btuph",
+        "toppressureresidabsbtups": "top_pressure_resid_abs_btups",
+        "toppressureenergyresidabsbtups": "top_pressure_resid_abs_btups",
+        "topdrumpressuretprevf": "top_drum_pressure_T_prev_F",
+        "distillatecmdlbmolph": "distillate_cmd_lbmolph",
+        "bottomscmdlbmolph": "bottoms_cmd_lbmolph",
+        "refluxcmdlbmolph": "reflux_cmd_lbmolph",
+        "boilupcmdlbmolph": "boilup_cmd_lbmolph",
+        "distillatecompinteg": "distillate_comp_integ",
         "distillatecompositioninteg": "distillate_comp_integ",
+        "bottomscompinteg": "bottoms_comp_integ",
         "bottomscompositioninteg": "bottoms_comp_integ",
     }
 
@@ -332,6 +365,65 @@ def _try_read_controller_state_sheet(p: Path) -> Dict[str, float]:
             continue
         if np.isfinite(val):
             out[key] = float(val)
+    return out
+
+
+def _try_read_dynamic_memory_sheet(p: Path, n_stages: int) -> Dict[str, List[float]]:
+    """Parse optional Dynamic Memory sheet for previous tray T/P profiles."""
+    try:
+        df = pd.read_excel(p, sheet_name="Dynamic Memory")
+    except Exception:
+        return {}
+    if df is None or df.empty or n_stages <= 0:
+        return {}
+
+    def _norm_token(s: Any) -> str:
+        return "".join(ch for ch in _norm_str(s).lower() if ch.isalnum())
+
+    norm_cols = {_norm_token(c): c for c in df.columns}
+    stage_col = None
+    for key in ("stage", "tray", "stage1based"):
+        if key in norm_cols:
+            stage_col = norm_cols[key]
+            break
+    if stage_col is None:
+        return {}
+
+    def _find_col(*candidates: str) -> Optional[str]:
+        for cand in candidates:
+            key = _norm_token(cand)
+            if key in norm_cols:
+                return norm_cols[key]
+        return None
+
+    col_p = _find_col("Prev Tray Pressure (psia)", "P_tray_prev_psia", "Prev Pressure (psia)")
+    col_t = _find_col("Prev Tray Temperature (F)", "T_tray_prev_F", "Prev Temperature (F)")
+
+    out: Dict[str, List[float]] = {}
+    if col_p is not None:
+        arr = [np.nan] * int(n_stages)
+        for _, row in df.iterrows():
+            try:
+                i = int(float(row.get(stage_col))) - 1
+                v = float(row.get(col_p))
+            except Exception:
+                continue
+            if 0 <= i < n_stages and pd.notna(v):
+                arr[i] = v
+        if all(np.isfinite(arr)):
+            out["P_tray_prev_psia"] = [float(v) for v in arr]
+    if col_t is not None:
+        arr = [np.nan] * int(n_stages)
+        for _, row in df.iterrows():
+            try:
+                i = int(float(row.get(stage_col))) - 1
+                v = float(row.get(col_t))
+            except Exception:
+                continue
+            if 0 <= i < n_stages and pd.notna(v):
+                arr[i] = v
+        if all(np.isfinite(arr)):
+            out["T_tray_prev_F"] = [float(v) for v in arr]
     return out
 
 
@@ -633,15 +725,26 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     specs["Number of Stages"] = _get_required_int(specs_df, "Number of Stages")
     specs["Number of Components"] = _get_required_int(specs_df, "Number of Components")
     specs["Condenser Type"] = _get_optional_str(specs_df, "Condenser Type")
+    specs["Condenser Duty Mode"] = _get_optional_str(specs_df, "Condenser Duty Mode")
     specs["Condenser Duty (Btu/h)"] = _get_optional_float(specs_df, "Condenser Duty (Btu/h)")
     specs["Reboiler Duty (Btu/h)"] = _get_optional_float(specs_df, "Reboiler Duty (Btu/h)")
     specs["Simulation Length (min)"] = _get_optional_float(specs_df, "Simulation Length (min)")
     specs["Timestep (sec)"] = _get_optional_float(specs_df, "Timestep (sec)")
     specs["Log Frequency (timesteps)"] = _get_required_int(specs_df, "Log Frequency (timesteps)")
     specs["Top Accumulator Holdup (lbmol)"] = _get_optional_float(specs_df, "Top Accumulator Holdup (lbmol)")
-    specs["Bottom Holdup (lbmol)"] = _get_optional_float(specs_df, "Bottom Holdup (lbmol)")
+    specs["Bottom Holdup (lbmol)"] = _first_optional_float(
+        [
+            "Bottom Holdup (lbmol)",
+            "Bottom Sump Holdup (lbmol)",
+            "Bottom Level Holdup (lbmol)",
+        ]
+    )
     specs["Pressure Model"] = _get_optional_str(specs_df, "Pressure Model")
     specs["Vapor Flow Model"] = _get_optional_str(specs_df, "Vapor Flow Model")
+    specs["Runtime Mode"] = _get_optional_str(specs_df, "Runtime Mode")
+    specs["Thermo Mode"] = _get_optional_str(specs_df, "Thermo Mode")
+    specs["Thermo Table"] = _get_optional_str(specs_df, "Thermo Table")
+    specs["Include Energy"] = _get_optional_bool(specs_df, "Include Energy")
 
     # Optional reflux-drum geometry to infer top vapor-space volume.
     specs["Top Drum Vapor Volume (ft3)"] = _first_optional_float(
@@ -802,6 +905,40 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     if thermo_refresh_dx is None:
         thermo_refresh_dx = _get_optional_float(specs_df, "Thermo Refresh Delta X")
     specs["Thermo Refresh dX"] = thermo_refresh_dx
+    specs["Equilibrium Relaxation Mode"] = _get_optional_str(specs_df, "Equilibrium Relaxation Mode")
+    specs["Equilibrium Tau (sec)"] = _get_optional_float(specs_df, "Equilibrium Tau (sec)")
+    specs["Equilibrium Energy Damping Gain"] = _get_optional_float(specs_df, "Equilibrium Energy Damping Gain")
+    specs["Equilibrium Relaxation Live PR"] = _get_optional_bool(specs_df, "Equilibrium Relaxation Live PR")
+    specs["Hydraulic Energy Temperature Follow Tau (sec)"] = _get_optional_float(
+        specs_df, "Hydraulic Energy Temperature Follow Tau (sec)"
+    )
+    specs["Enable Level Control"] = _get_optional_bool(specs_df, "Enable Level Control")
+    specs["Top Level PV Mode"] = _get_optional_str(specs_df, "Top Level PV Mode")
+    specs["Top Level SP Frac"] = _get_optional_float(specs_df, "Top Level SP Frac")
+    specs["Top Level Kc"] = _get_optional_float(specs_df, "Top Level Kc")
+    specs["Top Level Ti (sec)"] = _get_optional_float(specs_df, "Top Level Ti (sec)")
+    specs["Bottom Level PV Mode"] = _get_optional_str(specs_df, "Bottom Level PV Mode")
+    specs["Bottom Level SP (lbmol)"] = _get_optional_float(specs_df, "Bottom Level SP (lbmol)")
+    specs["Bottom Level SP Frac"] = _get_optional_float(specs_df, "Bottom Level SP Frac")
+    specs["Bottom Level Kc"] = _get_optional_float(specs_df, "Bottom Level Kc")
+    specs["Bottom Level Ti (sec)"] = _get_optional_float(specs_df, "Bottom Level Ti (sec)")
+    specs["Enable Pressure Control"] = _get_optional_bool(specs_df, "Enable Pressure Control")
+    specs["Pressure Control MV"] = _get_optional_str(specs_df, "Pressure Control MV")
+    specs["Top Pressure SP (psia)"] = _get_optional_float(specs_df, "Top Pressure SP (psia)")
+    specs["Top Pressure Kc"] = _get_optional_float(specs_df, "Top Pressure Kc")
+    specs["Top Pressure Ti (sec)"] = _get_optional_float(specs_df, "Top Pressure Ti (sec)")
+    specs["Enable Distillate Composition Control"] = _get_optional_bool(
+        specs_df, "Enable Distillate Composition Control"
+    )
+    specs["Distillate Composition Component"] = _get_optional_str(specs_df, "Distillate Composition Component")
+    specs["Distillate Composition Kc"] = _get_optional_float(specs_df, "Distillate Composition Kc")
+    specs["Distillate Composition Ti (sec)"] = _get_optional_float(specs_df, "Distillate Composition Ti (sec)")
+    specs["Distillate Composition Reflux Min (lbmol/h)"] = _get_optional_float(
+        specs_df, "Distillate Composition Reflux Min (lbmol/h)"
+    )
+    specs["Distillate Composition Reflux Max (lbmol/h)"] = _get_optional_float(
+        specs_df, "Distillate Composition Reflux Max (lbmol/h)"
+    )
     # Optional composition-control setpoints.
     # These keys are consumed by runner/controller wiring when CLI overrides
     # are not provided.
@@ -869,6 +1006,7 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     boundary_state = _try_read_boundary_state_sheet(p, comp_names)
     energy_state = _try_read_energy_state_sheet(p, int(specs["Number of Stages"]))
     controller_state = _try_read_controller_state_sheet(p)
+    memory_state = _try_read_dynamic_memory_sheet(p, int(specs["Number of Stages"]))
 
     return CaseData(
         excel_path=str(p),
@@ -879,5 +1017,6 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
         boundary_state=boundary_state,
         energy_state=energy_state,
         controller_state=controller_state,
+        memory_state=memory_state,
         streams=streams,
     )

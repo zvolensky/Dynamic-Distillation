@@ -48,7 +48,7 @@ import numpy as np
 _RUN_ID_RE = re.compile(r"column_summary_(\d{8}_\d{6})\.csv$")
 _FEAS_ID_RE = re.compile(r"feasibility_trim_search_(\d{8}_\d{6})\.csv$")
 _NON_EXPERIMENT_FLAGS = {"--allow-repeat-command"}
-_NON_EXPERIMENT_FLAGS_WITH_VALUE = {"--logs-dir"}
+_NON_EXPERIMENT_FLAGS_WITH_VALUE = {"--logs-dir", "--run-name", "--run-description"}
 
 
 @dataclass(frozen=True)
@@ -535,6 +535,9 @@ def append_run_registry_entry(
     argv: Sequence[str],
     summary_csv_path: Optional[str],
     profile_csv_path: Optional[str],
+    run_name: Optional[str] = None,
+    run_description: Optional[str] = None,
+    metadata_json_path: Optional[str] = None,
 ) -> None:
     """
     Append an exact command capture row for this run.
@@ -569,26 +572,49 @@ def append_run_registry_entry(
         "argv_json",
         "summary_csv",
         "profile_csv",
+        "run_name",
+        "run_description",
+        "metadata_json",
     ]
+    existing_rows: List[dict] = []
+    rewrite_all = False
+    if registry_path.exists() and registry_path.stat().st_size > 0:
+        try:
+            with registry_path.open("r", encoding="utf-8", newline="") as f:
+                r = csv.DictReader(f)
+                existing_fields = list(r.fieldnames or [])
+                if existing_fields != fields:
+                    rewrite_all = True
+                for row in r:
+                    existing_rows.append(dict(row))
+        except Exception:
+            rewrite_all = True
+            existing_rows = []
 
-    write_header = (not registry_path.exists()) or registry_path.stat().st_size == 0
-    with registry_path.open("a", encoding="utf-8", newline="") as f:
+    row_out = {
+        "run_id": run_id,
+        "run_datetime_local": run_dt_txt,
+        "recorded_at_local": now_txt,
+        "module_name": module_name,
+        "command_source": "auto-captured",
+        "cli_command": cmd,
+        "argv_json": json.dumps(list(argv), ensure_ascii=True),
+        "summary_csv": str(summary_path),
+        "profile_csv": str(profile_csv_path or ""),
+        "run_name": str(run_name or ""),
+        "run_description": str(run_description or ""),
+        "metadata_json": str(metadata_json_path or ""),
+    }
+
+    mode = "w" if rewrite_all or (not registry_path.exists()) or registry_path.stat().st_size == 0 else "a"
+    with registry_path.open(mode, encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields)
-        if write_header:
+        if mode == "w":
             w.writeheader()
-        w.writerow(
-            {
-                "run_id": run_id,
-                "run_datetime_local": run_dt_txt,
-                "recorded_at_local": now_txt,
-                "module_name": module_name,
-                "command_source": "auto-captured",
-                "cli_command": cmd,
-                "argv_json": json.dumps(list(argv), ensure_ascii=True),
-                "summary_csv": str(summary_path),
-                "profile_csv": str(profile_csv_path or ""),
-            }
-        )
+            for row in existing_rows:
+                merged = {k: row.get(k, "") for k in fields}
+                w.writerow(merged)
+        w.writerow(row_out)
 
 
 def rebuild_experiment_ledger(

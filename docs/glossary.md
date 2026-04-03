@@ -58,6 +58,12 @@ not textbook completeness.
 - Distillate draw is taken from this drum; reflux is sent from this drum back to
   the column.
 
+**Distillate drum liquid fraction / top drum liquid fraction**
+- Geometric fill-fraction style input for the reflux drum.
+- Useful for true-level interpretation, UI display, and geometry-based volume
+  inference.
+- Secondary to explicit top-drum holdup when both are present.
+
 **Dry Tray K**
 - Hydraulic dry pressure-drop coefficient used in tray pressure calculations.
 
@@ -205,6 +211,11 @@ not textbook completeness.
   setpoint-error criteria.
 
 ## T
+
+**Top accumulator holdup**
+- Explicit startup liquid inventory for the reflux drum, usually in `lbmol`.
+- Authoritative startup inventory input when both holdup and top-drum liquid
+  fraction are provided.
 
 **Table surrogate / thermo table**
 - Precomputed tabular thermo surrogate used for faster flash/property lookup.

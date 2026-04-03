@@ -15,8 +15,36 @@ Expected sheets:
 - `Initial Conditions` (required)
 - `Streams` (optional; best effort)
 - `Components` (optional but preferred over `Specifications` component row)
+- `Boundary State` (optional restart sheet)
+- `Energy State` (optional restart sheet)
+- `Controller State` (optional restart sheet)
+- `Dynamic Memory` (optional restart sheet)
 
 If `Streams` is missing or malformed, the loader continues with `streams={}`.
+
+## Fresh Runs vs Restart Runs
+
+- A "fresh" run uses the base workbook only, without explicit runtime restart sheets.
+- A restart run uses a workbook that also contains `Boundary State`, `Energy State`, `Controller State`, and optionally `Dynamic Memory`.
+
+Current practical behavior:
+- On this column, a fresh full-startup run has recently taken about `10-12 minutes` of wall-clock time before the first logged integration row appears.
+- That startup time is spent aligning vapor holdup with startup pressure, conditioning thermo state, and steadying the top drum so the simulation starts from a dynamically consistent state.
+- This startup work is important. It reduces pressure/holdup/thermo mismatch at `t=0` and improves the early integration trajectory.
+
+Completed-run restart export:
+- Every completed run now writes a companion restart workbook into the run folder.
+- That restart workbook contains the final dynamic state needed to continue a simulation without repeating most fresh-startup calculations.
+- Restart runs also apply a short hidden re-entry settling pass before the first logged row so the resumed trajectory lands closer to the pre-stop state.
+- Recommended workflow:
+  - keep the base workbook as the case definition
+  - run the case to a good conditioned state
+  - use the generated restart workbook as the next run input when you want to continue from that state
+
+Restart sheets are optional:
+- `Boundary State`: top/bottom liquid and vapor holdups
+- `Energy State`: tray liquid/vapor energy state
+- `Controller State`: PI integrals and related controller memory
 
 ## Specifications Sheet
 
@@ -43,13 +71,13 @@ If `Streams` is missing or malformed, the loader continues with `streams={}`.
 | `Reboiler Duty (Btu/h)` | float | Energy balance / boilup in duty mode |
 | `Simulation Length (min)` | float | Default run horizon |
 | `Timestep (sec)` | float | Default dt |
-| `Top Accumulator Holdup (lbmol)` | float | Initial top liquid holdup total |
+| `Top Accumulator Holdup (lbmol)` | float | Initial top liquid holdup total; authoritative startup inventory input when present |
 | `Bottom Holdup (lbmol)` | float | Initial bottom liquid holdup total |
 | `Top Drum Vapor Volume (ft3)` | float | Explicit top/reflux drum vapor-space volume for top-pressure state |
 | `Top Drum Total Volume (ft3)` | float | Optional; used with liquid fraction/holdup to infer vapor-space volume |
 | `Top Drum Diameter (ft)` | float | Optional; if paired with `Top Drum Length (ft)`, computes total drum volume (`pi/4*D^2*L`) |
 | `Top Drum Length (ft)` | float | Optional; used with diameter to compute total drum volume |
-| `Top Drum Liquid Fraction (-)` | float or % | Optional liquid fill fraction (`0..1` or `0..100`) for vapor-volume inference |
+| `Top Drum Liquid Fraction (-)` | float or % | Optional liquid fill fraction (`0..1` or `0..100`) for level/geometry interpretation and vapor-volume inference when explicit top holdup is absent |
 | `Overhead Vapor Line Volume (ft3)` | float | Optional vapor-only add-on volume added to top-end vapor capacitance |
 | `Condenser Vapor Volume (ft3)` | float | Optional vapor-only add-on volume added to top-end vapor capacitance |
 | `Stage time constant [tau] (sec)` | float | Equilibrium relaxation tau; fallback for vapor holdup relaxation |
@@ -124,6 +152,7 @@ Notes:
 - `Gas Void Fraction` and `Active Area` accept either fraction (`0..1`) or percent (`0..100`).
 - Rows are read until `Start Stage` is blank.
 - Parsed rows are stored as `specs["Geometry Sections"]` and expanded in `column_spec_builder_v1`.
+- At minimum, the geometry table must retain both `Diameter (ft)` and `Tray Spacing (ft)`. If workbook cleanup removes either of those columns, `Geometry Sections` will not load and the hydraulic pressure model will fall back to non-hydraulic pressure behavior.
 
 ### Reflux Drum Geometry Keys (optional)
 
@@ -138,9 +167,18 @@ Volume inference precedence in runner:
 1. Explicit vapor volume (`Top Drum Vapor Volume (ft3)`), else
 2. Total volume + liquid fraction, else
 3. Diameter+length -> total volume, then:
-   - use liquid fraction if provided;
+   - use explicit top holdup first when provided;
+   - else use liquid fraction if provided;
    - else estimate liquid volume from top holdup + thermo liquid density when possible;
    - else assume half-full.
+
+Startup inventory precedence for the reflux drum:
+1. `Top Accumulator Holdup (lbmol)` / `Top Drum Holdup (lbmol)` / `Reflux Drum Holdup (lbmol)` if present.
+2. `Top Drum Liquid Fraction (-)` and related fill-fraction aliases only when explicit top holdup is absent.
+
+Interpretation:
+- `Top Accumulator Holdup (lbmol)` is the authoritative startup liquid inventory for the reflux drum.
+- `Top Drum Liquid Fraction (-)` is still useful for true-level control, UI display, and geometry-based inference, but it is treated as secondary when an explicit top holdup is available.
 
 Dynamic behavior:
 - If total drum volume is available (`Top Drum Total Volume (ft3)` or inferred from `Diameter/Length`), the model updates top vapor volume every timestep from current top liquid holdup and inferred liquid density.

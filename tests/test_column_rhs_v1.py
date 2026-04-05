@@ -787,7 +787,7 @@ def test_total_condense_mass_split_responds_to_positive_trim(monkeypatch):
 
     monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _fake_total_cond_duty)
 
-    v_cond_in, v_to_top, v_cond_top, q_used, q_req, mode = _condenser_mass_split_from_duty(
+    v_cond_in, v_to_top, v_cond_top, q_used, q_req, t_bub, mode = _condenser_mass_split_from_duty(
         col=col,
         inputs=ColumnInputs(
             condenser_duty_mode="total-condense",
@@ -806,6 +806,7 @@ def test_total_condense_mass_split_responds_to_positive_trim(monkeypatch):
     assert mode == "total-condense"
     assert abs(float(q_req) + 3600.0) < 1e-12
     assert abs(float(q_used) + 1800.0) < 1e-12
+    assert abs(float(t_bub) - 100.0) < 1e-12
     # Strict total condenser: no vapor slip to the top drum.
     assert abs(float(v_cond_in) - 1.0) < 1e-12
     assert abs(float(v_to_top) - 0.0) < 1e-12
@@ -827,7 +828,7 @@ def test_total_condense_mass_split_can_condense_top_vapor_with_extra_duty(monkey
 
     monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _fake_total_cond_duty)
 
-    v_cond_in, v_to_top, v_cond_top, q_used, q_req, mode = _condenser_mass_split_from_duty(
+    v_cond_in, v_to_top, v_cond_top, q_used, q_req, t_bub, mode = _condenser_mass_split_from_duty(
         col=col,
         inputs=ColumnInputs(
             condenser_duty_mode="total-condense",
@@ -846,6 +847,7 @@ def test_total_condense_mass_split_can_condense_top_vapor_with_extra_duty(monkey
     assert mode == "total-condense"
     assert abs(float(q_req) + 3600.0) < 1e-12
     assert abs(float(q_used) + 5400.0) < 1e-12
+    assert abs(float(t_bub) - 100.0) < 1e-12
     assert abs(float(v_cond_in) - 1.0) < 1e-12
     assert abs(float(v_to_top) - 0.0) < 1e-12
     assert abs(float(v_cond_top) - 0.0) < 1e-12
@@ -866,7 +868,7 @@ def test_total_condense_mass_split_skips_live_thermo_when_disabled(monkeypatch):
 
     monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _boom)
 
-    v_cond_in, v_to_top, v_cond_top, q_used, q_req, mode = _condenser_mass_split_from_duty(
+    v_cond_in, v_to_top, v_cond_top, q_used, q_req, t_bub, mode = _condenser_mass_split_from_duty(
         col=col,
         inputs=ColumnInputs(
             condenser_duty_mode="total-condense",
@@ -885,6 +887,7 @@ def test_total_condense_mass_split_skips_live_thermo_when_disabled(monkeypatch):
     assert mode == "total-condense"
     assert q_req is None
     assert abs(float(q_used) + 100.0) < 1e-12
+    assert t_bub is None
     assert abs(float(v_cond_in) - 1.0) < 1e-12
     assert abs(float(v_to_top) - 0.0) < 1e-12
     assert abs(float(v_cond_top) - 0.0) < 1e-12
@@ -1265,6 +1268,35 @@ def test_top_drum_pressure_falls_back_to_supplied_z_without_provider():
     assert mv == pytest.approx(3.0)
 
 
+def test_top_drum_pressure_can_skip_flash_fallback_and_use_supplied_z(monkeypatch):
+    class NoZProvider:
+        def vapor_z_factor_F_psia(self, T_F, P_psia, y):
+            return None
+
+    def _unexpected_flash(*_args, **_kwargs):
+        raise AssertionError("unexpected flash fallback")
+
+    monkeypatch.setattr(rhs_module, "_flash_TP_full_stage_F_psia", _unexpected_flash)
+
+    top_V = np.array([2.5, 0.5], dtype=float)
+    P, z_eval, mv = _compute_top_drum_pressure_psia(
+        top_V=top_V,
+        top_T_F=105.0,
+        Z_top=0.92,
+        top_vapor_volume_ft3=110.0,
+        thermo_provider=NoZProvider(),
+        y_top=np.array([0.7, 0.3], dtype=float),
+        P_seed_psia=150.0,
+        return_details=True,
+        allow_flash_fallback_on_refine_failure=False,
+    )
+
+    expected = float(np.sum(top_V)) * 0.92 * 10.7316 * (105.0 + 459.67) / 110.0
+    assert P == pytest.approx(expected)
+    assert z_eval == pytest.approx(0.92)
+    assert mv == pytest.approx(3.0)
+
+
 def test_top_drum_pressure_uses_lagged_stage1_temperature():
     col = _make_tiny_column()
     layout = StateVectorLayout(
@@ -1401,6 +1433,84 @@ def test_temperature_uses_provider_cp():
 
     # With very large Cp, temperature change should be near zero.
     assert np.all(np.abs(dT) < 1e-6)
+
+
+def test_temperature_prefers_packet_cp_slope_before_provider_cp(monkeypatch):
+    N, Nc = 2, 1
+    x0 = np.ones((N, Nc), dtype=float)
+    y0 = np.ones((N, Nc), dtype=float)
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A"],
+        components_dwsim=["A"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Number of Stages": 2, "Number of Components": 1, "Timestep (sec)": 1.0, "Simulation Length (min)": 0.1, "Log Frequency (timesteps)": 1},
+        T_f=np.array([101.0, 121.0], dtype=float),
+        P_psia=np.array([200.0, 210.0], dtype=float),
+        V_lbmolph=np.array([0.0, 0.0], dtype=float),
+        L_lbmolph=np.array([0.0, 0.0], dtype=float),
+        M_L_lbmol=np.array([10.0, 10.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+    )
+
+    layout = StateVectorLayout(
+        n_stages=N,
+        n_components=Nc,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+    )
+    y0_state = layout.pack_y0(col)
+
+    class CpThermo:
+        def cp_liq_vap_btu_per_lbmolF(self, T_F, P_psia, z):
+            raise AssertionError("provider Cp should not be needed when packet slope is available")
+
+    class _FakeFlash:
+        def __init__(self, T_F):
+            self.K = np.ones((Nc,), dtype=float)
+            self.y = np.ones((Nc,), dtype=float)
+            self.x = np.ones((Nc,), dtype=float)
+            self.Z = 1.0
+            self.HL_BTU_lbmol = -100.0 + 2.0 * (float(T_F) - 100.0)
+            self.HV_BTU_lbmol = 200.0 + 3.0 * (float(T_F) - 100.0)
+
+    def _fake_flash(provider, T_F, P_psia, z, n_components, stage_index0=None):
+        return _FakeFlash(T_F)
+
+    monkeypatch.setattr(rhs_module, "flash_TP_full_F_psia", _fake_flash)
+
+    prev_packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.ones((N, Nc), dtype=float),
+        K_tray=np.ones((N, Nc), dtype=float),
+        HL_BTU_lbmol_tray=np.array([-100.0, -60.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([200.0, 260.0], dtype=float),
+        Z_tray=np.ones((N,), dtype=float),
+        T_tray_F=np.array([100.0, 120.0], dtype=float),
+        P_tray_psia=np.array([200.0, 210.0], dtype=float),
+        x_equilibrium_tray=np.ones((N, Nc), dtype=float),
+        y_equilibrium_tray=np.ones((N, Nc), dtype=float),
+    )
+
+    inputs = ColumnInputs(
+        thermo_provider=CpThermo(),
+        compute_thermo_diag=True,
+        tray_thermo_prev=prev_packet,
+    )
+    dydt, _diag = column_rhs(0.0, y0_state, col, layout, inputs=inputs)
+
+    sl = layout.slices()
+    dT = dydt[sl["tray_T_f"]]
+    assert np.all(np.isfinite(dT))
 
 
 def test_vapor_flow_energy_relaxation():
@@ -1618,6 +1728,171 @@ def test_vapor_flow_energy_prefers_provider_enthalpies_when_available():
     # V_out = [2*(190-200) + 1*(430-200)] / (400-200) = 1.05 lbmol/s = 3780 lbmol/h
     # Fallback thermo alone would give 3660 lbmol/h, so this distinguishes the paths.
     assert np.isclose(v_out[1], 3780.0, rtol=1e-6, atol=1e-6)
+
+
+def test_vapor_flow_energy_defaults_to_lightweight_cp_even_with_provider_cp():
+    N, Nc = 3, 1
+    x0 = np.ones((N, Nc), dtype=float)
+    y0 = np.ones((N, Nc), dtype=float)
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A"],
+        components_dwsim=["A"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2, 3], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Number of Stages": 3, "Number of Components": 1, "Timestep (sec)": 1.0, "Simulation Length (min)": 0.1, "Log Frequency (timesteps)": 1},
+        T_f=np.array([90.0, 100.0, 110.0], dtype=float),
+        P_psia=np.array([200.0, 200.0, 200.0], dtype=float),
+        V_lbmolph=np.array([0.0, 2000.0, 3600.0], dtype=float),
+        L_lbmolph=np.array([0.0, 3600.0, 3600.0], dtype=float),
+        M_L_lbmol=np.array([5.0, 5.0, 5.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+    )
+
+    layout = StateVectorLayout(
+        n_stages=N,
+        n_components=Nc,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y0_state = layout.pack_y0(col)
+
+    class FallbackThermo:
+        def cp_liq_btu_per_lbmolF(self, T_F, P_psia, x):
+            return 10.0
+
+        def cp_vap_btu_per_lbmolF(self, T_F, P_psia, y):
+            return 20.0
+
+        def h_liq_btu_per_lbmol(self, T_F, P_psia, x):
+            return float(T_F)
+
+        def h_vap_btu_per_lbmol(self, T_F, P_psia, y):
+            return 2.2 * float(T_F)
+
+    class ProviderThermo:
+        def __init__(self):
+            self.cp_calls = 0
+
+        def flash_TP_full_F_psia(self, T_F, P_psia, z):
+            z = np.asarray(z, dtype=float).reshape((-1,))
+            x = z.copy()
+            y = z.copy()
+            K = np.ones_like(z)
+            return (x, y, K, float(T_F) + 100.0, 3.0 * float(T_F) + 100.0)
+
+        def cp_liq_vap_btu_per_lbmolF(self, T_F, P_psia, z):
+            self.cp_calls += 1
+            return (1000.0, 1000.0)
+
+    provider = ProviderThermo()
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=7200.0, boilup_lbmolph=3600.0),
+        vapor_flow_model="energy",
+        thermo=FallbackThermo(),
+        thermo_provider=provider,
+        dT_tray_target_F_per_s=np.array([0.0, 1.0, 0.0], dtype=float),
+        V_out_prev_lbmolph=np.array([0.0, 4000.0, 0.0], dtype=float),
+    )
+
+    _dydt, diag = column_rhs(0.0, y0_state, col, layout, inputs=inputs)
+    v_out = np.asarray(diag["V_out_lbmolph"], dtype=float).reshape((N,))
+
+    assert np.isfinite(v_out[1])
+    assert provider.cp_calls == 0
+
+
+def test_vapor_flow_energy_can_opt_in_to_provider_cp():
+    N, Nc = 3, 1
+    x0 = np.ones((N, Nc), dtype=float)
+    y0 = np.ones((N, Nc), dtype=float)
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A"],
+        components_dwsim=["A"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2, 3], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Number of Stages": 3, "Number of Components": 1, "Timestep (sec)": 1.0, "Simulation Length (min)": 0.1, "Log Frequency (timesteps)": 1},
+        T_f=np.array([90.0, 100.0, 110.0], dtype=float),
+        P_psia=np.array([200.0, 200.0, 200.0], dtype=float),
+        V_lbmolph=np.array([0.0, 2000.0, 3600.0], dtype=float),
+        L_lbmolph=np.array([0.0, 3600.0, 3600.0], dtype=float),
+        M_L_lbmol=np.array([5.0, 5.0, 5.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+    )
+
+    layout = StateVectorLayout(
+        n_stages=N,
+        n_components=Nc,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y0_state = layout.pack_y0(col)
+
+    class FallbackThermo:
+        def cp_liq_btu_per_lbmolF(self, T_F, P_psia, x):
+            return 10.0
+
+        def cp_vap_btu_per_lbmolF(self, T_F, P_psia, y):
+            return 20.0
+
+        def h_liq_btu_per_lbmol(self, T_F, P_psia, x):
+            return float(T_F)
+
+        def h_vap_btu_per_lbmol(self, T_F, P_psia, y):
+            return 2.2 * float(T_F)
+
+    class ProviderThermo:
+        def __init__(self):
+            self.cp_calls = 0
+
+        def flash_TP_full_F_psia(self, T_F, P_psia, z):
+            z = np.asarray(z, dtype=float).reshape((-1,))
+            x = z.copy()
+            y = z.copy()
+            K = np.ones_like(z)
+            return (x, y, K, float(T_F) + 100.0, 3.0 * float(T_F) + 100.0)
+
+        def cp_liq_vap_btu_per_lbmolF(self, T_F, P_psia, z):
+            self.cp_calls += 1
+            return (1000.0, 1000.0)
+
+    provider = ProviderThermo()
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=7200.0, boilup_lbmolph=3600.0),
+        vapor_flow_model="energy",
+        thermo=FallbackThermo(),
+        thermo_provider=provider,
+        energy_vapor_flow_use_provider_cp=True,
+        dT_tray_target_F_per_s=np.array([0.0, 1.0, 0.0], dtype=float),
+        V_out_prev_lbmolph=np.array([0.0, 4000.0, 0.0], dtype=float),
+    )
+
+    _dydt, diag = column_rhs(0.0, y0_state, col, layout, inputs=inputs)
+    v_out = np.asarray(diag["V_out_lbmolph"], dtype=float).reshape((N,))
+
+    assert np.isfinite(v_out[1])
+    assert provider.cp_calls > 0
 
 
 def test_vapor_flow_energy_reboiler_neighbor_guard_caps_stage_above_reboiler():
@@ -2523,6 +2798,412 @@ def test_thermo_stage_refresh_updates_only_stage_exceeding_threshold():
     assert np.allclose(K[1, :], np.array([2.0, 0.5]))
 
 
+def test_thermo_stage_refresh_can_skip_using_packet_state_history():
+    N, Nc = 3, 2
+    x0 = np.array([[0.8, 0.2], [0.5, 0.5], [0.2, 0.8]], dtype=float)
+    y0 = x0.copy()
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2, 3], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Number of Stages": 3, "Number of Components": 2, "Timestep (sec)": 1.0, "Simulation Length (min)": 0.1, "Log Frequency (timesteps)": 1},
+        T_f=np.array([100.0, 120.0, 140.0], dtype=float),
+        P_psia=np.array([200.0, 210.0, 220.0], dtype=float),
+        V_lbmolph=np.array([0.0, 1000.0, 1200.0], dtype=float),
+        L_lbmolph=np.array([900.0, 1000.0, 1100.0], dtype=float),
+        M_L_lbmol=np.array([5.0, 5.0, 5.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+    )
+
+    layout = StateVectorLayout(
+        n_stages=N,
+        n_components=Nc,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y0_state = layout.pack_y0(col)
+    u0 = layout.unpack(y0_state)
+    z_prev = np.asarray(u0["x_tray"], dtype=float).copy()
+
+    class CountingProvider:
+        def __init__(self):
+            self.calls = 0
+
+        def flash_TP_full_F_psia(self, T_F, P_psia, z):
+            self.calls += 1
+            return (
+                [0.5, 0.5],
+                [0.5, 0.5],
+                [1.0, 1.0],
+                -100.0,
+                100.0,
+                1.0,
+            )
+
+    prov = CountingProvider()
+    packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=z_prev.copy(),
+        K_tray=np.ones((N, Nc), dtype=float),
+        HL_BTU_lbmol_tray=np.full(N, -10.0, dtype=float),
+        HV_BTU_lbmol_tray=np.full(N, 10.0, dtype=float),
+        Z_tray=np.ones(N, dtype=float),
+        T_tray_F=np.array([100.0, 120.0, 140.0], dtype=float),
+        P_tray_psia=np.array([200.0, 210.0, 220.0], dtype=float),
+    )
+
+    inputs = ColumnInputs(
+        thermo_provider=prov,
+        compute_thermo_diag=True,
+        reboiler_equilibrium=False,
+        tray_thermo_prev=packet,
+        thermo_refresh_dT_F=1e-3,
+        thermo_refresh_dP_psia=1e-3,
+        thermo_refresh_dx=1e-6,
+    )
+    _dydt, diag = column_rhs(0.0, y0_state, col, layout, inputs=inputs)
+
+    assert prov.calls == 0
+    skipped = np.asarray(diag["thermo_flash_skipped"], dtype=float).reshape((N,))
+    refreshed = np.asarray(diag["thermo_flash_refreshed"], dtype=float).reshape((N,))
+    assert np.all(skipped == 1.0)
+    assert np.all(refreshed == 0.0)
+
+
+def test_packet_phase_enthalpy_reuse_requires_close_phase_composition():
+    packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[0.7, 0.3]], dtype=float),
+        K_tray=np.array([[1.2, 0.8]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-90.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([110.0], dtype=float),
+        Z_tray=np.array([0.97], dtype=float),
+        T_tray_F=np.array([160.0], dtype=float),
+        P_tray_psia=np.array([14.9], dtype=float),
+        x_equilibrium_tray=np.array([[0.69, 0.31]], dtype=float),
+        y_equilibrium_tray=np.array([[0.72, 0.28]], dtype=float),
+    )
+
+    hL = rhs_module._packet_phase_enthalpy_if_compatible(
+        packet,
+        stage_index0=0,
+        T_F=160.2,
+        P_psia=15.0,
+        phase_composition=np.array([0.691, 0.309], dtype=float),
+        phase="liquid",
+        max_abs_dx=5.0e-3,
+        max_abs_dT_F=0.5,
+        max_abs_dP_psia=0.2,
+    )
+    hV = rhs_module._packet_phase_enthalpy_if_compatible(
+        packet,
+        stage_index0=0,
+        T_F=160.1,
+        P_psia=14.95,
+        phase_composition=np.array([0.721, 0.279], dtype=float),
+        phase="vapor",
+        max_abs_dx=5.0e-3,
+        max_abs_dT_F=0.5,
+        max_abs_dP_psia=0.2,
+    )
+    miss = rhs_module._packet_phase_enthalpy_if_compatible(
+        packet,
+        stage_index0=0,
+        T_F=160.0,
+        P_psia=14.9,
+        phase_composition=np.array([0.75, 0.25], dtype=float),
+        phase="liquid",
+        max_abs_dx=5.0e-3,
+        max_abs_dT_F=0.5,
+        max_abs_dP_psia=0.2,
+    )
+    miss_tp = rhs_module._packet_phase_enthalpy_if_compatible(
+        packet,
+        stage_index0=0,
+        T_F=162.0,
+        P_psia=14.9,
+        phase_composition=np.array([0.691, 0.309], dtype=float),
+        phase="liquid",
+        max_abs_dx=5.0e-3,
+        max_abs_dT_F=0.5,
+        max_abs_dP_psia=0.2,
+    )
+
+    assert hL == pytest.approx(-90.0)
+    assert hV == pytest.approx(110.0)
+    assert miss is None
+    assert miss_tp is None
+
+
+def test_phase_reuse_dx_tol_uses_vapor_override_when_present():
+    inputs = rhs_module.ColumnInputs(
+        thermo_packet_phase_reuse_dx=5.0e-3,
+        thermo_packet_vapor_reuse_dx=3.0e-2,
+    )
+
+    assert rhs_module._phase_reuse_dx_tol(inputs, "liquid") == pytest.approx(5.0e-3)
+    assert rhs_module._phase_reuse_dx_tol(inputs, "vapor") == pytest.approx(3.0e-2)
+
+    inputs_default = rhs_module.ColumnInputs(
+        thermo_packet_phase_reuse_dx=7.5e-3,
+        thermo_packet_vapor_reuse_dx=None,
+    )
+
+    assert rhs_module._phase_reuse_dx_tol(inputs_default, "liquid") == pytest.approx(7.5e-3)
+    assert rhs_module._phase_reuse_dx_tol(inputs_default, "vapor") == pytest.approx(7.5e-3)
+
+
+def test_packet_phase_cp_from_packets_uses_enthalpy_slope_when_state_is_compatible():
+    previous_packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[0.7, 0.3]], dtype=float),
+        K_tray=np.array([[1.2, 0.8]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-100.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([120.0], dtype=float),
+        Z_tray=np.array([0.97], dtype=float),
+        T_tray_F=np.array([160.0], dtype=float),
+        P_tray_psia=np.array([14.9], dtype=float),
+        x_equilibrium_tray=np.array([[0.69, 0.31]], dtype=float),
+        y_equilibrium_tray=np.array([[0.72, 0.28]], dtype=float),
+    )
+    current_packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[0.7, 0.3]], dtype=float),
+        K_tray=np.array([[1.2, 0.8]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-96.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([126.0], dtype=float),
+        Z_tray=np.array([0.98], dtype=float),
+        T_tray_F=np.array([162.0], dtype=float),
+        P_tray_psia=np.array([15.0], dtype=float),
+        x_equilibrium_tray=np.array([[0.691, 0.309]], dtype=float),
+        y_equilibrium_tray=np.array([[0.721, 0.279]], dtype=float),
+    )
+
+    cpL = rhs_module._packet_phase_cp_from_packets(
+        current_packet,
+        previous_packet,
+        stage_index0=0,
+        phase="liquid",
+        max_abs_dx=5.0e-3,
+        max_abs_dP_psia=0.2,
+        min_abs_dT_F=0.1,
+    )
+    cpV = rhs_module._packet_phase_cp_from_packets(
+        current_packet,
+        previous_packet,
+        stage_index0=0,
+        phase="vapor",
+        max_abs_dx=5.0e-3,
+        max_abs_dP_psia=0.2,
+        min_abs_dT_F=0.1,
+    )
+    miss = rhs_module._packet_phase_cp_from_packets(
+        current_packet,
+        previous_packet,
+        stage_index0=0,
+        phase="liquid",
+        max_abs_dx=1.0e-4,
+        max_abs_dP_psia=0.2,
+        min_abs_dT_F=0.1,
+    )
+
+    assert cpL == pytest.approx(2.0)
+    assert cpV == pytest.approx(3.0)
+    assert miss is None
+
+
+def test_phase_cp_from_current_enthalpy_and_packet_uses_previous_packet_state():
+    previous_packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[0.7, 0.3]], dtype=float),
+        K_tray=np.array([[1.2, 0.8]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-100.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([120.0], dtype=float),
+        Z_tray=np.array([0.97], dtype=float),
+        T_tray_F=np.array([160.0], dtype=float),
+        P_tray_psia=np.array([14.9], dtype=float),
+        x_equilibrium_tray=np.array([[0.69, 0.31]], dtype=float),
+        y_equilibrium_tray=np.array([[0.72, 0.28]], dtype=float),
+    )
+
+    cpL = rhs_module._phase_cp_from_current_enthalpy_and_packet(
+        previous_packet,
+        stage_index0=0,
+        current_enthalpy_btu_per_lbmol=-96.0,
+        current_T_F=162.0,
+        current_P_psia=15.0,
+        current_phase_composition=np.array([0.691, 0.309], dtype=float),
+        phase="liquid",
+        max_abs_dx=5.0e-3,
+        max_abs_dP_psia=0.2,
+        min_abs_dT_F=0.1,
+    )
+    cpV = rhs_module._phase_cp_from_current_enthalpy_and_packet(
+        previous_packet,
+        stage_index0=0,
+        current_enthalpy_btu_per_lbmol=126.0,
+        current_T_F=162.0,
+        current_P_psia=15.0,
+        current_phase_composition=np.array([0.721, 0.279], dtype=float),
+        phase="vapor",
+        max_abs_dx=5.0e-3,
+        max_abs_dP_psia=0.2,
+        min_abs_dT_F=0.1,
+    )
+    miss = rhs_module._phase_cp_from_current_enthalpy_and_packet(
+        previous_packet,
+        stage_index0=0,
+        current_enthalpy_btu_per_lbmol=-96.0,
+        current_T_F=160.02,
+        current_P_psia=15.0,
+        current_phase_composition=np.array([0.691, 0.309], dtype=float),
+        phase="liquid",
+        max_abs_dx=5.0e-3,
+        max_abs_dP_psia=0.2,
+        min_abs_dT_F=0.1,
+    )
+
+    assert cpL == pytest.approx(2.0)
+    assert cpV == pytest.approx(3.0)
+    assert miss is None
+
+
+def test_packet_cp_if_compatible_reads_cached_packet_cp():
+    packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[0.7, 0.3]], dtype=float),
+        K_tray=np.array([[1.2, 0.8]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-100.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([120.0], dtype=float),
+        Z_tray=np.array([0.97], dtype=float),
+        cpL_BTU_lbmolF_tray=np.array([2.2], dtype=float),
+        cpV_BTU_lbmolF_tray=np.array([3.4], dtype=float),
+        T_tray_F=np.array([160.0], dtype=float),
+        P_tray_psia=np.array([14.9], dtype=float),
+    )
+
+    cpL = rhs_module._packet_cp_if_compatible(
+        packet,
+        stage_index0=0,
+        T_F=160.2,
+        P_psia=15.0,
+        z_overall=np.array([0.701, 0.299], dtype=float),
+        phase="liquid",
+        max_abs_dx=5.0e-3,
+        max_abs_dT_F=0.5,
+        max_abs_dP_psia=0.2,
+    )
+    cpV = rhs_module._packet_cp_if_compatible(
+        packet,
+        stage_index0=0,
+        T_F=160.1,
+        P_psia=14.95,
+        z_overall=np.array([0.699, 0.301], dtype=float),
+        phase="vapor",
+        max_abs_dx=5.0e-3,
+        max_abs_dT_F=0.5,
+        max_abs_dP_psia=0.2,
+    )
+    miss = rhs_module._packet_cp_if_compatible(
+        packet,
+        stage_index0=0,
+        T_F=160.0,
+        P_psia=14.9,
+        z_overall=np.array([0.72, 0.28], dtype=float),
+        phase="liquid",
+        max_abs_dx=5.0e-3,
+        max_abs_dT_F=0.5,
+        max_abs_dP_psia=0.2,
+    )
+
+    assert cpL == pytest.approx(2.2)
+    assert cpV == pytest.approx(3.4)
+    assert miss is None
+
+
+def test_packet_phase_enthalpy_first_match_uses_later_packet():
+    packet_miss = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[0.7, 0.3]], dtype=float),
+        K_tray=np.array([[1.2, 0.8]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-90.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([110.0], dtype=float),
+        Z_tray=np.array([0.97], dtype=float),
+        T_tray_F=np.array([160.0], dtype=float),
+        P_tray_psia=np.array([14.9], dtype=float),
+        x_equilibrium_tray=np.array([[0.60, 0.40]], dtype=float),
+        y_equilibrium_tray=np.array([[0.60, 0.40]], dtype=float),
+    )
+    packet_hit = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[0.7, 0.3]], dtype=float),
+        K_tray=np.array([[1.2, 0.8]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-75.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([135.0], dtype=float),
+        Z_tray=np.array([0.97], dtype=float),
+        T_tray_F=np.array([160.1], dtype=float),
+        P_tray_psia=np.array([14.95], dtype=float),
+        x_equilibrium_tray=np.array([[0.691, 0.309]], dtype=float),
+        y_equilibrium_tray=np.array([[0.721, 0.279]], dtype=float),
+    )
+
+    h = rhs_module._packet_phase_enthalpy_first_match(
+        [packet_miss, packet_hit],
+        stage_index0=0,
+        T_F=160.15,
+        P_psia=14.96,
+        phase_composition=np.array([0.721, 0.279], dtype=float),
+        phase="vapor",
+        max_abs_dx=5.0e-3,
+        max_abs_dT_F=0.5,
+        max_abs_dP_psia=0.2,
+    )
+
+    assert h == pytest.approx(135.0)
+
+
+def test_packet_phase_enthalpy_first_match_prefers_exact_same_step_packet():
+    packet_same_step = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[0.7, 0.3]], dtype=float),
+        K_tray=np.array([[np.nan, np.nan]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-80.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([150.0], dtype=float),
+        Z_tray=np.array([np.nan], dtype=float),
+        T_tray_F=np.array([160.0], dtype=float),
+        P_tray_psia=np.array([14.9], dtype=float),
+        x_equilibrium_tray=np.array([[0.69, 0.31]], dtype=float),
+        y_equilibrium_tray=np.array([[0.73, 0.27]], dtype=float),
+    )
+    packet_equilibrium = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[0.7, 0.3]], dtype=float),
+        K_tray=np.array([[1.2, 0.8]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-75.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([135.0], dtype=float),
+        Z_tray=np.array([0.97], dtype=float),
+        T_tray_F=np.array([160.0], dtype=float),
+        P_tray_psia=np.array([14.9], dtype=float),
+        x_equilibrium_tray=np.array([[0.691, 0.309]], dtype=float),
+        y_equilibrium_tray=np.array([[0.721, 0.279]], dtype=float),
+    )
+
+    h = rhs_module._packet_phase_enthalpy_first_match(
+        [packet_same_step, packet_equilibrium],
+        stage_index0=0,
+        T_F=160.0,
+        P_psia=14.9,
+        phase_composition=np.array([0.73, 0.27], dtype=float),
+        phase="vapor",
+        max_abs_dx=5.0e-3,
+        max_abs_dT_F=0.5,
+        max_abs_dP_psia=0.2,
+    )
+
+    assert h == pytest.approx(150.0)
+
+
 def test_include_energy_total_condenser_routes_duty_to_liquid_energy():
     col = _make_tiny_column()
     specs = dict(col.specs_raw)
@@ -2855,6 +3536,101 @@ def test_resolve_condenser_duty_exposes_bubble_target_in_specified_mode(monkeypa
     assert mode == "specified"
 
 
+def test_resolve_condenser_duty_reuses_previous_packet_when_state_matches(monkeypatch):
+    col = _make_tiny_column()
+    inputs = ColumnInputs(
+        condenser_duty_mode="total-condense",
+        thermo_provider=object(),
+        condenser_duty_prev=rhs_module.CondenserDutyPacket(
+            q_calc_BTUph=-4321.0,
+            T_bubble_F=111.0,
+            mode="total-condense",
+            V_vapor_in_lbmolps=1.0,
+            T_vapor_in_F=120.0,
+            P_vapor_in_psia=210.0,
+            P_condenser_psia=200.0,
+            y_vapor_in=np.array([0.9, 0.1], dtype=float),
+        ),
+    )
+
+    def _boom(**_kwargs):
+        raise AssertionError("live condenser duty solve should have been reused")
+
+    monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _boom)
+
+    q_used, q_calc, t_bub, mode = rhs_module._resolve_condenser_duty_btu_per_h(
+        col=col,
+        inputs=inputs,
+        N=2,
+        tray_T_F=np.array([100.0, 120.0], dtype=float),
+        P_tray_psia=np.array([200.0, 210.0], dtype=float),
+        V_in_lbmolps=np.array([1.0, 0.0], dtype=float),
+        y_in=np.array([[0.9, 0.1], [0.4, 0.6]], dtype=float),
+        epsilon_lbmol=1e-12,
+    )
+
+    assert mode == "total-condense"
+    assert abs(float(q_used) + 4321.0) < 1e-12
+    assert abs(float(q_calc) + 4321.0) < 1e-12
+    assert abs(float(t_bub) - 111.0) < 1e-12
+
+
+def test_column_rhs_resolves_condenser_duty_only_once_per_rhs_when_energy_and_temperature_are_active(monkeypatch):
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "V_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "L_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "M_V_lbmol": np.array([0.0, 0.0], dtype=float),
+        }
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=True,
+    )
+    y0 = layout.pack_y0(
+        col2,
+        thermo=ConstantCpThermo(
+            cp_liq_components=np.array([30.0, 25.0], dtype=float),
+            cp_vap_components=np.array([20.0, 18.0], dtype=float),
+            tref_f=60.0,
+        ),
+    )
+
+    calls = {"count": 0}
+
+    def _fake_resolve(*, col, inputs, N, tray_T_F, P_tray_psia, V_in_lbmolps, y_in, epsilon_lbmol):
+        calls["count"] += 1
+        return -7200.0, None, 110.0, "specified"
+
+    monkeypatch.setattr(rhs_module, "_resolve_condenser_duty_btu_per_h", _fake_resolve)
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo=ConstantCpThermo(
+            cp_liq_components=np.array([30.0, 25.0], dtype=float),
+            cp_vap_components=np.array([20.0, 18.0], dtype=float),
+            tref_f=60.0,
+        ),
+        condenser_duty_mode="specified",
+        condenser_duty_btu_per_h=-7200.0,
+        pressure_model="hydraulic",
+        vapor_flow_model="energy",
+    )
+
+    _dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+
+    assert calls["count"] == 1
+    assert abs(float(np.asarray(diag["Q_cond_used_BTUph"], dtype=float).reshape((-1,))[0]) + 7200.0) < 1e-12
+    assert abs(float(np.asarray(diag["T_cond_bubble_F"], dtype=float).reshape((-1,))[0]) - 110.0) < 1e-12
+
+
 def test_bubble_point_no_bracket_returns_clipped_guess_not_scan_node():
     class NoBracketProvider:
         T_grid_F = np.array([95.0, 120.0, 150.0], dtype=float)
@@ -2910,6 +3686,67 @@ def test_bubble_point_respects_provider_temperature_bounds():
 
     assert abs(float(T_low) - 95.0) < 1e-9
     assert abs(float(T_high) - 150.0) < 1e-9
+
+
+def test_bubble_point_prefers_local_bracket_near_guess(monkeypatch):
+    calls = []
+
+    class _FakeFlash:
+        def __init__(self, T_F):
+            self.K = np.array([float(T_F) / 100.0, 1.0], dtype=float)
+            self.y = np.array([0.5, 0.5], dtype=float)
+
+    def _fake_flash(provider, T_F, P_psia, z, n_components):
+        calls.append(float(T_F))
+        return _FakeFlash(T_F)
+
+    monkeypatch.setattr(rhs_module, "flash_TP_full_F_psia", _fake_flash)
+    monkeypatch.setattr(rhs_module, "_rachford_rice_beta", lambda K, x: float(np.asarray(K, dtype=float)[0] - 1.0))
+
+    T, _ = _bubble_point_T_F(
+        thermo_provider=object(),
+        P_psia=14.7,
+        x=np.array([0.5, 0.5], dtype=float),
+        T_guess_F=102.0,
+        T_min_F=50.0,
+        T_max_F=600.0,
+        max_iter=12,
+    )
+
+    assert T == pytest.approx(100.0, abs=0.1)
+    assert len(calls) < 21
+
+
+def test_bubble_point_uses_practical_tolerance_to_limit_flash_count(monkeypatch):
+    calls = []
+
+    class _FakeFlash:
+        def __init__(self, T_F):
+            self.K = np.array([float(T_F) / 100.0, 1.0], dtype=float)
+            self.y = np.array([0.5, 0.5], dtype=float)
+
+    def _fake_flash(provider, T_F, P_psia, z, n_components):
+        calls.append(float(T_F))
+        return _FakeFlash(T_F)
+
+    monkeypatch.setattr(rhs_module, "flash_TP_full_F_psia", _fake_flash)
+    monkeypatch.setattr(rhs_module, "_rachford_rice_beta", lambda K, x: float(np.asarray(K, dtype=float)[0] - 1.0))
+
+    T, _ = _bubble_point_T_F(
+        thermo_provider=object(),
+        P_psia=14.7,
+        x=np.array([0.5, 0.5], dtype=float),
+        T_guess_F=160.0,
+        T_min_F=100.0,
+        T_max_F=200.0,
+        beta_target=0.5333,
+        beta_tol=1.0e-4,
+        temperature_tol_F=0.1,
+        max_iter=18,
+    )
+
+    assert T == pytest.approx(153.33, abs=0.1)
+    assert len(calls) <= 12
 
 
 def test_no_holdup_reboiler_sump_temperature_uses_energy_balance_not_bubblepoint_relaxation():

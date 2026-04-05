@@ -239,7 +239,7 @@ def test_write_restart_workbook_from_run_result_writes_boundary_state_sheet(tmp_
     assert ctrl_map["bottoms_comp_integ"] == pytest.approx(-7.25)
 
 
-def test_fast_startup_uses_balanced_startup_passes():
+def test_fast_startup_skips_expensive_startup_passes():
     cfg = RunnerConfig(
         excel_path="dummy.xlsx",
         fast_startup=True,
@@ -250,11 +250,11 @@ def test_fast_startup_uses_balanced_startup_passes():
     flags = _resolve_startup_execution_flags(cfg)
 
     assert flags["fast_startup"] is True
-    assert flags["enable_startup_thermo_conditioning"] is True
+    assert flags["enable_startup_thermo_conditioning"] is False
     assert flags["startup_thermo_conditioning_iters"] == 1
     assert flags["startup_thermo_conditioning_relaxation"] == pytest.approx(1.0)
     assert flags["enable_startup_hydraulic_energy_consistency"] is False
-    assert flags["enable_top_drum_startup_steadying"] is True
+    assert flags["enable_top_drum_startup_steadying"] is False
     assert flags["top_drum_steady_max_iter"] == 2
     assert flags["top_drum_steady_tol_lbmolps"] == pytest.approx(1.0e-4)
     assert flags["top_drum_steady_wall_limit_sec"] == pytest.approx(30.0)
@@ -305,6 +305,20 @@ def test_parity_startup_execution_flags_skip_thermo_conditioning():
         runtime_mode="parity",
         fast_startup=True,
         enable_startup_thermo_conditioning=True,
+    )
+
+    flags = _resolve_startup_execution_flags(cfg)
+
+    assert flags["enable_startup_thermo_conditioning"] is False
+    assert flags["enable_top_drum_startup_steadying"] is False
+
+
+def test_disabling_startup_thermo_conditioning_also_skips_top_drum_steadying():
+    cfg = RunnerConfig(
+        excel_path="dummy.xlsx",
+        runtime_mode="hydraulic",
+        fast_startup=True,
+        enable_startup_thermo_conditioning=False,
     )
 
     flags = _resolve_startup_execution_flags(cfg)
@@ -757,6 +771,62 @@ def test_initialize_vapor_holdup_rescales_ev_when_energy_states_enabled():
     assert abs(float(ev1[0])) < 1e-12
 
 
+def test_initialize_vapor_holdup_can_return_startup_thermo_diag(monkeypatch):
+    class TinyCol:
+        n_stages = 2
+        n_components = 2
+        M_L_lbmol = np.array([5.0, 5.0], dtype=float)
+        M_V_lbmol = np.array([0.0, 0.0], dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.3, 0.7]], dtype=float)
+        y0 = np.array([[0.9, 0.1], [0.4, 0.6]], dtype=float)
+        T_f = np.array([100.0, 120.0], dtype=float)
+        P_psia = np.array([200.0, 210.0], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col)
+    y0 = _clear_initial_tray_vapor_holdup(y0, layout)
+
+    seen = {}
+
+    def fake_column_rhs(t_s, y_s, col_s, layout_s, inputs):
+        seen["compute_thermo_diag"] = inputs.compute_thermo_diag
+        return np.zeros_like(y_s), {
+            "Z_tray": np.ones(col_s.n_stages, dtype=float),
+            "z_overall_tray": np.array([[0.8, 0.2], [0.3, 0.7]], dtype=float),
+            "K_tray": np.array([[1.1, 0.9], [0.6, 1.4]], dtype=float),
+            "HL_BTU_lbmol_tray": np.array([-100.0, -80.0], dtype=float),
+            "HV_BTU_lbmol_tray": np.array([120.0, 140.0], dtype=float),
+            "x_eq_thermo_tray": np.array([[0.82, 0.18], [0.35, 0.65]], dtype=float),
+            "y_eq_thermo_tray": np.array([[0.76, 0.24], [0.28, 0.72]], dtype=float),
+        }
+
+    monkeypatch.setattr(runmod, "column_rhs", fake_column_rhs)
+
+    y1, diag = _initialize_vapor_holdup_from_spec_pressure(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(),
+        include_temperature=False,
+        return_diag=True,
+    )
+
+    assert isinstance(diag, dict)
+    assert seen["compute_thermo_diag"] is True
+    assert "K_tray" in diag
+    assert np.isfinite(np.sum(y1))
+
+
 def test_level_control_writes_dynamic_draws_to_summary_log(tmp_path: Path):
     excel = Path("distillation_column_template.xlsx")
     if not excel.exists():
@@ -845,6 +915,118 @@ def test_runner_writes_run_metadata_json(tmp_path: Path):
     assert str(doc.get("restart_workbook", "")).endswith(".xlsx")
     assert Path(str(doc["restart_workbook"])).exists()
     assert Path(str(out["restart_workbook"])).exists()
+
+
+def test_snapshot_thermo_call_counters_merges_multiple_providers():
+    class _Prov:
+        def __init__(self, counters):
+            self._counters = counters
+
+        def get_call_counters(self):
+            return self._counters
+
+    merged = runmod._snapshot_thermo_call_counters(
+        _Prov(
+            {
+                "main_tray_refresh": {"flash_requests": 3, "backend_flash_equivalents": 3, "wall_sec": 1.25},
+                "temperature_state_cp_lookup": {"cp_requests": 2},
+            }
+        ),
+        _Prov(
+            {
+                "main_tray_refresh": {"flash_requests": 1, "wall_sec": 0.75},
+                "equilibrium_relaxation_flash": {"flash_requests": 4},
+            }
+        ),
+    )
+
+    assert merged["main_tray_refresh"]["flash_requests"] == 4
+    assert merged["main_tray_refresh"]["backend_flash_equivalents"] == 3
+    assert merged["main_tray_refresh"]["wall_sec"] == pytest.approx(2.0)
+    assert merged["temperature_state_cp_lookup"]["cp_requests"] == 2
+    assert merged["equilibrium_relaxation_flash"]["flash_requests"] == 4
+
+
+def test_snapshot_thermo_call_counters_dedupes_repeated_provider_object():
+    class _Prov:
+        def __init__(self, counters):
+            self._counters = counters
+
+        def get_call_counters(self):
+            return self._counters
+
+    prov = _Prov(
+        {
+            "main_tray_refresh": {"flash_requests": 11, "backend_flash_equivalents": 11, "wall_sec": 12.5},
+            "energy_vapor_flow_enthalpy_refresh": {"flash_requests": 9, "wall_sec": 8.75},
+        }
+    )
+
+    merged = runmod._snapshot_thermo_call_counters(prov, prov, prov)
+
+    assert merged["main_tray_refresh"]["flash_requests"] == 11
+    assert merged["main_tray_refresh"]["backend_flash_equivalents"] == 11
+    assert merged["main_tray_refresh"]["wall_sec"] == pytest.approx(12.5)
+    assert merged["energy_vapor_flow_enthalpy_refresh"]["flash_requests"] == 9
+    assert merged["energy_vapor_flow_enthalpy_refresh"]["wall_sec"] == pytest.approx(8.75)
+
+
+def test_tray_thermo_packet_from_diag_extracts_packet():
+    diag = {
+        "z_overall_tray": np.array([[0.8, 0.2], [0.3, 0.7]], dtype=float),
+        "K_tray": np.array([[1.1, 0.9], [0.6, 1.4]], dtype=float),
+        "HL_BTU_lbmol_tray": np.array([-100.0, -80.0], dtype=float),
+        "HV_BTU_lbmol_tray": np.array([120.0, 140.0], dtype=float),
+        "Z_tray": np.array([0.98, 0.95], dtype=float),
+        "cpL_BTU_lbmolF_tray": np.array([2.1, 2.4], dtype=float),
+        "cpV_BTU_lbmolF_tray": np.array([3.1, 3.6], dtype=float),
+        "x_eq_thermo_tray": np.array([[0.82, 0.18], [0.35, 0.65]], dtype=float),
+        "y_eq_thermo_tray": np.array([[0.76, 0.24], [0.28, 0.72]], dtype=float),
+    }
+
+    packet = runmod._tray_thermo_packet_from_diag(
+        diag,
+        n_stages=2,
+        n_components=2,
+        T_tray_F=np.array([150.0, 190.0], dtype=float),
+        P_tray_psia=np.array([14.7, 15.2], dtype=float),
+    )
+
+    assert packet is not None
+    assert np.allclose(packet.z_overall, diag["z_overall_tray"])
+    assert np.allclose(packet.K_tray, diag["K_tray"])
+    assert np.allclose(packet.HL, diag["HL_BTU_lbmol_tray"])
+    assert np.allclose(packet.HV, diag["HV_BTU_lbmol_tray"])
+    assert np.allclose(packet.Zfac_tray, diag["Z_tray"])
+    assert np.allclose(packet.cpL_tray, diag["cpL_BTU_lbmolF_tray"])
+    assert np.allclose(packet.cpV_tray, diag["cpV_BTU_lbmolF_tray"])
+    assert np.allclose(packet.x_eq, diag["x_eq_thermo_tray"])
+    assert np.allclose(packet.y_eq, diag["y_eq_thermo_tray"])
+    assert np.allclose(packet.T_state, np.array([150.0, 190.0], dtype=float))
+    assert np.allclose(packet.P_state, np.array([14.7, 15.2], dtype=float))
+
+
+def test_condenser_duty_packet_from_diag_extracts_packet():
+    packet = runmod._condenser_duty_packet_from_diag(
+        {
+            "condenser_duty_cache_q_calc_BTUph": np.array([-1234.0], dtype=float),
+            "condenser_duty_cache_T_bubble_F": np.array([111.0], dtype=float),
+            "condenser_duty_cache_mode_total_condense": np.array([1.0], dtype=float),
+            "condenser_duty_cache_V_vapor_in_lbmolps": np.array([1.2], dtype=float),
+            "condenser_duty_cache_T_vapor_in_F": np.array([140.0], dtype=float),
+            "condenser_duty_cache_P_vapor_in_psia": np.array([15.0], dtype=float),
+            "condenser_duty_cache_P_condenser_psia": np.array([14.7], dtype=float),
+            "condenser_duty_cache_y_vapor_in": np.array([0.2, 0.8], dtype=float),
+        },
+        n_components=2,
+    )
+
+    assert packet is not None
+    assert packet.mode == "total-condense"
+    assert abs(float(packet.q_calc_BTUph) + 1234.0) < 1e-12
+    assert abs(float(packet.T_bubble_F) - 111.0) < 1e-12
+    assert abs(float(packet.V_vapor_in_lbmolps) - 1.2) < 1e-12
+    assert np.allclose(packet.y_vapor_in, np.array([0.2, 0.8], dtype=float))
 
 
 def test_bottom_true_level_control_logs_fractional_pv_and_sp(tmp_path: Path):
@@ -2800,6 +2982,73 @@ def test_build_inputs_can_select_dwsim_property_package(monkeypatch):
     _inputs, _prov = build_inputs_for_runner(case, col, cfg)
     assert calls
     assert calls[0]["property_package"] == "unifac"
+
+
+def test_build_inputs_dwsim_selective_live_pr_builds_separate_pr_provider(monkeypatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+    import dynamic_distillation.thermo_provider_v1 as thermo_provider_v1
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    calls = []
+
+    class _FakeThermoProvider:
+        def __init__(self, *args, **kwargs):
+            calls.append(dict(kwargs))
+
+    monkeypatch.setattr(thermo_provider_v1, "ThermoProviderV1", _FakeThermoProvider)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="dwsim",
+        dwsim_property_package="unifac",
+        equilibrium_relaxation_live_pr=True,
+    )
+    inputs, _prov = build_inputs_for_runner(case, col, cfg)
+
+    assert len(calls) >= 2
+    assert calls[0]["property_package"] == "unifac"
+    assert calls[1]["property_package"] == "pr"
+    assert inputs.equilibrium_relaxation_thermo_provider is not None
+
+
+def test_build_inputs_dwsim_pr_does_not_build_redundant_live_pr_override(monkeypatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+    import dynamic_distillation.thermo_provider_v1 as thermo_provider_v1
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    calls = []
+
+    class _FakeThermoProvider:
+        def __init__(self, *args, **kwargs):
+            calls.append(dict(kwargs))
+
+    monkeypatch.setattr(thermo_provider_v1, "ThermoProviderV1", _FakeThermoProvider)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="dwsim",
+        dwsim_property_package="pr",
+        equilibrium_relaxation_live_pr=True,
+    )
+    inputs, _prov = build_inputs_for_runner(case, col, cfg)
+
+    assert len(calls) == 1
+    assert calls[0]["property_package"] == "pr"
+    assert inputs.equilibrium_relaxation_thermo_provider is None
 
 
 def test_run_smoke_explicit_euler_skips_integrator_rhs_recompute(monkeypatch, tmp_path: Path):

@@ -84,6 +84,7 @@ class _FakeBackend:
         return coeffs, props
 
 
+
 def test_provider_configures_backend_and_flashes(monkeypatch):
     import dynamic_distillation.thermo_provider_v1 as tp_mod
 
@@ -178,3 +179,51 @@ def test_provider_stage_aware_lightweight_flash_skips_cp_coefficients(monkeypatc
     assert len(res) == 6
     assert len(fake.flash_calls) == 1
     assert fake.coeff_calls == []
+
+
+def test_provider_records_call_counters_and_cache_hits(monkeypatch):
+    import dynamic_distillation.thermo_provider_v1 as tp_mod
+
+    fake = _FakeBackend()
+    monkeypatch.setattr(tp_mod, "backend", fake, raising=True)
+
+    prov = ThermoProviderV1(["A", "B"], ["A", "B"])
+    with prov.thermo_call_category("main_tray_refresh"):
+        prov.flash_TP_full_F_psia(25.0, 120.0, [0.5, 0.5])
+    with prov.thermo_call_category("temperature_state_cp_lookup"):
+        cpL_1, cpV_1 = prov.cp_liq_vap_btu_per_lbmolF(25.0, 120.0, [0.5, 0.5])
+    with prov.thermo_call_category("temperature_state_cp_lookup"):
+        cpL_2, cpV_2 = prov.cp_liq_vap_btu_per_lbmolF(25.0, 120.0, [0.5, 0.5])
+
+    counters = prov.get_call_counters()
+
+    assert cpL_1 == pytest.approx(2.0)
+    assert cpV_1 == pytest.approx(3.0)
+    assert cpL_2 == pytest.approx(2.0)
+    assert cpV_2 == pytest.approx(3.0)
+    assert counters["main_tray_refresh"]["flash_requests"] == 1
+    assert counters["main_tray_refresh"]["backend_flash_equivalents"] == 1
+    assert counters["main_tray_refresh"]["wall_sec"] >= 0.0
+    assert counters["temperature_state_cp_lookup"]["cp_requests"] == 1
+    assert counters["temperature_state_cp_lookup"]["cp_cache_misses"] == 1
+    assert counters["temperature_state_cp_lookup"]["cp_cache_hits"] == 1
+    assert counters["temperature_state_cp_lookup"]["backend_flash_equivalents"] == 2
+    assert counters["temperature_state_cp_lookup"]["wall_sec"] >= 0.0
+
+
+def test_provider_thermo_call_category_scopes_debug_trace_context(monkeypatch):
+    import dynamic_distillation.thermo_provider_v1 as tp_mod
+
+    fake = _FakeBackend()
+    monkeypatch.setattr(tp_mod, "backend", fake, raising=True)
+
+    prov = ThermoProviderV1(["A", "B"], ["A", "B"])
+    prov.configure_backend()
+    prov.set_debug_trace_context("runtime_step_1")
+
+    with prov.thermo_call_category("helper_flash"):
+        assert prov.debug_trace_context == "runtime_step_1:helper_flash"
+        assert fake.debug_trace_context == "runtime_step_1:helper_flash"
+
+    assert prov.debug_trace_context == "runtime_step_1"
+    assert fake.debug_trace_context == "runtime_step_1"

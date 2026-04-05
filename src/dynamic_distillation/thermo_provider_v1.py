@@ -39,8 +39,11 @@ ASSUMPTIONS & CONSTRAINTS
 
 from __future__ import annotations
 
+from collections import defaultdict
+from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Optional, Sequence, Tuple
+import time
+from typing import Dict, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -87,6 +90,8 @@ class ThermoProviderV1:
         self._mw_components_cache: Optional[np.ndarray] = None
         self.debug_trace_hook = None
         self.debug_trace_context = ""
+        self._thermo_call_category_stack: list[str] = []
+        self._thermo_call_counters: Dict[str, Dict[str, float]] = defaultdict(dict)
 
     def configure_backend(self) -> None:
         backend.set_component_ids(self.component_ids_dwsim)
@@ -109,6 +114,65 @@ class ThermoProviderV1:
         self.debug_trace_context = str(context or "")
         if hasattr(backend, "set_debug_trace_context"):
             backend.set_debug_trace_context(self.debug_trace_context)
+
+    def reset_call_counters(self) -> None:
+        self._thermo_call_counters = defaultdict(dict)
+        self._thermo_call_category_stack = []
+
+    def get_call_counters(self) -> Dict[str, Dict[str, float | int]]:
+        out: Dict[str, Dict[str, float | int]] = {}
+        for category, metrics in self._thermo_call_counters.items():
+            out_cat: Dict[str, float | int] = {}
+            for metric, value in metrics.items():
+                try:
+                    val = float(value)
+                except Exception:
+                    continue
+                if str(metric).endswith("_sec"):
+                    out_cat[str(metric)] = float(val)
+                else:
+                    ival = int(round(val))
+                    if abs(val - float(ival)) <= 1.0e-12:
+                        out_cat[str(metric)] = int(ival)
+                    else:
+                        out_cat[str(metric)] = float(val)
+            out[str(category)] = out_cat
+        return out
+
+    def _current_call_category(self) -> str:
+        if self._thermo_call_category_stack:
+            txt = str(self._thermo_call_category_stack[-1]).strip()
+            if txt:
+                return txt
+        return "uncategorized"
+
+    def _record_call_counter(self, metric: str, amount: float = 1, *, category: Optional[str] = None) -> None:
+        try:
+            amt = float(amount)
+        except Exception:
+            amt = 0.0
+        if amt == 0:
+            return
+        cat = str(category or self._current_call_category()).strip() or "uncategorized"
+        bucket = self._thermo_call_counters.setdefault(cat, {})
+        bucket[str(metric)] = float(bucket.get(str(metric), 0.0)) + float(amt)
+
+    @contextmanager
+    def thermo_call_category(self, category: Optional[str]):
+        cat = str(category or "").strip()
+        if not cat:
+            yield
+            return
+        prev_context = str(getattr(self, "debug_trace_context", "") or "")
+        self._thermo_call_category_stack.append(cat)
+        scoped_context = cat if not prev_context else f"{prev_context}:{cat}"
+        self.set_debug_trace_context(scoped_context)
+        try:
+            yield
+        finally:
+            self.set_debug_trace_context(prev_context)
+            if self._thermo_call_category_stack:
+                self._thermo_call_category_stack.pop()
 
 
     @staticmethod
@@ -137,9 +201,13 @@ class ThermoProviderV1:
         self.configure_backend()
         Nc = len(self.component_ids_dwsim)
         z_norm = self._normalize_z(z, Nc)
+        self._record_call_counter("flash_requests", 1)
+        self._record_call_counter("backend_flash_equivalents", 1)
 
+        t0 = time.perf_counter()
         with backend.silence_console(self.silence_backend_console):
             res = backend.flash_TP_full_F_psia(float(T_F), float(P_psia), z_norm)
+        self._record_call_counter("wall_sec", float(time.perf_counter() - t0))
 
         Zfac: Optional[float] = None
         if isinstance(res, (tuple, list)):
@@ -202,10 +270,14 @@ class ThermoProviderV1:
 
     def _cp_from_backend(self, T_F: float, P_psia: float, z_norm: np.ndarray) -> Tuple[Optional[float], Optional[float]]:
         """Prefer backend coefficients; fall back to finite difference."""
+        self._record_call_counter("cp_requests", 1)
         # Preferred path: backend.get_thermo_coefficients (already does one finite diff)
         try:
+            self._record_call_counter("backend_flash_equivalents", 2)
+            t0 = time.perf_counter()
             with backend.silence_console(self.silence_backend_console):
                 coeffs, _ = backend.get_thermo_coefficients(T_F, P_psia, z_norm, perturbation_dt=self.cp_dt_F)
+            self._record_call_counter("wall_sec", float(time.perf_counter() - t0))
             cpL = float(coeffs["HL_B"])
             cpV = float(coeffs["HV_B"])
             return cpL, cpV
@@ -215,9 +287,12 @@ class ThermoProviderV1:
         # Fallback: central-ish finite diff (2 calls)
         dt = float(self.cp_dt_F)
         try:
+            self._record_call_counter("backend_flash_equivalents", 2)
+            t0 = time.perf_counter()
             with backend.silence_console(self.silence_backend_console):
                 _x0, _y0, _K0, HL0, HV0 = backend.flash_TP_full_F_psia(T_F, P_psia, z_norm)
                 _x1, _y1, _K1, HL1, HV1 = backend.flash_TP_full_F_psia(T_F + dt, P_psia, z_norm)
+            self._record_call_counter("wall_sec", float(time.perf_counter() - t0))
             cpL = (float(HL1) - float(HL0)) / dt
             cpV = (float(HV1) - float(HV0)) / dt
             return cpL, cpV
@@ -236,7 +311,9 @@ class ThermoProviderV1:
             tuple(float(f"{v:.8f}") for v in z_norm.tolist()),
         )
         if key in self._cp_cache:
+            self._record_call_counter("cp_cache_hits", 1)
             return self._cp_cache[key]
+        self._record_call_counter("cp_cache_misses", 1)
 
         cpL, cpV = self._cp_from_backend(float(T_F), float(P_psia), z_norm)
         self._cp_cache[key] = (cpL, cpV)
@@ -257,11 +334,16 @@ class ThermoProviderV1:
             tuple(float(f"{v:.8f}") for v in x_norm.tolist()),
         )
         if key in self._rhoL_cache:
+            self._record_call_counter("rhoL_cache_hits", 1)
             return self._rhoL_cache[key]
+        self._record_call_counter("rhoL_cache_misses", 1)
+        self._record_call_counter("rhoL_requests", 1)
 
         try:
+            t0 = time.perf_counter()
             with backend.silence_console(self.silence_backend_console):
                 rho = backend.liquid_density_lbmol_ft3(float(T_F), float(P_psia), x_norm)
+            self._record_call_counter("wall_sec", float(time.perf_counter() - t0))
             if rho is not None:
                 self._rhoL_cache[key] = float(rho)
                 if len(self._rhoL_cache) > self._rhoL_cache_max:

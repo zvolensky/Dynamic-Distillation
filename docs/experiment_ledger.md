@@ -1,12 +1,12 @@
 # Experiment Ledger
 
-Updated: 2026-04-02 14:32:29 (local)
+Updated: 2026-04-05 09:16:53 (local)
 
 This file is auto-generated from `logs/**/column_summary_*.csv`, `logs/**/feasibility_trim_search_*.csv`, and `logs/**/run_registry.csv`.
 
-Total runs indexed: **953**  
-Runs with known CLI command: **536**  
-Runs with unknown CLI command: **417**
+Total runs indexed: **997**  
+Runs with known CLI command: **567**  
+Runs with unknown CLI command: **430**
 
 Primary searchable source: `docs/experiment_ledger.csv`.
 
@@ -14,73 +14,104 @@ Duplicate indicators in CSV: `exact_command_dup_group`, `exact_command_dup_count
 
 ## Duplicate Signals
 
-Exact-command duplicate groups: **71** (rows in groups: **165**)  
-Suspected-result duplicate groups: **88** (rows in groups: **243**)
+Exact-command duplicate groups: **74** (rows in groups: **195**)  
+Suspected-result duplicate groups: **94** (rows in groups: **279**)
 
 ### Exact Command Duplicates (Top 20)
 
 | Group | Count | Run IDs |
 |---|---:|---|
-| `CMDDUP001` | 2 | `20260331_182204`, `20260330_152936` |
-| `CMDDUP002` | 3 | `20260331_090454`, `20260331_083522`, `20260331_080450` |
-| `CMDDUP003` | 2 | `20260331_075522`, `20260330_221136` |
-| `CMDDUP004` | 2 | `20260330_213122`, `20260330_121738` |
-| `CMDDUP005` | 2 | `20260330_204809`, `20260330_201417` |
-| `CMDDUP006` | 4 | `20260330_180538`, `20260330_174059`, `20260330_171534`, `20260330_164505` |
-| `CMDDUP007` | 2 | `20260330_110749`, `20260330_103551` |
-| `CMDDUP008` | 2 | `20260330_090127`, `20260330_073744` |
-| `CMDDUP009` | 2 | `20260329_194132`, `20260329_162709` |
-| `CMDDUP010` | 3 | `20260328_145436`, `20260328_113652`, `20260328_093534` |
-| `CMDDUP011` | 3 | `20260325_170304`, `20260325_164926`, `20260325_163027` |
-| `CMDDUP012` | 2 | `20260325_160452`, `20260325_155716` |
-| `CMDDUP013` | 2 | `20260325_152114`, `20260325_144834` |
-| `CMDDUP014` | 2 | `20260325_143835`, `20260325_142705` |
-| `CMDDUP015` | 2 | `20260325_141709`, `20260325_141256` |
-| `CMDDUP016` | 2 | `20260325_140021`, `20260325_132349` |
-| `CMDDUP017` | 2 | `20260325_125344`, `20260325_121909` |
-| `CMDDUP018` | 2 | `20260325_113117`, `20260324_172336` |
-| `CMDDUP019` | 3 | `20260324_140652`, `20260324_134730`, `20260324_103221` |
-| `CMDDUP020` | 2 | `20260324_130154`, `20260324_121244` |
+| `CMDDUP001` | 20 | `20260404_171539`, `20260404_170546`, `20260404_165435`, `20260404_164755`, `20260404_163716`, `20260404_162348`, `20260404_161855`, `20260404_160318`, `20260404_155106`, `20260404_154248`, `20260404_153218`, `20260404_152634`, `20260404_150353`, `20260404_145745`, `20260404_145013`, `20260404_144148`, `20260404_143508`, `20260404_142607`, `20260404_141739`, `20260404_124548` |
+| `CMDDUP002` | 8 | `20260403_203610`, `20260403_202644`, `20260403_201456`, `20260403_200550`, `20260403_190925`, `20260403_184050`, `20260403_183049`, `20260403_123702` |
+| `CMDDUP003` | 2 | `20260403_093934`, `20260403_084209` |
+| `CMDDUP004` | 2 | `20260331_182204`, `20260330_152936` |
+| `CMDDUP005` | 3 | `20260331_090454`, `20260331_083522`, `20260331_080450` |
+| `CMDDUP006` | 2 | `20260331_075522`, `20260330_221136` |
+| `CMDDUP007` | 2 | `20260330_213122`, `20260330_121738` |
+| `CMDDUP008` | 2 | `20260330_204809`, `20260330_201417` |
+| `CMDDUP009` | 4 | `20260330_180538`, `20260330_174059`, `20260330_171534`, `20260330_164505` |
+| `CMDDUP010` | 2 | `20260330_110749`, `20260330_103551` |
+| `CMDDUP011` | 2 | `20260330_090127`, `20260330_073744` |
+| `CMDDUP012` | 2 | `20260329_194132`, `20260329_162709` |
+| `CMDDUP013` | 3 | `20260328_145436`, `20260328_113652`, `20260328_093534` |
+| `CMDDUP014` | 3 | `20260325_170304`, `20260325_164926`, `20260325_163027` |
+| `CMDDUP015` | 2 | `20260325_160452`, `20260325_155716` |
+| `CMDDUP016` | 2 | `20260325_152114`, `20260325_144834` |
+| `CMDDUP017` | 2 | `20260325_143835`, `20260325_142705` |
+| `CMDDUP018` | 2 | `20260325_141709`, `20260325_141256` |
+| `CMDDUP019` | 2 | `20260325_140021`, `20260325_132349` |
+| `CMDDUP020` | 2 | `20260325_125344`, `20260325_121909` |
 
 ### Suspected Result Duplicates (Top 30)
 
 | Group | Count | Run IDs |
 |---|---:|---|
-| `SIGDUP001` | 3 | `20260402_095753`, `20260402_095413`, `20260402_094650` |
-| `SIGDUP002` | 10 | `20260402_093638`, `20260402_093219`, `20260402_092812`, `20260402_092422`, `20260402_091801`, `20260402_091227`, `20260402_090737`, `20260402_083330`, `20260401_220215`, `20260401_215312` |
-| `SIGDUP003` | 4 | `20260331_075522`, `20260330_221136`, `20260330_180538`, `20260328_211231` |
-| `SIGDUP004` | 2 | `20260330_204809`, `20260330_201417` |
-| `SIGDUP005` | 2 | `20260330_174059`, `20260330_171534` |
-| `SIGDUP006` | 4 | `20260330_164505`, `20260330_121738`, `20260330_113412`, `20260330_110749` |
-| `SIGDUP007` | 2 | `20260329_210922`, `20260329_205552` |
-| `SIGDUP008` | 2 | `20260329_194132`, `20260329_162709` |
-| `SIGDUP009` | 2 | `20260328_113652`, `20260328_093534` |
-| `SIGDUP010` | 2 | `20260327_214555`, `20260326_154223` |
-| `SIGDUP011` | 2 | `20260325_170304`, `20260325_164926` |
-| `SIGDUP012` | 3 | `20260325_152114`, `20260325_144834`, `20260324_103221` |
-| `SIGDUP013` | 2 | `20260324_140652`, `20260324_134730` |
-| `SIGDUP014` | 2 | `20260324_101228`, `20260324_095546` |
-| `SIGDUP015` | 3 | `20260323_122353`, `20260323_120634`, `20260323_110543` |
-| `SIGDUP016` | 2 | `20260322_200759`, `20260322_195053` |
-| `SIGDUP017` | 2 | `20260322_200203`, `20260322_194002` |
-| `SIGDUP018` | 3 | `20260322_151922`, `20260322_150528`, `20260322_144330` |
-| `SIGDUP019` | 2 | `20260322_124408`, `20260322_124153` |
-| `SIGDUP020` | 3 | `20260320_170641`, `20260320_165056`, `20260320_164742` |
-| `SIGDUP021` | 3 | `20260320_153552`, `20260320_153116`, `20260320_152438` |
-| `SIGDUP022` | 2 | `20260228_183509`, `20260228_181829` |
-| `SIGDUP023` | 2 | `20260228_134418`, `20260228_115027` |
-| `SIGDUP024` | 2 | `20260227_182522`, `20260227_164826` |
-| `SIGDUP025` | 2 | `20260227_105203`, `20260227_093704` |
-| `SIGDUP026` | 2 | `20260226_193355`, `20260226_191629` |
-| `SIGDUP027` | 6 | `20260226_171828`, `20260226_170638`, `20260226_170100`, `20260226_165443`, `20260226_162312`, `20260226_161647` |
-| `SIGDUP028` | 2 | `20260226_135539`, `20260226_135028` |
-| `SIGDUP029` | 2 | `20260226_134948`, `20260226_134935` |
-| `SIGDUP030` | 2 | `20260226_085107`, `20260226_084954` |
+| `SIGDUP001` | 11 | `20260404_171539`, `20260404_170546`, `20260404_164755`, `20260404_163716`, `20260404_162348`, `20260404_160318`, `20260404_155106`, `20260404_154248`, `20260404_153218`, `20260404_152634`, `20260404_150353` |
+| `SIGDUP002` | 12 | `20260404_160122`, `20260403_190603`, `20260402_093638`, `20260402_093219`, `20260402_092812`, `20260402_092422`, `20260402_091801`, `20260402_091227`, `20260402_090737`, `20260402_083330`, `20260401_220215`, `20260401_215312` |
+| `SIGDUP003` | 2 | `20260404_145745`, `20260404_145013` |
+| `SIGDUP004` | 11 | `20260404_144148`, `20260404_143508`, `20260404_142607`, `20260404_124548`, `20260403_203610`, `20260403_202644`, `20260403_201456`, `20260403_200550`, `20260403_190925`, `20260403_184050`, `20260403_183049` |
+| `SIGDUP005` | 2 | `20260403_125719`, `20260403_123702` |
+| `SIGDUP006` | 6 | `20260403_122059`, `20260403_120702`, `20260403_115057`, `20260403_113523`, `20260403_111350`, `20260403_102754` |
+| `SIGDUP007` | 2 | `20260403_093934`, `20260403_084209` |
+| `SIGDUP008` | 3 | `20260402_095753`, `20260402_095413`, `20260402_094650` |
+| `SIGDUP009` | 4 | `20260331_075522`, `20260330_221136`, `20260330_180538`, `20260328_211231` |
+| `SIGDUP010` | 2 | `20260330_204809`, `20260330_201417` |
+| `SIGDUP011` | 2 | `20260330_174059`, `20260330_171534` |
+| `SIGDUP012` | 4 | `20260330_164505`, `20260330_121738`, `20260330_113412`, `20260330_110749` |
+| `SIGDUP013` | 2 | `20260329_210922`, `20260329_205552` |
+| `SIGDUP014` | 2 | `20260329_194132`, `20260329_162709` |
+| `SIGDUP015` | 2 | `20260328_113652`, `20260328_093534` |
+| `SIGDUP016` | 2 | `20260327_214555`, `20260326_154223` |
+| `SIGDUP017` | 2 | `20260325_170304`, `20260325_164926` |
+| `SIGDUP018` | 3 | `20260325_152114`, `20260325_144834`, `20260324_103221` |
+| `SIGDUP019` | 2 | `20260324_140652`, `20260324_134730` |
+| `SIGDUP020` | 2 | `20260324_101228`, `20260324_095546` |
+| `SIGDUP021` | 3 | `20260323_122353`, `20260323_120634`, `20260323_110543` |
+| `SIGDUP022` | 2 | `20260322_200759`, `20260322_195053` |
+| `SIGDUP023` | 2 | `20260322_200203`, `20260322_194002` |
+| `SIGDUP024` | 3 | `20260322_151922`, `20260322_150528`, `20260322_144330` |
+| `SIGDUP025` | 2 | `20260322_124408`, `20260322_124153` |
+| `SIGDUP026` | 3 | `20260320_170641`, `20260320_165056`, `20260320_164742` |
+| `SIGDUP027` | 3 | `20260320_153552`, `20260320_153116`, `20260320_152438` |
+| `SIGDUP028` | 2 | `20260228_183509`, `20260228_181829` |
+| `SIGDUP029` | 2 | `20260228_134418`, `20260228_115027` |
+| `SIGDUP030` | 2 | `20260227_182522`, `20260227_164826` |
 
 ## Known CLI Commands
 
 | Run ID | Date/Time | Source | Command | Final (P, xD, xB, R, Vb) |
 |---|---|---|---|---|
+| `20260404_171539` | 2026-04-04 17:15:39 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_vaporcppkt_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_170546` | 2026-04-04 17:05:46 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_startzlight_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_165435` | 2026-04-04 16:54:35 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_startupstrip_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_164755` | 2026-04-04 16:47:55 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_samevappkt3_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_163716` | 2026-04-04 16:37:16 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_phaseenth_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_162348` | 2026-04-04 16:23:48 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_samevappkt2_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_161855` | 2026-04-04 16:18:55 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_samevappkt_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_160318` | 2026-04-04 16:03:18 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_splitmain2_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_155106` | 2026-04-04 15:51:06 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_cpfailcache_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_154248` | 2026-04-04 15:42:48 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_cptol_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_153218` | 2026-04-04 15:32:18 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_startpkt_gate4_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_152634` | 2026-04-04 15:26:34 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_startpkt_gate3_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_150353` | 2026-04-04 15:03:53 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_startpkt_gate2_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_145745` | 2026-04-04 14:57:45 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_startpkt_gate_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_145013` | 2026-04-04 14:50:13 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_startpkt_20260404` | P=14.370; xD=; xB=; R=; Vb= |
+| `20260404_144148` | 2026-04-04 14:41:48 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_zprofile_r2_20260404` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260404_143508` | 2026-04-04 14:35:08 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_zprofile_20260404` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260404_142607` | 2026-04-04 14:26:07 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_vaptol50_20260404` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260404_141739` | 2026-04-04 14:17:39 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_phasepkt_20260404` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260404_124548` | 2026-04-04 12:45:48 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\water_methanol_template_10stage_chemsep_seed_20260401.xlsx" --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --n-steps 2 --dt 0.2 --log-every 1 --fast-startup --logs-dir logs\water_methanol_10stage_hydraulic_unifac_eqprfix_fast2_20260404` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260403_203610` | 2026-04-03 20:36:10 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --thermo-every 1 --dt 0.2 --n-steps 2 --log-every 1 --fast-startup --disable-startup-thermo-conditioning --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_timed_20260403` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260403_202644` | 2026-04-03 20:26:44 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --thermo-every 1 --dt 0.2 --n-steps 2 --log-every 1 --fast-startup --disable-startup-thermo-conditioning --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_tempcp3_20260403` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260403_201456` | 2026-04-03 20:14:56 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --thermo-every 1 --dt 0.2 --n-steps 2 --log-every 1 --fast-startup --disable-startup-thermo-conditioning --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_microreuse_20260403` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260403_200550` | 2026-04-03 20:05:50 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --thermo-every 1 --dt 0.2 --n-steps 2 --log-every 1 --fast-startup --disable-startup-thermo-conditioning --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_evfenth_20260403` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260403_190925` | 2026-04-03 19:09:25 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --thermo-every 1 --dt 0.2 --n-steps 2 --log-every 1 --fast-startup --disable-startup-thermo-conditioning --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_tempcp2_20260403` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260403_184050` | 2026-04-03 18:40:50 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --thermo-every 1 --dt 0.2 --n-steps 2 --log-every 1 --fast-startup --disable-startup-thermo-conditioning --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_condreuse2_20260403` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260403_183049` | 2026-04-03 18:30:49 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --thermo-every 1 --dt 0.2 --n-steps 2 --log-every 1 --fast-startup --disable-startup-thermo-conditioning --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_condreuse_20260403` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260403_123702` | 2026-04-03 12:37:02 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --thermo-every 1 --dt 0.2 --n-steps 2 --log-every 1 --fast-startup --disable-startup-thermo-conditioning --allow-repeat-command --logs-dir logs\water_methanol_10stage_hydraulic_unifac_bubblefast_20260403` | P=14.362; xD=; xB=; R=; Vb= |
+| `20260403_094726` | 2026-04-03 09:47:26 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx --runtime-mode parity --thermo dwsim --dwsim-property-package pr --thermo-every 5 --dt 0.2 --n-steps 10 --log-every 5 --fast-startup --allow-repeat-command --logs-dir logs\depropanizer_20stage_parity_pr_packetcheck_20260403` | P=177.212; xD=0.095146; xB=; R=5945.03; Vb= |
+| `20260403_093934` | 2026-04-03 09:39:34 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --runtime-mode parity --thermo dwsim --dwsim-property-package unifac --thermo-every 5 --dt 0.2 --n-steps 25 --log-every 5 --fast-startup --allow-repeat-command --logs-dir logs\water_methanol_10stage_parity_unifac_packetreuse_20260403_r2` | P=14.364; xD=; xB=; R=; Vb= |
+| `20260403_084209` | 2026-04-03 08:42:09 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --runtime-mode parity --thermo dwsim --dwsim-property-package unifac --thermo-every 5 --dt 0.2 --n-steps 25 --log-every 5 --fast-startup --logs-dir logs\water_methanol_10stage_parity_unifac_counters2_20260403` | P=14.364; xD=; xB=; R=; Vb= |
 | `20260402_140016` | 2026-04-02 14:00:16 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_seed_20260401.xlsx --run-name water_methanol_10stage_parity_unifac_60s_te5_20260402_135940 --runtime-mode parity --thermo dwsim --dwsim-property-package unifac --dt 0.2 --n-steps 300 --log-every 5 --thermo-every 5 --fast-startup --logs-dir logs\water_methanol_10stage_parity_unifac_60s_te5_20260402_135940` | P=14.364; xD=; xB=; R=; Vb= |
 | `20260401_125147` | 2026-04-01 12:51:47 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "c:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\sandbox\mini8\input\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx" --runtime-mode hydraulic --thermo table --thermo-table "c:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\cache\thermo_table.json" --thermo-top-sat-table "c:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\cache\thermo_top_sat_local_20stage_top3_quick.json" --thermo-upper-section-table "c:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\cache\thermo_upper_local_20stage_top5_quick.json" --thermo-upper-section-stage-count 5 --equilibrium-relaxation-live-pr --include-energy --equilibrium-relaxation-mode phase-holdup --equilibrium-tau-sec 4.0 --equilibrium-energy-damping-gain 0.2 --condenser-duty-mode specified --condenser-duty-btuph -49640000 --reboiler-duty-btuph 54706000 --enable-level-control --top-level-pv-mode true-level --top-level-sp-frac 0.5 --top-level-kc 0.5 --top-level-ti 1200 --bottom-level-sp 794 --enable-pressure-control --pressure-control-mv condenser-duty --top-pressure-sp 220.44 --top-pressure-kc -150000 --top-pressure-ti 120 --enable-distillate-composition-control --distillate-comp-component C4 --distillate-comp-sp 0.11 --distillate-comp-kc 500 --distillate-comp-ti 600 --reflux-cmd-min 2000 --reflux-cmd-max 10000 --n-steps 300 --dt 0.2 --log-every 20 --allow-repeat-command --logs-dir "c:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs\diag_upper_overlay_20260401"` | P=221.888; xD=0.097621; xB=; R=5945.60; Vb= |
 | `20260401_114143` | 2026-04-01 11:41:43 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\sandbox\mini8\input\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx" --runtime-mode hydraulic --thermo table --thermo-table "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\cache\thermo_table.json" --thermo-top-sat-table "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\cache\thermo_top_sat_local_20stage_top3_quick.json" --equilibrium-relaxation-live-pr --include-energy --equilibrium-relaxation-mode phase-holdup --equilibrium-tau-sec 4.0 --equilibrium-energy-damping-gain 0.2 --condenser-duty-mode specified --condenser-duty-btuph -49640000 --reboiler-duty-btuph 54706000 --enable-level-control --top-level-pv-mode true-level --top-level-sp-frac 0.5 --top-level-kc 0.5 --top-level-ti 1200 --bottom-level-sp 794 --enable-pressure-control --pressure-control-mv condenser-duty --top-pressure-sp 220.44 --top-pressure-kc -150000 --top-pressure-ti 120 --enable-distillate-composition-control --distillate-comp-component C4 --distillate-comp-sp 0.11 --distillate-comp-kc 500 --distillate-comp-ti 600 --reflux-cmd-min 2000 --reflux-cmd-max 10000 --n-steps 3000 --dt 0.2 --log-every 10 --allow-repeat-command --logs-dir "C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs\ui_runs\20260401_table_top_sat_sidecar"` | P=223.044; xD=0.133542; xB=; R=5965.40; Vb= |
@@ -622,6 +653,50 @@ Suspected-result duplicate groups: **88** (rows in groups: **243**)
 
 | Run ID | Status | CLI Known | t_final(s) | P_top | xD | xB | Reflux | Boilup | D | B | Summary CSV |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| `20260404_181450` | `ok` | No | 2.8 | 14.226 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_5min_probe_20260404/column_summary_20260404_181450.csv` |
+| `20260404_180117` | `ok` | No | 0.0 | 220.440 |  |  |  |  | 2380.99 | 4761.98 | `logs/depropanizer_20stage_hydraulic_pr_5min_probe_20260404/column_summary_20260404_180117.csv` |
+| `20260404_171539` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_vaporcppkt_20260404/column_summary_20260404_171539.csv` |
+| `20260404_170546` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_startzlight_20260404/column_summary_20260404_170546.csv` |
+| `20260404_165435` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_startupstrip_20260404/column_summary_20260404_165435.csv` |
+| `20260404_164755` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_samevappkt3_20260404/column_summary_20260404_164755.csv` |
+| `20260404_163716` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_phaseenth_20260404/column_summary_20260404_163716.csv` |
+| `20260404_162348` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_samevappkt2_20260404/column_summary_20260404_162348.csv` |
+| `20260404_161855` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_samevappkt_20260404/column_summary_20260404_161855.csv` |
+| `20260404_160318` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_splitmain2_20260404/column_summary_20260404_160318.csv` |
+| `20260404_160122` | `ok` | No | 0.0 | 14.696 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_splitmain_20260404/column_summary_20260404_160122.csv` |
+| `20260404_155106` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_cpfailcache_20260404/column_summary_20260404_155106.csv` |
+| `20260404_154248` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_cptol_20260404/column_summary_20260404_154248.csv` |
+| `20260404_153218` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_startpkt_gate4_20260404/column_summary_20260404_153218.csv` |
+| `20260404_152634` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_startpkt_gate3_20260404/column_summary_20260404_152634.csv` |
+| `20260404_150353` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_startpkt_gate2_20260404/column_summary_20260404_150353.csv` |
+| `20260404_145745` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_startpkt_gate_20260404/column_summary_20260404_145745.csv` |
+| `20260404_145013` | `ok` | Yes | 0.4 | 14.370 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_startpkt_20260404/column_summary_20260404_145013.csv` |
+| `20260404_144148` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_zprofile_r2_20260404/column_summary_20260404_144148.csv` |
+| `20260404_143508` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_zprofile_20260404/column_summary_20260404_143508.csv` |
+| `20260404_142607` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_vaptol50_20260404/column_summary_20260404_142607.csv` |
+| `20260404_141739` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_phasepkt_20260404/column_summary_20260404_141739.csv` |
+| `20260404_124548` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_eqprfix_fast2_20260404/column_summary_20260404_124548.csv` |
+| `20260403_203610` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_timed_20260403/column_summary_20260403_203610.csv` |
+| `20260403_202644` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_tempcp3_20260403/column_summary_20260403_202644.csv` |
+| `20260403_201456` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_microreuse_20260403/column_summary_20260403_201456.csv` |
+| `20260403_200550` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_evfenth_20260403/column_summary_20260403_200550.csv` |
+| `20260403_190925` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_tempcp2_20260403/column_summary_20260403_190925.csv` |
+| `20260403_190603` | `ok` | No | 0.0 | 14.696 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_tempcp_20260403/column_summary_20260403_190603.csv` |
+| `20260403_184050` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_condreuse2_20260403/column_summary_20260403_184050.csv` |
+| `20260403_183049` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_condreuse_20260403/column_summary_20260403_183049.csv` |
+| `20260403_171200` | `ok` | No | 0.2 | 14.366 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_startupcond_topskip_20260403/column_summary_20260403_171200.csv` |
+| `20260403_125719` | `ok` | No | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_packetcp_20260403/column_summary_20260403_125719.csv` |
+| `20260403_123702` | `ok` | Yes | 0.4 | 14.362 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_bubblefast_20260403/column_summary_20260403_123702.csv` |
+| `20260403_122059` | `ok` | No | 0.2 | 14.366 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_cpreuse3_20260403/column_summary_20260403_122059.csv` |
+| `20260403_120702` | `ok` | No | 0.2 | 14.366 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_cpreuse2_20260403/column_summary_20260403_120702.csv` |
+| `20260403_115057` | `ok` | No | 0.2 | 14.366 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_helpertrace_20260403/column_summary_20260403_115057.csv` |
+| `20260403_113523` | `ok` | No | 0.2 | 14.366 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_topdrumreuse_20260403/column_summary_20260403_113523.csv` |
+| `20260403_111350` | `ok` | No | 0.2 | 14.366 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_packetcheck_vaportol_20260403/column_summary_20260403_111350.csv` |
+| `20260403_102754` | `ok` | No | 0.2 | 14.366 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_hydraulic_unifac_packetcheck_nostartup2_20260403/column_summary_20260403_102754.csv` |
+| `20260403_094726` | `ok` | Yes | 2.0 | 177.212 | 0.095146 |  | 5945.03 |  | 2371.38 | 4761.98 | `logs/depropanizer_20stage_parity_pr_packetcheck_20260403/column_summary_20260403_094726.csv` |
+| `20260403_093934` | `ok` | Yes | 5.0 | 14.364 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_parity_unifac_packetreuse_20260403_r2/column_summary_20260403_093934.csv` |
+| `20260403_084209` | `ok` | Yes | 5.0 | 14.364 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_parity_unifac_counters2_20260403/column_summary_20260403_084209.csv` |
+| `20260403_083538` | `ok` | No | 2.0 | 14.364 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_parity_unifac_counters_20260403/column_summary_20260403_083538.csv` |
 | `20260402_140016` | `ok` | Yes | 60.0 | 14.364 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_parity_unifac_60s_te5_20260402_135940/column_summary_20260402_140016.csv` |
 | `20260402_135532` | `ok` | No | 2.0 | 14.364 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_parity_unifac_60s_diag_20260402_135456/column_summary_20260402_135532.csv` |
 | `20260402_095753` | `ok` | No | 1.0 | 14.364 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_parity_unifac_60s_diag_20260402_1032/column_summary_20260402_095753.csv` |
@@ -638,47 +713,3 @@ Suspected-result duplicate groups: **88** (rows in groups: **243**)
 | `20260401_220215` | `ok` | No | 0.0 | 14.696 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_parity_unifac_60s_20260401_2302/column_summary_20260401_220215.csv` |
 | `20260401_215312` | `ok` | No | 0.0 | 14.696 |  |  |  |  |  | 7936.64 | `logs/water_methanol_10stage_parity_unifac_short_retry_20260401_2255/column_summary_20260401_215312.csv` |
 | `20260401_214542` | `empty-summary` | No |  |  |  |  |  |  |  |  | `logs/water_methanol_10stage_parity_unifac_short_retry_20260401_2242/column_summary_20260401_214542.csv` |
-| `20260401_125147` | `ok` | Yes | 60.0 | 221.888 | 0.097621 |  | 5945.60 |  | 2427.26 | 4761.97 | `logs/diag_upper_overlay_20260401/column_summary_20260401_125147.csv` |
-| `20260401_114143` | `ok` | Yes | 600.0 | 223.044 | 0.133542 |  | 5965.40 |  | 2449.89 | 4761.92 | `logs/ui_runs/20260401_table_top_sat_sidecar/column_summary_20260401_114143.csv` |
-| `20260331_234952` | `ok` | No | -0.0 | 220.405 | 0.095133 |  | 5952.48 |  | 2380.99 | 4761.98 | `logs/diag_topbias_table_vs_pr_20260331_dwsim_d/column_summary_20260331_234952.csv` |
-| `20260331_215317` | `ok` | Yes | 120.0 | 221.747 | 0.100347 |  | 5946.39 |  | 2415.15 | 4761.97 | `logs/diag_topbias_table_vs_pr_20260331_table_d/column_summary_20260331_215317.csv` |
-| `20260331_182204` | `ok` | Yes | 1320.0 | 218.860 | 0.195923 |  | 6030.82 |  | 2452.14 | 4761.95 | `logs/ui_runs/20260331_181237_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260331_182204.csv` |
-| `20260331_110714` | `ok` | No | 190.0 | 222.391 | 0.104522 | 0.060029 | 5957.82 |  | 2417.75 | 4930.37 | `logs/dd014_revalidate_reboiler_duty_20260331_d/column_summary_20260331_110714.csv` |
-| `20260331_101437` | `ok` | No | 160.0 | 222.350 | 0.102574 | 0.057466 | 5956.64 |  | 2416.55 | 4896.06 | `logs/dd014_revalidate_reboiler_duty_20260331_b/column_summary_20260331_101437.csv` |
-| `20260331_090454` | `ok` | Yes | 60.0 | 222.307 | 0.101071 |  | 5946.72 |  | 2417.30 | 4761.97 | `logs/cli_restart_dynamicwarmup_eval_20260331/column_summary_20260331_090454.csv` |
-| `20260331_083522` | `ok` | Yes | 60.0 | 182.049 | 0.100487 |  | 5946.46 |  | 2399.47 | 4761.97 | `logs/cli_restart_reentry_eval3_20260331/column_summary_20260331_083522.csv` |
-| `20260331_080450` | `ok` | Yes | 60.0 | 222.218 | 0.100738 |  | 5946.59 |  | 2417.10 | 4761.97 | `logs/cli_restart_reentry_eval2_20260331/column_summary_20260331_080450.csv` |
-| `20260331_075522` | `ok` | Yes | 60.0 | 220.279 | 0.097260 |  | 5945.41 |  | 2412.83 | 4761.97 | `logs/cli_restart_reentry_anchor2_20260331/column_summary_20260331_075522.csv` |
-| `20260330_222040` | `ok` | Yes | 60.0 | 222.219 | 0.100738 |  | 5946.59 |  | 2417.10 | 4761.97 | `logs/cli_restart_reentry_eval_20260330/column_summary_20260330_222040.csv` |
-| `20260330_221136` | `ok` | Yes | 60.0 | 220.279 | 0.097260 |  | 5945.41 |  | 2412.83 | 4761.97 | `logs/cli_restart_reentry_anchor_20260330/column_summary_20260330_221136.csv` |
-| `20260330_213542` | `ok` | Yes | 60.0 | 223.900 | 0.110485 |  | 5951.70 |  | 2427.28 | 4761.97 | `logs/cli_restart_eval_restart_20260330_b/column_summary_20260330_213542.csv` |
-| `20260330_213122` | `ok` | Yes | 60.0 | 220.279 | 0.097260 |  | 5945.41 |  | 2412.83 | 4761.97 | `logs/cli_restart_eval_anchor_20260330/column_summary_20260330_213122.csv` |
-| `20260330_204809` | `ok` | Yes | 60.0 | 228.227 | 0.152106 |  | 5976.74 |  | 2425.32 | 4761.92 | `logs/cli_restart_ab_20260330_afterfix2/column_summary_20260330_204809.csv` |
-| `20260330_201417` | `ok` | Yes | 60.0 | 228.227 | 0.152106 |  | 5976.74 |  | 2425.32 | 4761.92 | `logs/cli_restart_ab_20260330_afterfix/column_summary_20260330_201417.csv` |
-| `20260330_195306` | `ok` | No | 224.0 | 222.319 | 0.177578 |  | 5995.71 |  | 2451.55 | 4761.93 | `logs/ui_runs/20260330_195304_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_195306.csv` |
-| `20260330_184240` | `ok` | Yes | 600.0 | 226.126 | 0.136507 |  | 5967.21 |  | 2419.45 | 4761.92 | `logs/ui_runs/20260330_183421_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_184240.csv` |
-| `20260330_180538` | `ok` | Yes | 60.0 | 220.279 | 0.097260 |  | 5945.41 |  | 2412.83 | 4761.97 | `logs/cli_short_parity_20260330_g/column_summary_20260330_180538.csv` |
-| `20260330_174059` | `ok` | Yes | 60.0 | 221.044 | 0.109426 |  | 5951.79 |  | 2421.17 | 4761.97 | `logs/cli_short_parity_20260330_f/column_summary_20260330_174059.csv` |
-| `20260330_171534` | `ok` | Yes | 60.0 | 221.044 | 0.109426 |  | 5951.79 |  | 2421.17 | 4761.97 | `logs/cli_short_parity_20260330_e/column_summary_20260330_171534.csv` |
-| `20260330_164505` | `ok` | Yes | 60.0 | 222.593 | 0.109553 |  | 5951.86 |  | 2414.65 | 4761.97 | `logs/cli_short_parity_20260330_d/column_summary_20260330_164505.csv` |
-| `20260330_152936` | `ok` | Yes | 600.0 | 222.564 | 0.178385 |  | 6003.03 |  | 2429.07 | 4761.92 | `logs/ui_runs/20260330_151630_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_152936.csv` |
-| `20260330_150800` | `ok` | No | 48.0 | 221.559 | 0.106791 |  | 5950.50 |  | 2414.33 | 0.00 | `logs/ui_runs/20260330_145457_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_150800.csv` |
-| `20260330_140750` | `ok` | No | 560.0 | 222.362 | 0.174233 |  | 5998.74 |  | 2428.00 | 4761.92 | `logs/ui_runs/20260330_135339_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_140750.csv` |
-| `20260330_133555` | `ok` | No | 184.0 | 225.713 | 0.131488 |  | 5964.06 |  | 2379.85 | 4761.96 | `logs/ui_runs/20260330_133112_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_133555.csv` |
-| `20260330_132249` | `ok` | No | 72.0 | 229.352 | 0.111643 |  | 5952.91 |  | 2379.94 | 4761.97 | `logs/ui_runs/20260330_132048_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_132249.csv` |
-| `20260330_131102` | `ok` | No | 88.0 | 221.378 | 0.113637 |  | 5953.90 |  | 2415.39 | 4761.97 | `logs/ui_runs/20260330_125903_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_131102.csv` |
-| `20260330_124917` | `ok` | Yes | 60.0 | 220.942 | 0.108211 |  | 5951.16 |  | 2365.52 | 4761.97 | `logs/ui_runs/20260330_124515_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_124917.csv` |
-| `20260330_123938` | `ok` | No | 56.0 | 171.958 | 0.107405 |  | 5950.77 |  | 2365.86 | 4761.97 | `logs/ui_runs/20260330_123936_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_123938.csv` |
-| `20260330_121738` | `ok` | Yes | 60.0 | 222.593 | 0.109553 |  | 5951.86 |  | 2414.65 | 4761.97 | `logs/ui_runs/20260330_120151_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260330_121738.csv` |
-| `20260330_113412` | `ok` | Yes | 60.0 | 222.593 | 0.109553 |  | 5951.86 |  | 2414.65 | 4761.97 | `logs/cli_short_parity_20260330_pool/column_summary_20260330_113412.csv` |
-| `20260330_110749` | `ok` | Yes | 60.0 | 222.593 | 0.109553 |  | 5951.86 |  | 2414.65 | 4761.97 | `logs/cli_short_parity_20260330_c/column_summary_20260330_110749.csv` |
-| `20260330_103551` | `ok` | Yes | 60.0 | 222.593 | 0.109553 |  | 5951.86 |  | 2414.65 | 0.00 | `logs/cli_short_parity_20260330_b/column_summary_20260330_103551.csv` |
-| `20260330_093032` | `ok` | No | 60.0 | 219.908 | 0.107097 |  | 3141.24 |  | 7380.99 | 0.00 | `logs/cli_short_parity_20260330/column_summary_20260330_093032.csv` |
-| `20260330_090127` | `ok` | Yes | 30.0 | 219.933 | 0.100403 |  | 2827.71 |  | 7380.99 | 0.00 | `logs/cli_startup_verify_postfix_20260330/column_summary_20260330_090127.csv` |
-| `20260330_073744` | `ok` | Yes | 30.0 | 292.952 | 0.106817 |  | 2000.00 |  | 7380.99 | 0.00 | `logs/cli_startup_verify_20260330/column_summary_20260330_073744.csv` |
-| `20260329_215505` | `ok` | Yes | 12.0 | 220.634 | 0.095343 |  | 5945.00 |  | 2419.09 | 4932.67 | `logs/tmp_head_case_check/column_summary_20260329_215505.csv` |
-| `20260329_213718` | `ok` | No | 92.0 | 311.999 | 0.168236 |  | 3151.00 |  | 7380.99 | 4978.10 | `logs/ui_runs/20260329_212747_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260329_213718.csv` |
-| `20260329_212401` | `ok` | No | 32.0 | 293.222 | 0.107954 |  | 2000.00 |  | 7380.99 | 0.00 | `logs/ui_runs/20260329_211405_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260329_212401.csv` |
-| `20260329_210922` | `ok` | No | 32.0 | 293.267 | 0.107941 | 0.063325 | 2000.00 | 7938.87 | 7380.99 | 0.00 | `logs/ui_runs/20260329_205952_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260329_210922.csv` |
-| `20260329_205552` | `ok` | No | 32.0 | 293.267 | 0.107941 | 0.063325 | 2000.00 | 7938.87 | 7380.99 | 0.00 | `logs/ui_runs/20260329_204611_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260329_205552.csv` |
-| `20260329_194132` | `ok` | Yes | 120.0 | 218.144 | 0.128276 |  | 4617.71 |  | 7380.99 | 4761.97 | `logs/ui_runs/20260329_193328_test/column_summary_20260329_194132.csv` |

@@ -78,12 +78,14 @@ High-level flow:
 - initialize vapor holdup from pressure profile
 - optional startup thermo conditioning
 - optional top-drum startup steadying
+- initialize startup/runtime thermo diagnostics and reusable thermo packets when enabled
 
 Fresh-startup note:
 - A "fresh" run means the Excel input does not include explicit runtime restart sheets.
 - On this column, a full fresh startup has recently taken about `10-12 minutes` of wall-clock time before the first logged integration row appears.
 - That time is spent in pre-integration conditioning, especially vapor-holdup initialization from startup pressure, thermo-consistent startup conditioning, and top-drum startup steadying.
 - These passes are important because they reduce pressure/holdup/thermo mismatch at `t=0`. When they are skipped or weakened, the model may start faster but the early dynamic trajectory can diverge materially from the fully conditioned path.
+- `--fast-startup` is now the aggressive shortcut: it skips startup thermo conditioning, skips hydraulic-energy startup consistency, and skips top-drum startup steadying.
 - When explicit runtime restart sheets are present, the runner can skip most of this fresh-startup work and move much more directly into integration.
 - Before normal logging begins, restart runs now apply a short hidden re-entry settling pass to reduce the immediate pressure/composition bump that would otherwise appear on the first resumed steps.
 
@@ -94,6 +96,7 @@ Top-drum startup inventory precedence:
 7. Time loop (`step = 0..n_steps`):
 - update step boundary commands and control MVs
 - resolve runtime mode and startup sequence behavior
+- snapshot thermo counters/timed buckets into run metadata and diagnostics
 - resolve effective integrator profile (including hydraulic+IDA tuned defaults when legacy defaults are unchanged)
 - gate thermo refresh by cadence/threshold logic
 - build per-step `ColumnInputs` including previous-step cached signals

@@ -53,7 +53,7 @@ Use explicit CLI flags to override that per run when needed.
 | `--thermo-pool-workers` | int | `2` | Worker count for `table-pool`; CLI can still override per run. |
 | `--thermo-pool-chunk-size` | int | `4` | Batch chunk size submitted per pool task in `table-pool`. |
 | `--thermo-pool-timeout-sec` | float | `None` | Per-task timeout for `table-pool`; timed-out/failed chunks fall back to local evaluation. |
-| `--fast-startup` | flag | `False` | Reduce expensive pre-integration startup work by using a single light thermo-conditioning iteration, skipping hydraulic-energy startup consistency, and keeping a lighter top-drum startup steadying pass (`2` iterations, looser tolerance, `30 s` wall cap). |
+| `--fast-startup` | flag | `False` | Reduce expensive pre-integration startup work by skipping startup thermo conditioning, skipping hydraulic-energy startup consistency, and skipping top-drum startup steadying. |
 | `--disable-startup-thermo-conditioning` | flag | `False` | Disables startup thermo-consistent conditioning pass (enabled by default). |
 | `--startup-thermo-conditioning-iters` | int | `2` | Max startup thermo-conditioning iterations. |
 | `--startup-thermo-conditioning-relax` | float | `1.0` | Relaxation factor (`0..1`) for startup thermo conditioning. |
@@ -203,9 +203,9 @@ Use explicit CLI flags to override that per run when needed.
   - A "fresh" simulation (base workbook with no explicit runtime restart sheets) currently spends substantial wall-clock time in startup before the first logged integration row appears. On this column, a full fresh startup has recently taken about `10-12 minutes` before integration begins.
   - Vapor holdup is initialized to align with specified startup pressure.
   - Thermo-consistent startup conditioning is enabled by default (disable with `--disable-startup-thermo-conditioning`).
-  - Top-drum startup steadying is always attempted when top states are active.
+  - Top-drum startup steadying is attempted only when startup thermo conditioning is enabled.
   - These startup passes are important because they align vapor holdup, top-drum inventory, pressure state, and thermo state before the first timestep. Skipping or weakening them can reduce wall-clock time, but often degrades startup parity and can move the early trajectory onto a different path.
-  - `--fast-startup` is a shortcut mode that keeps one light startup thermo-conditioning iteration, skips hydraulic-energy startup consistency, and keeps a lighter top-drum startup steadying pass enabled.
+  - `--fast-startup` is a shortcut mode that skips startup thermo conditioning, skips hydraulic-energy startup consistency, and skips top-drum startup steadying to minimize pre-integration overhead.
   - If both explicit top holdup and top-drum liquid fraction are provided by the workbook, explicit top holdup wins for startup reflux-drum liquid inventory; the liquid fraction remains a secondary geometry/level hint.
   - Optional startup hydraulic sequencing (`--enable-startup-hydraulic-sequence`) applies pressure-first startup and delays liquid-hydraulic override with residual gating in `--runtime-mode legacy` only.
   - Every completed run now writes a companion restart workbook into the run folder. That restart workbook contains the updated `Initial Conditions` plus the `Boundary State`, `Energy State`, `Controller State`, and `Dynamic Memory` sheets needed to continue from the reached condition and avoid repeating most fresh-startup calculations on the next run.

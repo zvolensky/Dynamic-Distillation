@@ -1,0 +1,68 @@
+{
+  "run_id": "20260526_100334",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 15532,
+  "started_at_local": "2026-05-26 10:03:34",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\validation_gani_1986_debutanizer_model_topology_material_reconciled.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_material_reconciled_vaporconv_preserve_60s",
+  "runtime_mode": "parity",
+  "thermo_mode": "clapeyron",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 1,
+  "n_steps": 300,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_material_reconciled_vaporconv_preserve_60s\\column_profile_20260526_100334.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_material_reconciled_vaporconv_preserve_60s\\column_summary_20260526_100334.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_material_reconciled_vaporconv_preserve_60s\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_material_reconciled_vaporconv_preserve_60s\\startup_trace_20260526_100239.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.0032072000321932137,
+    "equilibrium_relaxation_backend_build": 2.200016751885414e-06,
+    "francis_autocalibration": 29.06309930002317
+  },
+  "startup_build_info": {},
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "feed_stage_flash": {
+      "flash_cache_misses": 250,
+      "flash_requests": 250,
+      "backend_flash_equivalents": 250,
+      "wall_sec": 48.14897350035608,
+      "cp_requests": 250,
+      "cp_wall_sec": 1.7561780996620655,
+      "flash_cache_evictions": 241
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 28,
+      "liquid_density_requests": 28,
+      "liquid_density_wall_sec": 0.0009349000756628811
+    },
+    "main_tray_refresh": {
+      "batch_flash_requests": 251,
+      "batch_flash_rows": 7028,
+      "flash_cache_misses": 7028,
+      "flash_requests": 7028,
+      "backend_flash_equivalents": 7028,
+      "wall_sec": 0.7535322976182215,
+      "cp_requests": 7028,
+      "cp_wall_sec": 0.39473519881721586,
+      "flash_cache_evictions": 6781
+    }
+  },
+  "ended_at_local": "2026-05-26 10:04:03",
+  "elapsed_wall_sec": 29.48098559997743,
+  "final_time_s": 60.00000000000031,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_material_reconciled_vaporconv_preserve_60s\\validation_gani_1986_debutanizer_model_topology_material_reconciled__restart_20260526_100334.xlsx",
+  "restart_export_error": ""
+}

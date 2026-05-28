@@ -23,7 +23,7 @@ powershell -ExecutionPolicy Bypass -File tools/run_ui.ps1 -Detached
 Recommended install:
 
 ```powershell
-pip install -e .[ui]
+pip install -e ".[ui]"
 ```
 
 ## Current UI Scope

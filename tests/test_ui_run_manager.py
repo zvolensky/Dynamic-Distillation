@@ -316,6 +316,48 @@ def test_build_launch_spec_from_cli_rejects_log_disabling(monkeypatch, tmp_path:
         )
 
 
+def test_build_launch_spec_from_cli_rejects_single_dash_long_flag(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 600.0,
+            "n_steps": 3000,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+
+    with pytest.raises(ValueError, match=r"Unknown runner flag: -top-pressure-ti"):
+        build_launch_spec_from_cli(
+            f'--excel "{excel_path}" -top-pressure-ti 120 --runtime-mode hydraulic',
+        )
+
+
+def test_build_launch_spec_from_cli_rejects_unknown_double_dash_flag(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 600.0,
+            "n_steps": 3000,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+
+    with pytest.raises(ValueError, match=r"Unknown runner flag: --not-a-real-flag"):
+        build_launch_spec_from_cli(
+            f'--excel "{excel_path}" --not-a-real-flag 1 --runtime-mode hydraulic',
+        )
+
+
 def test_build_launch_spec_from_cli_requires_excel_without_ui_default() -> None:
     with pytest.raises(ValueError, match="select/upload a workbook"):
         build_launch_spec_from_cli("--runtime-mode hydraulic")

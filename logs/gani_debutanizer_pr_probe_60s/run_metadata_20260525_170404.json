@@ -1,0 +1,170 @@
+{
+  "run_id": "20260525_170404",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 43880,
+  "started_at_local": "2026-05-25 17:04:04",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\validation_gani_1986_debutanizer.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_probe_60s",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "clapeyron",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 1,
+  "n_steps": 60,
+  "dt_sec": 1.0,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_probe_60s\\column_profile_20260525_170404.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_probe_60s\\column_summary_20260525_170404.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_probe_60s\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_probe_60s\\startup_trace_20260525_170142.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.00396630002069287,
+    "equilibrium_relaxation_backend_build": 3.0999945010989904e-06,
+    "francis_autocalibration": 57.070915599993896
+  },
+  "startup_build_info": {},
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "reboiler_bubble_point_helper_flash": {
+      "flash_cache_misses": 1891,
+      "flash_requests": 1891,
+      "backend_flash_equivalents": 1891,
+      "wall_sec": 69.49311370056239,
+      "cp_requests": 1891,
+      "cp_wall_sec": 2.5424167995515745,
+      "flash_cache_hits": 279,
+      "flash_cache_evictions": 1860
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 56,
+      "liquid_density_requests": 56,
+      "liquid_density_wall_sec": 0.0028922999335918576,
+      "liquid_density_cache_hits": 224
+    },
+    "main_tray_refresh": {
+      "batch_flash_requests": 70,
+      "batch_flash_rows": 1960,
+      "flash_cache_misses": 1736,
+      "flash_requests": 1736,
+      "backend_flash_equivalents": 1736,
+      "wall_sec": 1.734644799551461,
+      "cp_requests": 1736,
+      "cp_wall_sec": 0.13357279961928725,
+      "flash_cache_hits": 224,
+      "flash_cache_evictions": 1680
+    },
+    "energy_vapor_flow_enthalpy_refresh": {
+      "batch_flash_requests": 131,
+      "batch_flash_rows": 3072,
+      "flash_cache_misses": 3002,
+      "flash_requests": 3002,
+      "backend_flash_equivalents": 3002,
+      "wall_sec": 21.455752200155985,
+      "cp_requests": 3002,
+      "cp_wall_sec": 0.23099810085841455,
+      "flash_cache_evictions": 2957
+    },
+    "feed_enthalpy_flash": {
+      "flash_cache_misses": 3,
+      "flash_requests": 3,
+      "backend_flash_equivalents": 3,
+      "wall_sec": 0.0009457999840378761,
+      "cp_requests": 3,
+      "cp_wall_sec": 0.0004451999848242849,
+      "flash_cache_hits": 24,
+      "flash_cache_evictions": 1
+    },
+    "top_drum_liquid_density_lookup": {
+      "liquid_density_cache_misses": 3,
+      "liquid_density_requests": 3,
+      "liquid_density_wall_sec": 0.00042320002103224397,
+      "liquid_density_cache_hits": 8
+    },
+    "condenser_duty_reuse_diag": {
+      "full_packet_misses": 70,
+      "bubble_state_miss_no_packet": 10,
+      "fresh_solves": 70,
+      "bubble_state_miss_composition_delta": 60,
+      "bubble_state_miss_composition_delta_abs": 15
+    },
+    "condenser_duty_bubble_point_helper_flash": {
+      "flash_cache_misses": 1890,
+      "flash_requests": 1890,
+      "backend_flash_equivalents": 1890,
+      "wall_sec": 29.486693700571777,
+      "cp_requests": 1890,
+      "cp_wall_sec": 0.1475837997859344,
+      "flash_cache_evictions": 1840,
+      "flash_cache_hits": 210
+    },
+    "condenser_duty_helper_flash": {
+      "flash_cache_misses": 68,
+      "flash_requests": 68,
+      "backend_flash_equivalents": 68,
+      "wall_sec": 0.012433999974746257,
+      "cp_requests": 68,
+      "cp_wall_sec": 0.005478499835589901,
+      "flash_cache_hits": 72,
+      "flash_cache_evictions": 67
+    },
+    "temperature_state_enthalpy_refresh": {
+      "flash_cache_hits": 339,
+      "flash_cache_misses": 131,
+      "flash_requests": 131,
+      "backend_flash_equivalents": 131,
+      "wall_sec": 0.03764100017724559,
+      "cp_requests": 131,
+      "cp_wall_sec": 0.012907399708637968,
+      "flash_cache_evictions": 86
+    },
+    "temperature_state_cp_lookup": {
+      "flash_cache_misses": 1241,
+      "flash_requests": 1241,
+      "backend_flash_equivalents": 1241,
+      "wall_sec": 0.19576609999057837,
+      "cp_requests": 1241,
+      "cp_wall_sec": 0.10111339986906387,
+      "flash_cache_hits": 198,
+      "flash_cache_evictions": 1215
+    },
+    "bottom_sump_cp_lookup": {
+      "flash_cache_hits": 56,
+      "flash_cache_misses": 13,
+      "flash_requests": 13,
+      "backend_flash_equivalents": 13,
+      "wall_sec": 0.001964699971722439,
+      "cp_requests": 13,
+      "cp_wall_sec": 0.0009934000845532864,
+      "flash_cache_evictions": 13
+    },
+    "temperature_state_bubble_point_helper_flash": {
+      "flash_cache_hits": 2170
+    },
+    "uncategorized": {
+      "liquid_density_cache_hits": 2
+    },
+    "feed_stage_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.0003575000155251473,
+      "cp_requests": 1,
+      "cp_wall_sec": 0.00012250000145286322,
+      "flash_cache_evictions": 1
+    }
+  },
+  "ended_at_local": "2026-05-25 17:04:53",
+  "elapsed_wall_sec": 49.6242986000143,
+  "final_time_s": 60.0,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_probe_60s\\validation_gani_1986_debutanizer__restart_20260525_170404.xlsx",
+  "restart_export_error": ""
+}

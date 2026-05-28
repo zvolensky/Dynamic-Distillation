@@ -1,0 +1,89 @@
+{
+  "run_id": "20260408_101338",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 27388,
+  "started_at_local": "2026-04-08 10:13:38",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_startup_seed_probe_20260408e",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "clapeyron",
+  "thermo_every_n_steps": 1,
+  "n_steps": 0,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_startup_seed_probe_20260408e\\column_profile_20260408_101338.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_startup_seed_probe_20260408e\\column_summary_20260408_101338.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_startup_seed_probe_20260408e\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_startup_seed_probe_20260408e\\startup_trace_20260408_101301.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.0023035998456180096,
+    "equilibrium_relaxation_backend_build": 0.002455800073221326,
+    "francis_autocalibration": 1.2800097465515137e-05,
+    "startup_seed_cache_load": 0.0011953001376241446,
+    "startup_seed_cache_refresh": 0.003412500023841858
+  },
+  "startup_build_info": {},
+  "startup_seed_cache": {
+    "enabled": true,
+    "path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_startup_seed_probe_20260408e\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323__startup_seed_hydraulic_clapeyron_pr.json",
+    "loaded": true,
+    "saved": true,
+    "reason": "loaded+saved"
+  },
+  "thermo_call_counters": {
+    "uncategorized": {
+      "liquid_density_cache_misses": 1,
+      "liquid_density_requests": 1,
+      "liquid_density_wall_sec": 0.0001137999352067709,
+      "liquid_density_cache_hits": 4,
+      "batch_flash_requests": 2,
+      "batch_flash_rows": 20,
+      "flash_cache_misses": 21,
+      "flash_requests": 21,
+      "backend_flash_equivalents": 21,
+      "wall_sec": 0.002398200100287795,
+      "cp_requests": 21,
+      "cp_wall_sec": 0.0017778007313609123
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 20,
+      "liquid_density_requests": 20,
+      "liquid_density_wall_sec": 0.0009453995153307915
+    },
+    "reboiler_equilibrium_helper_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 29.161943400045857,
+      "cp_requests": 1,
+      "cp_wall_sec": 2.160157899837941
+    },
+    "temperature_state_cp_lookup": {
+      "flash_cache_misses": 18,
+      "flash_requests": 18,
+      "backend_flash_equivalents": 18,
+      "wall_sec": 0.0022967997938394547,
+      "cp_requests": 18,
+      "cp_wall_sec": 0.0012304000556468964
+    },
+    "bottom_sump_cp_lookup": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.00011639995500445366,
+      "cp_requests": 1,
+      "cp_wall_sec": 4.6900007873773575e-05
+    },
+    "feed_stage_flash": {
+      "flash_cache_hits": 1
+    }
+  },
+  "ended_at_local": "2026-04-08 10:14:10",
+  "elapsed_wall_sec": 31.769937499891967,
+  "final_time_s": -0.0,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_startup_seed_probe_20260408e\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323__restart_20260408_101338.xlsx",
+  "restart_export_error": ""
+}

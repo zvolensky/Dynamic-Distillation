@@ -8,6 +8,9 @@ Source of truth in code:
 - `src/dynamic_distillation/state_vector_layout_v1.py`
 - `src/dynamic_distillation/dynamic_run_scaffold_v1.py`
 
+Related initialization policy:
+- `docs/dynamic_column_initialization_strategy.md`
+
 ## Workbook Structure
 
 Expected sheets:
@@ -31,6 +34,11 @@ Current practical behavior:
 - On this column, a fresh full-startup run has recently taken about `10-12 minutes` of wall-clock time before the first logged integration row appears.
 - That startup time is spent aligning vapor holdup with startup pressure, conditioning thermo state, and steadying the top drum so the simulation starts from a dynamically consistent state.
 - This startup work is important. It reduces pressure/holdup/thermo mismatch at `t=0` and improves the early integration trajectory.
+- For the dependency-free relative-volatility validation case, the workbook intentionally carries explicit tray `Vapor Holdup (lbmol)`. Run it with `--use-excel-vapor-holdup` and keep `Vapor Holdup Relaxation (sec)=0` so pressure-based vapor-holdup relaxation does not erase the seeded vapor residence inventory.
+- For Skogestad Column A Tier 1 validation, the workbook intentionally omits `Boundary State` because the source's 41 stages already include the total condenser and reboiler. Run that case with `--disable-boundary-states --disable-vapor-states --no-equilibrium` so the model topology matches the source's constant-molar-overflow equations with algebraic vapor composition.
+- For Skogestad Column A dynamic disturbance checks, product stream component mole-flow cells should be blank. The source model withdraws products as `D*xD` and `B*xB`, so fixed distillate/bottoms component rates are not source-equivalent; only the feed uses fixed component rates.
+- For the Gani 1986/ChemSep source-topology material parity check, use `validation_gani_1986_debutanizer_chemsep_source_topology.xlsx` and keep the ChemSep liquid and vapor profiles together. Run with `--disable-boundary-states --disable-vapor-states --no-equilibrium` and leave energy off. Do not replace ChemSep vapor composition with another PR backend unless you are solving a new model-topology steady state; doing so breaks the ChemSep component material balance.
+- ChemSep and other external steady-state profiles should be treated as initialization seeds, not as automatically valid full dynamic initial conditions. The workbook may supply approximate `T/P/x/y/L/V`, duties, products, geometry, and holdup scale, but the dynamic model must still reconcile those values against its own topology, feed treatment, explicit vapor/liquid holdup states, and RHS equations before the state is accepted for validation or controller work. See `docs/dynamic_column_initialization_strategy.md`.
 
 Completed-run restart export:
 - Every completed run now writes a companion restart workbook into the run folder.
@@ -45,6 +53,14 @@ Restart sheets are optional:
 - `Boundary State`: top/bottom liquid and vapor holdups
 - `Energy State`: tray liquid/vapor energy state
 - `Controller State`: PI integrals and related controller memory
+
+Validation-source topology exception:
+- `Boundary State` should be absent for sources where the stage list already includes condenser/reboiler holdup states.
+- `--disable-vapor-states` removes dynamic tray vapor holdup/composition states and lets the RHS compute vapor composition algebraically from liquid composition and the active thermo provider.
+- Product draws should be represented by total flow only when the source equations remove products at current terminal composition. In the Skogestad Column A workbook, distillate and bottoms component mole-flow cells are intentionally blank for this reason.
+- This mode is appropriate for source reproduction tests such as Skogestad Column A; it is not a substitute for the standard explicit drum/sump and vapor-holdup model used for plant-like dynamic cases.
+- Imported steady profiles must match the topology, thermo, and state variables used in the run. A source-topology workbook can be steady with source vapor compositions and source terminal-stage assumptions, while the same profile can be non-steady if explicit drum/sump states, dynamic vapor holdup, energy states, or a different thermo backend are added without a new steady-state solve.
+- For plant-like full dynamic cases, imported profiles are best viewed as high-quality initial guesses. Acceptance requires an initialization residual audit and profile/conservation gates, not just `steady_state_flag=1`.
 
 ## Specifications Sheet
 
@@ -80,9 +96,9 @@ Restart sheets are optional:
 | `Top Drum Liquid Fraction (-)` | float or % | Optional liquid fill fraction (`0..1` or `0..100`) for level/geometry interpretation and vapor-volume inference when explicit top holdup is absent |
 | `Overhead Vapor Line Volume (ft3)` | float | Optional vapor-only add-on volume added to top-end vapor capacitance |
 | `Condenser Vapor Volume (ft3)` | float | Optional vapor-only add-on volume added to top-end vapor capacitance |
-| `Stage time constant [tau] (sec)` | float | Equilibrium relaxation tau; fallback for vapor holdup relaxation |
+| `Stage time constant [tau] (sec)` | float | Equilibrium relaxation tau; also used as the vapor-holdup relaxation fallback when `Vapor Holdup Relaxation (sec)` is absent |
 | `Dry Tray K` | float | Hydraulic dry pressure drop coefficient |
-| `Vapor Holdup Relaxation (sec)` | float | Dynamic vapor holdup relaxation |
+| `Vapor Holdup Relaxation (sec)` | float | Dynamic vapor holdup relaxation; set `0` to disable pressure-based tray vapor-holdup relaxation and retain seeded tray vapor inventories |
 | `Vapor Flow Relaxation (sec)` | float | Dynamic vapor flow relaxation |
 | `Condenser Pressure Drop (psi)` | float | Fixed pressure drop from stage 2 to stage 1 in hydraulic pressure mode |
 | `Reboiler Neighbor Vapor Hi Ratio` | float | Upper ratio bound for stage `N-1` vapor flow vs boilup in `vapor_flow_model="energy"` (runner fallback default `1.20`) |
@@ -90,6 +106,8 @@ Restart sheets are optional:
 | `Thermo Refresh dT (F)` | float | Per-stage thermo refresh threshold |
 | `Thermo Refresh dP (psia)` | float | Per-stage thermo refresh pressure threshold |
 | `Thermo Refresh dX` | float | Per-stage thermo refresh composition threshold (`max(abs(dz_k))`) |
+| `Thermo Mode` | string | Workbook-level thermo mode hint; `relative-volatility` selects the simple constant-alpha validation backend when the runner is launched with that mode |
+| `Relative Volatility` | float | Alpha for the `relative-volatility` thermo backend; defaults to `1.6` when omitted |
 | `Thermo Refresh Delta T (F)` | float | Alias for `Thermo Refresh dT (F)` |
 | `Thermo Refresh Delta (F)` | float | Alias for `Thermo Refresh dT (F)` |
 | `Thermo Refresh ΔT (F)` | float | Alias for `Thermo Refresh dT (F)` |
@@ -231,7 +249,7 @@ Validation:
 | Column | Type | Purpose |
 |---|---|---|
 | `Liquid Holdup (lbmol)` | float | Initializes `M_L_lbmol` tray holdup |
-| `Vapor Holdup (lbmol)` | float | Initializes `M_V_lbmol` tray holdup if `--use-excel-vapor-holdup` is enabled; otherwise tray vapor holdup is cleared and re-initialized from pressure profile. |
+| `Vapor Holdup (lbmol)` | float | Initializes `M_V_lbmol` tray holdup if `--use-excel-vapor-holdup` is enabled; otherwise tray vapor holdup is cleared and re-initialized from the pressure profile. To keep these values during the run, set `Vapor Holdup Relaxation (sec)` to `0` or omit pressure-based vapor-holdup relaxation deliberately. |
 
 If optional holdup columns are absent/all-NaN, model defaults from existing spec/state logic are used.
 

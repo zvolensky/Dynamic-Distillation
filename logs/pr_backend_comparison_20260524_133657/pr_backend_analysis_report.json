@@ -1,0 +1,330 @@
+{
+  "left": "dwsim-pr",
+  "right": "clapeyron-pr",
+  "summary_deltas": [
+    {
+      "metric": "time_s",
+      "dwsim_pr": 0.4,
+      "clapeyron_pr": 0.4,
+      "delta_clapeyron_minus_dwsim": 0.0,
+      "abs_delta": 0.0,
+      "relative_delta": 0.0
+    },
+    {
+      "metric": "P_top_drum_psia",
+      "dwsim_pr": 177.14786965845622,
+      "clapeyron_pr": 176.5083112513799,
+      "delta_clapeyron_minus_dwsim": -0.639558407076322,
+      "abs_delta": 0.639558407076322,
+      "relative_delta": -0.003610308203589467
+    },
+    {
+      "metric": "P_top_ctrl_pv_psia",
+      "dwsim_pr": 220.43871675201032,
+      "clapeyron_pr": 220.4406416304004,
+      "delta_clapeyron_minus_dwsim": 0.0019248783900707167,
+      "abs_delta": 0.0019248783900707167,
+      "relative_delta": 8.732034092886555e-06
+    },
+    {
+      "metric": "xD_comp_pv",
+      "dwsim_pr": 0.0951332503721482,
+      "clapeyron_pr": 0.0951340191435598,
+      "delta_clapeyron_minus_dwsim": 7.687714115994781e-07,
+      "abs_delta": 7.687714115994781e-07,
+      "relative_delta": 8.080995956641342e-06
+    },
+    {
+      "metric": "Reflux_cmd_lbmolph",
+      "dwsim_pr": 5156.256672253172,
+      "clapeyron_pr": 5555.561656283089,
+      "delta_clapeyron_minus_dwsim": 399.30498402991725,
+      "abs_delta": 399.30498402991725,
+      "relative_delta": 0.0774408663902741
+    },
+    {
+      "metric": "D_lbmolph",
+      "dwsim_pr": 2367.454029843578,
+      "clapeyron_pr": 2374.27560422831,
+      "delta_clapeyron_minus_dwsim": 6.821574384731775,
+      "abs_delta": 6.821574384731775,
+      "relative_delta": 0.0028813967657832363
+    },
+    {
+      "metric": "B_lbmolph",
+      "dwsim_pr": 4761.9799643634815,
+      "clapeyron_pr": 4761.979964363482,
+      "delta_clapeyron_minus_dwsim": 9.094947017729282e-13,
+      "abs_delta": 9.094947017729282e-13,
+      "relative_delta": 1.9099087114586327e-16
+    },
+    {
+      "metric": "steady_state_score",
+      "dwsim_pr": 99.52791596835345,
+      "clapeyron_pr": 49.614792964613784,
+      "delta_clapeyron_minus_dwsim": -49.91312300373967,
+      "abs_delta": 49.91312300373967,
+      "relative_delta": -0.5014987254391057
+    },
+    {
+      "metric": "ss_max_rel_state_rate_per_s",
+      "dwsim_pr": 0.07653032951645715,
+      "clapeyron_pr": 0.04186408434361161,
+      "delta_clapeyron_minus_dwsim": -0.03466624517284554,
+      "abs_delta": 0.03466624517284554,
+      "relative_delta": -0.4529739436884416
+    },
+    {
+      "metric": "ss_max_mv_rate_per_s",
+      "dwsim_pr": 1990.558319367069,
+      "clapeyron_pr": 992.2958592922757,
+      "delta_clapeyron_minus_dwsim": -998.2624600747934,
+      "abs_delta": 998.2624600747934,
+      "relative_delta": -0.5014987254391057
+    }
+  ],
+  "profile_delta_top": [
+    {
+      "metric": "Q_cond_calc_BTUph",
+      "stage": "0",
+      "node_type": "distillate_drum",
+      "dwsim_pr": -51483342.93700119,
+      "clapeyron_pr": -47800207.48736883,
+      "delta_clapeyron_minus_dwsim": 3683135.4496323615,
+      "abs_delta": 3683135.4496323615,
+      "relative_delta": -0.07154033206700111,
+      "mean_abs_delta": 3683135.4496323615,
+      "n_pairs": 1
+    },
+    {
+      "metric": "Q_cond_used_BTUph",
+      "stage": "0",
+      "node_type": "distillate_drum",
+      "dwsim_pr": -51483342.93700119,
+      "clapeyron_pr": -47800207.48736883,
+      "delta_clapeyron_minus_dwsim": 3683135.4496323615,
+      "abs_delta": 3683135.4496323615,
+      "relative_delta": -0.07154033206700111,
+      "mean_abs_delta": 3683135.4496323615,
+      "n_pairs": 1
+    },
+    {
+      "metric": "HL_BTU_lbmol_tray",
+      "stage": "1",
+      "node_type": "stage",
+      "dwsim_pr": -5916.327707221928,
+      "clapeyron_pr": -3737.718826330272,
+      "delta_clapeyron_minus_dwsim": 2178.608880891656,
+      "abs_delta": 2178.608880891656,
+      "relative_delta": -0.3682366813846835,
+      "mean_abs_delta": 886.5694082369688,
+      "n_pairs": 20
+    },
+    {
+      "metric": "HV_BTU_lbmol_tray",
+      "stage": "1",
+      "node_type": "stage",
+      "dwsim_pr": -105.7838976094394,
+      "clapeyron_pr": 1998.1498930537682,
+      "delta_clapeyron_minus_dwsim": 2103.9337906632077,
+      "abs_delta": 2103.9337906632077,
+      "relative_delta": -19.888979686029902,
+      "mean_abs_delta": 946.8163342070205,
+      "n_pairs": 20
+    },
+    {
+      "metric": "L_out_hyd_lbmolph",
+      "stage": "18",
+      "node_type": "stage",
+      "dwsim_pr": 7599.773998694517,
+      "clapeyron_pr": 9314.319598577295,
+      "delta_clapeyron_minus_dwsim": 1714.5455998827774,
+      "abs_delta": 1714.5455998827774,
+      "relative_delta": 0.22560481406122085,
+      "mean_abs_delta": 482.51185708907525,
+      "n_pairs": 20
+    },
+    {
+      "metric": "tray_effective_heat_capacity_BTU_per_F",
+      "stage": "2",
+      "node_type": "stage",
+      "dwsim_pr": 1928.4050600566484,
+      "clapeyron_pr": 1117.1705601220672,
+      "delta_clapeyron_minus_dwsim": -811.2344999345812,
+      "abs_delta": 811.2344999345812,
+      "relative_delta": -0.42067640079245106,
+      "mean_abs_delta": 467.278808904903,
+      "n_pairs": 20
+    },
+    {
+      "metric": "tray_heat_capacity_BTU_per_F",
+      "stage": "2",
+      "node_type": "stage",
+      "dwsim_pr": 1928.4050600566484,
+      "clapeyron_pr": 1117.1705601220672,
+      "delta_clapeyron_minus_dwsim": -811.2344999345812,
+      "abs_delta": 811.2344999345812,
+      "relative_delta": -0.42067640079245106,
+      "mean_abs_delta": 467.278808904903,
+      "n_pairs": 20
+    },
+    {
+      "metric": "L_out_used_lbmolph",
+      "stage": "1",
+      "node_type": "stage",
+      "dwsim_pr": 5156.256672253172,
+      "clapeyron_pr": 5555.561656283089,
+      "delta_clapeyron_minus_dwsim": 399.30498402991725,
+      "abs_delta": 399.30498402991725,
+      "relative_delta": 0.0774408663902741,
+      "mean_abs_delta": 19.965249201495862,
+      "n_pairs": 20
+    },
+    {
+      "metric": "Reflux_cmd_active_max_lbmolph",
+      "stage": "0",
+      "node_type": "distillate_drum",
+      "dwsim_pr": 5156.256672253172,
+      "clapeyron_pr": 5555.561656283089,
+      "delta_clapeyron_minus_dwsim": 399.30498402991725,
+      "abs_delta": 399.30498402991725,
+      "relative_delta": 0.0774408663902741,
+      "mean_abs_delta": 399.30498402991725,
+      "n_pairs": 1
+    },
+    {
+      "metric": "Reflux_cmd_lbmolph",
+      "stage": "0",
+      "node_type": "distillate_drum",
+      "dwsim_pr": 5156.256672253172,
+      "clapeyron_pr": 5555.561656283089,
+      "delta_clapeyron_minus_dwsim": 399.30498402991725,
+      "abs_delta": 399.30498402991725,
+      "relative_delta": 0.0774408663902741,
+      "mean_abs_delta": 399.30498402991725,
+      "n_pairs": 1
+    },
+    {
+      "metric": "vflow_energy_calc_lbmolph",
+      "stage": "2",
+      "node_type": "stage",
+      "dwsim_pr": 7658.048268411432,
+      "clapeyron_pr": 7952.815894395535,
+      "delta_clapeyron_minus_dwsim": 294.7676259841028,
+      "abs_delta": 294.7676259841028,
+      "relative_delta": 0.03849122069391823,
+      "mean_abs_delta": 35.993601121515034,
+      "n_pairs": 18
+    },
+    {
+      "metric": "vflow_energy_denom_BTU_per_lbmol",
+      "stage": "13",
+      "node_type": "stage",
+      "dwsim_pr": 6360.26927549643,
+      "clapeyron_pr": 6520.309964196307,
+      "delta_clapeyron_minus_dwsim": 160.04068869987714,
+      "abs_delta": 160.04068869987714,
+      "relative_delta": 0.025162564943036266,
+      "mean_abs_delta": 104.28946214883591,
+      "n_pairs": 18
+    },
+    {
+      "metric": "V_top_drum_liquid_ft3",
+      "stage": "0",
+      "node_type": "distillate_drum",
+      "dwsim_pr": 2196.8088611530925,
+      "clapeyron_pr": 2163.627109257065,
+      "delta_clapeyron_minus_dwsim": -33.181751896027436,
+      "abs_delta": 33.181751896027436,
+      "relative_delta": -0.0151045238767885,
+      "mean_abs_delta": 33.181751896027436,
+      "n_pairs": 1
+    },
+    {
+      "metric": "V_top_drum_vapor_ft3",
+      "stage": "0",
+      "node_type": "distillate_drum",
+      "dwsim_pr": 2133.3334060865477,
+      "clapeyron_pr": 2166.515157982575,
+      "delta_clapeyron_minus_dwsim": 33.181751896027436,
+      "abs_delta": 33.181751896027436,
+      "relative_delta": 0.015553945670825573,
+      "mean_abs_delta": 33.181751896027436,
+      "n_pairs": 1
+    },
+    {
+      "metric": "M_total_lbmol",
+      "stage": "1",
+      "node_type": "stage",
+      "dwsim_pr": 3286.550863082791,
+      "clapeyron_pr": 3300.825533480814,
+      "delta_clapeyron_minus_dwsim": 14.274670398023318,
+      "abs_delta": 14.274670398023318,
+      "relative_delta": 0.00434335903891463,
+      "mean_abs_delta": 0.7137335199011658,
+      "n_pairs": 20
+    },
+    {
+      "metric": "eq_flash_mv_total_lbmol_tray",
+      "stage": "19",
+      "node_type": "stage",
+      "dwsim_pr": 21.103693079201836,
+      "clapeyron_pr": 11.535621556509613,
+      "delta_clapeyron_minus_dwsim": -9.568071522692223,
+      "abs_delta": 9.568071522692223,
+      "relative_delta": -0.4533837507389535,
+      "mean_abs_delta": 2.603422619149367,
+      "n_pairs": 20
+    },
+    {
+      "metric": "net_F_minus_D_minus_B_lbmolph",
+      "stage": "1",
+      "node_type": "stage",
+      "dwsim_pr": 13.546005792939468,
+      "clapeyron_pr": 6.724431408207238,
+      "delta_clapeyron_minus_dwsim": -6.82157438473223,
+      "abs_delta": 6.82157438473223,
+      "relative_delta": -0.503585668646902,
+      "mean_abs_delta": 0.3410787192366115,
+      "n_pairs": 20
+    },
+    {
+      "metric": "D_lbmolph",
+      "stage": "0",
+      "node_type": "distillate_drum",
+      "dwsim_pr": 2367.454029843578,
+      "clapeyron_pr": 2374.27560422831,
+      "delta_clapeyron_minus_dwsim": 6.821574384731775,
+      "abs_delta": 6.821574384731775,
+      "relative_delta": 0.0028813967657832363,
+      "mean_abs_delta": 6.821574384731775,
+      "n_pairs": 1
+    },
+    {
+      "metric": "Top_level_ctrl_pi_term_lbmolph",
+      "stage": "1",
+      "node_type": "stage",
+      "dwsim_pr": 2367.454029843578,
+      "clapeyron_pr": 2374.27560422831,
+      "delta_clapeyron_minus_dwsim": 6.821574384731775,
+      "abs_delta": 6.821574384731775,
+      "relative_delta": 0.0028813967657832363,
+      "mean_abs_delta": 0.3410787192365888,
+      "n_pairs": 20
+    },
+    {
+      "metric": "Top_level_ctrl_u_unclamped_lbmolph",
+      "stage": "1",
+      "node_type": "stage",
+      "dwsim_pr": 2367.454029843578,
+      "clapeyron_pr": 2374.27560422831,
+      "delta_clapeyron_minus_dwsim": 6.821574384731775,
+      "abs_delta": 6.821574384731775,
+      "relative_delta": 0.0028813967657832363,
+      "mean_abs_delta": 0.3410787192365888,
+      "n_pairs": 20
+    }
+  ],
+  "summary_delta_csv": "logs\\pr_backend_comparison_20260524_133657\\pr_backend_summary_deltas.csv",
+  "profile_delta_csv": "logs\\pr_backend_comparison_20260524_133657\\pr_backend_profile_deltas.csv"
+}

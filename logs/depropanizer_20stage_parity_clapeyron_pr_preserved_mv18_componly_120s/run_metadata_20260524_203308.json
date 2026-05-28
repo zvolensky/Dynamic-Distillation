@@ -1,0 +1,97 @@
+{
+  "run_id": "20260524_203308",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 29096,
+  "started_at_local": "2026-05-24 20:33:08",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_preserved_mv18_20260524.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_parity_clapeyron_pr_preserved_mv18_componly_120s",
+  "runtime_mode": "parity",
+  "thermo_mode": "clapeyron",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 5,
+  "n_steps": 600,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_parity_clapeyron_pr_preserved_mv18_componly_120s\\column_profile_20260524_203308.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_parity_clapeyron_pr_preserved_mv18_componly_120s\\column_summary_20260524_203308.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_parity_clapeyron_pr_preserved_mv18_componly_120s\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_parity_clapeyron_pr_preserved_mv18_componly_120s\\startup_trace_20260524_203221.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.0032187999750021845,
+    "equilibrium_relaxation_backend_build": 0.0028701999981421977,
+    "francis_autocalibration": 1.5900004655122757e-05,
+    "vapor_holdup_initialization": 21.56050629998208,
+    "startup_tray_refresh": 21.55626770001254,
+    "startup_tray_refresh_source": "direct-tray-refresh",
+    "startup_tray_refresh_batch_used": true
+  },
+  "startup_build_info": {},
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "startup_vapor_holdup_tray_refresh": {
+      "batch_flash_requests": 1,
+      "batch_flash_rows": 20,
+      "flash_cache_misses": 20,
+      "flash_requests": 20,
+      "backend_flash_equivalents": 20,
+      "wall_sec": 20.005618700030027,
+      "cp_requests": 20,
+      "cp_wall_sec": 1.4146559000364505
+    },
+    "uncategorized": {
+      "liquid_density_cache_misses": 601,
+      "liquid_density_requests": 601,
+      "liquid_density_wall_sec": 0.04891570031759329,
+      "liquid_density_cache_hits": 4,
+      "liquid_density_cache_evictions": 365
+    },
+    "feed_stage_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.00022390001686289907,
+      "cp_requests": 1,
+      "cp_wall_sec": 8.379999781027436e-05
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 20,
+      "liquid_density_requests": 20,
+      "liquid_density_wall_sec": 0.0007112000021152198
+    },
+    "reboiler_equilibrium_helper_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.00016080000204965472,
+      "cp_requests": 1,
+      "cp_wall_sec": 6.589997792616487e-05
+    },
+    "main_tray_refresh": {
+      "batch_flash_requests": 97,
+      "batch_flash_rows": 1940,
+      "flash_cache_hits": 1,
+      "flash_cache_misses": 1939,
+      "flash_requests": 1939,
+      "backend_flash_equivalents": 1939,
+      "wall_sec": 0.1362639995641075,
+      "cp_requests": 1939,
+      "cp_wall_sec": 0.09764840014395304,
+      "flash_cache_evictions": 1705
+    }
+  },
+  "ended_at_local": "2026-05-24 20:33:14",
+  "elapsed_wall_sec": 6.22073560001445,
+  "final_time_s": 120.00000000000117,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_parity_clapeyron_pr_preserved_mv18_componly_120s\\distillation_column_template_20stage_chemsep_warmer_feed_seed_preserved_mv18_202__restart_20260524_203308.xlsx",
+  "restart_export_error": ""
+}

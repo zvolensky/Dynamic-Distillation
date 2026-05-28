@@ -55,6 +55,11 @@ import numpy as np
 from dynamic_distillation.column_spec_builder_v1 import ColumnSpec, ColumnGeometry
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
 from dynamic_distillation.thermo_model_v1 import ThermoModel, ConstantCpThermo
+from dynamic_distillation.thermo_step_coordinator_v1 import (
+    refresh_energy_vapor_flow_phase_enthalpies,
+    refresh_temperature_state_phase_enthalpies,
+    refresh_tray_tp_packet,
+)
 from dynamic_distillation.stage_thermo_v1 import flash_TP_full_F_psia
 from dynamic_distillation.stage_hydraulics_francis_v1 import compute_francis_weir_liquid_outflow
 
@@ -128,6 +133,27 @@ class CondenserDutyPacket:
     P_vapor_in_psia: float
     P_condenser_psia: float
     y_vapor_in: np.ndarray
+    hL_cond_BTU_lbmol: Optional[float] = None
+
+
+@dataclass
+class FeedStageFlashPacket:
+    stage0: int
+    T_feed_F: float
+    P_feed_psia: float
+    z_feed: np.ndarray
+    Fk_L_lbmolps: np.ndarray
+    Fk_V_lbmolps: np.ndarray
+    hL_BTU_lbmol: Optional[float] = None
+    hV_BTU_lbmol: Optional[float] = None
+
+
+@dataclass
+class BottomSumpCpPacket:
+    T_sump_F: float
+    P_sump_psia: float
+    x_sump: np.ndarray
+    cpL_BTU_lbmolF: float
 
 
 def _seed_tray_thermo_packet(
@@ -214,6 +240,222 @@ def _ensure_packet_equilibrium_arrays(packet: TrayThermoPacket, *, n_stages: int
         packet.x_equilibrium_tray = np.full((n_stages, n_components), np.nan, dtype=float)
     if packet.y_eq is None:
         packet.y_equilibrium_tray = np.full((n_stages, n_components), np.nan, dtype=float)
+
+
+def _build_current_tray_thermo_refresh(
+    *,
+    col: ColumnSpec,
+    layout: StateVectorLayout,
+    inputs: ColumnInputs,
+    u: dict[str, Any],
+    diag: Optional[dict[str, np.ndarray]],
+    tray_L: np.ndarray,
+    tray_V: Optional[np.ndarray],
+    x_tray: np.ndarray,
+    P_tray_hyd: Optional[np.ndarray],
+    n_stages: int,
+    n_components: int,
+):
+    if inputs.thermo_provider is None:
+        return None
+
+    if "tray_T_f" in u:
+        T_tray = np.asarray(u["tray_T_f"], dtype=float).reshape((n_stages,))
+    elif hasattr(col, "T_f"):
+        T_tray = np.asarray(col.T_f, dtype=float).reshape((n_stages,))
+    else:
+        T_tray = np.full(n_stages, 100.0, dtype=float)
+
+    if hasattr(col, "P_psia"):
+        P_tray = np.asarray(col.P_psia, dtype=float).reshape((n_stages,))
+    elif diag is not None and "P_psia_diag" in diag:
+        P_tray = np.asarray(diag["P_psia_diag"], dtype=float).reshape((n_stages,))
+    else:
+        P_tray = np.full(n_stages, 200.0, dtype=float)
+    if P_tray_hyd is not None:
+        try:
+            P_tray = np.asarray(P_tray_hyd, dtype=float).reshape((n_stages,))
+        except Exception:
+            pass
+
+    Z_overall = np.zeros((n_stages, n_components), dtype=float)
+    for i in range(n_stages):
+        z = tray_L[i, :].copy()
+        if tray_V is not None:
+            z = z + tray_V[i, :]
+        s = float(np.sum(z))
+        if s <= layout.epsilon_lbmol:
+            z = x_tray[i, :].copy()
+            s = float(np.sum(z))
+        Z_overall[i, :] = z / max(s, 1e-300)
+
+    thermo_packet = _seed_tray_thermo_packet(
+        N=n_stages,
+        Nc=n_components,
+        z_overall_tray=Z_overall,
+        tray_thermo_prev=inputs.tray_thermo_prev,
+        K_tray_prev=inputs.K_tray_prev,
+        HL_prev=inputs.HL_prev,
+        HV_prev=inputs.HV_prev,
+        Zfac_prev=inputs.Zfac_prev,
+    )
+    thermo_packet.T_tray_F = np.asarray(T_tray, dtype=float).reshape((n_stages,)).copy()
+    thermo_packet.P_tray_psia = np.asarray(P_tray, dtype=float).reshape((n_stages,)).copy()
+
+    dT_thresh = inputs.thermo_refresh_dT_F
+    if dT_thresh is not None:
+        try:
+            dT_thresh = float(dT_thresh)
+        except Exception:
+            dT_thresh = None
+    if dT_thresh is not None and (not np.isfinite(dT_thresh) or dT_thresh <= 0.0):
+        dT_thresh = None
+
+    T_prev = None
+    if inputs.T_tray_prev_F is not None:
+        try:
+            T_prev = np.asarray(inputs.T_tray_prev_F, dtype=float).reshape((n_stages,))
+        except Exception:
+            T_prev = None
+    if T_prev is None and inputs.tray_thermo_prev is not None and inputs.tray_thermo_prev.T_state is not None:
+        try:
+            T_prev = np.asarray(inputs.tray_thermo_prev.T_state, dtype=float).reshape((n_stages,))
+        except Exception:
+            T_prev = None
+
+    dP_thresh = inputs.thermo_refresh_dP_psia
+    if dP_thresh is not None:
+        try:
+            dP_thresh = float(dP_thresh)
+        except Exception:
+            dP_thresh = None
+    if dP_thresh is not None and (not np.isfinite(dP_thresh) or dP_thresh <= 0.0):
+        dP_thresh = None
+
+    dX_thresh = inputs.thermo_refresh_dx
+    if dX_thresh is not None:
+        try:
+            dX_thresh = float(dX_thresh)
+        except Exception:
+            dX_thresh = None
+    if dX_thresh is not None and (not np.isfinite(dX_thresh) or dX_thresh <= 0.0):
+        dX_thresh = None
+
+    P_prev = None
+    if inputs.P_tray_prev is not None:
+        try:
+            P_prev = np.asarray(inputs.P_tray_prev, dtype=float).reshape((n_stages,))
+        except Exception:
+            P_prev = None
+    if P_prev is None and inputs.tray_thermo_prev is not None and inputs.tray_thermo_prev.P_state is not None:
+        try:
+            P_prev = np.asarray(inputs.tray_thermo_prev.P_state, dtype=float).reshape((n_stages,))
+        except Exception:
+            P_prev = None
+
+    Z_prev = None
+    if inputs.Z_overall_prev is not None:
+        try:
+            Z_prev = np.asarray(inputs.Z_overall_prev, dtype=float).reshape((n_stages, n_components))
+        except Exception:
+            Z_prev = None
+    if Z_prev is None and inputs.tray_thermo_prev is not None:
+        try:
+            Z_prev = np.asarray(inputs.tray_thermo_prev.z_overall, dtype=float).reshape((n_stages, n_components))
+        except Exception:
+            Z_prev = None
+
+    return refresh_tray_tp_packet(
+        packet=thermo_packet,
+        provider=inputs.thermo_provider,
+        T_tray_F=T_tray,
+        P_tray_psia=P_tray,
+        z_overall_tray=Z_overall,
+        n_stages=n_stages,
+        n_components=n_components,
+        dT_thresh_F=dT_thresh,
+        dP_thresh_psia=dP_thresh,
+        dX_thresh=dX_thresh,
+        T_prev_F=T_prev,
+        P_prev_psia=P_prev,
+        z_prev=Z_prev,
+        ensure_packet_equilibrium_arrays=_ensure_packet_equilibrium_arrays,
+        flash_stage_fn=_flash_TP_full_stage_F_psia,
+        trace_fn=_trace_stage_thermo,
+        trace_context=inputs,
+    )
+
+
+def _compatible_feed_stage_flash_packet(
+    *,
+    packet: Optional[FeedStageFlashPacket],
+    stage0: int,
+    T_feed_F: float,
+    P_feed_psia: float,
+    z_feed: np.ndarray,
+    n_components: int,
+    max_abs_dT_F: float,
+    max_abs_dP_psia: float,
+    max_abs_dx: float,
+) -> tuple[Optional[FeedStageFlashPacket], Optional[float], Optional[float], Optional[float]]:
+    if packet is None or int(getattr(packet, "stage0", -999999)) != int(stage0):
+        return None, None, None, None
+    try:
+        z_prev = np.asarray(packet.z_feed, dtype=float).reshape((n_components,))
+        T_prev = float(packet.T_feed_F)
+        P_prev = float(packet.P_feed_psia)
+        dx_val = float(np.nanmax(np.abs(np.asarray(z_feed, dtype=float).reshape((n_components,)) - z_prev)))
+    except Exception:
+        return None, None, None, None
+    dT_val = abs(float(T_feed_F) - T_prev)
+    dP_val = abs(float(P_feed_psia) - P_prev)
+    if (
+        np.isfinite(T_prev)
+        and np.isfinite(P_prev)
+        and np.isfinite(dx_val)
+        and dT_val <= float(max_abs_dT_F)
+        and dP_val <= float(max_abs_dP_psia)
+        and dx_val <= float(max_abs_dx)
+    ):
+        return packet, float(dT_val), float(dP_val), float(dx_val)
+    return None, float(dT_val), float(dP_val), float(dx_val)
+
+
+def _compatible_bottom_sump_cp_packet(
+    packet: Optional[BottomSumpCpPacket],
+    *,
+    T_sump_F: float,
+    P_sump_psia: float,
+    x_sump: np.ndarray,
+    n_components: int,
+    max_abs_dT_F: float,
+    max_abs_dP_psia: float,
+    max_abs_dx: float,
+) -> tuple[Optional[BottomSumpCpPacket], Optional[float], Optional[float], Optional[float]]:
+    if packet is None:
+        return None, None, None, None
+    try:
+        x_prev = np.asarray(packet.x_sump, dtype=float).reshape((n_components,))
+        x_now = np.asarray(x_sump, dtype=float).reshape((n_components,))
+        T_prev = float(packet.T_sump_F)
+        P_prev = float(packet.P_sump_psia)
+        cp_prev = float(packet.cpL_BTU_lbmolF)
+        dx_val = float(np.nanmax(np.abs(x_now - x_prev)))
+    except Exception:
+        return None, None, None, None
+    dT_val = abs(float(T_sump_F) - T_prev)
+    dP_val = abs(float(P_sump_psia) - P_prev)
+    if (
+        np.isfinite(T_prev)
+        and np.isfinite(P_prev)
+        and np.isfinite(cp_prev)
+        and np.isfinite(dx_val)
+        and dT_val <= float(max_abs_dT_F)
+        and dP_val <= float(max_abs_dP_psia)
+        and dx_val <= float(max_abs_dx)
+    ):
+        return packet, float(dT_val), float(dP_val), float(dx_val)
+    return None, float(dT_val), float(dP_val), float(dx_val)
 
 
 def _packet_phase_enthalpy_if_compatible(
@@ -542,6 +784,24 @@ def _thermo_provider_category(provider: Any, category: Optional[str]):
     return nullcontext()
 
 
+def _record_thermo_provider_counter(
+    provider: Any,
+    metric: str,
+    amount: float = 1,
+    *,
+    category: Optional[str] = None,
+) -> None:
+    if provider is None:
+        return
+    fn = getattr(provider, "_record_call_counter", None)
+    if not callable(fn):
+        return
+    try:
+        fn(metric, amount, category=category)
+    except Exception:
+        pass
+
+
 def _provider_cp_liq_vap_btu_per_lbmolF(
     provider: Any,
     T_F: float,
@@ -582,6 +842,11 @@ class ColumnInputs:
     condenser_duty_btu_per_h: Optional[float] = None
     # Optional duty trim applied on top of computed total-condense duty.
     condenser_duty_trim_btu_per_h: Optional[float] = None
+    # When True, total-condense mode may still allow duty-limited vapor slip
+    # to the top drum. This is used for explicitly coupled condenser-duty
+    # pressure-control runs so the MV has real mass-split authority instead of
+    # acting only as an energy trim on a forced full-condensation split.
+    condenser_duty_partial_condense_if_limited: bool = False
     # When False, skip the live thermo-based total-condenser duty solve and
     # use the specified/base condenser duty path instead.
     enable_live_total_condenser_duty: bool = True
@@ -592,6 +857,12 @@ class ColumnInputs:
     condenser_duty_reuse_dP_psia: float = 0.25
     condenser_duty_reuse_dx: float = 0.01
     condenser_duty_reuse_dV_rel: float = 0.02
+    # Bubble-state reuse is narrower than full-packet reuse: it only carries
+    # forward the condenser bubble point / condensed-liquid enthalpy while
+    # still recomputing the current vapor enthalpy. Allowing a larger pressure
+    # window here can avoid expensive pressure-only bubble-point resolves
+    # without reusing the full prior duty solve.
+    condenser_duty_bubble_state_reuse_dP_psia: float = 50.0
 
     # Legacy temperature-state energy model (only used when layout.include_temperature=True)
     thermo: Optional[ThermoModel] = None
@@ -648,6 +919,20 @@ class ColumnInputs:
     # Optional previous-step monotone minimum damping by tray for below-feed
     # phase-holdup ratcheting.
     phase_energy_damping_min_prev_tray: Optional[np.ndarray] = None
+    # Low-holdup phase-transfer stabilization. These guards only act on the
+    # equilibrium relaxation source term and are intended to keep nearly dry
+    # trays from vaporizing or condensing phase inventory faster than the tray
+    # can physically support.
+    equilibrium_phase_rate_liquid_guard_lbmol: float = 1.0
+    equilibrium_phase_rate_vapor_guard_lbmol: float = 1.0
+    equilibrium_phase_rate_max_frac_per_tau: float = 0.5
+    # Low-holdup temperature stabilization for hydraulic+energy runs. When a
+    # tray's thermal mass collapses, floor the effective heat capacity and cap
+    # the legacy dE/C temperature derivative so one explicit step cannot send
+    # the tray temperature nonphysical.
+    hydraulic_energy_temperature_holdup_guard_lbmol: float = 1.0
+    hydraulic_energy_temperature_min_heat_capacity_BTU_per_F: float = 25.0
+    hydraulic_energy_temperature_max_dT_rate_F_per_s: float = 10.0
 
     # Reboiler handling
     # reboiler_mode:
@@ -723,6 +1008,9 @@ class ColumnInputs:
     # "energy"  = compute V_out from energy balance with dT/dt target
     # "conductance" = compute V_out from tray-to-tray pressure conductance
     vapor_flow_model: str = "profile"
+    # Diagnostic-only: freeze explicit tray vapor derivatives after transport
+    # assembly to test profile-flow parity closure without changing normal runs.
+    debug_freeze_tray_vapor_derivatives: bool = False
     dry_tray_K: float = 1.0
     vapor_holdup_relaxation_sec: Optional[float] = None
     component_mw_lbm_per_lbmol: Optional[np.ndarray] = None
@@ -761,12 +1049,25 @@ class ColumnInputs:
     # When True and thermo_provider is available, split feed with a TP flash
     # at feed-stage pressure instead of using stream vapor_fraction directly.
     flash_feed_at_stage_conditions: bool = True
+    # Optional previous feed flash packet for conservative reuse when the
+    # feed state and feed-stage pressure are effectively unchanged.
+    feed_stage_flash_prev: Optional[FeedStageFlashPacket] = None
+    feed_stage_flash_reuse_dT_F: float = 0.5
+    feed_stage_flash_reuse_dP_psia: float = 2.5
+    feed_stage_flash_reuse_dx: float = 1.0e-6
+    bottom_sump_cp_prev: Optional[BottomSumpCpPacket] = None
+    bottom_sump_cp_reuse_dT_F: float = 0.5
+    bottom_sump_cp_reuse_dP_psia: float = 5.0
+    bottom_sump_cp_reuse_dx: float = 1.0e-5
     # Internal liquid hydraulics override for stages 2..N-1.
     # When disabled, internal liquid downflow stays on the profile values.
     enable_liquid_hydraulic_override: bool = True
     # Blend between profile and hydraulic internal liquid downflow:
     # 0.0 = profile-only, 1.0 = full hydraulic override.
     liquid_hydraulic_override_alpha: float = 1.0
+    # Optional per-stage hydraulic blend override. When provided, this takes
+    # precedence over the scalar alpha for the corresponding stages.
+    liquid_hydraulic_override_alpha_per_stage: Optional[np.ndarray] = None
     # Internal liquid hydraulics model:
     # "francis" = Francis weir outflow based on tray holdup and geometry
     liquid_hydraulic_model: str = "francis"
@@ -897,6 +1198,117 @@ def _layout_slices(layout: StateVectorLayout) -> Dict[str, slice]:
     raise ColumnRHSError("StateVectorLayout does not expose slices() or _build_slices().")
 
 
+def _limit_equilibrium_phase_transfer_rates(
+    transfer_lbmolps: np.ndarray,
+    *,
+    ML_tot_lbmol: np.ndarray,
+    MV_tot_lbmol: np.ndarray,
+    tau_sec: float,
+    liquid_guard_lbmol: float = 0.0,
+    vapor_guard_lbmol: float = 0.0,
+    max_frac_per_tau: float = 0.0,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Scale equilibrium phase-transfer rows so near-dry trays cannot vaporize or
+    condense phase inventory faster than a guarded fraction of available
+    holdup per tau.
+    """
+    transfer = np.asarray(transfer_lbmolps, dtype=float)
+    if transfer.ndim != 2:
+        raise ValueError("transfer_lbmolps must be a 2D array")
+    n_stages = transfer.shape[0]
+    ML = np.asarray(ML_tot_lbmol, dtype=float).reshape((n_stages,))
+    MV = np.asarray(MV_tot_lbmol, dtype=float).reshape((n_stages,))
+    adjusted = transfer.copy()
+    scale = np.ones(n_stages, dtype=float)
+    limit = np.full(n_stages, np.nan, dtype=float)
+
+    try:
+        tau = float(tau_sec)
+    except Exception:
+        tau = np.nan
+    try:
+        frac = float(max_frac_per_tau)
+    except Exception:
+        frac = np.nan
+    if (not np.isfinite(tau)) or tau <= 0.0 or (not np.isfinite(frac)) or frac <= 0.0:
+        return adjusted, scale, limit
+
+    liq_guard = max(float(liquid_guard_lbmol), 0.0) if np.isfinite(liquid_guard_lbmol) else 0.0
+    vap_guard = max(float(vapor_guard_lbmol), 0.0) if np.isfinite(vapor_guard_lbmol) else 0.0
+
+    net_transfer = np.sum(adjusted, axis=1).reshape((n_stages,))
+    for i in range(n_stages):
+        net_i = float(net_transfer[i])
+        if (not np.isfinite(net_i)) or abs(net_i) <= 1.0e-15:
+            continue
+        if net_i > 0.0:
+            available = max(float(ML[i]) - liq_guard, 0.0)
+        else:
+            available = max(float(MV[i]) - vap_guard, 0.0)
+        limit_i = float(frac) * float(available) / float(tau)
+        limit[i] = limit_i
+        if abs(net_i) <= limit_i + 1.0e-15:
+            continue
+        if limit_i <= 0.0:
+            adjusted[i, :] = 0.0
+            scale[i] = 0.0
+            continue
+        fac = float(limit_i / abs(net_i))
+        adjusted[i, :] = adjusted[i, :] * fac
+        scale[i] = fac
+
+    return adjusted, scale, limit
+
+
+def _stabilize_low_holdup_temperature_rate(
+    *,
+    dE_BTU_per_s: float,
+    heat_capacity_BTU_per_F: float,
+    liquid_holdup_lbmol: float,
+    vapor_holdup_lbmol: float,
+    holdup_guard_lbmol: float = 0.0,
+    min_heat_capacity_BTU_per_F: float = 0.0,
+    max_abs_rate_F_per_s: Optional[float] = None,
+) -> tuple[float, float, float]:
+    """
+    Return a stabilized tray temperature derivative for low-holdup states.
+
+    Returns `(dT_use, effective_heat_capacity, guard_active_flag)`.
+    """
+    dE = float(dE_BTU_per_s)
+    C = float(heat_capacity_BTU_per_F)
+    ML = max(float(liquid_holdup_lbmol), 0.0)
+    MV = max(float(vapor_holdup_lbmol), 0.0)
+    guard = max(float(holdup_guard_lbmol), 0.0) if np.isfinite(holdup_guard_lbmol) else 0.0
+    min_C = max(float(min_heat_capacity_BTU_per_F), 0.0) if np.isfinite(min_heat_capacity_BTU_per_F) else 0.0
+    max_rate = None
+    if max_abs_rate_F_per_s is not None and np.isfinite(float(max_abs_rate_F_per_s)):
+        max_rate = max(float(max_abs_rate_F_per_s), 0.0)
+
+    low_holdup = (guard > 0.0) and ((ML <= guard) or ((ML + MV) <= guard))
+    if (not np.isfinite(C)) or C <= 0.0:
+        if low_holdup or min_C > 0.0:
+            C = max(min_C, 1.0e-12)
+        else:
+            raise ColumnRHSError("Non-positive tray heat capacity encountered.")
+
+    guard_active = False
+    C_eff = C
+    if low_holdup and min_C > 0.0 and C_eff < min_C:
+        C_eff = min_C
+        guard_active = True
+
+    dT_use = float(dE / C_eff)
+    if low_holdup and max_rate is not None and max_rate > 0.0:
+        dT_clipped = float(np.clip(dT_use, -max_rate, max_rate))
+        if dT_clipped != dT_use:
+            guard_active = True
+        dT_use = dT_clipped
+
+    return dT_use, float(C_eff), float(1.0 if guard_active else 0.0)
+
+
 def _energy_derivatives_b1(
     *,
     L_out: np.ndarray,
@@ -1005,6 +1417,7 @@ def column_rhs(
     y_tray = u.get("y_tray", None)
     if y_tray is not None:
         y_tray = y_tray.copy()
+    algebraic_vapor_state = y_tray is None
 
     hyd_energy_mode = (
         str(getattr(inputs, "pressure_model", "")).strip().lower() == "hydraulic"
@@ -1062,7 +1475,16 @@ def column_rhs(
         alpha = float(np.clip(alpha, 0.0, 1.0))
 
     if y_tray is None:
-        raise ColumnRHSError("Vapor holdup required (layout.include_vapor=True).")
+        eq_fn = getattr(getattr(inputs, "thermo_provider", None), "equilibrium_y_K_from_x", None)
+        if callable(eq_fn):
+            rows = []
+            for i in range(N):
+                yi, _Ki = eq_fn(x_tray[i, :])
+                rows.append(np.asarray(yi, dtype=float).reshape((Nc,)))
+            y_tray = np.vstack(rows)
+        else:
+            y_tray = np.asarray(getattr(col, "y0"), dtype=float).reshape((N, Nc)).copy()
+        tray_V = np.zeros((N, Nc), dtype=float)
 
     x_topL = _safe_comp_from_holdup(top_L, fallback=x_tray[0, :], eps=layout.epsilon_lbmol)
     y_topV = _safe_comp_from_holdup(top_V, fallback=y_tray[0, :], eps=layout.epsilon_lbmol)
@@ -1200,6 +1622,16 @@ def column_rhs(
         thermo_provider=inputs.thermo_provider,
         P_tray_psia=inputs.P_tray_prev,
         flash_feed_at_stage_conditions=bool(inputs.flash_feed_at_stage_conditions),
+        feed_stage_flash_prev=inputs.feed_stage_flash_prev,
+        feed_stage_flash_reuse_dT_F=float(inputs.feed_stage_flash_reuse_dT_F),
+        feed_stage_flash_reuse_dP_psia=float(inputs.feed_stage_flash_reuse_dP_psia),
+        feed_stage_flash_reuse_dx=float(inputs.feed_stage_flash_reuse_dx),
+        trace_hook=(inputs.progress_hook if bool(getattr(inputs, "trace_stage_thermo", False)) else None),
+        trace_label=(
+            getattr(inputs, "thermo_stage_trace_label", None)
+            if bool(getattr(inputs, "trace_stage_thermo", False))
+            else None
+        ),
     )
     Ft_L = float(np.sum(Fk_L))
     Ft_V = float(np.sum(Fk_V))
@@ -1209,17 +1641,51 @@ def column_rhs(
     L_out = L_out_profile
     V_out = V_out_profile
 
-    # Optional stage hydraulics: compute internal liquid outflow from a
-    # Francis-weir closure when geometry is available.
+    # Optional stage hydraulics: compute internal liquid outflow from either a
+    # Francis-weir closure or a validation/source linear holdup lag.
     rhoL_tray = None
     h_ow_ft = None
     L_out_hyd_lbmolph = None
     hydraulic_l_override_alpha = 1.0
+    hydraulic_l_override_alpha_stage = None
     liquid_hydraulic_model = str(getattr(inputs, "liquid_hydraulic_model", "francis") or "francis").strip().lower()
-    if liquid_hydraulic_model != "francis":
+    if liquid_hydraulic_model in {"linear", "linear_holdup", "linear-holdup", "skogestad", "skogestad-linear"}:
+        liquid_hydraulic_model = "linear-holdup"
+    elif liquid_hydraulic_model != "francis":
         liquid_hydraulic_model = "francis"
+    if liquid_hydraulic_model == "linear-holdup":
+        try:
+            hydraulic_l_override_alpha = float(inputs.liquid_hydraulic_override_alpha)
+        except Exception:
+            hydraulic_l_override_alpha = 1.0
+        if not np.isfinite(hydraulic_l_override_alpha):
+            hydraulic_l_override_alpha = 1.0
+        hydraulic_l_override_alpha = float(np.clip(hydraulic_l_override_alpha, 0.0, 1.0))
+        if not bool(inputs.enable_liquid_hydraulic_override):
+            hydraulic_l_override_alpha = 0.0
+        tau_l = getattr(inputs, "liquid_hydraulic_htc_sec", None)
+        try:
+            tau_l = float(tau_l) if tau_l is not None else np.nan
+        except Exception:
+            tau_l = np.nan
+        if hydraulic_l_override_alpha > 0.0 and np.isfinite(tau_l) and tau_l > 0.0:
+            ML_tray = np.sum(tray_L, axis=1).reshape((N,))
+            L_out_hyd = np.asarray(L_out_profile, dtype=float).reshape((N,)).copy()
+            L_out_hyd_lbmolph = L_out_hyd * 3600.0
+            for i in range(1, N - 1):
+                L_dyn = float(L_out_profile[i]) + (float(ML_tray[i]) - float(M_spec[i])) / float(tau_l)
+                L_dyn = max(float(L_dyn), 0.0)
+                L_out_hyd[i] = L_dyn
+                L_out_hyd_lbmolph[i] = L_dyn * 3600.0
+                if hydraulic_l_override_alpha >= 1.0:
+                    L_out[i] = L_dyn
+                else:
+                    L_out[i] = (
+                        (1.0 - float(hydraulic_l_override_alpha)) * float(L_out[i])
+                        + float(hydraulic_l_override_alpha) * L_dyn
+                    )
     geom = getattr(col, "geometry", None)
-    if geom is not None:
+    if liquid_hydraulic_model == "francis" and geom is not None:
         weir_h = getattr(geom, "weir_height_in_per_stage", None)
         weir_L = getattr(geom, "weir_length_ft_per_stage", None)
         active_area = getattr(geom, "active_area_ft2_per_stage", None)
@@ -1316,17 +1782,30 @@ def column_rhs(
                     hydraulic_l_override_alpha = float(np.clip(hydraulic_l_override_alpha, 0.0, 1.0))
                     if not bool(inputs.enable_liquid_hydraulic_override):
                         hydraulic_l_override_alpha = 0.0
+                    alpha_stage_raw = getattr(inputs, "liquid_hydraulic_override_alpha_per_stage", None)
+                    if alpha_stage_raw is not None:
+                        try:
+                            alpha_stage = np.asarray(alpha_stage_raw, dtype=float).reshape((N,))
+                            alpha_stage = np.clip(alpha_stage, 0.0, 1.0)
+                            if not bool(inputs.enable_liquid_hydraulic_override):
+                                alpha_stage = np.zeros((N,), dtype=float)
+                            hydraulic_l_override_alpha_stage = alpha_stage
+                        except Exception:
+                            hydraulic_l_override_alpha_stage = None
                     # Apply to internal stages (stage 2..N-1); stage 1 (index 0) and reboiler (index N-1) excluded.
                     for i in range(1, N - 1):
-                        if valid[i] and hydraulic_l_override_alpha > 0.0:
-                            if hydraulic_l_override_alpha >= 1.0:
+                        alpha_i = hydraulic_l_override_alpha
+                        if hydraulic_l_override_alpha_stage is not None and np.isfinite(hydraulic_l_override_alpha_stage[i]):
+                            alpha_i = float(hydraulic_l_override_alpha_stage[i])
+                        if valid[i] and alpha_i > 0.0:
+                            if alpha_i >= 1.0:
                                 L_out[i] = float(L_out_hyd[i])
                             else:
                                 L_profile_i = float(L_out[i])
                                 L_hyd_i = float(L_out_hyd[i])
                                 L_out[i] = (
-                                    (1.0 - float(hydraulic_l_override_alpha)) * L_profile_i
-                                    + float(hydraulic_l_override_alpha) * L_hyd_i
+                                    (1.0 - float(alpha_i)) * L_profile_i
+                                    + float(alpha_i) * L_hyd_i
                                 )
                 except Exception:
                     pass
@@ -1395,6 +1874,13 @@ def column_rhs(
                     T_reb = reb_T_prev
                     x_out = reb_x_prev.copy()
                     y_out = reb_y_prev.copy()
+                    try:
+                        denom_k = np.where(np.abs(reb_x_prev) > 1.0e-12, reb_x_prev, np.nan)
+                        K_reb_cache = reb_y_prev / denom_k
+                        if np.all(np.isfinite(K_reb_cache)):
+                            K_reb = np.asarray(K_reb_cache, dtype=float).reshape((Nc,))
+                    except Exception:
+                        pass
             except Exception:
                 reb_cache_valid = False
                 reboiler_flash_done = False
@@ -1750,7 +2236,14 @@ def column_rhs(
             ),
         }
 
+    need_temperature_provider_packet = bool(getattr(layout, "include_temperature", False)) and bool(
+        getattr(inputs, "enable_legacy_temperature_state", True)
+    )
+    do_thermo = (inputs.thermo_provider is not None) and (
+        inputs.compute_thermo_diag or inputs.equilibrium_relaxation or need_temperature_provider_packet
+    )
     thermo_packet: Optional[TrayThermoPacket] = None
+    thermo_refresh_result = None
     energy_vapor_flow_packet: Optional[TrayThermoPacket] = None
 
     # Vapor flows via energy balance (dynamic closure).
@@ -1797,101 +2290,49 @@ def column_rhs(
         hL_stage_provider = None
         hV_stage_provider = None
         if inputs.thermo_provider is not None:
-            hL_try = np.full(N, np.nan, dtype=float)
-            hV_try = np.full(N, np.nan, dtype=float)
+            if do_thermo and thermo_refresh_result is None:
+                thermo_refresh_result = _build_current_tray_thermo_refresh(
+                    col=col,
+                    layout=layout,
+                    inputs=inputs,
+                    u=u,
+                    diag=None,
+                    tray_L=tray_L,
+                    tray_V=tray_V,
+                    x_tray=x_tray,
+                    P_tray_hyd=None,
+                    n_stages=N,
+                    n_components=Nc,
+                )
+                if thermo_refresh_result is not None:
+                    thermo_packet = thermo_refresh_result.packet
             packet_phase_tol_liq = _phase_reuse_dx_tol(inputs, "liquid")
             packet_phase_tol_vap = _phase_reuse_dx_tol(inputs, "vapor")
             packet_dT_tol = float(getattr(inputs, "thermo_packet_phase_reuse_dT_F", 0.0) or 0.0)
             packet_dP_tol = float(getattr(inputs, "thermo_packet_phase_reuse_dP_psia", 0.0) or 0.0)
-            for j in range(N):
-                reused_hL = _packet_phase_enthalpy_if_compatible(
-                    inputs.tray_thermo_prev,
-                    stage_index0=j,
-                    T_F=float(T_tray_for_v[j]),
-                    P_psia=float(P_tray_energy[j]),
-                    phase_composition=x_tray[j, :],
-                    phase="liquid",
-                    max_abs_dx=packet_phase_tol_liq,
-                    max_abs_dT_F=packet_dT_tol,
-                    max_abs_dP_psia=packet_dP_tol,
-                )
-                if reused_hL is not None and np.isfinite(float(reused_hL)):
-                    hL_try[j] = float(reused_hL)
-                    _trace_stage_thermo(
-                        inputs,
-                        f"energy_vapor_flow hL_flash stage={int(j + 1)}/{int(N)} reused packet",
-                    )
-                else:
-                    try:
-                        _flash_t0 = time.perf_counter()
-                        fres_L = _flash_TP_full_stage_F_psia(
-                            inputs.thermo_provider,
-                            j,
-                            float(T_tray_for_v[j]),
-                            float(P_tray_energy[j]),
-                            x_tray[j, :],
-                            n_components=Nc,
-                            thermo_call_category="energy_vapor_flow_enthalpy_refresh",
-                        )
-                        hL_try[j] = float(getattr(fres_L, "HL_BTU_lbmol"))
-                        _trace_stage_thermo(
-                            inputs,
-                            f"energy_vapor_flow hL_flash stage={int(j + 1)}/{int(N)} done wall={float(time.perf_counter() - _flash_t0):.2f}s",
-                        )
-                    except Exception:
-                        pass
-                reused_hV = _packet_phase_enthalpy_if_compatible(
-                    inputs.tray_thermo_prev,
-                    stage_index0=j,
-                    T_F=float(T_tray_for_v[j]),
-                    P_psia=float(P_tray_energy[j]),
-                    phase_composition=y_tray[j, :],
-                    phase="vapor",
-                    max_abs_dx=packet_phase_tol_vap,
-                    max_abs_dT_F=packet_dT_tol,
-                    max_abs_dP_psia=packet_dP_tol,
-                )
-                if reused_hV is not None and np.isfinite(float(reused_hV)):
-                    hV_try[j] = float(reused_hV)
-                    _trace_stage_thermo(
-                        inputs,
-                        f"energy_vapor_flow hV_flash stage={int(j + 1)}/{int(N)} reused packet",
-                    )
-                else:
-                    try:
-                        _flash_t0 = time.perf_counter()
-                        fres_V = _flash_TP_full_stage_F_psia(
-                            inputs.thermo_provider,
-                            j,
-                            float(T_tray_for_v[j]),
-                            float(P_tray_energy[j]),
-                            y_tray[j, :],
-                            n_components=Nc,
-                            thermo_call_category="energy_vapor_flow_enthalpy_refresh",
-                        )
-                        hV_try[j] = float(getattr(fres_V, "HV_BTU_lbmol"))
-                        _trace_stage_thermo(
-                            inputs,
-                            f"energy_vapor_flow hV_flash stage={int(j + 1)}/{int(N)} done wall={float(time.perf_counter() - _flash_t0):.2f}s",
-                        )
-                    except Exception:
-                        pass
-            if np.any(np.isfinite(hL_try)):
-                hL_stage_provider = hL_try
-            if np.any(np.isfinite(hV_try)):
-                hV_stage_provider = hV_try
-            if np.any(np.isfinite(hL_try)) or np.any(np.isfinite(hV_try)):
-                energy_vapor_flow_packet = TrayThermoPacket(
-                    z_overall_tray=np.asarray(x_tray, dtype=float).reshape((N, Nc)).copy(),
-                    K_tray=np.full((N, Nc), np.nan, dtype=float),
-                    HL_BTU_lbmol_tray=np.asarray(hL_try, dtype=float).reshape((N,)).copy(),
-                    HV_BTU_lbmol_tray=np.asarray(hV_try, dtype=float).reshape((N,)).copy(),
-                    Z_tray=np.full(N, np.nan, dtype=float),
-                    T_tray_F=np.asarray(T_tray_for_v, dtype=float).reshape((N,)).copy(),
-                    P_tray_psia=np.asarray(P_tray_energy, dtype=float).reshape((N,)).copy(),
-                    x_equilibrium_tray=np.asarray(x_tray, dtype=float).reshape((N, Nc)).copy(),
-                    y_equilibrium_tray=np.asarray(y_tray, dtype=float).reshape((N, Nc)).copy(),
-                )
+            energy_refresh = refresh_energy_vapor_flow_phase_enthalpies(
+                provider=inputs.thermo_provider,
+                current_packet=thermo_packet,
+                previous_packet=inputs.tray_thermo_prev,
+                tray_T_F=T_tray_for_v,
+                P_tray_psia=P_tray_energy,
+                x_tray=x_tray,
+                y_tray=y_tray,
+                n_stages=N,
+                n_components=Nc,
+                packet_phase_tol_liq=packet_phase_tol_liq,
+                packet_phase_tol_vap=packet_phase_tol_vap,
+                packet_dT_tol_F=packet_dT_tol,
+                packet_dP_tol_psia=packet_dP_tol,
+                packet_phase_enthalpy_if_compatible_fn=_packet_phase_enthalpy_if_compatible,
+                flash_stage_fn=_flash_TP_full_stage_F_psia,
+                packet_factory=TrayThermoPacket,
+                trace_fn=_trace_stage_thermo,
+                trace_context=inputs,
+            )
+            hL_stage_provider = energy_refresh.hL_stage_provider
+            hV_stage_provider = energy_refresh.hV_stage_provider
+            energy_vapor_flow_packet = energy_refresh.packet
 
         dT_target = inputs.dT_tray_target_F_per_s
         if dT_target is None:
@@ -2031,6 +2472,10 @@ def column_rhs(
                 thermo=thermo,
                 thermo_provider=inputs.thermo_provider,
                 epsilon_lbmol=float(layout.epsilon_lbmol),
+                feed_stage_flash_prev=inputs.feed_stage_flash_prev,
+                feed_stage_flash_reuse_dT_F=float(inputs.feed_stage_flash_reuse_dT_F),
+                feed_stage_flash_reuse_dP_psia=float(inputs.feed_stage_flash_reuse_dP_psia),
+                feed_stage_flash_reuse_dx=float(inputs.feed_stage_flash_reuse_dx),
             )
 
             Q_i = 0.0
@@ -2352,13 +2797,14 @@ def column_rhs(
                     if rho_top_liq is None and inputs.thermo_provider is not None and hasattr(inputs.thermo_provider, "liquid_density_lbmol_ft3"):
                         try:
                             P_top_est = float(P_profile[0]) if np.isfinite(float(P_profile[0])) else 200.0
-                            rho_try = float(
-                                inputs.thermo_provider.liquid_density_lbmol_ft3(
-                                    float(T_tray_for_p[0]),
-                                    float(P_top_est),
-                                    np.asarray(x_topL, dtype=float).reshape((Nc,)),
+                            with _thermo_provider_category(inputs.thermo_provider, "top_drum_liquid_density_lookup"):
+                                rho_try = float(
+                                    inputs.thermo_provider.liquid_density_lbmol_ft3(
+                                        float(T_tray_for_p[0]),
+                                        float(P_top_est),
+                                        np.asarray(x_topL, dtype=float).reshape((Nc,)),
+                                    )
                                 )
-                            )
                             if np.isfinite(rho_try) and rho_try > 1e-12:
                                 rho_top_liq = rho_try
                         except Exception:
@@ -2665,13 +3111,14 @@ def column_rhs(
                 if rho_top_liq is None and inputs.thermo_provider is not None and hasattr(inputs.thermo_provider, "liquid_density_lbmol_ft3"):
                     try:
                         p_top_est = float(P_profile[0]) if np.isfinite(float(P_profile[0])) else 200.0
-                        rho_try = float(
-                            inputs.thermo_provider.liquid_density_lbmol_ft3(
-                                float(np.asarray(u["tray_T_f"], dtype=float).reshape((N,))[0]) if "tray_T_f" in u else float(np.asarray(col.T_f, dtype=float).reshape((N,))[0]),
-                                float(p_top_est),
-                                np.asarray(x_topL, dtype=float).reshape((Nc,)),
+                        with _thermo_provider_category(inputs.thermo_provider, "top_drum_liquid_density_lookup"):
+                            rho_try = float(
+                                inputs.thermo_provider.liquid_density_lbmol_ft3(
+                                    float(np.asarray(u["tray_T_f"], dtype=float).reshape((N,))[0]) if "tray_T_f" in u else float(np.asarray(col.T_f, dtype=float).reshape((N,))[0]),
+                                    float(p_top_est),
+                                    np.asarray(x_topL, dtype=float).reshape((Nc,)),
+                                )
                             )
-                        )
                         if np.isfinite(rho_try) and rho_try > 1e-12:
                             rho_top_liq = rho_try
                     except Exception:
@@ -3067,6 +3514,10 @@ def column_rhs(
         if reboiler_feed_from_sump:
             d_bottom_L -= boilup_s * x_rebL
 
+    if algebraic_vapor_state:
+        d_tray_L += d_tray_V
+        d_tray_V[:, :] = 0.0
+
     # Vapor holdup relaxation: enforce ideal-gas holdup implied by computed pressure + geometry.
     tau_v = inputs.vapor_holdup_relaxation_sec
     if (tau_v is not None) and (P_tray_hyd is not None) and layout.include_vapor:
@@ -3130,6 +3581,40 @@ def column_rhs(
         if ML_tot_stage[0] <= float(layout.epsilon_lbmol):
             x_tray[0, :] = np.asarray(x_cond_diag, dtype=float).reshape((Nc,))
 
+    debug_freeze_vapor_active = bool(
+        getattr(inputs, "debug_freeze_tray_vapor_derivatives", False)
+    ) and bool(layout.include_vapor)
+    debug_max_orig_dmVdt = 0.0
+    debug_max_orig_dmVdt_rel_per_s = 0.0
+    debug_worst_v_stage = -1
+    debug_worst_v_comp = -1
+    debug_worst_v_rel_stage = -1
+    debug_worst_v_rel_comp = -1
+    debug_total_v_cancellation_lbmolps = 0.0
+    debug_net_orig_dmVdt_lbmolps = 0.0
+    if debug_freeze_vapor_active:
+        orig_d_tray_V = np.asarray(d_tray_V, dtype=float).copy()
+        abs_orig = np.where(np.isfinite(orig_d_tray_V), np.abs(orig_d_tray_V), 0.0)
+        if abs_orig.size:
+            worst_abs_idx = np.unravel_index(int(np.argmax(abs_orig)), abs_orig.shape)
+            debug_max_orig_dmVdt = float(abs_orig[worst_abs_idx])
+            debug_worst_v_stage = int(worst_abs_idx[0] + 1)
+            debug_worst_v_comp = int(worst_abs_idx[1] + 1)
+        if tray_V is not None:
+            denom = np.maximum(
+                np.abs(np.asarray(tray_V, dtype=float).reshape((N, Nc))),
+                float(layout.epsilon_lbmol),
+            )
+            rel_orig = abs_orig / denom
+            if rel_orig.size:
+                worst_rel_idx = np.unravel_index(int(np.argmax(rel_orig)), rel_orig.shape)
+                debug_max_orig_dmVdt_rel_per_s = float(rel_orig[worst_rel_idx])
+                debug_worst_v_rel_stage = int(worst_rel_idx[0] + 1)
+                debug_worst_v_rel_comp = int(worst_rel_idx[1] + 1)
+        debug_total_v_cancellation_lbmolps = float(np.sum(abs_orig))
+        debug_net_orig_dmVdt_lbmolps = float(np.sum(orig_d_tray_V))
+        d_tray_V[:, :] = 0.0
+
     dydt = np.zeros(layout.n_states(), dtype=float)
     sl = _layout_slices(layout)
 
@@ -3138,7 +3623,8 @@ def column_rhs(
         dydt[sl["top_V"]] = d_top_V
 
     dydt[sl["tray_L"]] = d_tray_L.reshape(-1)
-    dydt[sl["tray_V"]] = d_tray_V.reshape(-1)
+    if layout.include_vapor:
+        dydt[sl["tray_V"]] = d_tray_V.reshape(-1)
 
     if layout.include_bottom:
         dydt[sl["bottom_L"]] = d_bottom_L
@@ -3152,13 +3638,35 @@ def column_rhs(
         for k, v in vflow_diag.items():
             diag[k] = v
 
+    diag["debug_freeze_tray_vapor_derivatives_active"] = np.array(
+        [1.0 if debug_freeze_vapor_active else 0.0], dtype=float
+    )
+    diag["debug_max_orig_dmVdt"] = np.array([float(debug_max_orig_dmVdt)], dtype=float)
+    diag["debug_max_orig_dmVdt_rel_per_s"] = np.array(
+        [float(debug_max_orig_dmVdt_rel_per_s)], dtype=float
+    )
+    diag["debug_worst_v_stage"] = np.array([float(debug_worst_v_stage)], dtype=float)
+    diag["debug_worst_v_comp"] = np.array([float(debug_worst_v_comp)], dtype=float)
+    diag["debug_worst_v_rel_stage"] = np.array([float(debug_worst_v_rel_stage)], dtype=float)
+    diag["debug_worst_v_rel_comp"] = np.array([float(debug_worst_v_rel_comp)], dtype=float)
+    diag["debug_total_v_cancellation_lbmolps"] = np.array(
+        [float(debug_total_v_cancellation_lbmolps)], dtype=float
+    )
+    diag["debug_net_orig_dmVdt_lbmolps"] = np.array(
+        [float(debug_net_orig_dmVdt_lbmolps)], dtype=float
+    )
+
     ML_key = "ML_tot_tray" if "ML_tot_tray" in u else ("ML_tot" if "ML_tot" in u else None)
     MV_key = "MV_tot_tray" if "MV_tot_tray" in u else ("MV_tot" if "MV_tot" in u else None)
-    if ML_key is None or MV_key is None:
-        raise ColumnRHSError("layout.unpack(y) must provide tray total holdups (ML_tot_tray/MV_tot_tray or ML_tot/MV_tot).")
+    if ML_key is None:
+        raise ColumnRHSError("layout.unpack(y) must provide tray liquid total holdup (ML_tot_tray or ML_tot).")
 
     diag["ML_tot_tray"] = np.asarray(u[ML_key], dtype=float).copy()
-    diag["MV_tot_tray"] = np.asarray(u[MV_key], dtype=float).copy()
+    diag["MV_tot_tray"] = (
+        np.asarray(u[MV_key], dtype=float).copy()
+        if MV_key is not None
+        else np.zeros(N, dtype=float)
+    )
     diag["x_tray"] = x_tray.copy()
     diag["y_tray"] = y_tray.copy()
     diag["reboiler_mode_duty_active"] = np.array([1.0 if use_duty else 0.0], dtype=float)
@@ -3187,7 +3695,7 @@ def column_rhs(
     except Exception:
         pass
 
-    condenser_duty_cache: Optional[Tuple[float, Optional[float], Optional[float], str]] = None
+    condenser_duty_cache: Optional[Tuple[float, Optional[float], Optional[float], Optional[float], str]] = None
     condenser_duty_packet_out: Optional[CondenserDutyPacket] = None
     if (
         Q_cond_mass_used_BTUph is not None
@@ -3232,6 +3740,7 @@ def column_rhs(
                 if T_cond_mass_bubble_F is not None and np.isfinite(float(T_cond_mass_bubble_F))
                 else None
             ),
+            None,
             str(condenser_mass_mode),
         )
         condenser_duty_packet_out = CondenserDutyPacket(
@@ -3251,17 +3760,18 @@ def column_rhs(
             P_vapor_in_psia=float(P_tray_cond_seed[src_i]),
             P_condenser_psia=float(P_tray_cond_seed[0]),
             y_vapor_in=np.asarray(y_in[0, :], dtype=float).reshape((Nc,)).copy(),
+            hL_cond_BTU_lbmol=None,
         )
 
     def _resolve_condenser_duty_cached(
         *,
         tray_T_F: np.ndarray,
         P_tray_psia: np.ndarray,
-    ) -> Tuple[float, Optional[float], Optional[float], str]:
+    ) -> Tuple[float, Optional[float], Optional[float], Optional[float], str]:
         nonlocal condenser_duty_cache, condenser_duty_packet_out
+        tray_T_arr = np.asarray(tray_T_F, dtype=float).reshape((N,))
+        P_tray_arr = np.asarray(P_tray_psia, dtype=float).reshape((N,))
         if condenser_duty_cache is None:
-            tray_T_arr = np.asarray(tray_T_F, dtype=float).reshape((N,))
-            P_tray_arr = np.asarray(P_tray_psia, dtype=float).reshape((N,))
             condenser_duty_cache = _resolve_condenser_duty_btu_per_h(
                 col=col,
                 inputs=inputs,
@@ -3272,25 +3782,30 @@ def column_rhs(
                 y_in=y_in,
                 epsilon_lbmol=float(layout.epsilon_lbmol),
             )
-            src_i = 1 if N > 1 else 0
-            condenser_duty_packet_out = CondenserDutyPacket(
-                q_calc_BTUph=(
-                    float(condenser_duty_cache[1])
-                    if condenser_duty_cache[1] is not None and np.isfinite(float(condenser_duty_cache[1]))
-                    else None
-                ),
-                T_bubble_F=(
-                    float(condenser_duty_cache[2])
-                    if condenser_duty_cache[2] is not None and np.isfinite(float(condenser_duty_cache[2]))
-                    else None
-                ),
-                mode=str(condenser_duty_cache[3]),
-                V_vapor_in_lbmolps=float(V_in[0]),
-                T_vapor_in_F=float(tray_T_arr[src_i]),
-                P_vapor_in_psia=float(P_tray_arr[src_i]),
-                P_condenser_psia=float(P_tray_arr[0]),
-                y_vapor_in=np.asarray(y_in[0, :], dtype=float).reshape((Nc,)).copy(),
-            )
+        src_i = 1 if N > 1 else 0
+        condenser_duty_packet_out = CondenserDutyPacket(
+            q_calc_BTUph=(
+                float(condenser_duty_cache[1])
+                if condenser_duty_cache[1] is not None and np.isfinite(float(condenser_duty_cache[1]))
+                else None
+            ),
+            T_bubble_F=(
+                float(condenser_duty_cache[2])
+                if condenser_duty_cache[2] is not None and np.isfinite(float(condenser_duty_cache[2]))
+                else None
+            ),
+            mode=str(condenser_duty_cache[4]),
+            V_vapor_in_lbmolps=float(V_in[0]),
+            T_vapor_in_F=float(tray_T_arr[src_i]),
+            P_vapor_in_psia=float(P_tray_arr[src_i]),
+            P_condenser_psia=float(P_tray_arr[0]),
+            y_vapor_in=np.asarray(y_in[0, :], dtype=float).reshape((Nc,)).copy(),
+            hL_cond_BTU_lbmol=(
+                float(condenser_duty_cache[3])
+                if condenser_duty_cache[3] is not None and np.isfinite(float(condenser_duty_cache[3]))
+                else None
+            ),
+        )
         return condenser_duty_cache
     if P_tray_hyd is not None:
         try:
@@ -3399,6 +3914,14 @@ def column_rhs(
         diag["condenser_duty_cache_y_vapor_in"] = np.asarray(
             condenser_duty_packet_out.y_vapor_in, dtype=float
         ).reshape((Nc,)).copy()
+        if (
+            condenser_duty_packet_out.hL_cond_BTU_lbmol is not None
+            and np.isfinite(float(condenser_duty_packet_out.hL_cond_BTU_lbmol))
+        ):
+            diag["condenser_duty_cache_hL_cond_BTU_lbmol"] = np.array(
+                [float(condenser_duty_packet_out.hL_cond_BTU_lbmol)],
+                dtype=float,
+            )
     if np.isfinite(feed_vf_effective):
         diag["feed_vf_effective"] = np.array([float(feed_vf_effective)], dtype=float)
     if rhoL_tray is not None:
@@ -3421,6 +3944,14 @@ def column_rhs(
         [1.0 if bool(inputs.enable_liquid_hydraulic_override) else 0.0],
         dtype=float,
     )
+    if hydraulic_l_override_alpha_stage is not None:
+        try:
+            diag["liquid_hydraulic_override_alpha_per_stage"] = np.asarray(
+                hydraulic_l_override_alpha_stage,
+                dtype=float,
+            ).reshape((N,)).copy()
+        except Exception:
+            pass
     if T_sump is not None:
         diag["T_sump_F"] = np.array([float(T_sump)], dtype=float)
     if "T_reb" in locals() and T_reb is not None:
@@ -3441,280 +3972,27 @@ def column_rhs(
     # -----------------------
     # Thermo block used by Module 7/8A diagnostics and Module 8B equilibrium closure
     # -----------------------
-    thermo_packet: Optional[TrayThermoPacket] = None
-    do_thermo = (inputs.thermo_provider is not None) and (inputs.compute_thermo_diag or inputs.equilibrium_relaxation)
     if do_thermo:
-        # Temperature for diagnostics
-        if "tray_T_f" in u:
-            T_tray = np.asarray(u["tray_T_f"], dtype=float).reshape((N,))
-        elif hasattr(col, "T_f"):
-            T_tray = np.asarray(col.T_f, dtype=float).reshape((N,))
-        else:
-            T_tray = np.full(N, 100.0, dtype=float)
-
-        # Pressure for diagnostics: prefer column spec if available
-        if hasattr(col, "P_psia"):
-            P_tray = np.asarray(col.P_psia, dtype=float).reshape((N,))
-        else:
-            P_tray = np.asarray(diag["P_psia_diag"], dtype=float).reshape((N,))
-        if P_tray_hyd is not None:
-            try:
-                P_tray = np.asarray(P_tray_hyd, dtype=float).reshape((N,))
-            except Exception:
-                pass
-
-        # overall z per stage (liquid + vapor holdup)
-        Z_overall = np.zeros((N, Nc), dtype=float)
-        for i in range(N):
-            z = tray_L[i, :].copy()
-            if tray_V is not None:
-                z = z + tray_V[i, :]
-            s = float(np.sum(z))
-            if s <= layout.epsilon_lbmol:
-                z = x_tray[i, :].copy()
-                s = float(np.sum(z))
-            Z_overall[i, :] = z / max(s, 1e-300)
-
-        thermo_packet = _seed_tray_thermo_packet(
-            N=N,
-            Nc=Nc,
-            z_overall_tray=Z_overall,
-            tray_thermo_prev=inputs.tray_thermo_prev,
-            K_tray_prev=inputs.K_tray_prev,
-            HL_prev=inputs.HL_prev,
-            HV_prev=inputs.HV_prev,
-            Zfac_prev=inputs.Zfac_prev,
-        )
-        thermo_packet.T_tray_F = np.asarray(T_tray, dtype=float).reshape((N,)).copy()
-        thermo_packet.P_tray_psia = np.asarray(P_tray, dtype=float).reshape((N,)).copy()
-
-        dT_thresh = inputs.thermo_refresh_dT_F
-        if dT_thresh is not None:
-            try:
-                dT_thresh = float(dT_thresh)
-            except Exception:
-                dT_thresh = None
-        if dT_thresh is not None and (not np.isfinite(dT_thresh) or dT_thresh <= 0.0):
-            dT_thresh = None
-
-        T_prev = None
-        if inputs.T_tray_prev_F is not None:
-            try:
-                T_prev = np.asarray(inputs.T_tray_prev_F, dtype=float).reshape((N,))
-            except Exception:
-                T_prev = None
-        if T_prev is None and inputs.tray_thermo_prev is not None and inputs.tray_thermo_prev.T_state is not None:
-            try:
-                T_prev = np.asarray(inputs.tray_thermo_prev.T_state, dtype=float).reshape((N,))
-            except Exception:
-                T_prev = None
-
-        dP_thresh = inputs.thermo_refresh_dP_psia
-        if dP_thresh is not None:
-            try:
-                dP_thresh = float(dP_thresh)
-            except Exception:
-                dP_thresh = None
-        if dP_thresh is not None and (not np.isfinite(dP_thresh) or dP_thresh <= 0.0):
-            dP_thresh = None
-
-        dX_thresh = inputs.thermo_refresh_dx
-        if dX_thresh is not None:
-            try:
-                dX_thresh = float(dX_thresh)
-            except Exception:
-                dX_thresh = None
-        if dX_thresh is not None and (not np.isfinite(dX_thresh) or dX_thresh <= 0.0):
-            dX_thresh = None
-
-        P_prev = None
-        if inputs.P_tray_prev is not None:
-            try:
-                P_prev = np.asarray(inputs.P_tray_prev, dtype=float).reshape((N,))
-            except Exception:
-                P_prev = None
-        if P_prev is None and inputs.tray_thermo_prev is not None and inputs.tray_thermo_prev.P_state is not None:
-            try:
-                P_prev = np.asarray(inputs.tray_thermo_prev.P_state, dtype=float).reshape((N,))
-            except Exception:
-                P_prev = None
-
-        Z_prev = None
-        if inputs.Z_overall_prev is not None:
-            try:
-                Z_prev = np.asarray(inputs.Z_overall_prev, dtype=float).reshape((N, Nc))
-            except Exception:
-                Z_prev = None
-        if Z_prev is None and inputs.tray_thermo_prev is not None:
-            try:
-                Z_prev = np.asarray(inputs.tray_thermo_prev.z_overall, dtype=float).reshape((N, Nc))
-            except Exception:
-                Z_prev = None
-
-        flash_skipped = np.zeros(N, dtype=float)
-        flash_refreshed = np.zeros(N, dtype=float)
-        refresh_indices: list[int] = []
-
-        for i in range(N):
-            gate_active = False
-            gate_pass = True
-            if dT_thresh is not None:
-                gate_active = True
-                try:
-                    if T_prev is None or not (np.isfinite(T_prev[i]) and np.isfinite(T_tray[i])):
-                        gate_pass = False
-                    else:
-                        gate_pass = gate_pass and (abs(float(T_tray[i]) - float(T_prev[i])) < dT_thresh)
-                except Exception:
-                    gate_pass = False
-
-            if dP_thresh is not None:
-                gate_active = True
-                try:
-                    if P_prev is None or not (np.isfinite(P_prev[i]) and np.isfinite(P_tray[i])):
-                        gate_pass = False
-                    else:
-                        gate_pass = gate_pass and (abs(float(P_tray[i]) - float(P_prev[i])) < dP_thresh)
-                except Exception:
-                    gate_pass = False
-
-            if dX_thresh is not None:
-                gate_active = True
-                try:
-                    if Z_prev is None:
-                        gate_pass = False
-                    else:
-                        dz = np.asarray(Z_overall[i, :] - Z_prev[i, :], dtype=float)
-                        if not np.all(np.isfinite(dz)):
-                            gate_pass = False
-                        else:
-                            gate_pass = gate_pass and (float(np.max(np.abs(dz))) < dX_thresh)
-                except Exception:
-                    gate_pass = False
-
-            if gate_active and gate_pass:
-                flash_skipped[i] = 1.0
-                continue
-            refresh_indices.append(i)
-
-        batch_used = False
-        if refresh_indices:
-            provider = inputs.thermo_provider
-            _ensure_packet_equilibrium_arrays(thermo_packet, n_stages=N, n_components=Nc)
-            batch_fn = getattr(provider, "flash_TP_full_batch", None)
-            if callable(batch_fn):
-                try:
-                    T_req = [float(T_tray[i]) for i in refresh_indices]
-                    P_req = [float(P_tray[i]) for i in refresh_indices]
-                    z_req = [np.asarray(Z_overall[i, :], dtype=float).tolist() for i in refresh_indices]
-                    fres_batch = batch_fn(T_req, P_req, z_req)
-                    if len(fres_batch) != len(refresh_indices):
-                        raise RuntimeError(
-                            "flash_TP_full_batch returned length "
-                            f"{len(fres_batch)}; expected {len(refresh_indices)}"
-                        )
-
-                    parsed_rows = []
-                    for fres in fres_batch:
-                        if isinstance(fres, (tuple, list)):
-                            if len(fres) == 5:
-                                _x, _y, K_i, HL_i, HV_i = fres
-                                Z_i = None
-                            elif len(fres) == 6:
-                                _x, _y, K_i, HL_i, HV_i, Z_i = fres
-                            else:
-                                raise RuntimeError("flash_TP_full_batch tuple rows must be length 5 or 6")
-                            parsed_rows.append(
-                                (
-                                    np.asarray(_x, dtype=float).reshape((Nc,)),
-                                    np.asarray(_y, dtype=float).reshape((Nc,)),
-                                    np.asarray(K_i, dtype=float).reshape((Nc,)),
-                                    float(HL_i),
-                                    float(HV_i),
-                                    (None if Z_i is None else float(Z_i)),
-                                )
-                            )
-                            continue
-
-                        K_i = np.asarray(getattr(fres, "K"), dtype=float).reshape((Nc,))
-
-                        HL_i = getattr(fres, "HL_BTU_lbmol", None)
-                        if HL_i is None:
-                            HL_i = getattr(fres, "HL")
-                        HV_i = getattr(fres, "HV_BTU_lbmol", None)
-                        if HV_i is None:
-                            HV_i = getattr(fres, "HV")
-
-                        Z_i = None
-                        for attr in ("Z", "Z_factor", "Zfac", "z_factor"):
-                            if hasattr(fres, attr):
-                                try:
-                                    Z_i = float(getattr(fres, attr))
-                                    break
-                                except Exception:
-                                    pass
-
-                        parsed_rows.append(
-                            (
-                                np.asarray(getattr(fres, "x"), dtype=float).reshape((Nc,)),
-                                np.asarray(getattr(fres, "y"), dtype=float).reshape((Nc,)),
-                                K_i,
-                                float(HL_i),
-                                float(HV_i),
-                                Z_i,
-                            )
-                        )
-
-                    for pos, i in enumerate(refresh_indices):
-                        x_i, y_i, K_i, HL_i, HV_i, Z_i = parsed_rows[pos]
-                        thermo_packet.x_eq[i, :] = x_i
-                        thermo_packet.y_eq[i, :] = y_i
-                        thermo_packet.K_tray[i, :] = K_i
-                        thermo_packet.HL[i] = HL_i
-                        thermo_packet.HV[i] = HV_i
-                        if Z_i is not None:
-                            thermo_packet.Zfac_tray[i] = float(Z_i)
-                        flash_refreshed[i] = 1.0
-                    batch_used = True
-                except Exception:
-                    batch_used = False
-
-            if not batch_used:
-                for i in refresh_indices:
-                    try:
-                        _trace_stage_thermo(
-                            inputs,
-                            f"main_flash stage={int(i + 1)}/{int(N)} start T_F={float(T_tray[i]):.3f} P_psia={float(P_tray[i]):.3f}",
-                        )
-                        _flash_t0 = time.perf_counter()
-                        fres = _flash_TP_full_stage_F_psia(
-                            inputs.thermo_provider,
-                            i,
-                            float(T_tray[i]),
-                            float(P_tray[i]),
-                            Z_overall[i, :],
-                            n_components=Nc,
-                            thermo_call_category="main_tray_refresh",
-                        )
-                        thermo_packet.x_eq[i, :] = np.asarray(fres.x, dtype=float).reshape((Nc,))
-                        thermo_packet.y_eq[i, :] = np.asarray(fres.y, dtype=float).reshape((Nc,))
-                        thermo_packet.K_tray[i, :] = fres.K
-                        thermo_packet.HL[i] = fres.HL_BTU_lbmol
-                        thermo_packet.HV[i] = fres.HV_BTU_lbmol
-                        if getattr(fres, "Z", None) is not None:
-                            thermo_packet.Zfac_tray[i] = float(fres.Z)
-                        flash_refreshed[i] = 1.0
-                        _trace_stage_thermo(
-                            inputs,
-                            f"main_flash stage={int(i + 1)}/{int(N)} done Z={float(thermo_packet.Zfac_tray[i]):.5g} wall={float(time.perf_counter() - _flash_t0):.2f}s",
-                        )
-                    except Exception:
-                        # If flash fails, keep previous values (seeded below) and continue.
-                        _trace_stage_thermo(
-                            inputs,
-                            f"main_flash stage={int(i + 1)}/{int(N)} failed; retaining cached thermo state",
-                        )
-                        pass
+        if thermo_refresh_result is None:
+            thermo_refresh_result = _build_current_tray_thermo_refresh(
+                col=col,
+                layout=layout,
+                inputs=inputs,
+                u=u,
+                diag=diag,
+                tray_L=tray_L,
+                tray_V=tray_V,
+                x_tray=x_tray,
+                P_tray_hyd=P_tray_hyd,
+                n_stages=N,
+                n_components=Nc,
+            )
+        if thermo_refresh_result is None:
+            raise ColumnRHSError("thermo_provider active but current tray thermo refresh could not be prepared.")
+        thermo_packet = thermo_refresh_result.packet
+        flash_skipped = np.asarray(thermo_refresh_result.flash_skipped, dtype=float).reshape((N,))
+        flash_refreshed = np.asarray(thermo_refresh_result.flash_refreshed, dtype=float).reshape((N,))
+        batch_used = bool(thermo_refresh_result.batch_used)
 
         # Module 8A: if Z provided, upgrade pressure diagnostic
         diag["Z_tray"] = thermo_packet.Zfac_tray
@@ -3746,7 +4024,7 @@ def column_rhs(
     # -----------------------
     # Module 8B: relaxed equilibrium closure using K
     # -----------------------
-    if inputs.equilibrium_relaxation:
+    if inputs.equilibrium_relaxation and layout.include_vapor:
         if thermo_packet is None and inputs.K_tray_prev is not None:
             # Thermo refresh can be intentionally skipped in outer integration steps.
             # In that case, reuse cached thermo K/HL/HV and current state z for
@@ -3849,18 +4127,33 @@ def column_rhs(
         _HL = np.asarray(thermo_packet.HL, dtype=float).reshape((N,))
         _HV = np.asarray(thermo_packet.HV, dtype=float).reshape((N,))
         _Zfac = np.asarray(thermo_packet.Zfac_tray, dtype=float).reshape((N,))
+        T_relax_raw = getattr(thermo_packet, "T_tray_F", None)
+        if T_relax_raw is None:
+            T_relax_raw = getattr(col, "T_f", np.full(N, 100.0))
+        P_relax_raw = getattr(thermo_packet, "P_tray_psia", None)
+        if P_relax_raw is None:
+            P_relax_raw = getattr(col, "P_psia", np.full(N, 200.0))
+        T_relax = np.asarray(T_relax_raw, dtype=float).reshape((N,))
+        P_relax = np.asarray(P_relax_raw, dtype=float).reshape((N,))
         K_relax = K_tray.copy()
         eq_relax_provider = getattr(inputs, "equilibrium_relaxation_thermo_provider", None)
+        if eq_relax_provider is None and bool(getattr(inputs.thermo_provider, "uses_direct_vapor_equilibrium", False)):
+            eq_relax_provider = inputs.thermo_provider
         if eq_relax_provider is not None:
             eq_relax_override_active = False
             eq_relax_refreshed = np.zeros(N, dtype=float)
             batch_used_eq = False
-            try:
-                batch_fn_eq = getattr(eq_relax_provider, "flash_TP_full_batch", None)
-                if callable(batch_fn_eq):
-                    T_req = [float(T_tray[i]) for i in range(N)]
-                    P_req = [float(P_tray[i]) for i in range(N)]
-                    z_req = [np.asarray(_Z_overall[i, :], dtype=float).tolist() for i in range(N)]
+            eq_relax_comp_source = (
+                x_tray
+                if bool(getattr(eq_relax_provider, "uses_liquid_composition_for_equilibrium", False))
+                else _Z_overall
+            )
+            batch_fn_eq = getattr(eq_relax_provider, "flash_TP_full_batch", None)
+            if callable(batch_fn_eq):
+                try:
+                    T_req = [float(T_relax[i]) for i in range(N)]
+                    P_req = [float(P_relax[i]) for i in range(N)]
+                    z_req = [np.asarray(eq_relax_comp_source[i, :], dtype=float).tolist() for i in range(N)]
                     fres_batch_eq = batch_fn_eq(T_req, P_req, z_req)
                     if len(fres_batch_eq) != N:
                         raise RuntimeError(
@@ -3877,21 +4170,26 @@ def column_rhs(
                         eq_relax_refreshed[i] = 1.0
                     batch_used_eq = True
                     eq_relax_override_active = True
-                else:
-                    raise RuntimeError("no equilibrium-relaxation batch flash available")
-            except Exception:
+                except Exception:
+                    batch_used_eq = False
+                    eq_relax_override_active = False
+                    eq_relax_refreshed[:] = 0.0
+            else:
+                batch_used_eq = False
+            if not batch_used_eq:
+                eq_relax_error_count = 0
                 for i in range(N):
                     try:
                         _trace_stage_thermo(
                             inputs,
-                            f"eq_relax_flash stage={int(i + 1)}/{int(N)} start T_F={float(T_tray[i]):.3f} P_psia={float(P_tray[i]):.3f}",
+                            f"eq_relax_flash stage={int(i + 1)}/{int(N)} start T_F={float(T_relax[i]):.3f} P_psia={float(P_relax[i]):.3f}",
                         )
                         fres = _flash_TP_full_stage_F_psia(
                             eq_relax_provider,
                             i,
-                            float(T_tray[i]),
-                            float(P_tray[i]),
-                            _Z_overall[i, :],
+                            float(T_relax[i]),
+                            float(P_relax[i]),
+                            eq_relax_comp_source[i, :],
                             n_components=Nc,
                             thermo_call_category="equilibrium_relaxation_flash",
                         )
@@ -3902,12 +4200,15 @@ def column_rhs(
                             inputs,
                             f"eq_relax_flash stage={int(i + 1)}/{int(N)} done",
                         )
-                    except Exception:
+                    except Exception as exc:
+                        eq_relax_error_count += 1
                         _trace_stage_thermo(
                             inputs,
                             f"eq_relax_flash stage={int(i + 1)}/{int(N)} failed; keeping base K",
                         )
                         pass
+                if eq_relax_error_count:
+                    diag["eq_relax_thermo_flash_error_count"] = np.array([float(eq_relax_error_count)], dtype=float)
             diag["eq_relax_thermo_override_active"] = np.array(
                 [1.0 if eq_relax_override_active else 0.0], dtype=float
             )
@@ -3933,9 +4234,43 @@ def column_rhs(
         x_eq = np.zeros((N, Nc), dtype=float)
         y_eq = np.zeros((N, Nc), dtype=float)
         beta_eq = np.zeros(N, dtype=float)
+        direct_vapor_eq_fn = None
+        if bool(getattr(eq_relax_provider, "uses_direct_vapor_equilibrium", False)):
+            candidate = getattr(eq_relax_provider, "equilibrium_y_K_from_x", None)
+            if callable(candidate):
+                direct_vapor_eq_fn = candidate
 
         for i in range(N):
             _trace_stage_thermo(inputs, f"eq_split stage={int(i + 1)}/{int(N)} start")
+            if direct_vapor_eq_fn is not None:
+                x_i = np.asarray(x_tray[i, :], dtype=float).reshape((Nc,))
+                sx = float(np.sum(x_i))
+                if (not np.isfinite(sx)) or sx <= 1e-300:
+                    x_i = np.full(Nc, 1.0 / float(Nc), dtype=float)
+                else:
+                    x_i = np.clip(x_i / sx, 0.0, None)
+                    x_i = x_i / max(float(np.sum(x_i)), 1e-300)
+                try:
+                    y_i, K_i = direct_vapor_eq_fn(x_i)
+                    y_i = np.asarray(y_i, dtype=float).reshape((Nc,))
+                    K_i = np.asarray(K_i, dtype=float).reshape((Nc,))
+                except Exception:
+                    y_i = np.asarray(y_tray[i, :], dtype=float).reshape((Nc,))
+                    K_i = np.asarray(K_relax[i, :], dtype=float).reshape((Nc,))
+                sy = float(np.sum(y_i))
+                if (not np.isfinite(sy)) or sy <= 1e-300:
+                    y_i = np.asarray(y_tray[i, :], dtype=float).reshape((Nc,))
+                    sy = float(np.sum(y_i))
+                y_i = np.clip(y_i / max(sy, 1e-300), 0.0, None)
+                y_i = y_i / max(float(np.sum(y_i)), 1e-300)
+                K_i = np.where(~np.isfinite(K_i) | (K_i <= 1e-12), 1e-12, K_i)
+                K_relax[i, :] = K_i
+                beta_eq[i] = float(MV[i] / max(Mtot[i], 1e-300))
+                x_eq[i, :] = x_i
+                y_eq[i, :] = y_i
+                _trace_stage_thermo(inputs, f"eq_split stage={int(i + 1)}/{int(N)} done beta={float(beta_eq[i]):.5g} direct_vapor_eq=1")
+                continue
+
             z_i = np.asarray(_Z_overall[i, :], dtype=float).reshape((Nc,))
             zsum = float(np.sum(z_i))
             if (not np.isfinite(zsum)) or zsum <= 1e-300:
@@ -4085,6 +4420,25 @@ def column_rhs(
         # No interphase transfer on no-holdup reboiler stage.
         if reboiler_no_holdup and N > 0:
             transfer[-1, :] = 0.0
+        phase_rate_scale = np.ones(N, dtype=float)
+        phase_rate_limit = np.full(N, np.nan, dtype=float)
+        phase_rate_liq_guard = float(getattr(inputs, "equilibrium_phase_rate_liquid_guard_lbmol", 0.0) or 0.0)
+        phase_rate_vap_guard = float(getattr(inputs, "equilibrium_phase_rate_vapor_guard_lbmol", 0.0) or 0.0)
+        phase_rate_frac = float(getattr(inputs, "equilibrium_phase_rate_max_frac_per_tau", 0.0) or 0.0)
+        if (
+            np.isfinite(phase_rate_frac)
+            and phase_rate_frac > 0.0
+            and (np.isfinite(phase_rate_liq_guard) or np.isfinite(phase_rate_vap_guard))
+        ):
+            transfer, phase_rate_scale, phase_rate_limit = _limit_equilibrium_phase_transfer_rates(
+                transfer,
+                ML_tot_lbmol=ML,
+                MV_tot_lbmol=MV,
+                tau_sec=float(tau),
+                liquid_guard_lbmol=phase_rate_liq_guard,
+                vapor_guard_lbmol=phase_rate_vap_guard,
+                max_frac_per_tau=phase_rate_frac,
+            )
 
         dydt[sl["tray_V"]] += transfer.reshape(-1)
         dydt[sl["tray_L"]] -= transfer.reshape(-1)
@@ -4113,6 +4467,8 @@ def column_rhs(
         diag["eq_phase_change_lbmolps_tray"] = np.sum(transfer, axis=1).reshape((N,))
         diag["eq_relaxation_mode_comp_only"] = np.array([1.0 if comp_only_mode else 0.0], dtype=float)
         diag["eq_phase_holdup_guard_weight_tray"] = np.asarray(phase_weight, dtype=float).reshape((N,))
+        diag["eq_phase_rate_guard_scale_tray"] = np.asarray(phase_rate_scale, dtype=float).reshape((N,))
+        diag["eq_phase_rate_guard_limit_lbmolps_tray"] = np.asarray(phase_rate_limit, dtype=float).reshape((N,))
         if 'phase_weight_cap' in locals():
             diag["eq_phase_holdup_guard_cap_tray"] = np.asarray(phase_weight_cap, dtype=float).reshape((N,))
         if 'energy_damping' in locals():
@@ -4172,7 +4528,7 @@ def column_rhs(
             except Exception:
                 pass
 
-        Qc_BTUph, Qc_calc_BTUph, T_cond_bubble_F, condenser_duty_mode = _resolve_condenser_duty_cached(
+        Qc_BTUph, Qc_calc_BTUph, T_cond_bubble_F, _Qc_hL_cond_BTU_lbmol, condenser_duty_mode = _resolve_condenser_duty_cached(
             tray_T_F=T_tray_q,
             P_tray_psia=P_tray_q,
         )
@@ -4220,6 +4576,10 @@ def column_rhs(
                 thermo=thermo_b1,
                 thermo_provider=inputs.thermo_provider,
                 epsilon_lbmol=float(layout.epsilon_lbmol),
+                feed_stage_flash_prev=inputs.feed_stage_flash_prev,
+                feed_stage_flash_reuse_dT_F=float(inputs.feed_stage_flash_reuse_dT_F),
+                feed_stage_flash_reuse_dP_psia=float(inputs.feed_stage_flash_reuse_dP_psia),
+                feed_stage_flash_reuse_dx=float(inputs.feed_stage_flash_reuse_dx),
             )
         diag["Q_feed_BTUps_tray"] = q_feed_BTUps.copy()
         dEL, dEV = _energy_derivatives_b1(
@@ -4297,7 +4657,7 @@ def column_rhs(
             except Exception:
                 pass
 
-        Qc_BTUph, Qc_calc_BTUph, T_cond_bubble_F, condenser_duty_mode = _resolve_condenser_duty_cached(
+        Qc_BTUph, Qc_calc_BTUph, T_cond_bubble_F, _Qc_hL_cond_BTU_lbmol, condenser_duty_mode = _resolve_condenser_duty_cached(
             tray_T_F=np.asarray(tray_T, dtype=float).reshape((N,)),
             P_tray_psia=np.asarray(P_tray, dtype=float).reshape((N,)),
         )
@@ -4319,6 +4679,9 @@ def column_rhs(
         dT_mode_correction_tray = np.zeros(N, dtype=float)
         dT_phase_latent_equiv_tray = np.zeros(N, dtype=float)
         tray_heat_capacity_BTU_per_F = np.zeros(N, dtype=float)
+        tray_effective_heat_capacity_BTU_per_F = np.zeros(N, dtype=float)
+        tray_temperature_guard_active = np.zeros(N, dtype=float)
+        tray_temperature_rate_limit_F_per_s = np.full(N, np.nan, dtype=float)
         T_bubble_target = np.full(N, np.nan, dtype=float)
         T_enthalpy_state_target = np.full(N, np.nan, dtype=float)
         E_enthalpy_state_mismatch = np.full(N, np.nan, dtype=float)
@@ -4332,6 +4695,16 @@ def column_rhs(
         packet_dx_tol = float(getattr(inputs, "thermo_packet_phase_reuse_dx", 0.0) or 0.0)
         packet_dT_tol = float(getattr(inputs, "thermo_packet_phase_reuse_dT_F", 0.0) or 0.0)
         packet_dP_tol = float(getattr(inputs, "thermo_packet_phase_reuse_dP_psia", 0.0) or 0.0)
+        temp_guard_holdup = float(getattr(inputs, "hydraulic_energy_temperature_holdup_guard_lbmol", 0.0) or 0.0)
+        temp_guard_min_C = float(
+            getattr(inputs, "hydraulic_energy_temperature_min_heat_capacity_BTU_per_F", 0.0) or 0.0
+        )
+        temp_guard_max_rate = getattr(inputs, "hydraulic_energy_temperature_max_dT_rate_F_per_s", None)
+        if temp_guard_max_rate is not None:
+            try:
+                temp_guard_max_rate = float(temp_guard_max_rate)
+            except Exception:
+                temp_guard_max_rate = None
 
         # Optional provider-based phase enthalpies at current tray conditions.
         # This removes a large inconsistency when include_temperature=True and a
@@ -4339,126 +4712,33 @@ def column_rhs(
         hL_stage_provider = None
         hV_stage_provider = None
         if inputs.thermo_provider is not None:
-            _trace_stage_thermo(inputs, "temperature_state provider enthalpy refresh start")
-            hL_try = np.full(N, np.nan, dtype=float)
-            hV_try = np.full(N, np.nan, dtype=float)
             packet_phase_tol_liq = _phase_reuse_dx_tol(inputs, "liquid")
             packet_phase_tol_vap = _phase_reuse_dx_tol(inputs, "vapor")
             packet_dT_tol = float(getattr(inputs, "thermo_packet_phase_reuse_dT_F", 0.0) or 0.0)
             packet_dP_tol = float(getattr(inputs, "thermo_packet_phase_reuse_dP_psia", 0.0) or 0.0)
-            for j in range(N):
-                reused_hL = _packet_phase_enthalpy_first_match(
-                    [thermo_packet, inputs.tray_thermo_prev],
-                    stage_index0=j,
-                    T_F=float(tray_T[j]),
-                    P_psia=float(P_tray[j]),
-                    phase_composition=x_tray[j, :],
-                    phase="liquid",
-                    max_abs_dx=packet_phase_tol_liq,
-                    max_abs_dT_F=packet_dT_tol,
-                    max_abs_dP_psia=packet_dP_tol,
-                )
-                if reused_hL is not None and np.isfinite(float(reused_hL)):
-                    hL_try[j] = float(reused_hL)
-                    _trace_stage_thermo(
-                        inputs,
-                        f"temperature_state hL_flash stage={int(j + 1)}/{int(N)} reused packet",
-                    )
-                else:
-                    try:
-                        _trace_stage_thermo(inputs, f"temperature_state hL_flash stage={int(j + 1)}/{int(N)} start")
-                        if hasattr(inputs.thermo_provider, "set_debug_trace_context"):
-                            inputs.thermo_provider.set_debug_trace_context(
-                                f"{str(getattr(inputs, 'thermo_stage_trace_label', '') or '').strip()}:temperature_state:hL_flash:stage={int(j + 1)}"
-                            )
-                        _flash_t0 = time.perf_counter()
-                        fres_L = _flash_TP_full_stage_F_psia(
-                            inputs.thermo_provider,
-                            j,
-                            float(tray_T[j]),
-                            float(P_tray[j]),
-                            x_tray[j, :],
-                            n_components=Nc,
-                            thermo_call_category="temperature_state_enthalpy_refresh",
-                        )
-                        hL_try[j] = float(getattr(fres_L, "HL_BTU_lbmol"))
-                        _trace_stage_thermo(
-                            inputs,
-                            f"temperature_state hL_flash stage={int(j + 1)}/{int(N)} done wall={float(time.perf_counter() - _flash_t0):.2f}s",
-                        )
-                    except Exception:
-                        pass
-                    finally:
-                        if hasattr(inputs.thermo_provider, "set_debug_trace_context"):
-                            inputs.thermo_provider.set_debug_trace_context("")
-                reused_hV = _packet_phase_enthalpy_if_compatible(
-                    energy_vapor_flow_packet,
-                    stage_index0=j,
-                    T_F=float(tray_T[j]),
-                    P_psia=float(P_tray[j]),
-                    phase_composition=y_tray[j, :],
-                    phase="vapor",
-                    max_abs_dx=packet_phase_tol_vap,
-                    max_abs_dT_F=packet_dT_tol,
-                    max_abs_dP_psia=packet_dP_tol,
-                )
-                used_energy_packet = reused_hV is not None and np.isfinite(float(reused_hV))
-                if used_energy_packet:
-                    hV_try[j] = float(reused_hV)
-                    _trace_stage_thermo(
-                        inputs,
-                        f"temperature_state hV_flash stage={int(j + 1)}/{int(N)} reused energy packet",
-                    )
-                else:
-                    reused_hV = _packet_phase_enthalpy_first_match(
-                        [thermo_packet, inputs.tray_thermo_prev],
-                        stage_index0=j,
-                        T_F=float(tray_T[j]),
-                        P_psia=float(P_tray[j]),
-                        phase_composition=y_tray[j, :],
-                        phase="vapor",
-                        max_abs_dx=packet_phase_tol_vap,
-                        max_abs_dT_F=packet_dT_tol,
-                        max_abs_dP_psia=packet_dP_tol,
-                    )
-                    if reused_hV is not None and np.isfinite(float(reused_hV)):
-                        hV_try[j] = float(reused_hV)
-                        _trace_stage_thermo(
-                            inputs,
-                            f"temperature_state hV_flash stage={int(j + 1)}/{int(N)} reused packet",
-                        )
-                    else:
-                        try:
-                            _trace_stage_thermo(inputs, f"temperature_state hV_flash stage={int(j + 1)}/{int(N)} start")
-                            if hasattr(inputs.thermo_provider, "set_debug_trace_context"):
-                                inputs.thermo_provider.set_debug_trace_context(
-                                    f"{str(getattr(inputs, 'thermo_stage_trace_label', '') or '').strip()}:temperature_state:hV_flash:stage={int(j + 1)}"
-                                )
-                            _flash_t0 = time.perf_counter()
-                            fres_V = _flash_TP_full_stage_F_psia(
-                                inputs.thermo_provider,
-                                j,
-                                float(tray_T[j]),
-                                float(P_tray[j]),
-                                y_tray[j, :],
-                                n_components=Nc,
-                                thermo_call_category="temperature_state_enthalpy_refresh",
-                            )
-                            hV_try[j] = float(getattr(fres_V, "HV_BTU_lbmol"))
-                            _trace_stage_thermo(
-                                inputs,
-                                f"temperature_state hV_flash stage={int(j + 1)}/{int(N)} done wall={float(time.perf_counter() - _flash_t0):.2f}s",
-                            )
-                        except Exception:
-                            pass
-                        finally:
-                            if hasattr(inputs.thermo_provider, "set_debug_trace_context"):
-                                inputs.thermo_provider.set_debug_trace_context("")
-            if np.any(np.isfinite(hL_try)):
-                hL_stage_provider = hL_try
-            if np.any(np.isfinite(hV_try)):
-                hV_stage_provider = hV_try
-            _trace_stage_thermo(inputs, "temperature_state provider enthalpy refresh complete")
+            temp_refresh = refresh_temperature_state_phase_enthalpies(
+                provider=inputs.thermo_provider,
+                thermo_packet=thermo_packet,
+                previous_packet=inputs.tray_thermo_prev,
+                energy_vapor_flow_packet=energy_vapor_flow_packet,
+                tray_T_F=tray_T,
+                P_tray_psia=P_tray,
+                x_tray=x_tray,
+                y_tray=y_tray,
+                n_stages=N,
+                n_components=Nc,
+                packet_phase_tol_liq=packet_phase_tol_liq,
+                packet_phase_tol_vap=packet_phase_tol_vap,
+                packet_dT_tol_F=packet_dT_tol,
+                packet_dP_tol_psia=packet_dP_tol,
+                packet_phase_enthalpy_first_match_fn=_packet_phase_enthalpy_first_match,
+                packet_phase_enthalpy_if_compatible_fn=_packet_phase_enthalpy_if_compatible,
+                flash_stage_fn=_flash_TP_full_stage_F_psia,
+                trace_fn=_trace_stage_thermo,
+                trace_context=inputs,
+            )
+            hL_stage_provider = temp_refresh.hL_stage_provider
+            hV_stage_provider = temp_refresh.hV_stage_provider
 
         for i in range(N):
             _trace_stage_thermo(inputs, f"temperature_state tray_loop stage={int(i + 1)}/{int(N)} start")
@@ -4538,6 +4818,10 @@ def column_rhs(
                 thermo=thermo,
                 thermo_provider=inputs.thermo_provider,
                 epsilon_lbmol=float(layout.epsilon_lbmol),
+                feed_stage_flash_prev=inputs.feed_stage_flash_prev,
+                feed_stage_flash_reuse_dT_F=float(inputs.feed_stage_flash_reuse_dT_F),
+                feed_stage_flash_reuse_dP_psia=float(inputs.feed_stage_flash_reuse_dP_psia),
+                feed_stage_flash_reuse_dx=float(inputs.feed_stage_flash_reuse_dx),
             )
             psi_phase = 0.0
             if "eq_phase_change_lbmolps_tray" in diag:
@@ -4681,16 +4965,33 @@ def column_rhs(
 
             C = diag["ML_tot_tray"][i] * cpL + diag["MV_tot_tray"][i] * cpV
             tray_heat_capacity_BTU_per_F[i] = float(C)
-            if C <= 0.0:
-                if (diag["ML_tot_tray"][i] + diag["MV_tot_tray"][i]) <= layout.epsilon_lbmol:
-                    dT_tray[i] = 0.0
-                    _trace_stage_thermo(inputs, f"temperature_state tray_loop stage={int(i + 1)}/{int(N)} done")
-                    continue
-                raise ColumnRHSError("Non-positive tray heat capacity encountered.")
+            if C <= 0.0 and (diag["ML_tot_tray"][i] + diag["MV_tot_tray"][i]) <= layout.epsilon_lbmol:
+                dT_tray[i] = 0.0
+                tray_effective_heat_capacity_BTU_per_F[i] = float(max(C, 0.0))
+                _trace_stage_thermo(inputs, f"temperature_state tray_loop stage={int(i + 1)}/{int(N)} done")
+                continue
 
-            dT_val = dE / C
-            dT_energy_raw_tray[i] = float(dT_val)
-            dT_phase_latent_equiv_tray[i] = float(q_phase_latent / C)
+            dT_raw = float(dE / max(C, 1.0e-12))
+            dT_energy_raw_tray[i] = float(dT_raw)
+            dT_phase_latent_equiv_tray[i] = float(q_phase_latent / max(C, 1.0e-12))
+            dT_val, C_eff, guard_active = _stabilize_low_holdup_temperature_rate(
+                dE_BTU_per_s=float(dE),
+                heat_capacity_BTU_per_F=float(C),
+                liquid_holdup_lbmol=float(diag["ML_tot_tray"][i]),
+                vapor_holdup_lbmol=float(diag["MV_tot_tray"][i]),
+                holdup_guard_lbmol=float(temp_guard_holdup),
+                min_heat_capacity_BTU_per_F=float(temp_guard_min_C),
+                max_abs_rate_F_per_s=temp_guard_max_rate,
+            )
+            tray_effective_heat_capacity_BTU_per_F[i] = float(C_eff)
+            tray_temperature_guard_active[i] = float(guard_active)
+            if (
+                bool(guard_active)
+                and temp_guard_max_rate is not None
+                and np.isfinite(float(temp_guard_max_rate))
+                and float(temp_guard_max_rate) > 0.0
+            ):
+                tray_temperature_rate_limit_F_per_s[i] = float(temp_guard_max_rate)
             if hyd_energy_mode and temp_mode == "bubble-point-follower":
                 try:
                     T_target_prev = getattr(inputs, "tray_bubble_target_prev_F", None)
@@ -4792,6 +5093,9 @@ def column_rhs(
         diag["dT_mode_correction_F_per_s_tray"] = dT_mode_correction_tray.copy()
         diag["dT_phase_latent_equiv_F_per_s_tray"] = dT_phase_latent_equiv_tray.copy()
         diag["tray_heat_capacity_BTU_per_F_tray"] = tray_heat_capacity_BTU_per_F.copy()
+        diag["tray_effective_heat_capacity_BTU_per_F_tray"] = tray_effective_heat_capacity_BTU_per_F.copy()
+        diag["tray_temperature_guard_active_tray"] = tray_temperature_guard_active.copy()
+        diag["tray_temperature_rate_limit_F_per_s_tray"] = tray_temperature_rate_limit_F_per_s.copy()
         diag["T_bubble_target_F_tray"] = T_bubble_target.copy()
         diag["T_enthalpy_state_target_F_tray"] = T_enthalpy_state_target.copy()
         diag["E_enthalpy_state_mismatch_BTU_tray"] = E_enthalpy_state_mismatch.copy()
@@ -4811,20 +5115,46 @@ def column_rhs(
                 h_in = thermo.h_liq_btu_per_lbmol(float(tray_T[-1]), P_bot, x_tray[-1, :])
                 h_sump = thermo.h_liq_btu_per_lbmol(float(T_sump_use), P_bot, x_sump)
                 if use_provider_cp:
-                    try:
-                        cp_sump, _cpv = _provider_cp_liq_vap_btu_per_lbmolF(
-                            inputs.thermo_provider,
-                            float(T_sump_use),
-                            P_bot,
-                            x_sump,
-                            thermo_call_category="bottom_sump_cp_lookup",
+                    cp_sump = None
+                    sump_cp_packet, sump_cp_dT, sump_cp_dP, sump_cp_dx = _compatible_bottom_sump_cp_packet(
+                        getattr(inputs, "bottom_sump_cp_prev", None),
+                        T_sump_F=float(T_sump_use),
+                        P_sump_psia=P_bot,
+                        x_sump=x_sump,
+                        n_components=Nc,
+                        max_abs_dT_F=float(getattr(inputs, "bottom_sump_cp_reuse_dT_F", 0.5) or 0.5),
+                        max_abs_dP_psia=float(getattr(inputs, "bottom_sump_cp_reuse_dP_psia", 5.0) or 5.0),
+                        max_abs_dx=float(getattr(inputs, "bottom_sump_cp_reuse_dx", 1.0e-5) or 1.0e-5),
+                    )
+                    if sump_cp_packet is not None:
+                        cp_sump = float(sump_cp_packet.cpL_BTU_lbmolF)
+                        _trace_stage_thermo(
+                            inputs,
+                            "bottom_sump_cp reused packet "
+                            f"dT={float(sump_cp_dT):.3g}F "
+                            f"dP={float(sump_cp_dP):.3g}psi "
+                            f"dx_max={float(sump_cp_dx):.3g}",
                         )
+                    try:
+                        if cp_sump is None:
+                            cp_sump, _cpv = _provider_cp_liq_vap_btu_per_lbmolF(
+                                inputs.thermo_provider,
+                                float(T_sump_use),
+                                P_bot,
+                                x_sump,
+                                thermo_call_category="bottom_sump_cp_lookup",
+                            )
                     except Exception:
                         cp_sump = None
                 else:
                     cp_sump = None
                 if cp_sump is None:
                     cp_sump = thermo.cp_liq_btu_per_lbmolF(float(T_sump_use), P_bot, x_sump)
+                elif np.isfinite(float(cp_sump)):
+                    diag["bottom_sump_cp_cache_T_F"] = np.array([float(T_sump_use)], dtype=float)
+                    diag["bottom_sump_cp_cache_P_psia"] = np.array([float(P_bot)], dtype=float)
+                    diag["bottom_sump_cp_cache_x"] = np.asarray(x_sump, dtype=float).reshape((Nc,)).copy()
+                    diag["bottom_sump_cp_cache_cpL_BTU_lbmolF"] = np.array([float(cp_sump)], dtype=float)
 
                 dE_sump = 0.0
                 dE_sump += float(L_out[-1]) * h_in
@@ -5014,6 +5344,12 @@ def _feed_component_rates_lbmolps(
     thermo_provider: Optional[Any] = None,
     P_tray_psia: Optional[np.ndarray] = None,
     flash_feed_at_stage_conditions: bool = True,
+    feed_stage_flash_prev: Optional[FeedStageFlashPacket] = None,
+    feed_stage_flash_reuse_dT_F: float = 0.5,
+    feed_stage_flash_reuse_dP_psia: float = 2.5,
+    feed_stage_flash_reuse_dx: float = 1.0e-6,
+    trace_hook: Optional[Any] = None,
+    trace_label: Optional[str] = None,
 ) -> Tuple[Optional[int], np.ndarray, np.ndarray]:
     s = col.streams.get("Feed")
     if s is None or s.stage_1based is None or s.total_molar_flow_lbmolph is None:
@@ -5066,6 +5402,59 @@ def _feed_component_rates_lbmolps(
             if np.isfinite(Ft_comp) and Ft_comp > 1e-300:
                 z_feed = Fk / Ft_comp
                 T_feed = float(getattr(s, "temperature_f"))
+                matched_packet, dT_feed, dP_feed, dx_max = _compatible_feed_stage_flash_packet(
+                    packet=feed_stage_flash_prev,
+                    stage0=int(stage0),
+                    T_feed_F=float(T_feed),
+                    P_feed_psia=float(P_feed),
+                    z_feed=z_feed,
+                    n_components=Nc,
+                    max_abs_dT_F=float(feed_stage_flash_reuse_dT_F),
+                    max_abs_dP_psia=float(feed_stage_flash_reuse_dP_psia),
+                    max_abs_dx=float(feed_stage_flash_reuse_dx),
+                )
+                if feed_stage_flash_prev is not None and int(getattr(feed_stage_flash_prev, "stage0", -999999)) == int(stage0):
+                    try:
+                        if matched_packet is not None:
+                            L_prev = np.asarray(matched_packet.Fk_L_lbmolps, dtype=float).reshape((Nc,))
+                            V_prev = np.asarray(matched_packet.Fk_V_lbmolps, dtype=float).reshape((Nc,))
+                            if callable(trace_hook):
+                                prefix = (
+                                    f"[ThermoTrace][{str(trace_label).strip()}] "
+                                    if str(trace_label or "").strip()
+                                    else "[ThermoTrace] "
+                                )
+                                try:
+                                    trace_hook(
+                                        prefix
+                                        + "feed_stage_flash reused previous packet "
+                                        + f"stage={int(stage0)+1} "
+                                        + f"dT_F={float(dT_feed or 0.0):.6g} "
+                                        + f"dP_psia={float(dP_feed or 0.0):.6g} "
+                                        + f"dx_max={float(dx_max or 0.0):.6g}"
+                                    )
+                                except Exception:
+                                    pass
+                            return stage0, L_prev.copy(), V_prev.copy()
+                        if callable(trace_hook):
+                            prefix = (
+                                f"[ThermoTrace][{str(trace_label).strip()}] "
+                                if str(trace_label or "").strip()
+                                else "[ThermoTrace] "
+                            )
+                            try:
+                                trace_hook(
+                                    prefix
+                                    + "feed_stage_flash cache miss "
+                                    + f"stage={int(stage0)+1} "
+                                    + f"dT_F={float(dT_feed or 0.0):.6g} "
+                                    + f"dP_psia={float(dP_feed or 0.0):.6g} "
+                                    + f"dx_max={float(dx_max or 0.0):.6g}"
+                                )
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
                 with _thermo_provider_category(thermo_provider, "feed_stage_flash"):
                     fres = flash_TP_full_F_psia(
                         thermo_provider,
@@ -5117,6 +5506,10 @@ def _feed_enthalpy_rate_btu_per_s(
     thermo: Any,
     thermo_provider: Optional[Any],
     epsilon_lbmol: float,
+    feed_stage_flash_prev: Optional[FeedStageFlashPacket] = None,
+    feed_stage_flash_reuse_dT_F: float = 0.5,
+    feed_stage_flash_reuse_dP_psia: float = 2.5,
+    feed_stage_flash_reuse_dx: float = 1.0e-6,
 ) -> float:
     """
     Feed enthalpy source term (BTU/s) for stage energy balances.
@@ -5168,25 +5561,51 @@ def _feed_enthalpy_rate_btu_per_s(
 
     hF_L = None
     hF_V = None
-    if thermo_provider is not None:
+    matched_packet, _dT_feed, _dP_feed, _dx_feed = _compatible_feed_stage_flash_packet(
+        packet=feed_stage_flash_prev,
+        stage0=int(stage0),
+        T_feed_F=float(T_feed),
+        P_feed_psia=float(P_feed),
+        z_feed=z_feed,
+        n_components=Nc,
+        max_abs_dT_F=float(feed_stage_flash_reuse_dT_F),
+        max_abs_dP_psia=float(feed_stage_flash_reuse_dP_psia),
+        max_abs_dx=float(feed_stage_flash_reuse_dx),
+    )
+    if matched_packet is not None:
         try:
-            fres = flash_TP_full_F_psia(
-                thermo_provider,
-                float(T_feed),
-                float(P_feed),
-                z_feed,
-                n_components=Nc,
-            )
-            h_try_L = getattr(fres, "HL_BTU_lbmol", None)
-            if h_try_L is None:
-                h_try_L = getattr(fres, "HL", None)
-            h_try_V = getattr(fres, "HV_BTU_lbmol", None)
-            if h_try_V is None:
-                h_try_V = getattr(fres, "HV", None)
+            h_try_L = getattr(matched_packet, "hL_BTU_lbmol", None)
             if h_try_L is not None and np.isfinite(float(h_try_L)):
                 hF_L = float(h_try_L)
+        except Exception:
+            hF_L = None
+        try:
+            h_try_V = getattr(matched_packet, "hV_BTU_lbmol", None)
             if h_try_V is not None and np.isfinite(float(h_try_V)):
                 hF_V = float(h_try_V)
+        except Exception:
+            hF_V = None
+    if thermo_provider is not None:
+        try:
+            if hF_L is None or hF_V is None:
+                with _thermo_provider_category(thermo_provider, "feed_enthalpy_flash"):
+                    fres = flash_TP_full_F_psia(
+                        thermo_provider,
+                        float(T_feed),
+                        float(P_feed),
+                        z_feed,
+                        n_components=Nc,
+                    )
+                h_try_L = getattr(fres, "HL_BTU_lbmol", None)
+                if h_try_L is None:
+                    h_try_L = getattr(fres, "HL", None)
+                h_try_V = getattr(fres, "HV_BTU_lbmol", None)
+                if h_try_V is None:
+                    h_try_V = getattr(fres, "HV", None)
+                if h_try_L is not None and np.isfinite(float(h_try_L)):
+                    hF_L = float(h_try_L)
+                if h_try_V is not None and np.isfinite(float(h_try_V)):
+                    hF_V = float(h_try_V)
         except Exception:
             pass
 
@@ -5363,6 +5782,62 @@ def _condenser_duty_packet_if_compatible(
     return packet
 
 
+def _condenser_bubble_state_if_compatible(
+    packet: Optional[CondenserDutyPacket],
+    *,
+    mode: str,
+    P_condenser_psia: float,
+    y_vapor_in: np.ndarray,
+    max_abs_dP_psia: float,
+    max_abs_dx: float,
+) -> Optional[CondenserDutyPacket]:
+    packet_hit, _reason, _detail = _condenser_bubble_state_compatibility_detail(
+        packet,
+        mode=mode,
+        P_condenser_psia=P_condenser_psia,
+        y_vapor_in=y_vapor_in,
+        max_abs_dP_psia=max_abs_dP_psia,
+        max_abs_dx=max_abs_dx,
+    )
+    return packet_hit
+
+
+def _condenser_bubble_state_compatibility_detail(
+    packet: Optional[CondenserDutyPacket],
+    *,
+    mode: str,
+    P_condenser_psia: float,
+    y_vapor_in: np.ndarray,
+    max_abs_dP_psia: float,
+    max_abs_dx: float,
+) -> Tuple[Optional[CondenserDutyPacket], str, Optional[float]]:
+    if packet is None:
+        return None, "no_packet", None
+    if str(packet.mode).strip().lower() != str(mode).strip().lower():
+        return None, "mode_mismatch", None
+    try:
+        y_prev = np.asarray(packet.y_vapor_in, dtype=float).reshape((-1,))
+        y_curr = np.asarray(y_vapor_in, dtype=float).reshape((-1,))
+    except Exception:
+        return None, "composition_parse_error", None
+    if y_prev.shape != y_curr.shape:
+        return None, "composition_shape_mismatch", None
+    if not np.isfinite(float(packet.P_condenser_psia)):
+        return None, "invalid_cached_pressure", None
+    dP_abs = abs(float(P_condenser_psia) - float(packet.P_condenser_psia))
+    if dP_abs > max(float(max_abs_dP_psia), 1e-12):
+        return None, "condenser_pressure_delta", float(dP_abs)
+    dx_max = float(np.nanmax(np.abs(y_curr - y_prev)))
+    if dx_max > max(float(max_abs_dx), 1e-12):
+        return None, "composition_delta", float(dx_max)
+    if (
+        (packet.T_bubble_F is None or not np.isfinite(float(packet.T_bubble_F)))
+        and (packet.hL_cond_BTU_lbmol is None or not np.isfinite(float(packet.hL_cond_BTU_lbmol)))
+    ):
+        return None, "missing_bubble_state", None
+    return packet, "hit", None
+
+
 def _resolve_condenser_duty_btu_per_h(
     *,
     col: ColumnSpec,
@@ -5373,12 +5848,18 @@ def _resolve_condenser_duty_btu_per_h(
     V_in_lbmolps: np.ndarray,
     y_in: np.ndarray,
     epsilon_lbmol: float,
-) -> Tuple[float, Optional[float], Optional[float], str]:
+) -> Tuple[float, Optional[float], Optional[float], Optional[float], str]:
     """
     Resolve condenser duty for the current RHS call.
 
     Returns:
-      (Q_used_BTUph, Q_calc_BTUph_or_None, T_cond_bubble_F_or_None, mode_norm)
+      (
+          Q_used_BTUph,
+          Q_calc_BTUph_or_None,
+          T_cond_bubble_F_or_None,
+          hL_cond_BTU_lbmol_or_None,
+          mode_norm,
+      )
     """
     mode = _normalize_condenser_duty_mode(getattr(inputs, "condenser_duty_mode", None))
 
@@ -5397,6 +5878,7 @@ def _resolve_condenser_duty_btu_per_h(
     q_used = float(q_base)
     q_calc = None
     t_bub = None
+    hL_cond = None
     q_trim = 0.0
     q_trim_raw = getattr(inputs, "condenser_duty_trim_btu_per_h", None)
     if q_trim_raw is not None:
@@ -5411,8 +5893,9 @@ def _resolve_condenser_duty_btu_per_h(
         src_i = 1 if N > 1 else 0
         try:
             y_cond = np.asarray(y_in[0, :], dtype=float)
+            prev_packet_all = getattr(inputs, "condenser_duty_prev", None)
             prev_packet = _condenser_duty_packet_if_compatible(
-                getattr(inputs, "condenser_duty_prev", None),
+                prev_packet_all,
                 mode=mode,
                 V_vapor_in_lbmolps=float(V_in_lbmolps[0]),
                 T_vapor_in_F=float(tray_T_F[src_i]),
@@ -5425,19 +5908,74 @@ def _resolve_condenser_duty_btu_per_h(
                 max_rel_dV=float(getattr(inputs, "condenser_duty_reuse_dV_rel", 0.0) or 0.0),
             )
             if prev_packet is not None:
+                _record_thermo_provider_counter(
+                    inputs.thermo_provider,
+                    "full_packet_hits",
+                    1,
+                    category="condenser_duty_reuse_diag",
+                )
                 q_try = prev_packet.q_calc_BTUph
                 t_try = prev_packet.T_bubble_F
+                if prev_packet.hL_cond_BTU_lbmol is not None and np.isfinite(float(prev_packet.hL_cond_BTU_lbmol)):
+                    hL_cond = float(prev_packet.hL_cond_BTU_lbmol)
                 _trace_stage_thermo(
                     inputs,
                     "condenser duty thermo solve reused previous packet "
                     f"T_vapor_in_F={float(tray_T_F[src_i]):.3f} P_cond_psia={float(P_tray_psia[0]):.3f}",
                 )
             else:
+                _record_thermo_provider_counter(
+                    inputs.thermo_provider,
+                    "full_packet_misses",
+                    1,
+                    category="condenser_duty_reuse_diag",
+                )
                 _trace_stage_thermo(
                     inputs,
                     "condenser duty thermo solve start "
                     f"T_vapor_in_F={float(tray_T_F[src_i]):.3f} P_cond_psia={float(P_tray_psia[0]):.3f}",
                 )
+                bubble_packet, bubble_reason, bubble_detail = _condenser_bubble_state_compatibility_detail(
+                    prev_packet_all,
+                    mode=mode,
+                    P_condenser_psia=float(P_tray_psia[0]),
+                    y_vapor_in=y_cond,
+                    max_abs_dP_psia=max(
+                        float(getattr(inputs, "condenser_duty_bubble_state_reuse_dP_psia", 0.0) or 0.0),
+                        float(getattr(inputs, "condenser_duty_reuse_dP_psia", 0.0) or 0.0),
+                        1.0,
+                    ),
+                    max_abs_dx=max(float(getattr(inputs, "condenser_duty_reuse_dx", 0.0) or 0.0), 0.02),
+                )
+                if bubble_packet is not None:
+                    _record_thermo_provider_counter(
+                        inputs.thermo_provider,
+                        "bubble_state_hits",
+                        1,
+                        category="condenser_duty_reuse_diag",
+                    )
+                else:
+                    _record_thermo_provider_counter(
+                        inputs.thermo_provider,
+                        f"bubble_state_miss_{str(bubble_reason).strip() or 'unknown'}",
+                        1,
+                        category="condenser_duty_reuse_diag",
+                    )
+                    if bubble_detail is not None and np.isfinite(float(bubble_detail)):
+                        detail_metric = (
+                            "bubble_state_miss_pressure_delta_abs_psia"
+                            if str(bubble_reason) == "condenser_pressure_delta"
+                            else "bubble_state_miss_composition_delta_abs"
+                            if str(bubble_reason) == "composition_delta"
+                            else None
+                        )
+                        if detail_metric is not None:
+                            _record_thermo_provider_counter(
+                                inputs.thermo_provider,
+                                detail_metric,
+                                float(bubble_detail),
+                                category="condenser_duty_reuse_diag",
+                            )
                 q_try, t_try = _compute_total_condenser_duty_btu_per_h(
                     thermo_provider=inputs.thermo_provider,
                     V_vapor_in_lbmolps=float(V_in_lbmolps[0]),
@@ -5446,7 +5984,27 @@ def _resolve_condenser_duty_btu_per_h(
                     P_vapor_in_psia=float(P_tray_psia[src_i]),
                     P_condenser_psia=float(P_tray_psia[0]),
                     T_guess_F=float(tray_T_F[0]),
+                    prev_bubble_packet=bubble_packet,
                     epsilon_lbmol=float(epsilon_lbmol),
+                )
+                hL_cond = _condenser_liquid_enthalpy_BTU_lbmol(
+                    thermo_provider=inputs.thermo_provider,
+                    T_bubble_F=t_try,
+                    P_condenser_psia=float(P_tray_psia[0]),
+                    x_cond=y_cond,
+                    packet=bubble_packet,
+                )
+                if bubble_packet is not None:
+                    _trace_stage_thermo(
+                        inputs,
+                        "condenser duty thermo solve reused previous bubble state "
+                        f"T_bubble_F={float(bubble_packet.T_bubble_F) if bubble_packet.T_bubble_F is not None and np.isfinite(float(bubble_packet.T_bubble_F)) else float('nan'):.6g}",
+                    )
+                _record_thermo_provider_counter(
+                    inputs.thermo_provider,
+                    "fresh_solves",
+                    1,
+                    category="condenser_duty_reuse_diag",
                 )
                 _trace_stage_thermo(
                     inputs,
@@ -5465,7 +6023,44 @@ def _resolve_condenser_duty_btu_per_h(
     if mode == "total-condense":
         q_used = float(q_used) + float(q_trim)
 
-    return float(q_used), q_calc, t_bub, mode
+    return float(q_used), q_calc, t_bub, hL_cond, mode
+
+
+def _condenser_liquid_enthalpy_BTU_lbmol(
+    *,
+    thermo_provider: Any,
+    T_bubble_F: Optional[float],
+    P_condenser_psia: float,
+    x_cond: np.ndarray,
+    packet: Optional[CondenserDutyPacket] = None,
+) -> Optional[float]:
+    if packet is not None and packet.hL_cond_BTU_lbmol is not None:
+        try:
+            h_try = float(packet.hL_cond_BTU_lbmol)
+            if np.isfinite(h_try):
+                return h_try
+        except Exception:
+            pass
+    if T_bubble_F is None or not np.isfinite(float(T_bubble_F)) or thermo_provider is None:
+        return None
+    try:
+        fres_liq = _flash_TP_full_stage_F_psia(
+            thermo_provider,
+            0,
+            float(T_bubble_F),
+            float(P_condenser_psia),
+            x_cond,
+            n_components=np.asarray(x_cond, dtype=float).reshape((-1,)).size,
+            thermo_call_category="condenser_duty_helper_flash",
+        )
+        hL_cond = getattr(fres_liq, "HL_BTU_lbmol", None)
+        if hL_cond is None or (not np.isfinite(float(hL_cond))):
+            hL_cond = getattr(fres_liq, "HL", None)
+        if hL_cond is not None and np.isfinite(float(hL_cond)):
+            return float(hL_cond)
+    except Exception:
+        return None
+    return None
 
 
 def _compute_total_condenser_duty_btu_per_h(
@@ -5477,6 +6072,7 @@ def _compute_total_condenser_duty_btu_per_h(
     P_vapor_in_psia: float,
     P_condenser_psia: float,
     T_guess_F: float,
+    prev_bubble_packet: Optional[CondenserDutyPacket] = None,
     epsilon_lbmol: float = 1e-12,
 ) -> Tuple[Optional[float], Optional[float]]:
     """
@@ -5509,14 +6105,23 @@ def _compute_total_condenser_duty_btu_per_h(
 
     T_bub_F = None
     fres_bub = None
-    try:
-        bubble_t_fn = getattr(thermo_provider, "bubble_point_temperature_F_psia", None)
-        if callable(bubble_t_fn):
-            T_try = bubble_t_fn(float(P_cond), x_cond.tolist())
-            if T_try is not None and np.isfinite(float(T_try)):
-                T_bub_F = float(T_try)
-    except Exception:
-        T_bub_F = None
+    hL_cond = None
+    if prev_bubble_packet is not None:
+        if prev_bubble_packet.T_bubble_F is not None and np.isfinite(float(prev_bubble_packet.T_bubble_F)):
+            T_bub_F = float(prev_bubble_packet.T_bubble_F)
+        if prev_bubble_packet.hL_cond_BTU_lbmol is not None and np.isfinite(float(prev_bubble_packet.hL_cond_BTU_lbmol)):
+            hL_cond = float(prev_bubble_packet.hL_cond_BTU_lbmol)
+    prefer_flash_bubble_solver = bool(getattr(thermo_provider, "prefer_flash_bubble_point_solver", False))
+    if not prefer_flash_bubble_solver:
+        try:
+            bubble_t_fn = getattr(thermo_provider, "bubble_point_temperature_F_psia", None)
+            if callable(bubble_t_fn):
+                with _thermo_provider_category(thermo_provider, "condenser_bubble_point_direct"):
+                    T_try = bubble_t_fn(float(P_cond), x_cond.tolist())
+                if T_try is not None and np.isfinite(float(T_try)):
+                    T_bub_F = float(T_try)
+        except Exception:
+            T_bub_F = None
 
     if T_bub_F is None:
         try:
@@ -5530,25 +6135,18 @@ def _compute_total_condenser_duty_btu_per_h(
         except Exception:
             return None, None
 
-    hL_cond = getattr(fres_bub, "HL_BTU_lbmol", None)
+    if hL_cond is None and fres_bub is not None:
+        hL_cond = getattr(fres_bub, "HL_BTU_lbmol", None)
+        if hL_cond is None or (not np.isfinite(float(hL_cond))):
+            hL_cond = getattr(fres_bub, "HL", None)
     if hL_cond is None or (not np.isfinite(float(hL_cond))):
-        hL_cond = getattr(fres_bub, "HL", None)
-    if hL_cond is None or (not np.isfinite(float(hL_cond))):
-        try:
-            fres_liq = _flash_TP_full_stage_F_psia(
-                thermo_provider,
-                0,
-                float(T_bub_F),
-                float(P_cond),
-                x_cond,
-                n_components=x_cond.size,
-                thermo_call_category="condenser_duty_helper_flash",
-            )
-            hL_cond = getattr(fres_liq, "HL_BTU_lbmol", None)
-            if hL_cond is None or (not np.isfinite(float(hL_cond))):
-                hL_cond = getattr(fres_liq, "HL", None)
-        except Exception:
-            hL_cond = None
+        hL_cond = _condenser_liquid_enthalpy_BTU_lbmol(
+            thermo_provider=thermo_provider,
+            T_bubble_F=T_bub_F,
+            P_condenser_psia=P_cond,
+            x_cond=x_cond,
+            packet=prev_bubble_packet,
+        )
     if hL_cond is None or (not np.isfinite(float(hL_cond))):
         return None, float(T_bub_F)
 
@@ -5711,7 +6309,8 @@ def _compute_top_drum_pressure_psia(
             try:
                 z_fn = getattr(thermo_provider, "vapor_z_factor_F_psia", None)
                 if callable(z_fn):
-                    z_try = z_fn(float(top_T_F), float(p_try), y_use.tolist())
+                    with _thermo_provider_category(thermo_provider, "top_drum_pressure_z_refine_direct"):
+                        z_try = z_fn(float(top_T_F), float(p_try), y_use.tolist())
             except Exception:
                 z_try = None
             if z_try is None and allow_flash_fallback_on_refine_failure:
@@ -5789,7 +6388,7 @@ def _condenser_mass_split_from_duty(
     # Resolve duty exactly as used by the energy closure (including total-condense trim).
     N = int(len(tray_T_F))
     try:
-        Q_used_BTUph, Q_calc_BTUph, T_cond_bubble_F, mode = _resolve_condenser_duty_btu_per_h(
+        Q_used_BTUph, Q_calc_BTUph, T_cond_bubble_F, _hL_cond_BTU_lbmol, mode = _resolve_condenser_duty_btu_per_h(
             col=col,
             inputs=inputs,
             N=N,
@@ -5830,6 +6429,7 @@ def _condenser_mass_split_from_duty(
                 P_vapor_in_psia=float(P_tray_psia[src_i]),
                 P_condenser_psia=float(P_tray_psia[0]),
                 T_guess_F=float(tray_T_F[0]),
+                prev_bubble_packet=getattr(inputs, "condenser_duty_prev", None),
                 epsilon_lbmol=float(epsilon_lbmol),
             )
             if q_req is not None and np.isfinite(float(q_req)):
@@ -5841,8 +6441,13 @@ def _condenser_mass_split_from_duty(
 
     # Strict total-condenser material handling:
     # all stage-2 vapor condenses to liquid, with no vapor slip to the top drum.
-    # Keep Q_used/Q_total_req for diagnostics only.
-    if mode == "total-condense":
+    # Keep Q_used/Q_total_req for diagnostics only unless the runner has
+    # explicitly enabled duty-limited partial condensation for a coupled
+    # condenser-duty pressure-control path.
+    allow_partial_total_condense = bool(
+        getattr(inputs, "condenser_duty_partial_condense_if_limited", False)
+    )
+    if mode == "total-condense" and (not allow_partial_total_condense):
         return float(V_in0), 0.0, 0.0, float(Q_used_BTUph), Q_total_req, T_cond_bubble_F, mode
 
     # If latent information is unavailable, preserve prior behavior (full condensation).
@@ -6231,6 +6836,7 @@ def _reboiler_flash_after_duty(
     T_max_F: float = 800.0,
     n_scan: int = 21,
     max_iter: int = 40,
+    thermo_call_category: Optional[str] = "reboiler_duty_solve_flash",
 ) -> Tuple[float, float, np.ndarray, np.ndarray, np.ndarray, float, float]:
     """
     Solve reboiler outlet temperature after adding duty to the incoming liquid enthalpy.
@@ -6246,13 +6852,14 @@ def _reboiler_flash_after_duty(
 
     def eval_T(T_F: float):
         try:
-            fres = flash_TP_full_F_psia(
-                thermo_provider,
-                float(T_F),
-                float(P_psia),
-                z,
-                n_components=z.size,
-            )
+            with _thermo_provider_category(thermo_provider, thermo_call_category):
+                fres = flash_TP_full_F_psia(
+                    thermo_provider,
+                    float(T_F),
+                    float(P_psia),
+                    z,
+                    n_components=z.size,
+                )
         except Exception as exc:
             raise RuntimeError("flash failed") from exc
         K = np.asarray(fres.K, dtype=float).reshape((-1,))

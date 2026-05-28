@@ -22,6 +22,9 @@ KEY DEPENDENCIES
 """
 
 
+from contextlib import contextmanager
+from types import SimpleNamespace
+
 import numpy as np
 import pytest
 
@@ -36,9 +39,12 @@ from dynamic_distillation.column_spec_builder_v1 import (
 )
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
 from dynamic_distillation.column_rhs_v1 import (
+    BottomSumpCpPacket,
     column_rhs,
     ColumnInputs,
     BoundaryFlows,
+    FeedStageFlashPacket,
+    _compatible_bottom_sump_cp_packet,
     _feed_component_rates_lbmolps,
     _feed_enthalpy_rate_btu_per_s,
     _bubble_point_T_F,
@@ -214,6 +220,90 @@ def test_total_condenser_top_drum_balance():
     d_tray_L = dydt[sl["tray_L"]].reshape((2, 2))
     expected_d_cond = boilup_s * (y_in0 - x_cond0)
     assert np.allclose(d_tray_L[0, :], expected_d_cond, atol=1e-12)
+
+
+def test_feed_stage_flash_reuses_seed_packet_with_small_state_drift():
+    col = _make_tiny_column()
+    object.__setattr__(col, "streams", {
+        "Feed": StreamSpecNormalized(
+            name="Feed",
+            stage_1based=2,
+            total_molar_flow_lbmolph=3600.0,
+            component_molar_flows_lbmolph={"A": 1200.0, "B": 2400.0},
+            vapor_fraction=0.0,
+            temperature_f=149.9998,
+        )
+    })
+
+    class _FailOnFlash:
+        def flash_TP_full(self, *args, **kwargs):
+            raise AssertionError("startup feed flash packet should have been reused")
+
+    prev_packet = FeedStageFlashPacket(
+        stage0=1,
+        T_feed_F=150.0,
+        P_feed_psia=210.0,
+        z_feed=np.array([1.0 / 3.0, 2.0 / 3.0], dtype=float),
+        Fk_L_lbmolps=np.array([0.2, 0.5], dtype=float),
+        Fk_V_lbmolps=np.array([0.1333333333, 0.1666666667], dtype=float),
+    )
+
+    stage0, Fk_L, Fk_V = _feed_component_rates_lbmolps(
+        col=col,
+        Nc=2,
+        thermo_provider=_FailOnFlash(),
+        P_tray_psia=np.array([200.0, 209.9998], dtype=float),
+        flash_feed_at_stage_conditions=True,
+        feed_stage_flash_prev=prev_packet,
+    )
+
+    assert stage0 == 1
+    assert np.allclose(Fk_L, prev_packet.Fk_L_lbmolps)
+    assert np.allclose(Fk_V, prev_packet.Fk_V_lbmolps)
+
+
+def test_feed_stage_flash_misses_seed_packet_when_pressure_shift_is_material():
+    col = _make_tiny_column()
+    object.__setattr__(col, "streams", {
+        "Feed": StreamSpecNormalized(
+            name="Feed",
+            stage_1based=2,
+            total_molar_flow_lbmolph=3600.0,
+            component_molar_flows_lbmolph={"A": 1200.0, "B": 2400.0},
+            vapor_fraction=0.0,
+            temperature_f=150.0,
+        )
+    })
+
+    calls = {"n": 0}
+
+    class _FlashOnce:
+        def flash_TP_full(self, T_f, P_psia, z):
+            calls["n"] += 1
+            return SimpleNamespace(K=np.array([1.2, 0.8], dtype=float))
+
+    prev_packet = FeedStageFlashPacket(
+        stage0=1,
+        T_feed_F=150.0,
+        P_feed_psia=210.0,
+        z_feed=np.array([1.0 / 3.0, 2.0 / 3.0], dtype=float),
+        Fk_L_lbmolps=np.array([0.2, 0.5], dtype=float),
+        Fk_V_lbmolps=np.array([0.1333333333, 0.1666666667], dtype=float),
+    )
+
+    stage0, Fk_L, Fk_V = _feed_component_rates_lbmolps(
+        col=col,
+        Nc=2,
+        thermo_provider=_FlashOnce(),
+        P_tray_psia=np.array([200.0, 213.0], dtype=float),
+        flash_feed_at_stage_conditions=True,
+        feed_stage_flash_prev=prev_packet,
+    )
+
+    assert stage0 == 1
+    assert calls["n"] == 1
+    assert np.all(np.isfinite(Fk_L))
+    assert np.all(np.isfinite(Fk_V))
 
 
 def test_explicit_sump_feeds_reboiler_instead_of_bottom_tray():
@@ -718,7 +808,7 @@ def test_total_condense_mode_applies_duty_trim_even_without_provider():
     V_in = np.zeros(N, dtype=float)
     y_in = np.full((N, Nc), 1.0 / max(Nc, 1), dtype=float)
 
-    q_used, q_calc, t_bub, mode = _resolve_condenser_duty_btu_per_h(
+    q_used, q_calc, t_bub, hL_cond, mode = _resolve_condenser_duty_btu_per_h(
         col=col,
         inputs=ColumnInputs(
             condenser_duty_mode="total-condense",
@@ -737,6 +827,7 @@ def test_total_condense_mode_applies_duty_trim_even_without_provider():
     assert mode == "total-condense"
     assert q_calc is None
     assert t_bub is None
+    assert hL_cond is None
     assert abs(float(q_used) + 125.0) < 1e-12
 
 
@@ -749,7 +840,7 @@ def test_specified_mode_ignores_duty_trim():
     V_in = np.zeros(N, dtype=float)
     y_in = np.full((N, Nc), 1.0 / max(Nc, 1), dtype=float)
 
-    q_used, q_calc, t_bub, mode = _resolve_condenser_duty_btu_per_h(
+    q_used, q_calc, t_bub, hL_cond, mode = _resolve_condenser_duty_btu_per_h(
         col=col,
         inputs=ColumnInputs(
             condenser_duty_mode="specified",
@@ -768,7 +859,90 @@ def test_specified_mode_ignores_duty_trim():
     assert mode == "specified"
     assert q_calc is None
     assert t_bub is None
+    assert hL_cond is None
     assert abs(float(q_used) + 100.0) < 1e-12
+
+
+def test_total_condenser_duty_can_prefer_flash_bubble_solver_over_provider_helper(monkeypatch):
+    calls = {"provider_bubble": 0, "bubble_solver": 0, "flash": 0}
+
+    class _FakeProvider:
+        prefer_flash_bubble_point_solver = True
+
+        def bubble_point_temperature_F_psia(self, P_psia, x):
+            _ = (P_psia, x)
+            calls["provider_bubble"] += 1
+            return 123.0
+
+    def _fake_bubble_point_T_F(**kwargs):
+        _ = kwargs
+        calls["bubble_solver"] += 1
+        return 150.0, SimpleNamespace(HL_BTU_lbmol=-10.0)
+
+    def _fake_flash_TP_full_stage_F_psia(*args, **kwargs):
+        _ = (args, kwargs)
+        calls["flash"] += 1
+        return SimpleNamespace(HL_BTU_lbmol=-10.0, HV_BTU_lbmol=20.0)
+
+    monkeypatch.setattr(rhs_module, "_bubble_point_T_F", _fake_bubble_point_T_F)
+    monkeypatch.setattr(rhs_module, "_flash_TP_full_stage_F_psia", _fake_flash_TP_full_stage_F_psia)
+
+    q_cond, t_bub = rhs_module._compute_total_condenser_duty_btu_per_h(
+        thermo_provider=_FakeProvider(),
+        V_vapor_in_lbmolps=2.0,
+        y_vapor_in=np.array([0.6, 0.4], dtype=float),
+        T_vapor_in_F=140.0,
+        P_vapor_in_psia=220.0,
+        P_condenser_psia=220.0,
+        T_guess_F=130.0,
+    )
+
+    assert calls["provider_bubble"] == 0
+    assert calls["bubble_solver"] == 1
+    assert calls["flash"] == 1
+    assert t_bub == pytest.approx(150.0)
+    assert q_cond == pytest.approx(-216000.0)
+
+
+def test_total_condenser_duty_can_prefer_provider_bubble_helper_over_flash_solver(monkeypatch):
+    calls = {"provider_bubble": 0, "bubble_solver": 0, "flash": 0}
+
+    class _FakeProvider:
+        prefer_flash_bubble_point_solver = False
+
+        def bubble_point_temperature_F_psia(self, P_psia, x):
+            _ = (P_psia, x)
+            calls["provider_bubble"] += 1
+            return 123.0
+
+    def _fake_bubble_point_T_F(**kwargs):
+        _ = kwargs
+        calls["bubble_solver"] += 1
+        return 150.0, SimpleNamespace(HL_BTU_lbmol=-10.0)
+
+    def _fake_flash_TP_full_stage_F_psia(*args, **kwargs):
+        _ = (args, kwargs)
+        calls["flash"] += 1
+        return SimpleNamespace(HL_BTU_lbmol=-10.0, HV_BTU_lbmol=20.0)
+
+    monkeypatch.setattr(rhs_module, "_bubble_point_T_F", _fake_bubble_point_T_F)
+    monkeypatch.setattr(rhs_module, "_flash_TP_full_stage_F_psia", _fake_flash_TP_full_stage_F_psia)
+
+    q_cond, t_bub = rhs_module._compute_total_condenser_duty_btu_per_h(
+        thermo_provider=_FakeProvider(),
+        V_vapor_in_lbmolps=2.0,
+        y_vapor_in=np.array([0.6, 0.4], dtype=float),
+        T_vapor_in_F=140.0,
+        P_vapor_in_psia=220.0,
+        P_condenser_psia=220.0,
+        T_guess_F=130.0,
+    )
+
+    assert calls["provider_bubble"] == 1
+    assert calls["bubble_solver"] == 0
+    assert calls["flash"] == 2
+    assert t_bub == pytest.approx(123.0)
+    assert q_cond == pytest.approx(-216000.0)
 
 
 def test_total_condense_mass_split_responds_to_positive_trim(monkeypatch):
@@ -851,6 +1025,90 @@ def test_total_condense_mass_split_can_condense_top_vapor_with_extra_duty(monkey
     assert abs(float(v_cond_in) - 1.0) < 1e-12
     assert abs(float(v_to_top) - 0.0) < 1e-12
     assert abs(float(v_cond_top) - 0.0) < 1e-12
+
+
+def test_total_condense_mass_split_can_allow_partial_condensation_when_coupled(monkeypatch):
+    col = _make_tiny_column()
+    N = int(col.n_stages)
+    Nc = int(col.n_components)
+    tray_T = np.asarray(col.T_f, dtype=float).reshape((N,))
+    P_tray = np.asarray(col.P_psia, dtype=float).reshape((N,))
+    V_in = np.array([1.0, 0.0], dtype=float)
+    y_in = np.full((N, Nc), 1.0 / max(Nc, 1), dtype=float)
+    top_V = np.array([0.2, 0.2], dtype=float)
+
+    def _fake_total_cond_duty(**kwargs):
+        _ = kwargs
+        return -3600.0, 100.0
+
+    monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _fake_total_cond_duty)
+
+    v_cond_in, v_to_top, v_cond_top, q_used, q_req, t_bub, mode = _condenser_mass_split_from_duty(
+        col=col,
+        inputs=ColumnInputs(
+            condenser_duty_mode="total-condense",
+            condenser_duty_btu_per_h=-100.0,
+            condenser_duty_trim_btu_per_h=+1800.0,
+            condenser_duty_partial_condense_if_limited=True,
+            thermo_provider=object(),
+        ),
+        tray_T_F=tray_T,
+        P_tray_psia=P_tray,
+        V_in_lbmolps=V_in,
+        y_in=y_in,
+        top_V=top_V,
+        epsilon_lbmol=1e-12,
+    )
+
+    assert mode == "total-condense"
+    assert abs(float(q_req) + 3600.0) < 1e-12
+    assert abs(float(q_used) + 1800.0) < 1e-12
+    assert abs(float(t_bub) - 100.0) < 1e-12
+    assert abs(float(v_cond_in) - 0.5) < 1e-12
+    assert abs(float(v_to_top) - 0.5) < 1e-12
+    assert abs(float(v_cond_top) - 0.0) < 1e-12
+
+
+def test_total_condense_mass_split_can_condense_top_holdup_when_coupled(monkeypatch):
+    col = _make_tiny_column()
+    N = int(col.n_stages)
+    Nc = int(col.n_components)
+    tray_T = np.asarray(col.T_f, dtype=float).reshape((N,))
+    P_tray = np.asarray(col.P_psia, dtype=float).reshape((N,))
+    V_in = np.array([1.0, 0.0], dtype=float)
+    y_in = np.full((N, Nc), 1.0 / max(Nc, 1), dtype=float)
+    top_V = np.array([0.2, 0.2], dtype=float)  # 0.4 lbmol top-vapor holdup
+
+    def _fake_total_cond_duty(**kwargs):
+        _ = kwargs
+        return -3600.0, 100.0
+
+    monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _fake_total_cond_duty)
+
+    v_cond_in, v_to_top, v_cond_top, q_used, q_req, t_bub, mode = _condenser_mass_split_from_duty(
+        col=col,
+        inputs=ColumnInputs(
+            condenser_duty_mode="total-condense",
+            condenser_duty_btu_per_h=-100.0,
+            condenser_duty_trim_btu_per_h=-1800.0,
+            condenser_duty_partial_condense_if_limited=True,
+            thermo_provider=object(),
+        ),
+        tray_T_F=tray_T,
+        P_tray_psia=P_tray,
+        V_in_lbmolps=V_in,
+        y_in=y_in,
+        top_V=top_V,
+        epsilon_lbmol=1e-12,
+    )
+
+    assert mode == "total-condense"
+    assert abs(float(q_req) + 3600.0) < 1e-12
+    assert abs(float(q_used) + 5400.0) < 1e-12
+    assert abs(float(t_bub) - 100.0) < 1e-12
+    assert abs(float(v_cond_in) - 1.0) < 1e-12
+    assert abs(float(v_to_top) - 0.0) < 1e-12
+    assert abs(float(v_cond_top) - 0.4) < 1e-12
 
 
 def test_total_condense_mass_split_skips_live_thermo_when_disabled(monkeypatch):
@@ -2600,6 +2858,92 @@ def test_feed_enthalpy_rate_uses_provider_flash_when_available():
     assert np.isclose(float(q), 555.0, atol=1e-12)
 
 
+def test_feed_enthalpy_rate_reuses_compatible_feed_stage_packet_enthalpies():
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "streams": {
+                "Feed": StreamSpecNormalized(
+                    name="Feed",
+                    stage_1based=1,
+                    temperature_f=200.0,
+                    vapor_fraction=0.5,
+                    total_molar_flow_lbmolph=0.0,
+                    component_molar_flows_lbmolph={},
+                )
+            },
+        }
+    )
+
+    class ThermoFallback:
+        def h_liq_btu_per_lbmol(self, T_f, P_psia, x):
+            raise AssertionError("fallback liquid enthalpy should not be used")
+
+        def h_vap_btu_per_lbmol(self, T_f, P_psia, y):
+            raise AssertionError("fallback vapor enthalpy should not be used")
+
+    class Provider:
+        def __init__(self):
+            self.calls = 0
+
+        def flash_TP_full_F_psia(self, T_F, P_psia, z):
+            self.calls += 1
+            return ([0.5, 0.5], [0.5, 0.5], [1.0, 1.0], 111.0, 222.0, 1.0)
+
+    q = _feed_enthalpy_rate_btu_per_s(
+        feed_stage0=0,
+        stage0=0,
+        col=col2,
+        Nc=2,
+        Fk_L=np.array([1.0, 0.0], dtype=float),
+        Fk_V=np.array([0.0, 2.0], dtype=float),
+        T_stage_F=100.0,
+        P_stage_psia=200.0,
+        thermo=ThermoFallback(),
+        thermo_provider=(prov := Provider()),
+        epsilon_lbmol=1e-12,
+        feed_stage_flash_prev=FeedStageFlashPacket(
+            stage0=0,
+            T_feed_F=200.0,
+            P_feed_psia=200.0,
+            z_feed=np.array([1.0 / 3.0, 2.0 / 3.0], dtype=float),
+            Fk_L_lbmolps=np.array([1.0, 0.0], dtype=float),
+            Fk_V_lbmolps=np.array([0.0, 2.0], dtype=float),
+            hL_BTU_lbmol=333.0,
+            hV_BTU_lbmol=444.0,
+        ),
+    )
+
+    assert prov.calls == 0
+    assert np.isclose(float(q), 1221.0, atol=1e-12)
+
+
+def test_compatible_bottom_sump_cp_packet_reuses_matching_seed():
+    packet = BottomSumpCpPacket(
+        T_sump_F=180.0,
+        P_sump_psia=220.0,
+        x_sump=np.array([0.3, 0.7], dtype=float),
+        cpL_BTU_lbmolF=2.6,
+    )
+
+    matched, dT, dP, dx = _compatible_bottom_sump_cp_packet(
+        packet,
+        T_sump_F=180.2,
+        P_sump_psia=223.0,
+        x_sump=np.array([0.300002, 0.699998], dtype=float),
+        n_components=2,
+        max_abs_dT_F=0.5,
+        max_abs_dP_psia=5.0,
+        max_abs_dx=1.0e-5,
+    )
+
+    assert matched is packet
+    assert dT == pytest.approx(0.2)
+    assert dP == pytest.approx(3.0)
+    assert dx == pytest.approx(2.0e-6)
+
+
 def test_feed_enthalpy_rate_fallback_uses_phase_compositions_from_split():
     col = _make_tiny_column()
 
@@ -3360,6 +3704,100 @@ def test_include_energy_stays_finite_with_tiny_vapor_holdup_and_huge_ev():
     assert float(np.max(np.abs(dEV))) < 1.0e8
 
 
+def test_limit_equilibrium_phase_transfer_rates_caps_near_dry_trays():
+    transfer = np.array(
+        [
+            [0.30, 0.20],
+            [-0.40, -0.20],
+        ],
+        dtype=float,
+    )
+
+    adjusted, scale, limit = rhs_module._limit_equilibrium_phase_transfer_rates(
+        transfer,
+        ML_tot_lbmol=np.array([0.40, 5.00], dtype=float),
+        MV_tot_lbmol=np.array([5.00, 0.50], dtype=float),
+        tau_sec=2.0,
+        liquid_guard_lbmol=0.25,
+        vapor_guard_lbmol=0.25,
+        max_frac_per_tau=0.5,
+    )
+
+    assert float(limit[0]) == pytest.approx(0.0375)
+    assert float(limit[1]) == pytest.approx(0.0625)
+    assert float(np.sum(adjusted[0, :])) == pytest.approx(limit[0])
+    assert float(np.sum(adjusted[1, :])) == pytest.approx(-limit[1])
+    assert float(scale[0]) < 1.0
+    assert float(scale[1]) < 1.0
+
+
+def test_stabilize_low_holdup_temperature_rate_floors_heat_capacity_and_clips_rate():
+    dT_use, C_eff, guard_active = rhs_module._stabilize_low_holdup_temperature_rate(
+        dE_BTU_per_s=1000.0,
+        heat_capacity_BTU_per_F=2.0,
+        liquid_holdup_lbmol=0.10,
+        vapor_holdup_lbmol=0.10,
+        holdup_guard_lbmol=1.0,
+        min_heat_capacity_BTU_per_F=25.0,
+        max_abs_rate_F_per_s=10.0,
+    )
+
+    assert float(C_eff) == pytest.approx(25.0)
+    assert float(dT_use) == pytest.approx(10.0)
+    assert float(guard_active) == pytest.approx(1.0)
+
+
+def test_hydraulic_energy_temperature_guard_limits_low_holdup_tray_rate():
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "T_f": np.array([100.0, 600.0], dtype=float),
+            "V_lbmolph": np.array([20000.0, 20000.0], dtype=float),
+            "L_lbmolph": np.array([20000.0, 20000.0], dtype=float),
+            "M_L_lbmol": np.array([5.0, 0.05], dtype=float),
+            "M_V_lbmol": np.array([1.0, 0.05], dtype=float),
+        }
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col2)
+    sl = layout.slices()
+    tray_T = np.asarray(y0[sl["tray_T_f"]], dtype=float).reshape((2,)).copy()
+    tray_T[1] = 600.0
+    y0[sl["tray_T_f"]] = tray_T
+
+    inputs = ColumnInputs(
+        pressure_model="hydraulic",
+        vapor_flow_model="energy",
+        hydraulic_energy_temperature_mode="legacy",
+        hydraulic_energy_temperature_holdup_guard_lbmol=1.0,
+        hydraulic_energy_temperature_min_heat_capacity_BTU_per_F=25.0,
+        hydraulic_energy_temperature_max_dT_rate_F_per_s=10.0,
+    )
+
+    dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+
+    dT = np.asarray(dydt[sl["tray_T_f"]], dtype=float).reshape((2,))
+    dT_raw = np.asarray(diag["dT_energy_raw_F_per_s_tray"], dtype=float).reshape((2,))
+    C = np.asarray(diag["tray_heat_capacity_BTU_per_F_tray"], dtype=float).reshape((2,))
+    C_eff = np.asarray(diag["tray_effective_heat_capacity_BTU_per_F_tray"], dtype=float).reshape((2,))
+    guard = np.asarray(diag["tray_temperature_guard_active_tray"], dtype=float).reshape((2,))
+
+    assert abs(float(dT[1])) <= 10.0 + 1.0e-12
+    assert abs(float(dT_raw[1])) > 10.0
+    assert float(C[1]) < 25.0
+    assert float(C_eff[1]) == pytest.approx(25.0)
+    assert float(guard[1]) == pytest.approx(1.0)
+
+
 def test_include_energy_uses_specified_condenser_duty_override():
     col = _make_tiny_column()
     col2 = ColumnSpec(
@@ -3519,7 +3957,7 @@ def test_resolve_condenser_duty_exposes_bubble_target_in_specified_mode(monkeypa
         thermo_provider=object(),
     )
 
-    q_used, q_calc, t_bub, mode = rhs_module._resolve_condenser_duty_btu_per_h(
+    q_used, q_calc, t_bub, hL_cond, mode = rhs_module._resolve_condenser_duty_btu_per_h(
         col=col,
         inputs=inputs,
         N=2,
@@ -3533,6 +3971,7 @@ def test_resolve_condenser_duty_exposes_bubble_target_in_specified_mode(monkeypa
     assert abs(float(q_used) + 7200.0) < 1e-12
     assert q_calc is None
     assert abs(float(t_bub) - 110.0) < 1e-12
+    assert hL_cond is None
     assert mode == "specified"
 
 
@@ -3558,7 +3997,7 @@ def test_resolve_condenser_duty_reuses_previous_packet_when_state_matches(monkey
 
     monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _boom)
 
-    q_used, q_calc, t_bub, mode = rhs_module._resolve_condenser_duty_btu_per_h(
+    q_used, q_calc, t_bub, hL_cond, mode = rhs_module._resolve_condenser_duty_btu_per_h(
         col=col,
         inputs=inputs,
         N=2,
@@ -3573,6 +4012,106 @@ def test_resolve_condenser_duty_reuses_previous_packet_when_state_matches(monkey
     assert abs(float(q_used) + 4321.0) < 1e-12
     assert abs(float(q_calc) + 4321.0) < 1e-12
     assert abs(float(t_bub) - 111.0) < 1e-12
+    assert hL_cond is None
+
+
+def test_resolve_condenser_duty_reuses_previous_bubble_state_when_vapor_enthalpy_changes(monkeypatch):
+    col = _make_tiny_column()
+    inputs = ColumnInputs(
+        condenser_duty_mode="total-condense",
+        thermo_provider=object(),
+        condenser_duty_prev=rhs_module.CondenserDutyPacket(
+            q_calc_BTUph=-4321.0,
+            T_bubble_F=111.0,
+            mode="total-condense",
+            V_vapor_in_lbmolps=1.0,
+            T_vapor_in_F=120.0,
+            P_vapor_in_psia=210.0,
+            P_condenser_psia=200.0,
+            y_vapor_in=np.array([0.9, 0.1], dtype=float),
+            hL_cond_BTU_lbmol=25.0,
+        ),
+    )
+
+    calls = {"helper_flash": 0}
+
+    def _boom(**_kwargs):
+        raise AssertionError("bubble-point helper should not be called when bubble state is reusable")
+
+    def _fake_flash(*_args, **_kwargs):
+        calls["helper_flash"] += 1
+        return SimpleNamespace(HV_BTU_lbmol=55.0, HL_BTU_lbmol=25.0)
+
+    monkeypatch.setattr(rhs_module, "_bubble_point_T_F", _boom)
+    monkeypatch.setattr(rhs_module, "_flash_TP_full_stage_F_psia", _fake_flash)
+
+    q_used, q_calc, t_bub, hL_cond, mode = rhs_module._resolve_condenser_duty_btu_per_h(
+        col=col,
+        inputs=inputs,
+        N=2,
+        tray_T_F=np.array([100.0, 121.0], dtype=float),
+        P_tray_psia=np.array([200.0, 210.0], dtype=float),
+        V_in_lbmolps=np.array([1.0, 0.0], dtype=float),
+        y_in=np.array([[0.9, 0.1], [0.4, 0.6]], dtype=float),
+        epsilon_lbmol=1e-12,
+    )
+
+    assert mode == "total-condense"
+    assert calls["helper_flash"] == 1
+    assert abs(float(t_bub) - 111.0) < 1e-12
+    assert abs(float(hL_cond) - 25.0) < 1e-12
+    assert abs(float(q_calc) + 108000.0) < 1e-9
+    assert abs(float(q_used) + 108000.0) < 1e-9
+
+
+def test_resolve_condenser_duty_reuses_previous_bubble_state_for_pressure_only_miss(monkeypatch):
+    col = _make_tiny_column()
+    inputs = ColumnInputs(
+        condenser_duty_mode="total-condense",
+        thermo_provider=object(),
+        condenser_duty_bubble_state_reuse_dP_psia=50.0,
+        condenser_duty_prev=rhs_module.CondenserDutyPacket(
+            q_calc_BTUph=-4321.0,
+            T_bubble_F=111.0,
+            mode="total-condense",
+            V_vapor_in_lbmolps=1.0,
+            T_vapor_in_F=120.0,
+            P_vapor_in_psia=210.0,
+            P_condenser_psia=200.0,
+            y_vapor_in=np.array([0.9, 0.1], dtype=float),
+            hL_cond_BTU_lbmol=25.0,
+        ),
+    )
+
+    calls = {"helper_flash": 0}
+
+    def _boom(**_kwargs):
+        raise AssertionError("bubble-point helper should not be called for a pressure-only bubble-state reuse")
+
+    def _fake_flash(*_args, **_kwargs):
+        calls["helper_flash"] += 1
+        return SimpleNamespace(HV_BTU_lbmol=55.0, HL_BTU_lbmol=25.0)
+
+    monkeypatch.setattr(rhs_module, "_bubble_point_T_F", _boom)
+    monkeypatch.setattr(rhs_module, "_flash_TP_full_stage_F_psia", _fake_flash)
+
+    q_used, q_calc, t_bub, hL_cond, mode = rhs_module._resolve_condenser_duty_btu_per_h(
+        col=col,
+        inputs=inputs,
+        N=2,
+        tray_T_F=np.array([100.0, 120.0], dtype=float),
+        P_tray_psia=np.array([243.0, 210.0], dtype=float),
+        V_in_lbmolps=np.array([1.0, 0.0], dtype=float),
+        y_in=np.array([[0.9, 0.1], [0.4, 0.6]], dtype=float),
+        epsilon_lbmol=1e-12,
+    )
+
+    assert mode == "total-condense"
+    assert calls["helper_flash"] == 1
+    assert abs(float(t_bub) - 111.0) < 1e-12
+    assert abs(float(hL_cond) - 25.0) < 1e-12
+    assert abs(float(q_calc) + 108000.0) < 1e-9
+    assert abs(float(q_used) + 108000.0) < 1e-9
 
 
 def test_column_rhs_resolves_condenser_duty_only_once_per_rhs_when_energy_and_temperature_are_active(monkeypatch):
@@ -3607,7 +4146,7 @@ def test_column_rhs_resolves_condenser_duty_only_once_per_rhs_when_energy_and_te
 
     def _fake_resolve(*, col, inputs, N, tray_T_F, P_tray_psia, V_in_lbmolps, y_in, epsilon_lbmol):
         calls["count"] += 1
-        return -7200.0, None, 110.0, "specified"
+        return -7200.0, None, 110.0, None, "specified"
 
     monkeypatch.setattr(rhs_module, "_resolve_condenser_duty_btu_per_h", _fake_resolve)
 
@@ -3853,6 +4392,147 @@ def test_disable_legacy_temperature_state_skips_temperature_block():
 
     assert np.allclose(dydt[sl["tray_T_f"]], 0.0)
     assert not any("temperature_state block start" in msg for msg in trace_messages)
+
+
+def test_temperature_state_promotes_main_tray_packet_refresh_for_provider_enthalpies():
+    col0 = _make_tiny_column()
+    col = ColumnSpec(
+        **{
+            **col0.__dict__,
+            "y0": np.asarray(col0.x0, dtype=float).copy(),
+        }
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col)
+
+    class CountingProvider:
+        def __init__(self):
+            self.calls_by_category = {}
+            self._category = None
+
+        @contextmanager
+        def thermo_call_category(self, category):
+            prev = self._category
+            self._category = category
+            try:
+                yield
+            finally:
+                self._category = prev
+
+        def flash_TP_full_F_psia(self, T_F, P_psia, z):
+            key = self._category or "<none>"
+            self.calls_by_category[key] = int(self.calls_by_category.get(key, 0)) + 1
+            z = np.asarray(z, dtype=float).reshape((-1,))
+            z = z / max(float(np.sum(z)), 1e-300)
+            K = np.full_like(z, 1.0)
+            return z, z, K, -100.0 + float(T_F), 100.0 + float(T_F), 1.0
+
+    provider = CountingProvider()
+
+    inputs = ColumnInputs(
+        thermo=ConstantCpThermo(
+            cp_liq_components=np.array([30.0, 25.0], dtype=float),
+            cp_vap_components=np.array([20.0, 18.0], dtype=float),
+            tref_f=60.0,
+        ),
+        thermo_provider=provider,
+        compute_thermo_diag=False,
+        equilibrium_relaxation=False,
+    )
+    _dydt, diag = column_rhs(0.0, y0, col, layout, inputs=inputs)
+
+    assert provider.calls_by_category.get("main_tray_refresh", 0) == 2
+    assert provider.calls_by_category.get("temperature_state_enthalpy_refresh", 0) == 0
+    assert np.allclose(np.asarray(diag["thermo_flash_refreshed"], dtype=float), np.ones(2, dtype=float))
+    assert np.allclose(np.asarray(diag["thermo_flash_skipped"], dtype=float), np.zeros(2, dtype=float))
+
+
+def test_vapor_flow_energy_reuses_current_main_tray_packet_before_phase_refresh():
+    N, Nc = 3, 1
+    x0 = np.ones((N, Nc), dtype=float)
+    y0 = x0.copy()
+
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A"],
+        components_dwsim=["A"],
+        n_components=Nc,
+        n_stages=N,
+        stage_1based=np.array([1, 2, 3], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={"Number of Stages": 3, "Number of Components": 1, "Timestep (sec)": 1.0, "Simulation Length (min)": 0.1, "Log Frequency (timesteps)": 1},
+        T_f=np.array([100.0, 110.0, 120.0], dtype=float),
+        P_psia=np.array([200.0, 200.0, 200.0], dtype=float),
+        V_lbmolph=np.array([0.0, 1000.0, 1200.0], dtype=float),
+        L_lbmolph=np.array([900.0, 1000.0, 1100.0], dtype=float),
+        M_L_lbmol=np.array([5.0, 5.0, 5.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0, 1.0], dtype=float),
+        y0=y0,
+        x0=x0,
+        streams={},
+    )
+
+    layout = StateVectorLayout(
+        n_stages=N,
+        n_components=Nc,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+    )
+    y0_state = layout.pack_y0(col)
+
+    class CountingProvider:
+        def __init__(self):
+            self.calls_by_category = {}
+            self._category = None
+
+        @contextmanager
+        def thermo_call_category(self, category):
+            prev = self._category
+            self._category = category
+            try:
+                yield
+            finally:
+                self._category = prev
+
+        def flash_TP_full_F_psia(self, T_F, P_psia, z):
+            key = self._category or "<none>"
+            self.calls_by_category[key] = int(self.calls_by_category.get(key, 0)) + 1
+            z = np.asarray(z, dtype=float).reshape((-1,))
+            z = z / max(float(np.sum(z)), 1e-300)
+            K = np.full_like(z, 1.0)
+            return z, z, K, -100.0 + float(T_F), 100.0 + float(T_F), 1.0
+
+    provider = CountingProvider()
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=10.0, boilup_lbmolph=10.0),
+        vapor_flow_model="energy",
+        thermo=ConstantCpThermo(
+            cp_liq_components=np.array([30.0], dtype=float),
+            cp_vap_components=np.array([20.0], dtype=float),
+            tref_f=60.0,
+        ),
+        thermo_provider=provider,
+        compute_thermo_diag=False,
+        equilibrium_relaxation=False,
+    )
+    _dydt, diag = column_rhs(0.0, y0_state, col, layout, inputs=inputs)
+
+    assert provider.calls_by_category.get("main_tray_refresh", 0) == N
+    assert provider.calls_by_category.get("energy_vapor_flow_enthalpy_refresh", 0) == 0
+    assert provider.calls_by_category.get("temperature_state_enthalpy_refresh", 0) == 0
+    assert np.allclose(np.asarray(diag["thermo_flash_refreshed"], dtype=float), np.ones(N, dtype=float))
 
 
 def test_no_holdup_reboiler_duty_flash_not_frozen_by_cached_state():

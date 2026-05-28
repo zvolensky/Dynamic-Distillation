@@ -1,0 +1,172 @@
+{
+  "run_id": "20260525_171050",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 45012,
+  "started_at_local": "2026-05-25 17:10:50",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\validation_gani_1986_debutanizer.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_reference_10min",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "clapeyron",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 1,
+  "n_steps": 600,
+  "dt_sec": 1.0,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_reference_10min\\column_profile_20260525_171050.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_reference_10min\\column_summary_20260525_171050.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_reference_10min\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_reference_10min\\startup_trace_20260525_170915.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.0031479000172112137,
+    "equilibrium_relaxation_backend_build": 2.400018274784088e-06,
+    "francis_autocalibration": 31.902460399986012
+  },
+  "startup_build_info": {},
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "reboiler_bubble_point_helper_flash": {
+      "flash_cache_misses": 18631,
+      "flash_requests": 18631,
+      "backend_flash_equivalents": 18631,
+      "wall_sec": 56.99775820024661,
+      "cp_requests": 18631,
+      "cp_wall_sec": 2.981470001221169,
+      "flash_cache_hits": 279,
+      "flash_cache_evictions": 18600
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 55,
+      "liquid_density_requests": 55,
+      "liquid_density_wall_sec": 0.002254600025480613,
+      "liquid_density_cache_hits": 225
+    },
+    "main_tray_refresh": {
+      "batch_flash_requests": 610,
+      "batch_flash_rows": 17080,
+      "flash_cache_misses": 16855,
+      "flash_requests": 16855,
+      "backend_flash_equivalents": 16855,
+      "wall_sec": 3.834223100595409,
+      "cp_requests": 16855,
+      "cp_wall_sec": 1.1986123975657392,
+      "flash_cache_hits": 225,
+      "flash_cache_evictions": 16800
+    },
+    "energy_vapor_flow_enthalpy_refresh": {
+      "batch_flash_requests": 1211,
+      "batch_flash_rows": 23732,
+      "flash_cache_misses": 23122,
+      "flash_requests": 23122,
+      "backend_flash_equivalents": 23122,
+      "wall_sec": 22.622232402005466,
+      "cp_requests": 23122,
+      "cp_wall_sec": 1.732697398372693,
+      "flash_cache_evictions": 23077
+    },
+    "feed_enthalpy_flash": {
+      "flash_cache_misses": 3,
+      "flash_requests": 3,
+      "backend_flash_equivalents": 3,
+      "wall_sec": 0.0005862999823875725,
+      "cp_requests": 3,
+      "cp_wall_sec": 0.00018659996567294002,
+      "flash_cache_hits": 24,
+      "flash_cache_evictions": 1
+    },
+    "top_drum_liquid_density_lookup": {
+      "liquid_density_cache_misses": 4,
+      "liquid_density_requests": 4,
+      "liquid_density_wall_sec": 0.0002573999809101224,
+      "liquid_density_cache_hits": 7
+    },
+    "condenser_duty_reuse_diag": {
+      "full_packet_misses": 454,
+      "bubble_state_miss_no_packet": 10,
+      "fresh_solves": 454,
+      "bubble_state_miss_composition_delta": 73,
+      "bubble_state_miss_composition_delta_abs": 15,
+      "bubble_state_hits": 371,
+      "full_packet_hits": 156
+    },
+    "condenser_duty_bubble_point_helper_flash": {
+      "flash_cache_misses": 2280,
+      "flash_requests": 2280,
+      "backend_flash_equivalents": 2280,
+      "wall_sec": 30.86333859967999,
+      "cp_requests": 2280,
+      "cp_wall_sec": 0.18541480068233795,
+      "flash_cache_evictions": 2230,
+      "flash_cache_hits": 210
+    },
+    "condenser_duty_helper_flash": {
+      "flash_cache_misses": 891,
+      "flash_requests": 891,
+      "backend_flash_equivalents": 891,
+      "wall_sec": 0.14269850024720654,
+      "cp_requests": 891,
+      "cp_wall_sec": 0.06095740004093386,
+      "flash_cache_hits": 388,
+      "flash_cache_evictions": 890
+    },
+    "temperature_state_enthalpy_refresh": {
+      "flash_cache_misses": 132,
+      "flash_requests": 132,
+      "backend_flash_equivalents": 132,
+      "wall_sec": 0.02394340018508956,
+      "cp_requests": 132,
+      "cp_wall_sec": 0.008546399883925915,
+      "flash_cache_hits": 338,
+      "flash_cache_evictions": 86
+    },
+    "temperature_state_cp_lookup": {
+      "flash_cache_misses": 8258,
+      "flash_requests": 8258,
+      "backend_flash_equivalents": 8258,
+      "wall_sec": 1.3418444993440062,
+      "cp_requests": 8258,
+      "cp_wall_sec": 0.6853219009062741,
+      "flash_cache_hits": 206,
+      "flash_cache_evictions": 8232
+    },
+    "bottom_sump_cp_lookup": {
+      "flash_cache_hits": 545,
+      "flash_cache_misses": 64,
+      "flash_requests": 64,
+      "backend_flash_equivalents": 64,
+      "wall_sec": 0.008892500045476481,
+      "cp_requests": 64,
+      "cp_wall_sec": 0.004623699933290482,
+      "flash_cache_evictions": 64
+    },
+    "temperature_state_bubble_point_helper_flash": {
+      "flash_cache_hits": 18910
+    },
+    "uncategorized": {
+      "liquid_density_cache_hits": 2
+    },
+    "feed_stage_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.0002558999985922128,
+      "cp_requests": 1,
+      "cp_wall_sec": 0.00020209999638609588,
+      "flash_cache_evictions": 1
+    }
+  },
+  "ended_at_local": "2026-05-25 17:12:35",
+  "elapsed_wall_sec": 105.0768481999985,
+  "final_time_s": 600.0,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_pr_reference_10min\\validation_gani_1986_debutanizer__restart_20260525_171050.xlsx",
+  "restart_export_error": ""
+}

@@ -1,0 +1,100 @@
+{
+  "results": [
+    {
+      "backend": "dwsim-pr",
+      "returncode": 0,
+      "elapsed_wall_sec_measured": 527.2640752999869,
+      "run_id": "20260524_133745",
+      "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr",
+      "metadata_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\\run_metadata_20260524_133745.json",
+      "summary_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\\column_summary_20260524_133745.csv",
+      "command": "C:\\Python314\\python.exe -m dynamic_distillation.dynamic_run_scaffold_v1 --excel distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx --runtime-mode hydraulic --thermo dwsim --dwsim-property-package pr --n-steps 2 --dt 0.2 --log-every 1 --logs-dir \"C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\" --allow-repeat-command --fast-startup",
+      "stdout_tail": "[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=5/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=6/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=6/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=7/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=7/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=8/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=8/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=9/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=9/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=10/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=10/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=11/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=11/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=12/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=12/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=13/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=13/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=14/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=14/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=15/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=15/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=16/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=16/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=17/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=17/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=18/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=18/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=19/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=19/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=20/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=20/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray diagnostics complete\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state bottom sump update complete\n[ThermoTrace][runtime_step_1:outer_rhs] column_rhs return\n[Progress] step=     1  sim_t=      0.20 s  wall=    344.18 s  sim/wall=   0.001  SS=0  score=172.94  rel=0.0819/s  kpi=6.37e-12/s  mv=3.46e+03/s  sp=0.0149\n[Progress] step=     2  sim_t=      0.40 s  wall=    471.43 s  sim/wall=   0.001  SS=0  score=99.53  rel=0.0765/s  kpi=8.4e-07/s  mv=1.99e+03/s  sp=0.0149\n[SteadyState] FAIL  score=99.5  rel=0.0765/s  kpi=8.4e-07/s  mv=1.99e+03/s  dT=5.5F/s  sp=0.0149\n[Output] Wrote restart workbook: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323__restart_20260524_133745.xlsx\nWrote: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\\column_profile_20260524_133745.csv\nWrote: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\\column_summary_20260524_133745.csv",
+      "stderr_tail": "",
+      "startup_timing_sec": {
+        "primary_backend_build": 0.005222800013143569,
+        "equilibrium_relaxation_backend_build": 0.00036040000850334764,
+        "francis_autocalibration": 1.750001683831215e-05,
+        "vapor_holdup_initialization": 39.02990389999468,
+        "startup_tray_refresh": 37.16846980000264,
+        "startup_tray_refresh_source": "direct-tray-refresh",
+        "startup_tray_refresh_batch_used": false
+      },
+      "thermo_counter_totals": {
+        "flash_requests": 160.0,
+        "backend_flash_equivalents": 468.0,
+        "batch_flash_requests": 0.0,
+        "batch_flash_rows": 0.0,
+        "cp_requests": 77.0,
+        "wall_sec": 339.6799460000475,
+        "cp_wall_sec": 0.0,
+        "liquid_density_requests": 0.0,
+        "liquid_density_wall_sec": 0.0
+      },
+      "final": {
+        "time_s": 0.4,
+        "wall_elapsed_s": 471.42567759999656,
+        "P_top_drum_psia": 177.14786965845622,
+        "P_top_ctrl_pv_psia": 220.43871675201032,
+        "xD_comp_pv": 0.0951332503721482,
+        "xD_comp_sp": 0.11,
+        "xB_comp_pv": null,
+        "xB_comp_sp": null,
+        "Reflux_cmd_lbmolph": 5156.256672253172,
+        "D_lbmolph": 2367.454029843578,
+        "B_lbmolph": 4761.9799643634815,
+        "steady_state_score": 99.52791596835345,
+        "ss_max_rel_state_rate_per_s": 0.07653032951645715,
+        "ss_max_mv_rate_per_s": 1990.558319367069
+      }
+    },
+    {
+      "backend": "clapeyron-pr",
+      "returncode": 0,
+      "elapsed_wall_sec_measured": 54.748397199989995,
+      "run_id": "20260524_134634",
+      "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_clapeyron_pr",
+      "metadata_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_clapeyron_pr\\run_metadata_20260524_134634.json",
+      "summary_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_clapeyron_pr\\column_summary_20260524_134634.csv",
+      "command": "C:\\Python314\\python.exe -m dynamic_distillation.dynamic_run_scaffold_v1 --excel distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx --runtime-mode hydraulic --thermo clapeyron --clapeyron-model PR --n-steps 2 --dt 0.2 --log-every 1 --logs-dir \"C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_clapeyron_pr\" --allow-repeat-command --fast-startup",
+      "stdout_tail": "[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=6/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=6/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=7/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=7/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=8/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=8/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=9/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=9/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=10/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=10/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=11/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=11/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=12/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=12/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=13/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=13/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=14/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=14/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=15/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=15/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=16/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=16/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=17/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=17/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=18/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=18/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=19/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=19/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=20/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=20/20 done\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray diagnostics complete\n[ThermoTrace][runtime_step_1:outer_rhs] bottom_sump_cp reused packet dT=1.58e-06F dP=0.0159psi dx_max=1.27e-07\n[ThermoTrace][runtime_step_1:outer_rhs] temperature_state bottom sump update complete\n[ThermoTrace][runtime_step_1:outer_rhs] column_rhs return\n[Progress] step=     1  sim_t=      0.20 s  wall=      0.23 s  sim/wall=   0.882  SS=0  score=128.39  rel=0.385/s  kpi=6.36e-12/s  mv=1.99e+03/s  sp=0.0149\n[Progress] step=     2  sim_t=      0.40 s  wall=      0.27 s  sim/wall=   1.485  SS=0  score=49.61  rel=0.0419/s  kpi=2.76e-06/s  mv=992/s  sp=0.0149\n[SteadyState] FAIL  score=49.6  rel=0.0419/s  kpi=2.76e-06/s  mv=992/s  dT=0.219F/s  sp=0.0149\n[Output] Wrote restart workbook: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_clapeyron_pr\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323__restart_20260524_134634.xlsx\nWrote: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_clapeyron_pr\\column_profile_20260524_134634.csv\nWrote: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_clapeyron_pr\\column_summary_20260524_134634.csv",
+      "stderr_tail": "",
+      "startup_timing_sec": {
+        "primary_backend_build": 0.0033497999829705805,
+        "equilibrium_relaxation_backend_build": 0.0029811999993398786,
+        "francis_autocalibration": 1.5900004655122757e-05,
+        "vapor_holdup_initialization": 21.8296978000144,
+        "startup_tray_refresh": 21.824774900014745,
+        "startup_tray_refresh_source": "direct-tray-refresh",
+        "startup_tray_refresh_batch_used": true
+      },
+      "thermo_counter_totals": {
+        "flash_requests": 152.0,
+        "backend_flash_equivalents": 152.0,
+        "batch_flash_requests": 7.0,
+        "batch_flash_rows": 100.0,
+        "cp_requests": 152.0,
+        "wall_sec": 20.25403719986207,
+        "cp_wall_sec": 1.4474812996922992,
+        "liquid_density_requests": 23.0,
+        "liquid_density_wall_sec": 0.0011245998903177679
+      },
+      "final": {
+        "time_s": 0.4,
+        "wall_elapsed_s": 0.26936919998843223,
+        "P_top_drum_psia": 176.5083112513799,
+        "P_top_ctrl_pv_psia": 220.4406416304004,
+        "xD_comp_pv": 0.0951340191435598,
+        "xD_comp_sp": 0.11,
+        "xB_comp_pv": null,
+        "xB_comp_sp": null,
+        "Reflux_cmd_lbmolph": 5555.561656283089,
+        "D_lbmolph": 2374.27560422831,
+        "B_lbmolph": 4761.979964363482,
+        "steady_state_score": 49.614792964613784,
+        "ss_max_rel_state_rate_per_s": 0.04186408434361161,
+        "ss_max_mv_rate_per_s": 992.2958592922757
+      }
+    }
+  ]
+}

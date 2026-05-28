@@ -1,0 +1,32 @@
+{
+  "sep_path": "C:\\Users\\Thoma\\AppData\\Local\\ChemSepL8v42\\Gani_1986_Debutanizer_PR_RB_seed.sep",
+  "converged": true,
+  "iterations": 3,
+  "top_flow_kmol_s": 0.06579444444,
+  "top_flow_kmol_h": 236.859999984,
+  "bottom_flow_kmol_s": 0.07393888889,
+  "bottom_flow_kmol_h": 266.180000004,
+  "condenser_duty_MW": -3.5959789432221,
+  "reboiler_duty_MW": 3.8048926424524003,
+  "reboiler_duty_Gcal_h": 3.2738082009628684,
+  "source_reboiler_duty_MW": 3.207733333,
+  "reboiler_duty_vs_source_pct": 18.616239177647387,
+  "top_temperature_K": 318.90880923552,
+  "bottom_temperature_K": 368.19500859224,
+  "top_composition": {
+    "1,3-butadiene": 0.42525129814054,
+    "Isobutene": 0.574747946356,
+    "N-pentane": 1.204052641177e-08,
+    "1-pentene": 7.4346292923163e-07,
+    "1-hexene": 1.3989552933454e-16,
+    "Benzene": 6.667829578212e-19
+  },
+  "bottom_composition": {
+    "1,3-butadiene": 0.071204537970362,
+    "Isobutene": 0.070955887831651,
+    "N-pentane": 0.18821004868633,
+    "1-pentene": 0.25941890718436,
+    "1-hexene": 0.16766740095924,
+    "Benzene": 0.24254321736806
+  }
+}

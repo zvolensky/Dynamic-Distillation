@@ -39,6 +39,26 @@ class _ThermoProviderWithK:
         return z.tolist(), z.tolist(), K.tolist(), 0.0, 0.0, 1.0
 
 
+class _DirectAlphaThermoProvider:
+    uses_direct_vapor_equilibrium = True
+    uses_liquid_composition_for_equilibrium = True
+
+    def __init__(self, alpha):
+        self.alpha = np.asarray(alpha, dtype=float)
+
+    def equilibrium_y_K_from_x(self, x):
+        x = np.asarray(x, dtype=float).reshape((-1,))
+        x = x / max(float(np.sum(x)), 1e-300)
+        y_raw = self.alpha * x
+        denom = max(float(np.sum(y_raw)), 1e-300)
+        return y_raw / denom, self.alpha / denom
+
+    def flash_TP_full_F_psia(self, T_F, P_psia, z):
+        x = np.asarray(z, dtype=float).reshape((-1,))
+        y, K = self.equilibrium_y_K_from_x(x)
+        return x.tolist(), y.tolist(), K.tolist(), 0.0, 0.0, 1.0
+
+
 def _make_zero_flow_column() -> ColumnSpec:
     N, Nc = 2, 2
     x0 = np.array([[0.8, 0.2], [0.3, 0.7]], dtype=float)
@@ -94,8 +114,8 @@ def _make_zero_flow_column_3stage() -> ColumnSpec:
 
 
 def test_equilibrium_relaxation_relaxes_to_flash_targets_with_net_phase_change():
-    col = _make_zero_flow_column()
-    layout = StateVectorLayout(n_stages=2, n_components=2, include_top=False, include_bottom=False, include_vapor=True)
+    col = _make_zero_flow_column_3stage()
+    layout = StateVectorLayout(n_stages=3, n_components=2, include_top=False, include_bottom=False, include_vapor=True)
     y0_vec = layout.pack_y0(col)
 
     K = np.array([2.0, 0.5], dtype=float)
@@ -220,6 +240,36 @@ def test_equilibrium_relaxation_can_override_flash_k_with_selective_provider():
     assert np.allclose(k_main, np.array([[2.0, 0.5], [2.0, 0.5]], dtype=float))
     assert np.allclose(k_relax, np.array([[1.2, 0.9], [1.2, 0.9]], dtype=float))
     assert override_flag == 1.0
+
+
+def test_direct_vapor_equilibrium_provider_bypasses_rr_split():
+    col = _make_zero_flow_column()
+    layout = StateVectorLayout(n_stages=2, n_components=2, include_top=False, include_bottom=False, include_vapor=True)
+    y0_vec = layout.pack_y0(col)
+    provider = _DirectAlphaThermoProvider([2.0, 1.0])
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo_provider=provider,
+        equilibrium_relaxation_thermo_provider=provider,
+        compute_thermo_diag=False,
+        equilibrium_relaxation=True,
+        equilibrium_relaxation_mode="phase-holdup",
+        tau_eq_sec=10.0,
+    )
+
+    _dydt, diag = column_rhs(0.0, y0_vec, col, layout, inputs=inputs)
+
+    x_eq = np.asarray(diag["x_eq_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+    y_eq = np.asarray(diag["y_eq_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+    beta_eq = np.asarray(diag["beta_eq_tray"], dtype=float).reshape((col.n_stages,))
+    target_v = np.asarray(diag["eq_target_vapor_lbmol_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+
+    expected_y = np.vstack([provider.equilibrium_y_K_from_x(row)[0] for row in col.x0])
+    assert np.allclose(x_eq, col.x0, atol=1e-12)
+    assert np.allclose(y_eq, expected_y, atol=1e-12)
+    assert np.allclose(beta_eq, col.M_V_lbmol / (col.M_L_lbmol + col.M_V_lbmol), atol=1e-12)
+    assert np.allclose(np.sum(target_v, axis=1), col.M_V_lbmol, atol=1e-12)
 
 
 def test_phase_holdup_guard_softens_near_empty_vapor_target():

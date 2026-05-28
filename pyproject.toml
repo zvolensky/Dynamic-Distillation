@@ -16,7 +16,22 @@ dependencies = [
 
 [project.optional-dependencies]
 ui = [
+  "altair",
   "streamlit"
+]
+dwsim = [
+  "pythonnet"
+]
+thermo = [
+  "thermo"
+]
+clapeyron = [
+  "pyclapeyron"
+]
+all-thermo = [
+  "pythonnet",
+  "thermo",
+  "pyclapeyron"
 ]
 
 [tool.setuptools]

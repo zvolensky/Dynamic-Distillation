@@ -1,0 +1,76 @@
+{
+  "case": "water_methanol_template_10stage_chemsep_seed_20260401.xlsx",
+  "components": [
+    "Water",
+    "Methanol"
+  ],
+  "microbenchmark_notes": "Internal trays only (stages 2-9). Boundary trays were excluded because the seeded boundary tray compositions are degenerate for standalone flash timing.",
+  "microbenchmark_flash_sweep_internal_trays": [
+    {
+      "package": "pr",
+      "n_internal_trays": 8,
+      "first_flash_s": 3.1443938999436796,
+      "flash_sweep_mean_s": 15.516383833329504,
+      "flash_per_stage_mean_s": 1.939547979166188
+    },
+    {
+      "package": "srk",
+      "n_internal_trays": 8,
+      "first_flash_s": 1.3695033999392763,
+      "flash_sweep_mean_s": 11.117672833342416,
+      "flash_per_stage_mean_s": 1.389709104167802
+    },
+    {
+      "package": "raoult",
+      "n_internal_trays": 8,
+      "first_flash_s": 1.4899049000814557,
+      "flash_sweep_mean_s": 10.462603533330062,
+      "flash_per_stage_mean_s": 1.3078254416662578
+    },
+    {
+      "package": "unifac",
+      "n_internal_trays": 8,
+      "first_flash_s": 1.3975530000170693,
+      "flash_sweep_mean_s": 10.562822266637037,
+      "flash_per_stage_mean_s": 1.3203527833296296
+    },
+    {
+      "package": "nrtl",
+      "n_internal_trays": 8,
+      "first_flash_s": 1.2675019000889733,
+      "flash_sweep_mean_s": 10.38112170000871,
+      "flash_per_stage_mean_s": 1.2976402125010889
+    },
+    {
+      "package": "uniquac",
+      "n_internal_trays": 8,
+      "first_flash_s": 1.315906099975109,
+      "flash_sweep_mean_s": 10.45322116666163,
+      "flash_per_stage_mean_s": 1.3066526458327037
+    }
+  ],
+  "macrobenchmark": {
+    "parity_run_folder": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_parity_unifac_60s_te5_20260402_135940",
+    "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_parity_unifac_60s_te5_20260402_135940\\column_summary_20260402_140016.csv",
+    "runtime_mode": "parity",
+    "thermo_mode": "dwsim",
+    "property_package": "unifac",
+    "thermo_every_n_steps": 5,
+    "dt_s": 0.2,
+    "log_every_n_steps": 5,
+    "sim_time_completed_s": 60.0,
+    "wall_elapsed_completed_s": 1920.8123979999218,
+    "wall_minutes_completed": 32.01353996666536,
+    "wall_per_sim_s_overall": 32.01353996666536,
+    "wall_per_sim_s_from_1_to_60": 31.60473224067566,
+    "row_counts": {
+      "summary_rows_including_t0": 61
+    }
+  },
+  "seeded_rhs_benchmark": {
+    "description": "Single full parity-style column_rhs call on the seeded state with live DWSIM UNIFAC inputs.",
+    "mean_s": 24.96268110006349,
+    "min_s": 24.445495100109838,
+    "max_s": 25.479867100017145
+  }
+}

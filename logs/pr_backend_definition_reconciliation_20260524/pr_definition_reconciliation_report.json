@@ -1,0 +1,201 @@
+{
+  "excel": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "components_excel": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "components_dwsim": [
+    "Propane",
+    "N-butane",
+    "N-pentane"
+  ],
+  "dwsim_property_package": "PengRobinsonPropertyPackage(True)",
+  "clapeyron_model": {
+    "model": "PR",
+    "components": [
+      "n-Propane",
+      "n-Butane",
+      "n-Pentane"
+    ],
+    "alpha_type": "PRAlpha",
+    "mixing_rule": "vdW1fRule",
+    "translation_type": "NoTranslation",
+    "ideal_model_type": "BasicIdeal"
+  },
+  "component_rows": [
+    {
+      "component_index": 0,
+      "excel_name": "n-Propane",
+      "dwsim_id": "Propane",
+      "dwsim_molecular_weight": 44.09562,
+      "dwsim_Tc_K": 369.83,
+      "dwsim_Pc_Pa": 4248000.0,
+      "dwsim_acentric_factor": 0.152,
+      "dwsim_normal_boiling_point_K": 231.02,
+      "clapeyron_name": "n-Propane",
+      "clapeyron_molecular_weight": 44.1,
+      "delta_molecular_weight": 0.0043800000000047135,
+      "rel_delta_molecular_weight": 9.932959327943941e-05,
+      "clapeyron_Tc_K": 369.83,
+      "delta_Tc_K": 0.0,
+      "rel_delta_Tc_K": 0.0,
+      "clapeyron_Pc_Pa": 4210000.0,
+      "delta_Pc_Pa": -38000.0,
+      "rel_delta_Pc_Pa": -0.008945386064030132,
+      "clapeyron_acentric_factor": 0.149,
+      "delta_acentric_factor": -0.0030000000000000027,
+      "rel_delta_acentric_factor": -0.019736842105263178,
+      "clapeyron_normal_boiling_point_K": "",
+      "delta_normal_boiling_point_K": "",
+      "rel_delta_normal_boiling_point_K": ""
+    },
+    {
+      "component_index": 1,
+      "excel_name": "n-Butane",
+      "dwsim_id": "N-butane",
+      "dwsim_molecular_weight": 58.1222,
+      "dwsim_Tc_K": 425.12,
+      "dwsim_Pc_Pa": 3796000.0,
+      "dwsim_acentric_factor": 0.199,
+      "dwsim_normal_boiling_point_K": 272.66,
+      "clapeyron_name": "n-Butane",
+      "clapeyron_molecular_weight": 58.12,
+      "delta_molecular_weight": -0.002200000000001978,
+      "rel_delta_molecular_weight": -3.785128573939008e-05,
+      "clapeyron_Tc_K": 425.12,
+      "delta_Tc_K": 0.0,
+      "rel_delta_Tc_K": 0.0,
+      "clapeyron_Pc_Pa": 3770000.0,
+      "delta_Pc_Pa": -26000.0,
+      "rel_delta_Pc_Pa": -0.00684931506849315,
+      "clapeyron_acentric_factor": 0.197,
+      "delta_acentric_factor": -0.0020000000000000018,
+      "rel_delta_acentric_factor": -0.010050251256281416,
+      "clapeyron_normal_boiling_point_K": "",
+      "delta_normal_boiling_point_K": "",
+      "rel_delta_normal_boiling_point_K": ""
+    },
+    {
+      "component_index": 2,
+      "excel_name": "n-Pentane",
+      "dwsim_id": "N-pentane",
+      "dwsim_molecular_weight": 72.14878,
+      "dwsim_Tc_K": 469.7,
+      "dwsim_Pc_Pa": 3370000.0,
+      "dwsim_acentric_factor": 0.251,
+      "dwsim_normal_boiling_point_K": 309.22,
+      "clapeyron_name": "n-Pentane",
+      "clapeyron_molecular_weight": 72.15,
+      "delta_molecular_weight": 0.0012200000000035516,
+      "rel_delta_molecular_weight": 1.690950283571741e-05,
+      "clapeyron_Tc_K": 469.7,
+      "delta_Tc_K": 0.0,
+      "rel_delta_Tc_K": 0.0,
+      "clapeyron_Pc_Pa": 3360000.0,
+      "delta_Pc_Pa": -10000.0,
+      "rel_delta_Pc_Pa": -0.002967359050445104,
+      "clapeyron_acentric_factor": 0.251,
+      "delta_acentric_factor": 0.0,
+      "rel_delta_acentric_factor": 0.0,
+      "clapeyron_normal_boiling_point_K": "",
+      "delta_normal_boiling_point_K": "",
+      "rel_delta_normal_boiling_point_K": ""
+    }
+  ],
+  "binary_interaction_rows": [
+    {
+      "component_i": "Propane",
+      "component_j": "N-butane",
+      "dwsim_kij": 0.0033,
+      "clapeyron_inferred_kij": 0.0030000000000001137,
+      "delta_kij": -0.0002999999999998863
+    },
+    {
+      "component_i": "Propane",
+      "component_j": "N-pentane",
+      "dwsim_kij": 0.0267,
+      "clapeyron_inferred_kij": 0.0,
+      "delta_kij": -0.0267
+    },
+    {
+      "component_i": "N-butane",
+      "component_j": "N-pentane",
+      "dwsim_kij": 0.0174,
+      "clapeyron_inferred_kij": 0.0,
+      "delta_kij": -0.0174
+    }
+  ],
+  "dwsim_kij_matrix": [
+    [
+      0.0,
+      0.0033,
+      0.0267
+    ],
+    [
+      0.0033,
+      0.0,
+      0.0174
+    ],
+    [
+      0.0267,
+      0.0174,
+      0.0
+    ]
+  ],
+  "clapeyron_inferred_kij_matrix": [
+    [
+      0.0,
+      0.0030000000000001137,
+      0.0
+    ],
+    [
+      0.0030000000000001137,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0
+    ]
+  ],
+  "clapeyron_a_matrix": [
+    [
+      1.02690559162612,
+      1.243670833331745,
+      1.4598907288360927
+    ],
+    [
+      1.243670833331745,
+      1.51527013413483,
+      1.7733731265014205
+    ],
+    [
+      1.4598907288360927,
+      1.7733731265014205,
+      2.0754399990817687
+    ]
+  ],
+  "clapeyron_b_matrix": [
+    [
+      5.6821396993488054e-05,
+      6.488038721541892e-05,
+      7.362159848820247e-05
+    ],
+    [
+      6.488038721541892e-05,
+      7.293937743734978e-05,
+      8.168058871013334e-05
+    ],
+    [
+      7.362159848820247e-05,
+      8.168058871013334e-05,
+      9.04217999829169e-05
+    ]
+  ],
+  "outputs": {
+    "component_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_definition_reconciliation_20260524\\pr_component_constant_reconciliation.csv",
+    "kij_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_definition_reconciliation_20260524\\pr_binary_interaction_reconciliation.csv"
+  }
+}

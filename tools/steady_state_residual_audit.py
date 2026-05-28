@@ -151,6 +151,7 @@ def _build_initial_state(
         y=y,
         inputs=inputs,
         include_temperature=bool(include_temperature),
+        preserve_tray_vapor_holdup=bool(use_excel_vapor_holdup),
     )
     return np.asarray(y, dtype=float)
 
@@ -311,7 +312,12 @@ def _evaluate_scenario(
 def main() -> int:
     ap = argparse.ArgumentParser(description="Steady-state residual audit at initialized conditions.")
     ap.add_argument("--excel", dest="excel_path", default="distillation_column_template.xlsx")
-    ap.add_argument("--thermo", dest="thermo_mode", choices=["stub", "table", "table-pool", "dwsim"], default="table")
+    ap.add_argument(
+        "--thermo",
+        dest="thermo_mode",
+        choices=["stub", "relative-volatility", "simple-rv", "constant-alpha", "table", "table-pool", "dwsim"],
+        default="table",
+    )
     ap.add_argument("--thermo-table", dest="thermo_table_path", default="cache/thermo_table.json")
     ap.add_argument("--thermo-pool-workers", dest="thermo_pool_workers", type=int, default=None)
     ap.add_argument("--thermo-pool-chunk-size", dest="thermo_pool_chunk_size", type=int, default=4)
@@ -326,6 +332,20 @@ def main() -> int:
     ap.add_argument("--include-energy", dest="include_energy", action="store_true")
     ap.add_argument("--no-energy", dest="include_energy", action="store_false")
     ap.set_defaults(include_temperature=True, include_energy=True)
+    ap.add_argument(
+        "--disable-boundary-states",
+        dest="include_boundary_states",
+        action="store_false",
+        help="Audit source-topology cases without extra top/bottom boundary states.",
+    )
+    ap.set_defaults(include_boundary_states=True)
+    ap.add_argument(
+        "--disable-vapor-states",
+        dest="include_vapor_states",
+        action="store_false",
+        help="Audit source-topology cases without dynamic tray vapor states.",
+    )
+    ap.set_defaults(include_vapor_states=True)
     ap.add_argument("--single-scenario", dest="single_scenario", default=None)
     ap.add_argument("--use-excel-vapor-holdup", dest="use_excel_vapor_holdup", action="store_true")
     ap.add_argument("--output-csv", dest="output_csv", default=None)
@@ -347,9 +367,9 @@ def main() -> int:
     layout = StateVectorLayout(
         n_stages=col.n_stages,
         n_components=col.n_components,
-        include_top=True,
-        include_bottom=True,
-        include_vapor=True,
+        include_top=bool(args.include_boundary_states),
+        include_bottom=bool(args.include_boundary_states),
+        include_vapor=bool(args.include_vapor_states),
         include_temperature=bool(args.include_temperature),
         include_energy=bool(args.include_energy),
     )

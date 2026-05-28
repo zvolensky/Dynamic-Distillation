@@ -1,0 +1,95 @@
+{
+  "run_id": "20260528_083013",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 22056,
+  "started_at_local": "2026-05-28 08:30:13",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_seed_20260526.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_freezeV_600s_20260528",
+  "runtime_mode": "parity",
+  "thermo_mode": "clapeyron",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 1,
+  "n_steps": 3000,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_freezeV_600s_20260528\\column_profile_20260528_083013.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_freezeV_600s_20260528\\column_summary_20260528_083013.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_freezeV_600s_20260528\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_freezeV_600s_20260528\\startup_trace_20260528_082845.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.004193499989924021,
+    "equilibrium_relaxation_backend_build": 0.0036259999906178564,
+    "francis_autocalibration": 2.469999890308827e-05,
+    "vapor_holdup_initialization": 36.88606379998964,
+    "startup_tray_refresh": 36.87965790000453,
+    "startup_tray_refresh_source": "direct-tray-refresh",
+    "startup_tray_refresh_batch_used": true
+  },
+  "startup_build_info": {},
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "startup_vapor_holdup_tray_refresh": {
+      "batch_flash_requests": 1,
+      "batch_flash_rows": 20,
+      "flash_cache_misses": 20,
+      "flash_requests": 20,
+      "backend_flash_equivalents": 20,
+      "wall_sec": 34.16977190002217,
+      "cp_requests": 20,
+      "cp_wall_sec": 2.439870600006543
+    },
+    "uncategorized": {
+      "liquid_density_cache_misses": 1,
+      "liquid_density_requests": 1,
+      "liquid_density_wall_sec": 0.00020309998944867402
+    },
+    "feed_stage_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.0003063000040128827,
+      "cp_requests": 1,
+      "cp_wall_sec": 0.00012759999663103372
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 20,
+      "liquid_density_requests": 20,
+      "liquid_density_wall_sec": 0.0011349999986123294
+    },
+    "reboiler_equilibrium_helper_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.00019779999274760485,
+      "cp_requests": 1,
+      "cp_wall_sec": 8.730000990908593e-05
+    },
+    "main_tray_refresh": {
+      "batch_flash_requests": 2751,
+      "batch_flash_rows": 55020,
+      "flash_cache_hits": 1,
+      "flash_cache_misses": 54967,
+      "flash_requests": 54967,
+      "backend_flash_equivalents": 54967,
+      "wall_sec": 6.715176100406097,
+      "cp_requests": 54967,
+      "cp_wall_sec": 4.466346199158579,
+      "flash_cache_evictions": 54733
+    }
+  },
+  "ended_at_local": "2026-05-28 08:31:05",
+  "elapsed_wall_sec": 52.60087070000009,
+  "final_time_s": 599.9999999999994,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_freezeV_600s_20260528\\c3c4_splitter_openloop_seed_20260526__restart_20260528_083013.xlsx",
+  "restart_export_error": ""
+}

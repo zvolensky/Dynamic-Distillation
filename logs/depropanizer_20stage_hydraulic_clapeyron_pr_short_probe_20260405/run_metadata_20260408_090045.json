@@ -1,0 +1,117 @@
+{
+  "run_id": "20260408_090045",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 29892,
+  "started_at_local": "2026-04-08 09:00:45",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_short_probe_20260405",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "clapeyron",
+  "thermo_every_n_steps": 1,
+  "n_steps": 2,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_short_probe_20260405\\column_profile_20260408_090045.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_short_probe_20260405\\column_summary_20260408_090045.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_short_probe_20260405\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_short_probe_20260405\\startup_trace_20260408_085952.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.002835500054061413,
+    "equilibrium_relaxation_backend_build": 0.0029422000516206026,
+    "francis_autocalibration": 2.5900080800056458e-05,
+    "vapor_holdup_initialization": 23.88743679993786,
+    "startup_tray_refresh": 23.882732200203463,
+    "startup_tray_refresh_source": "direct-tray-refresh",
+    "startup_tray_refresh_batch_used": true
+  },
+  "startup_build_info": {},
+  "thermo_call_counters": {
+    "startup_vapor_holdup_tray_refresh": {
+      "batch_flash_requests": 1,
+      "batch_flash_rows": 20,
+      "flash_cache_misses": 20,
+      "flash_requests": 20,
+      "backend_flash_equivalents": 20,
+      "wall_sec": 22.066294400021434,
+      "cp_requests": 20,
+      "cp_wall_sec": 1.6576528002042323
+    },
+    "uncategorized": {
+      "liquid_density_cache_misses": 3,
+      "liquid_density_requests": 3,
+      "liquid_density_wall_sec": 0.00037920032627880573,
+      "liquid_density_cache_hits": 5,
+      "batch_flash_requests": 8,
+      "batch_flash_rows": 83,
+      "flash_cache_hits": 7,
+      "flash_cache_misses": 42,
+      "flash_requests": 42,
+      "backend_flash_equivalents": 42,
+      "wall_sec": 0.0027099016588181257,
+      "cp_requests": 42,
+      "cp_wall_sec": 0.0019569003488868475
+    },
+    "feed_stage_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.00017879996448755264,
+      "cp_requests": 1,
+      "cp_wall_sec": 5.4200179874897e-05,
+      "flash_cache_hits": 2
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 20,
+      "liquid_density_requests": 20,
+      "liquid_density_wall_sec": 0.00048569892533123493
+    },
+    "reboiler_equilibrium_helper_flash": {
+      "flash_cache_misses": 3,
+      "flash_requests": 3,
+      "backend_flash_equivalents": 3,
+      "wall_sec": 0.0004285997711122036,
+      "cp_requests": 3,
+      "cp_wall_sec": 0.00016019982285797596
+    },
+    "energy_vapor_flow_enthalpy_refresh": {
+      "flash_cache_misses": 37,
+      "flash_requests": 37,
+      "backend_flash_equivalents": 37,
+      "wall_sec": 0.005758400075137615,
+      "cp_requests": 37,
+      "cp_wall_sec": 0.0020869995933026075
+    },
+    "temperature_state_enthalpy_refresh": {
+      "flash_cache_misses": 38,
+      "flash_requests": 38,
+      "backend_flash_equivalents": 38,
+      "wall_sec": 0.007924700388684869,
+      "cp_requests": 38,
+      "cp_wall_sec": 0.0031378993298858404
+    },
+    "temperature_state_cp_lookup": {
+      "flash_cache_misses": 54,
+      "flash_requests": 54,
+      "backend_flash_equivalents": 54,
+      "wall_sec": 0.006098700454458594,
+      "cp_requests": 54,
+      "cp_wall_sec": 0.003091199789196253
+    },
+    "bottom_sump_cp_lookup": {
+      "flash_cache_misses": 3,
+      "flash_requests": 3,
+      "backend_flash_equivalents": 3,
+      "wall_sec": 0.00039910036139190197,
+      "cp_requests": 3,
+      "cp_wall_sec": 0.00023779994808137417
+    }
+  },
+  "ended_at_local": "2026-04-08 09:00:46",
+  "elapsed_wall_sec": 0.43808980006724596,
+  "final_time_s": 0.4,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\depropanizer_20stage_hydraulic_clapeyron_pr_short_probe_20260405\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323__restart_20260408_090045.xlsx",
+  "restart_export_error": ""
+}

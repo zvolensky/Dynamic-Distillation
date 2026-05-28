@@ -186,6 +186,7 @@ def test_load_case_from_excel_preserves_control_and_eq_spec_rows():
             ("Runtime Mode", "hydraulic"),
             ("Thermo Mode", "table"),
             ("Thermo Table", "cache/thermo_table.json"),
+            ("Relative Volatility", 1.6),
             ("Include Energy", True),
             ("Condenser Duty Mode", "specified"),
             ("Simulation Length (min)", 10.0),
@@ -258,6 +259,7 @@ def test_load_case_from_excel_preserves_control_and_eq_spec_rows():
         assert c.specs["Runtime Mode"] == "hydraulic"
         assert c.specs["Thermo Mode"] == "table"
         assert c.specs["Thermo Table"] == "cache/thermo_table.json"
+        assert c.specs["Relative Volatility"] == 1.6
         assert c.specs["Include Energy"] is True
         assert c.specs["Condenser Duty Mode"] == "specified"
         assert c.specs["Equilibrium Relaxation Mode"] == "phase-holdup"

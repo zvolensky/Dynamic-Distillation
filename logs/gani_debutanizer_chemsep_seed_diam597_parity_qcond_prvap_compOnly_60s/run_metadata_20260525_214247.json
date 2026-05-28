@@ -1,0 +1,86 @@
+{
+  "run_id": "20260525_214247",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 35780,
+  "started_at_local": "2026-05-25 21:42:47",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\validation_gani_1986_debutanizer.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_chemsep_seed_diam597_parity_qcond_prvap_compOnly_60s",
+  "runtime_mode": "parity",
+  "thermo_mode": "clapeyron",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 1,
+  "n_steps": 300,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_chemsep_seed_diam597_parity_qcond_prvap_compOnly_60s\\column_profile_20260525_214247.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_chemsep_seed_diam597_parity_qcond_prvap_compOnly_60s\\column_summary_20260525_214247.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_chemsep_seed_diam597_parity_qcond_prvap_compOnly_60s\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_chemsep_seed_diam597_parity_qcond_prvap_compOnly_60s\\startup_trace_20260525_214118.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.0031134999881032854,
+    "equilibrium_relaxation_backend_build": 2.00001522898674e-06,
+    "francis_autocalibration": 44.624396300001536
+  },
+  "startup_build_info": {},
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "feed_stage_flash": {
+      "flash_cache_misses": 280,
+      "flash_requests": 280,
+      "backend_flash_equivalents": 280,
+      "wall_sec": 74.3986656999623,
+      "cp_requests": 280,
+      "cp_wall_sec": 2.6200500997074414,
+      "flash_cache_hits": 4,
+      "flash_cache_evictions": 273
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 81,
+      "liquid_density_requests": 81,
+      "liquid_density_wall_sec": 0.0038248999626375735,
+      "liquid_density_cache_hits": 59
+    },
+    "main_tray_refresh": {
+      "batch_flash_requests": 285,
+      "batch_flash_rows": 7980,
+      "flash_cache_misses": 7922,
+      "flash_requests": 7922,
+      "backend_flash_equivalents": 7922,
+      "wall_sec": 4.386079699994298,
+      "cp_requests": 7922,
+      "cp_wall_sec": 0.6308052993554156,
+      "flash_cache_hits": 58,
+      "flash_cache_evictions": 7674
+    },
+    "feed_enthalpy_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.0002638000005390495,
+      "cp_requests": 1,
+      "cp_wall_sec": 8.589998469687998e-05,
+      "flash_cache_hits": 3
+    },
+    "uncategorized": {
+      "liquid_density_cache_misses": 1,
+      "liquid_density_requests": 1,
+      "liquid_density_wall_sec": 0.0002027000009547919,
+      "liquid_density_cache_hits": 1
+    }
+  },
+  "ended_at_local": "2026-05-25 21:43:33",
+  "elapsed_wall_sec": 46.07670239999425,
+  "final_time_s": 60.00000000000031,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\gani_debutanizer_chemsep_seed_diam597_parity_qcond_prvap_compOnly_60s\\validation_gani_1986_debutanizer__restart_20260525_214247.xlsx",
+  "restart_export_error": ""
+}

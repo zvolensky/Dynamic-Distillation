@@ -1,0 +1,366 @@
+{
+  "manifest_version": 1,
+  "generated_on": "2026-04-05",
+  "description": "Benchmark checkpoints captured before the compute-efficiency backend refactor. Commands are exact when available from the experiment ledger and inferred from run metadata otherwise.",
+  "benchmarks": [
+    {
+      "id": "water_methanol_hydraulic_short_best",
+      "command_source": "experiment_ledger_auto_captured",
+      "description": "Best short live-DWSIM hydraulic checkpoint from the April 5 efficiency report.",
+      "argv": [
+        "-m",
+        "dynamic_distillation.dynamic_run_scaffold_v1",
+        "--excel",
+        "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\water_methanol_template_10stage_chemsep_seed_20260401.xlsx",
+        "--runtime-mode",
+        "hydraulic",
+        "--thermo",
+        "dwsim",
+        "--dwsim-property-package",
+        "unifac",
+        "--n-steps",
+        "2",
+        "--dt",
+        "0.2",
+        "--log-every",
+        "1",
+        "--fast-startup",
+        "--allow-repeat-command",
+        "--logs-dir",
+        "logs\\water_methanol_10stage_hydraulic_unifac_samevappkt2_20260404"
+      ],
+      "baseline": {
+        "run_id": "20260404_162348",
+        "final_time_s": 0.4,
+        "elapsed_wall_sec": 133.3128668999998,
+        "thermo_call_counters": {
+          "main_tray_refresh": {
+            "flash_requests": 60,
+            "backend_flash_equivalents": 60
+          },
+          "energy_vapor_flow_enthalpy_refresh": {
+            "flash_requests": 60,
+            "backend_flash_equivalents": 60
+          },
+          "temperature_state_cp_lookup": {
+            "cp_requests": 62,
+            "backend_flash_equivalents": 248
+          }
+        },
+        "run_metadata_json": "logs\\water_methanol_10stage_hydraulic_unifac_samevappkt2_20260404\\run_metadata_20260404_162348.json"
+      }
+    },
+    {
+      "id": "water_methanol_parity_60s_te5",
+      "command_source": "experiment_ledger_auto_captured",
+      "description": "Completed 60 s water-methanol parity baseline from the April 5 report.",
+      "argv": [
+        "-m",
+        "dynamic_distillation.dynamic_run_scaffold_v1",
+        "--excel",
+        "water_methanol_template_10stage_chemsep_seed_20260401.xlsx",
+        "--run-name",
+        "water_methanol_10stage_parity_unifac_60s_te5_20260402_135940",
+        "--runtime-mode",
+        "parity",
+        "--thermo",
+        "dwsim",
+        "--dwsim-property-package",
+        "unifac",
+        "--dt",
+        "0.2",
+        "--n-steps",
+        "300",
+        "--log-every",
+        "5",
+        "--thermo-every",
+        "5",
+        "--fast-startup",
+        "--logs-dir",
+        "logs\\water_methanol_10stage_parity_unifac_60s_te5_20260402_135940"
+      ],
+      "baseline": {
+        "run_id": "20260402_140016",
+        "final_time_s": 60.00000000000031,
+        "summary_csv": "logs\\water_methanol_10stage_parity_unifac_60s_te5_20260402_135940\\column_summary_20260402_140016.csv"
+      }
+    },
+    {
+      "id": "water_methanol_hydraulic_5min_probe",
+      "command_source": "inferred_from_run_metadata_and_log_dir",
+      "description": "Capped longer water-methanol hydraulic probe referenced in the April 5 report.",
+      "argv": [
+        "-m",
+        "dynamic_distillation.dynamic_run_scaffold_v1",
+        "--excel",
+        "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\water_methanol_template_10stage_chemsep_seed_20260401.xlsx",
+        "--runtime-mode",
+        "hydraulic",
+        "--thermo",
+        "dwsim",
+        "--dwsim-property-package",
+        "unifac",
+        "--n-steps",
+        "1500",
+        "--dt",
+        "0.2",
+        "--fast-startup",
+        "--allow-repeat-command",
+        "--logs-dir",
+        "logs\\water_methanol_10stage_hydraulic_unifac_5min_probe_20260404"
+      ],
+      "baseline": {
+        "run_id": "20260404_181450",
+        "final_time_s": 2.8000000000000003,
+        "summary_csv": "logs\\water_methanol_10stage_hydraulic_unifac_5min_probe_20260404\\column_summary_20260404_181450.csv",
+        "run_metadata_json": "logs\\water_methanol_10stage_hydraulic_unifac_5min_probe_20260404\\run_metadata_20260404_181450.json"
+      }
+    },
+    {
+      "id": "depropanizer_hydraulic_5min_probe",
+      "command_source": "inferred_from_run_metadata_and_log_dir",
+      "description": "Capped depropanizer hydraulic live-thermo probe referenced in the April 5 report.",
+      "argv": [
+        "-m",
+        "dynamic_distillation.dynamic_run_scaffold_v1",
+        "--excel",
+        "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+        "--runtime-mode",
+        "hydraulic",
+        "--thermo",
+        "dwsim",
+        "--dwsim-property-package",
+        "pr",
+        "--n-steps",
+        "1500",
+        "--dt",
+        "0.2",
+        "--fast-startup",
+        "--allow-repeat-command",
+        "--logs-dir",
+        "logs\\depropanizer_20stage_hydraulic_pr_5min_probe_20260404"
+      ],
+      "baseline": {
+        "run_id": "20260404_180117",
+        "final_time_s": 0.0,
+        "summary_csv": "logs\\depropanizer_20stage_hydraulic_pr_5min_probe_20260404\\column_summary_20260404_180117.csv",
+        "run_metadata_json": "logs\\depropanizer_20stage_hydraulic_pr_5min_probe_20260404\\run_metadata_20260404_180117.json"
+      }
+    },
+    {
+      "id": "depropanizer_hydraulic_short_clapeyron_pr",
+      "command_source": "planned_refactor_candidate",
+      "comparison_target": "depropanizer_hydraulic_5min_probe",
+      "requirements": {
+        "optional_python_package": "pyclapeyron"
+      },
+      "description": "Recommended first Clapeyron benchmark: short hydraulic depropanizer probe using a PR-like backend for cleaner comparison with the existing hydrocarbon live-PR path.",
+      "argv": [
+        "-m",
+        "dynamic_distillation.dynamic_run_scaffold_v1",
+        "--excel",
+        "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+        "--runtime-mode",
+        "hydraulic",
+        "--thermo",
+        "clapeyron",
+        "--clapeyron-model",
+        "PR",
+        "--n-steps",
+        "2",
+        "--dt",
+        "0.2",
+        "--log-every",
+        "1",
+        "--fast-startup",
+        "--allow-repeat-command",
+        "--logs-dir",
+        "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_short_probe_20260405"
+      ],
+      "baseline": {
+        "run_id": "20260408_090045",
+        "final_time_s": 0.4,
+        "elapsed_wall_sec": 0.43808980006724596,
+        "summary_csv": "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_short_probe_20260405\\column_summary_20260408_090045.csv",
+        "run_metadata_json": "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_short_probe_20260405\\run_metadata_20260408_090045.json"
+      }
+    },
+    {
+      "id": "depropanizer_hydraulic_5min_clapeyron_pr",
+      "command_source": "planned_refactor_candidate",
+      "comparison_target": "depropanizer_hydraulic_5min_probe",
+      "requirements": {
+        "optional_python_package": "pyclapeyron"
+      },
+      "description": "Longer Clapeyron hydraulic probe matched to the depropanizer PR benchmark family once the short case is stable.",
+      "argv": [
+        "-m",
+        "dynamic_distillation.dynamic_run_scaffold_v1",
+        "--excel",
+        "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+        "--runtime-mode",
+        "hydraulic",
+        "--thermo",
+        "clapeyron",
+        "--clapeyron-model",
+        "PR",
+        "--n-steps",
+        "1500",
+        "--dt",
+        "0.2",
+        "--fast-startup",
+        "--allow-repeat-command",
+        "--logs-dir",
+        "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_5min_probe_20260405"
+      ],
+      "baseline": {}
+    },
+    {
+      "id": "depropanizer_hydraulic_60s_clapeyron_pr_te5_noguard",
+      "command_source": "measured_refactor_candidate",
+      "comparison_target": "depropanizer_hydraulic_short_clapeyron_pr",
+      "requirements": {
+        "optional_python_package": "pyclapeyron"
+      },
+      "description": "Measured 60 s hydraulic Clapeyron cadence probe using thermo every 5 steps with guardrails disabled. This is the first clean frozen-thermo benchmark that showed long-run hold behavior on most steps.",
+      "argv": [
+        "-m",
+        "dynamic_distillation.dynamic_run_scaffold_v1",
+        "--excel",
+        "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+        "--runtime-mode",
+        "hydraulic",
+        "--thermo",
+        "clapeyron",
+        "--clapeyron-model",
+        "PR",
+        "--n-steps",
+        "300",
+        "--dt",
+        "0.2",
+        "--log-every",
+        "5",
+        "--thermo-every",
+        "5",
+        "--disable-thermo-cadence-guardrails",
+        "--fast-startup",
+        "--allow-repeat-command",
+        "--logs-dir",
+        "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_60s_te5_noguard_20260408"
+      ],
+      "baseline": {
+        "run_id": "20260408_154833",
+        "final_time_s": 60.00000000000031,
+        "elapsed_wall_sec": 5.341184599790722,
+        "summary_csv": "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_60s_te5_noguard_20260408\\column_summary_20260408_154833.csv",
+        "run_metadata_json": "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_60s_te5_noguard_20260408\\run_metadata_20260408_154833.json"
+      }
+    },
+    {
+      "id": "depropanizer_hydraulic_5min_clapeyron_pr_te5_noguard",
+      "command_source": "measured_refactor_candidate",
+      "comparison_target": "depropanizer_hydraulic_5min_clapeyron_pr",
+      "requirements": {
+        "optional_python_package": "pyclapeyron"
+      },
+      "description": "Measured 5 min hydraulic Clapeyron cadence probe using thermo every 5 steps with guardrails disabled. This is the current long-run benchmark for the refactor wall-clock roadmap.",
+      "argv": [
+        "-m",
+        "dynamic_distillation.dynamic_run_scaffold_v1",
+        "--excel",
+        "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+        "--runtime-mode",
+        "hydraulic",
+        "--thermo",
+        "clapeyron",
+        "--clapeyron-model",
+        "PR",
+        "--n-steps",
+        "1500",
+        "--dt",
+        "0.2",
+        "--log-every",
+        "25",
+        "--thermo-every",
+        "5",
+        "--disable-thermo-cadence-guardrails",
+        "--fast-startup",
+        "--allow-repeat-command",
+        "--logs-dir",
+        "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_5min_te5_noguard_20260408"
+      ],
+      "baseline": {
+        "run_id": "20260408_154833",
+        "final_time_s": 299.99999999999153,
+        "elapsed_wall_sec": 32.301253099925816,
+        "summary_csv": "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_5min_te5_noguard_20260408\\column_summary_20260408_154833.csv",
+        "run_metadata_json": "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_5min_te5_noguard_20260408\\run_metadata_20260408_154833.json"
+      }
+    },
+    {
+      "id": "depropanizer_hydraulic_short_clapeyron_pr_prewarm",
+      "command_source": "planned_refactor_candidate",
+      "comparison_target": "depropanizer_hydraulic_short_clapeyron_pr",
+      "requirements": {
+        "optional_python_package": "pyclapeyron"
+      },
+      "description": "Experimental short Clapeyron probe with explicit startup prewarm enabled. Useful for measuring whether compile cost relocation beats the default startup tray-refresh path.",
+      "argv": [
+        "-m",
+        "dynamic_distillation.dynamic_run_scaffold_v1",
+        "--excel",
+        "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+        "--runtime-mode",
+        "hydraulic",
+        "--thermo",
+        "clapeyron",
+        "--clapeyron-model",
+        "PR",
+        "--n-steps",
+        "2",
+        "--dt",
+        "0.2",
+        "--log-every",
+        "1",
+        "--fast-startup",
+        "--enable-primary-thermo-startup-prewarm",
+        "--allow-repeat-command",
+        "--logs-dir",
+        "logs\\depropanizer_20stage_hydraulic_clapeyron_pr_short_probe_20260405"
+      ],
+      "baseline": {}
+    },
+    {
+      "id": "water_methanol_hydraulic_short_clapeyron_pr",
+      "command_source": "planned_refactor_candidate",
+      "comparison_target": "water_methanol_hydraulic_short_best",
+      "requirements": {
+        "optional_python_package": "pyclapeyron"
+      },
+      "description": "Exploratory mixed-system Clapeyron short probe. Useful for architecture/call-count study, but less apples-to-apples than the depropanizer PR comparison.",
+      "argv": [
+        "-m",
+        "dynamic_distillation.dynamic_run_scaffold_v1",
+        "--excel",
+        "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\water_methanol_template_10stage_chemsep_seed_20260401.xlsx",
+        "--runtime-mode",
+        "hydraulic",
+        "--thermo",
+        "clapeyron",
+        "--clapeyron-model",
+        "PR",
+        "--n-steps",
+        "2",
+        "--dt",
+        "0.2",
+        "--log-every",
+        "1",
+        "--fast-startup",
+        "--allow-repeat-command",
+        "--logs-dir",
+        "logs\\water_methanol_10stage_hydraulic_clapeyron_pr_short_probe_20260405"
+      ],
+      "baseline": {}
+    }
+  ]
+}

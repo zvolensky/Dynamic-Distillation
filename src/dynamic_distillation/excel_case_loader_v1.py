@@ -744,6 +744,7 @@ def load_case_from_excel(excel_path: Optional[str] = None) -> CaseData:
     specs["Runtime Mode"] = _get_optional_str(specs_df, "Runtime Mode")
     specs["Thermo Mode"] = _get_optional_str(specs_df, "Thermo Mode")
     specs["Thermo Table"] = _get_optional_str(specs_df, "Thermo Table")
+    specs["Relative Volatility"] = _get_optional_float(specs_df, "Relative Volatility")
     specs["Include Energy"] = _get_optional_bool(specs_df, "Include Energy")
 
     # Optional reflux-drum geometry to infer top vapor-space volume.

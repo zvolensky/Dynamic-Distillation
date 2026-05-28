@@ -1,0 +1,119 @@
+{
+  "run_id": "20260524_133745",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 37280,
+  "started_at_local": "2026-05-24 13:37:45",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "dwsim",
+  "thermo_every_n_steps": 1,
+  "n_steps": 2,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\\column_profile_20260524_133745.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\\column_summary_20260524_133745.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\\startup_trace_20260524_133659.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.005222800013143569,
+    "equilibrium_relaxation_backend_build": 0.00036040000850334764,
+    "francis_autocalibration": 1.750001683831215e-05,
+    "vapor_holdup_initialization": 39.02990389999468,
+    "startup_tray_refresh": 37.16846980000264,
+    "startup_tray_refresh_source": "direct-tray-refresh",
+    "startup_tray_refresh_batch_used": false
+  },
+  "startup_build_info": {},
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "startup_vapor_holdup_tray_refresh": {
+      "flash_requests": 20,
+      "backend_flash_equivalents": 100,
+      "wall_sec": 36.99246180005139,
+      "cp_requests": 20
+    },
+    "uncategorized": {
+      "rhoL_cache_misses": 3,
+      "rhoL_requests": 3,
+      "wall_sec": 5.761639700009255,
+      "rhoL_cache_hits": 4
+    },
+    "feed_stage_flash": {
+      "flash_requests": 1,
+      "backend_flash_equivalents": 5,
+      "wall_sec": 1.7969828999775928,
+      "cp_requests": 1
+    },
+    "liquid_density_lookup": {
+      "rhoL_cache_hits": 1,
+      "rhoL_cache_misses": 19,
+      "rhoL_requests": 19,
+      "wall_sec": 35.29652070000884
+    },
+    "reboiler_equilibrium_helper_flash": {
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 1.8897452999954112
+    },
+    "main_tray_refresh": {
+      "flash_requests": 60,
+      "backend_flash_equivalents": 60,
+      "wall_sec": 112.2313184000086
+    },
+    "energy_vapor_flow_enthalpy_refresh": {
+      "flash_requests": 52,
+      "backend_flash_equivalents": 52,
+      "wall_sec": 96.535495399934
+    },
+    "top_drum_liquid_density_lookup": {
+      "rhoL_cache_hits": 1
+    },
+    "condenser_duty_reuse_diag": {
+      "full_packet_misses": 1,
+      "bubble_state_miss_no_packet": 1,
+      "fresh_solves": 1,
+      "full_packet_hits": 2
+    },
+    "condenser_duty_bubble_point_helper_flash": {
+      "flash_requests": 4,
+      "backend_flash_equivalents": 4,
+      "wall_sec": 7.5357266000064556
+    },
+    "condenser_duty_helper_flash": {
+      "flash_requests": 2,
+      "backend_flash_equivalents": 2,
+      "wall_sec": 3.7390737000096124
+    },
+    "temperature_state_enthalpy_refresh": {
+      "flash_requests": 20,
+      "backend_flash_equivalents": 20,
+      "wall_sec": 37.90098150004633
+    },
+    "temperature_state_cp_lookup": {
+      "cp_cache_misses": 53,
+      "cp_requests": 53,
+      "backend_flash_equivalents": 212,
+      "cp_cache_hits": 1
+    },
+    "bottom_sump_cp_lookup": {
+      "cp_cache_misses": 3,
+      "cp_requests": 3,
+      "backend_flash_equivalents": 12
+    }
+  },
+  "ended_at_local": "2026-05-24 13:45:36",
+  "elapsed_wall_sec": 471.57650860000285,
+  "final_time_s": 0.4,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_133657\\logs_dwsim_pr\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323__restart_20260524_133745.xlsx",
+  "restart_export_error": ""
+}

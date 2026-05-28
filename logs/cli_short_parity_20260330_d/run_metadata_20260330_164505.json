@@ -1,0 +1,23 @@
+{
+  "run_id": "20260330_164505",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 19332,
+  "started_at_local": "2026-03-30 16:45:05",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\sandbox\\mini8\\input\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\cli_short_parity_20260330_d",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "table",
+  "thermo_every_n_steps": 1,
+  "n_steps": 300,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\cli_short_parity_20260330_d\\column_profile_20260330_164505.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\cli_short_parity_20260330_d\\column_summary_20260330_164505.csv",
+  "ended_at_local": "2026-03-30 16:50:31",
+  "elapsed_wall_sec": 325.11688750004396,
+  "final_time_s": 60.00000000000031,
+  "error": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\cli_short_parity_20260330_d\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323__restart_20260330_164505.xlsx",
+  "restart_export_error": ""
+}

@@ -143,6 +143,7 @@ def _build_initial_state(
         y=y,
         inputs=inputs,
         include_temperature=bool(include_temperature),
+        preserve_tray_vapor_holdup=bool(use_excel_vapor_holdup),
     )
     return np.asarray(y, dtype=float)
 

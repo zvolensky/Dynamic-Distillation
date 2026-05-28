@@ -2,8 +2,8 @@
 
 ## 1. Document Control
 - Title: Dynamic Distillation Requirements Specification
-- Version: 1.3
-- Date: 2026-03-28
+- Version: 1.4
+- Date: 2026-05-28
 - Basis: Current implementation and tests in this repository.
 
 ## 2. Scope
@@ -16,7 +16,7 @@ This specification captures the as-built behavior of the current codebase.
 ## 3. User Requirements
 - `UR-001` Users shall be able to run dynamic distillation simulations from an Excel case through the Python CLI runner.
 - `UR-002` Users shall be able to configure horizon and integration controls (`n_steps`, `dt`, logging cadence).
-- `UR-003` Users shall be able to choose thermo execution mode (`stub`, `dwsim`, `table`, `table-pool`) and thermo refresh strategy.
+- `UR-003` Users shall be able to choose thermo execution mode (`stub`, `relative-volatility`, `clapeyron`, `dwsim`, DWSIM package aliases, `table`, `table-pool`) and thermo refresh strategy.
 - `UR-004` Users shall be able to override key operating variables (reflux, boilup, condenser/reboiler duties, condenser pressure drop).
 - `UR-005` Users shall be able to enable/disable control loops for level, top pressure, distillate composition, and bottoms composition.
 - `UR-006` Users shall be able to enable top-drum PSV relief behavior and configure setpoint/gain/max vent.
@@ -26,6 +26,8 @@ This specification captures the as-built behavior of the current codebase.
 - `UR-010` Users shall have automatic run provenance tracking and experiment-ledger regeneration.
 - `UR-011` Users shall be able to select runtime behavior mode (`parity`, `calibration`, `hydraulic`, `legacy`) from the CLI.
 - `UR-012` Users shall be able to import and export richer Excel restart state, including boundary, energy, and controller memory sheets when present.
+- `UR-013` Users shall be able to run source-topology validation cases that intentionally exclude standard boundary and vapor dynamic states when the validation source uses algebraic equivalents.
+- `UR-014` Users shall be able to distinguish external steady-state seed data from accepted dynamic initial conditions, and shall have documented criteria for making a seeded column dynamic-ready.
 
 ## 4. Functional Requirements
 
@@ -40,9 +42,13 @@ This specification captures the as-built behavior of the current codebase.
 ### 4.2 State Initialization and Startup Conditioning
 - `FR-006` The runner shall construct deterministic state layout and initial state vector from `ColumnSpec`.
 - `FR-007` The runner shall initialize tray vapor holdup to match startup pressure profile assumptions.
+- `FR-007a` When `--use-excel-vapor-holdup` is enabled, the runner shall preserve explicit tray vapor holdup from the Excel `Initial Conditions` sheet through startup pressure initialization and thermo conditioning.
+- `FR-007b` The runner shall support disabling dynamic tray vapor states for validation sources whose vapor composition is algebraic and whose equations do not include vapor holdup ODEs.
 - `FR-008` The runner shall support optional startup thermo-consistent conditioning iterations.
 - `FR-009` The runner shall perform top-drum startup steadying pass for top-holdup residual reduction when top states are active.
 - `FR-009a` When explicit runtime restart state is present, the runner shall skip vapor reseeding and startup conditioning/steadying steps that would overwrite the restart state.
+- `FR-009b` External steady-state profiles, including ChemSep-derived profiles, shall be treated as initialization seeds unless a model-consistent residual audit or initializer demonstrates that the state is steady under this model's active topology, thermo, feed treatment, holdup states, and RHS equations.
+- `FR-009c` Accepted dynamic initialization shall require block-level derivative/conservation checks in addition to any aggregate steady-state detector flag.
 
 ### 4.3 Thermodynamics Services
 - `FR-010` The system shall support thermo providers for TP flash, phase enthalpy, and optional Z-factor diagnostics.
@@ -51,6 +57,10 @@ This specification captures the as-built behavior of the current codebase.
 - `FR-013` The RHS shall use provider batch flash when available and fall back to scalar flash otherwise.
 - `FR-014` The system shall support thermo refresh throttling by step cadence and optional per-stage `dT/dP/dx` thresholds.
 - `FR-014a` The runner shall support optional live-PR override for the equilibrium-relaxation flash path while leaving the main thermo mode unchanged.
+- `FR-014b` The system shall document optional external thermo dependencies and installation/setup steps for DWSIM/pythonnet, Python `thermo`, and Clapeyron/pyclapeyron backends.
+- `FR-014c` The runner shall allow Clapeyron PR to use DWSIM PR component constants and binary interaction parameters when requested.
+- `FR-014d` The runner shall provide a dependency-free `relative-volatility` thermo mode with constant-alpha VLE and simple enthalpy/Cp properties for validation cases with energy states.
+- `FR-014e` The repository shall provide a Tier 1 source-topology validation workflow for Skogestad Column A using public source data and relative-volatility thermo, including steady-profile comparison, +1% feed-rate dynamic response comparison, and comparative plots.
 
 ### 4.4 RHS, Physics, and Closures
 - `FR-015` The RHS shall compute tray/top/bottom component holdup derivatives with feed and boundary source terms.
@@ -60,6 +70,7 @@ This specification captures the as-built behavior of the current codebase.
 - `FR-019` The model shall support optional equilibrium relaxation and optional energy-holdup states.
 - `FR-020` The model shall support optional top-drum PSV venting with linear gain and max-vent clamp.
 - `FR-020a` In the standard explicit-sump configuration, the reboiler liquid feed shall be drawn from the bottom sump rather than directly from the bottom tray.
+- `FR-020b` The runner shall support disabling separate top and bottom boundary states for validation sources whose stage set already includes the total condenser and reboiler.
 
 ### 4.5 Controls and Runtime Safeguards
 - `FR-021` The runner shall support level PI control for top and bottom inventories.
@@ -84,8 +95,8 @@ This specification captures the as-built behavior of the current codebase.
 | Requirement | Primary Implementation Trace | Test Trace |
 |---|---|---|
 | `UR-001`, `UR-002` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_dynamic_run_scaffold_v1.py` |
-| `UR-003`, `FR-010`..`FR-014` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `src/dynamic_distillation/column_rhs_v1.py`, `src/dynamic_distillation/thermo_surrogate_v1.py`, `src/dynamic_distillation/thermo_table_pool_v1.py` | `tests/test_stage_thermo_v1.py`, `tests/test_thermo_surrogate_v1.py`, `tests/test_thermo_table_pool_v1.py`, `tests/test_column_rhs_v1.py` |
-| `UR-004`, `FR-016`..`FR-019` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `src/dynamic_distillation/column_rhs_v1.py` | `tests/test_column_rhs_v1.py`, `tests/test_dynamic_run_scaffold_v1.py` |
+| `UR-003`, `FR-010`..`FR-014e` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `src/dynamic_distillation/column_rhs_v1.py`, `src/dynamic_distillation/thermo_surrogate_v1.py`, `src/dynamic_distillation/thermo_table_pool_v1.py`, `src/dynamic_distillation/thermo_backend_factory_v1.py`, `src/dynamic_distillation/thermo_relative_volatility_provider_v1.py`, `tools/create_skogestad_column_a_validation_case.py`, `tools/compare_skogestad_column_a_profile.py`, `tools/compare_skogestad_dynamic_response.py`, `tools/plot_skogestad_dynamic_comparison.py`, `docs/cli.md`, `pyproject.toml` | `tests/test_stage_thermo_v1.py`, `tests/test_thermo_surrogate_v1.py`, `tests/test_thermo_table_pool_v1.py`, `tests/test_thermo_backend_factory_v1.py`, `tests/test_thermo_relative_volatility_provider_v1.py`, `tests/test_column_rhs_v1.py` |
+| `UR-004`, `UR-013`, `FR-016`..`FR-020b` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `src/dynamic_distillation/column_rhs_v1.py`, `src/dynamic_distillation/state_vector_layout_v1.py` | `tests/test_column_rhs_v1.py`, `tests/test_dynamic_run_scaffold_v1.py`, `tests/test_state_vector_layout_v1.py` |
 | `UR-005`, `FR-021`..`FR-026`, `FR-031` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_dynamic_run_scaffold_v1.py` |
 | `UR-006`, `FR-020` | `src/dynamic_distillation/column_rhs_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_column_rhs_v1.py`, `tests/test_dynamic_run_scaffold_v1.py` |
 | `UR-007`, `FR-005` | `src/dynamic_distillation/excel_case_validator_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_excel_case_validator_v1.py` |
@@ -94,6 +105,7 @@ This specification captures the as-built behavior of the current codebase.
 | `UR-010`, `FR-030` | `src/dynamic_distillation/experiment_ledger_v1.py`, `tools/update_experiment_ledger.py` | N/A |
 | `UR-012`, `FR-002a`, `FR-009a`, `FR-034` | `src/dynamic_distillation/excel_case_loader_v1.py`, `src/dynamic_distillation/column_spec_builder_v1.py`, `src/dynamic_distillation/state_vector_layout_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_excel_case_loader_v1.py`, `tests/test_column_spec_builder_v1.py`, `tests/test_state_vector_layout_v1.py`, `tests/test_dynamic_run_scaffold_v1.py` |
 | `UR-011` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_dynamic_run_scaffold_v1.py` |
+| `UR-014`, `FR-009b`, `FR-009c` | `docs/dynamic_column_initialization_strategy.md`, `docs/validation_readiness_gate_2026-05-26.md`, `docs/issue_log.md` (`DD-032`) | Planned; current support is documented policy plus residual/audit tooling under development. |
 | `FR-001`..`FR-004` | `src/dynamic_distillation/excel_case_loader_v1.py`, `src/dynamic_distillation/column_spec_builder_v1.py` | `tests/test_excel_case_loader_v1.py`, `tests/test_column_spec_builder_v1.py`, `tests/test_excel_case_validator_v1.py` |
 | `FR-006`..`FR-009`, `FR-026` | `src/dynamic_distillation/state_vector_layout_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_state_vector_layout_v1.py`, `tests/test_dynamic_run_scaffold_v1.py` |
 

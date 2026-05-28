@@ -140,6 +140,7 @@ def _build_initial_state(
         y=y,
         inputs=inputs,
         include_temperature=bool(include_temperature),
+        preserve_tray_vapor_holdup=bool(use_excel_vapor_holdup),
     )
     return np.asarray(y, dtype=float)
 
@@ -147,7 +148,12 @@ def _build_initial_state(
 def main() -> int:
     ap = argparse.ArgumentParser(description="Generate stage residual breakdown report at t=0.")
     ap.add_argument("--excel", dest="excel_path", default="distillation_column_template.xlsx")
-    ap.add_argument("--thermo", dest="thermo_mode", choices=["stub", "table", "table-pool", "dwsim"], default="table-pool")
+    ap.add_argument(
+        "--thermo",
+        dest="thermo_mode",
+        choices=["stub", "relative-volatility", "simple-rv", "constant-alpha", "table", "table-pool", "dwsim"],
+        default="table-pool",
+    )
     ap.add_argument("--thermo-table", dest="thermo_table_path", default="cache/thermo_table.json")
     ap.add_argument("--thermo-pool-workers", dest="thermo_pool_workers", type=int, default=6)
     ap.add_argument("--thermo-pool-chunk-size", dest="thermo_pool_chunk_size", type=int, default=4)

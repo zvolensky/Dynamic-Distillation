@@ -8,13 +8,197 @@ For project terminology used below, see `docs/glossary.md`.
 The runner performs Excel preflight validation before integration starts.
 For tabular thermo details, see `docs/thermo_surrogate_tables.md`.
 
-Current default thermo execution is the pooled table path:
+Current CLI default thermo execution is the pooled table path:
 - `--thermo table-pool`
 - `--thermo-table cache/thermo_table.json`
 - `--thermo-pool-workers 2`
 - `--thermo-pool-chunk-size 4`
 
 Use explicit CLI flags to override that per run when needed.
+
+Note: older `logs/` output is periodically archived to `logs/archive/old_logs_<date>.zip` to keep the repository tidy while preserving historical run data.
+
+Current recommended validation order:
+1. Use `relative-volatility` first for fast, dependency-free model/regression checks.
+2. Use `clapeyron` PR for fast rigorous-thermo hydrocarbon parity experiments.
+3. Use `dwsim` when checking DWSIM-specific property-package behavior or DLL integration.
+
+**Install And Thermo Setup**
+
+Base install:
+
+```powershell
+python -m pip install -e .
+```
+
+Optional UI install:
+
+```powershell
+python -m pip install -e ".[ui]"
+```
+
+Thermo backend dependencies:
+
+| Backend | Install/setup | Notes |
+|---|---|---|
+| `stub` | Base install only. | Deterministic test/simple backend. |
+| `relative-volatility` | Base install only. | Constant relative-volatility VLE with simple Cp/latent-heat enthalpies. Useful for validation cases where thermo should not dominate runtime or behavior. |
+| `table`, `table-pool` | Base install plus a table JSON such as `cache/thermo_table.json`. | Default practical path; no live external thermo engine is required. |
+| `dwsim` and `dwsim-*` aliases | `python -m pip install -e ".[dwsim]"`; install DWSIM; set `DWSIM_DTL_PATH`; add the DWSIM install folder to `PATH`. | Required DLLs include `DWSIM.Thermodynamics.dll` and `DWSIM.Interfaces.dll`; putting the DWSIM folder on `PATH` also lets native DLLs such as IpOpt load cleanly. |
+| Python `thermo` fallback/helpers | `python -m pip install -e ".[thermo]"` | Used only by fallback/helper paths; not required for normal table runs or a working DWSIM path. |
+| `clapeyron` | `python -m pip install -e ".[clapeyron]"` | Installs `pyclapeyron`; first import may download/install Julia and Clapeyron.jl under the user profile. |
+| All optional thermo packages | `python -m pip install -e ".[all-thermo]"` | Installs Python packages for DWSIM bridge, Python `thermo`, and Clapeyron bridge. DWSIM itself is still installed separately. |
+
+Windows DWSIM environment example:
+
+```powershell
+$dwsim = "C:\Users\Thoma\AppData\Local\DWSIM"
+setx DWSIM_DTL_PATH $dwsim
+
+$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if (($userPath -split ";") -notcontains $dwsim) {
+  [Environment]::SetEnvironmentVariable("Path", "$userPath;$dwsim", "User")
+}
+```
+
+Open a new terminal after changing user environment variables.
+
+Backend smoke tests:
+
+```powershell
+python -c "import clr; print('pythonnet OK')"
+python -c "import thermo; print('thermo OK')"
+python -c "import pyclapeyron; print('pyclapeyron OK')"
+```
+
+Dependency-free validation case with energy states:
+
+```powershell
+python tools/create_relative_volatility_validation_case.py
+python -m dynamic_distillation.dynamic_run_scaffold_v1 `
+  --excel validation_relative_volatility_energy_30stage.xlsx `
+  --runtime-mode parity `
+  --thermo relative-volatility `
+  --include-energy `
+  --use-excel-vapor-holdup `
+  --n-steps 3000 `
+  --dt 0.2 `
+  --log-every 300 `
+  --allow-repeat-command
+```
+
+The current accepted baseline for this case is
+`logs/validation_relative_volatility_energy_30stage_preserve_mv_fixed_600s/column_summary_20260524_160208.csv`,
+with `steady_state_flag=1`, `steady_state_score` about `0.21`, and
+`ss_max_rel_state_rate_per_s` about `6.3e-4`.
+
+Source-topology validation against Skogestad Column A:
+
+```powershell
+python tools/create_skogestad_column_a_validation_case.py
+python -m dynamic_distillation.dynamic_run_scaffold_v1 `
+  --excel validation_skogestad_column_a_relative_volatility.xlsx `
+  --runtime-mode parity `
+  --thermo relative-volatility `
+  --disable-boundary-states `
+  --disable-vapor-states `
+  --no-equilibrium `
+  --n-steps 1500 `
+  --dt 0.2 `
+  --log-every 300 `
+  --logs-dir logs/validation_skogestad_column_a_rv_source_topology_productdraw_300s `
+  --allow-repeat-command
+python tools/compare_skogestad_column_a_profile.py `
+  logs/validation_skogestad_column_a_rv_source_topology_productdraw_300s/column_profile_20260524_214800.csv `
+  --tol-x 0.001 `
+  --tol-y 0.001
+```
+
+This validation uses Skogestad's public `cola.dat` steady profile for Column A
+(`alpha=1.5`, 41 stages including total condenser and reboiler). The accepted
+2026-05-24 run matched the source profile with `max_abs_x_error=8.03e-13` and
+`max_abs_y_error=7.86e-13`. The source has algebraic vapor composition and no
+separate reflux-drum or bottoms-sump dynamic states, so the source-equivalent
+run must use `--disable-boundary-states --disable-vapor-states --no-equilibrium`.
+The generated workbook leaves distillate and bottoms component mole-flow cells
+blank so product draws follow the current terminal compositions, matching
+`D*xD` and `B*xB` in the source model.
+
+Dynamic +1% feed-rate source-response check:
+
+```powershell
+python -m dynamic_distillation.dynamic_run_scaffold_v1 `
+  --excel logs/validation_skogestad_column_a_feed_F101_productdraw_step_restart.xlsx `
+  --runtime-mode parity `
+  --thermo relative-volatility `
+  --disable-boundary-states `
+  --disable-vapor-states `
+  --no-equilibrium `
+  --enable-liquid-hydraulic-override `
+  --liquid-hydraulic-model linear-holdup `
+  --liquid-hydraulic-override-alpha 1.0 `
+  --liquid-hydraulic-htc-sec 3.78 `
+  --n-steps 15000 `
+  --dt 2.0 `
+  --log-every 30 `
+  --logs-dir logs/validation_skogestad_column_a_rv_feed_F101_500min_linearL_productdraw `
+  --allow-repeat-command
+python tools/compare_skogestad_dynamic_response.py `
+  logs/validation_skogestad_column_a_rv_feed_F101_500min_linearL_productdraw/column_profile_20260524_215349.csv `
+  --tol-x 0.001 `
+  --tol-m 0.001
+python tools/plot_skogestad_dynamic_comparison.py `
+  logs/validation_skogestad_column_a_rv_feed_F101_500min_linearL_productdraw/skogestad_dynamic_reference_comparison.csv
+```
+
+The accepted +1% feed-rate run matched a direct Python translation of Skogestad
+`colamod.m` with endpoint errors `endpoint_max_abs_x_error=1.04e-05` and
+`endpoint_max_abs_m_error=1.72e-04`. The plot command writes comparative
+composition and reboiler-holdup SVGs beside the comparison CSV; if
+`matplotlib` is installed, the same tool can also write PNGs through its normal
+plotting path.
+This is a Tier 1 material-balance/topology validation only; it does not validate
+real-component density, level geometry, energy/enthalpy, hydraulic pressure, or
+rigorous thermo backends.
+
+One-step runner checks:
+
+```powershell
+python -m dynamic_distillation.dynamic_run_scaffold_v1 `
+  --excel distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx `
+  --runtime-mode parity `
+  --thermo dwsim `
+  --dwsim-property-package pr `
+  --n-steps 1 `
+  --dt 0.2 `
+  --no-write-logs `
+  --allow-repeat-command
+
+python -m dynamic_distillation.dynamic_run_scaffold_v1 `
+  --excel distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx `
+  --runtime-mode parity `
+  --thermo clapeyron `
+  --clapeyron-model PR `
+  --n-steps 1 `
+  --dt 0.2 `
+  --no-write-logs `
+  --allow-repeat-command
+```
+
+Aligned Clapeyron PR check using DWSIM PR parameters:
+
+```powershell
+python -m dynamic_distillation.dynamic_run_scaffold_v1 `
+  --excel distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx `
+  --runtime-mode parity `
+  --thermo clapeyron `
+  --clapeyron-model PR `
+  --clapeyron-pr-parameter-source dwsim `
+  --n-steps 1 `
+  --dt 0.2 `
+  --no-write-logs `
+  --allow-repeat-command
+```
 
 **Parameters**
 
@@ -39,10 +223,16 @@ Use explicit CLI flags to override that per run when needed.
 | `--no-temp` | flag | `False` | Alias for `--no-temperature`. |
 | `--include-energy` | flag | `False` | Enables energy holdup states (Option B1). |
 | `--energy` | flag | `False` | Alias for `--include-energy`. |
+| `--disable-boundary-states` | flag | `False` | Do not add separate reflux-drum/top and bottoms-sump states. Use only for source-topology validation cases where the source stage set already includes the condenser and reboiler. |
+| `--disable-vapor-states` | flag | `False` | Do not integrate tray vapor holdup/composition states. Vapor composition is treated algebraically from liquid equilibrium; use only for validation sources with no vapor-holdup ODE. |
 | `--no-equilibrium` | flag | `False` | Disables equilibrium relaxation (default is enabled). |
 | `--no-eq` | flag | `False` | Alias for `--no-equilibrium`. |
 | `--equilibrium-relaxation-mode`, `--eq-mode` | `auto` \| `phase-holdup` \| `composition-only` | `auto` | Equilibrium transfer target. `phase-holdup` keeps legacy flash phase-split transfer, `composition-only` relaxes vapor composition at fixed vapor holdup. `auto` selects mode by runtime context (hydraulic mode defaults to `composition-only`). |
-| `--thermo` | `stub` \| `dwsim` \| `table` \| `table-pool` | `table-pool` | Thermo backend selection. |
+| `--thermo` | `stub` \| `relative-volatility` \| `simple-rv` \| `constant-alpha` \| `clapeyron` \| `dwsim` \| `dwsim-unifac` \| `dwsim-nrtl` \| `dwsim-uniquac` \| `dwsim-raoult` \| `dwsim-srk` \| `table` \| `table-pool` | `table-pool` | Thermo backend selection. `relative-volatility` aliases use the workbook `Relative Volatility` spec when present, otherwise alpha defaults to `1.6`. |
+| `--clapeyron-model` | string | `PR` | Clapeyron.jl model constructor name used when `--thermo clapeyron`, e.g. `PR`, `SRK`, `PCSAFT`. |
+| `--clapeyron-ideal-model` | string | `None` | Optional Clapeyron ideal-model constructor name, e.g. `BasicIdeal` or `WalkerIdeal`. |
+| `--clapeyron-pr-parameter-source` | `default` \| `dwsim` | `default` | For `--thermo clapeyron --clapeyron-model PR`, choose Clapeyron's native database or inject DWSIM PR `Tc/Pc/MW/acentric-factor/kij` values. `dwsim` requires DWSIM/pythonnet setup. |
+| `--dwsim-property-package` | `pr` \| `srk` \| `unifac` \| `nrtl` \| `uniquac` \| `raoult` | `pr` | DWSIM property package used by `--thermo dwsim`; `dwsim-*` thermo aliases also select this package. |
 | `--thermo-every` | int | `1` | Compute thermo every N steps; intermediate steps reuse cached thermo diagnostics. |
 | `--thermo-refresh-dt` | float | `None` | Optional per-stage thermo refresh threshold `dT` (F). |
 | `--thermo-refresh-dp` | float | `None` | Optional per-stage thermo refresh threshold `dP` (psia). |
@@ -57,6 +247,7 @@ Use explicit CLI flags to override that per run when needed.
 | `--disable-startup-thermo-conditioning` | flag | `False` | Disables startup thermo-consistent conditioning pass (enabled by default). |
 | `--startup-thermo-conditioning-iters` | int | `2` | Max startup thermo-conditioning iterations. |
 | `--startup-thermo-conditioning-relax` | float | `1.0` | Relaxation factor (`0..1`) for startup thermo conditioning. |
+| `--disable-restart-reentry-settling` | flag | `False` | For explicit restart/boundary-state workbooks, skip hidden re-entry conditioning so a deliberately reconciled initial state is preserved. |
 | `--enable-liquid-hydraulic-override` | flag | `None` | Force-enable internal liquid hydraulic downflow override. |
 | `--disable-liquid-hydraulic-override` | flag | `None` | Disable internal liquid hydraulic downflow override (profile-only internal `L_out`). |
 | `--liquid-hydraulic-override-alpha` | float | `None` | Blend for liquid hydraulics override (`0=profile`, `1=full hydraulic`). |
@@ -80,7 +271,7 @@ Use explicit CLI flags to override that per run when needed.
 | `--steady-state-rate-denom-floor-lbmol` | float | `1.0` | Denominator floor (`lbmol`) used in relative inventory-rate metric. |
 | `--reb-neighbor-vflow-hi-ratio` | float | `None` | Override stage `N-1` vapor-flow upper guard as ratio of boilup in energy mode (default case value or runner fallback `1.20`). |
 | `--reb-neighbor-vflow-lo-ratio` | float | `None` | Override stage `N-1` vapor-flow lower guard as ratio of boilup in energy mode (default case value or runner fallback `0.80`). |
-| `--use-excel-vapor-holdup` | flag | `False` | Use tray vapor holdup values from Excel `Initial Conditions` instead of clearing them before pressure-based vapor-holdup initialization. |
+| `--use-excel-vapor-holdup` | flag | `False` | Preserve tray vapor holdup values from Excel `Initial Conditions` through startup pressure initialization and thermo conditioning. Top-drum vapor seeding still runs. |
 | `--vapor-holdup-relaxation-sec` | float | `None` | Override vapor-holdup relaxation time constant; `<= 0` disables the source term. |
 | `--hydraulic-pressure-relaxation-sec` | float | `None` | Override hydraulic tray-pressure relaxation time constant; `<= 0` disables hydraulic pressure low-pass. |
 | `--top-drum-pressure-temperature-relaxation-sec` | float | `None` | Override top-drum pressure temperature lag time constant; `<= 0` disables this lag, `None` uses case/default behavior. |
@@ -167,6 +358,7 @@ Use explicit CLI flags to override that per run when needed.
   - `--runtime-mode calibration`: same closure set as `parity`, intended for parity/calibration checks.
   - `--runtime-mode hydraulic`: forces `Pressure=hydraulic`, `VaporFlow=energy`, keeps liquid-hydraulic override plus vapor-holdup relaxation off unless explicitly enabled, and defaults feed flashing at stage conditions off unless explicitly requested.
   - `--runtime-mode legacy`: uses existing spec/CLI behavior (backward-compatible path).
+  - `--disable-boundary-states` and `--disable-vapor-states` are special validation switches, not normal plant-model defaults. They are intended to reproduce sources whose condenser/reboiler are already part of the listed stages and whose vapor phase is algebraic.
 - Integrator:
   - `--integrator explicit-euler` keeps legacy explicit stepping (`y += dt*dydt`).
   - `--integrator bdf|radau` uses SciPy stiff stepping per outer timestep, with automatic per-step fallback to explicit Euler if a solve fails.
@@ -210,6 +402,7 @@ Use explicit CLI flags to override that per run when needed.
   - Optional startup hydraulic sequencing (`--enable-startup-hydraulic-sequence`) applies pressure-first startup and delays liquid-hydraulic override with residual gating in `--runtime-mode legacy` only.
   - Every completed run now writes a companion restart workbook into the run folder. That restart workbook contains the updated `Initial Conditions` plus the `Boundary State`, `Energy State`, `Controller State`, and `Dynamic Memory` sheets needed to continue from the reached condition and avoid repeating most fresh-startup calculations on the next run.
   - Explicit restart runs now apply a short hidden re-entry settling pass before normal logging begins. This is much lighter than a fresh startup and is intended to reduce the restart bump at the first resumed timestep.
+  - Use `--disable-restart-reentry-settling` for workbooks that already contain a deliberately reconciled initial state and should not be altered before the first logged timestep.
 - Equilibrium-relaxation transfer mode:
   - `--eq-mode phase-holdup`: legacy behavior, relaxes toward flash phase split.
   - `--eq-mode composition-only`: relaxes vapor composition at fixed `MV_tot` (reduces conflict with vapor-holdup pressure closure).

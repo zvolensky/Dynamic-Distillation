@@ -1,0 +1,73 @@
+{
+  "run_id": "20260404_152634",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 20988,
+  "started_at_local": "2026-04-04 15:26:34",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\water_methanol_template_10stage_chemsep_seed_20260401.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_startpkt_gate3_20260404",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "dwsim",
+  "thermo_every_n_steps": 1,
+  "n_steps": 2,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_startpkt_gate3_20260404\\column_profile_20260404_152634.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_startpkt_gate3_20260404\\column_summary_20260404_152634.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_startpkt_gate3_20260404\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_startpkt_gate3_20260404\\startup_trace_20260404_152517.log",
+  "thermo_call_counters": {
+    "liquid_density_lookup": {
+      "rhoL_cache_hits": 40
+    },
+    "reboiler_equilibrium_helper_flash": {
+      "flash_requests": 8,
+      "backend_flash_equivalents": 8,
+      "wall_sec": 12.156147200148553
+    },
+    "energy_vapor_flow_enthalpy_refresh": {
+      "flash_requests": 60,
+      "backend_flash_equivalents": 60,
+      "wall_sec": 98.83253520145081
+    },
+    "uncategorized": {
+      "rhoL_cache_misses": 2,
+      "rhoL_requests": 2,
+      "wall_sec": 3.7369091999717057,
+      "rhoL_cache_hits": 4
+    },
+    "main_tray_refresh": {
+      "flash_requests": 60,
+      "backend_flash_equivalents": 60,
+      "wall_sec": 107.5933812004514
+    },
+    "temperature_state_cp_lookup": {
+      "cp_cache_misses": 62,
+      "cp_requests": 62,
+      "backend_flash_equivalents": 248
+    },
+    "bottom_sump_cp_lookup": {
+      "cp_cache_misses": 6,
+      "cp_requests": 6,
+      "backend_flash_equivalents": 24,
+      "cp_cache_hits": 2
+    },
+    "condenser_duty_bubble_point_helper_flash": {
+      "flash_requests": 6,
+      "backend_flash_equivalents": 6,
+      "wall_sec": 9.756069000111893
+    },
+    "condenser_duty_helper_flash": {
+      "flash_requests": 6,
+      "backend_flash_equivalents": 6,
+      "wall_sec": 10.207284800009802
+    }
+  },
+  "ended_at_local": "2026-04-04 15:29:31",
+  "elapsed_wall_sec": 177.59094250004273,
+  "final_time_s": 0.4,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_startpkt_gate3_20260404\\water_methanol_template_10stage_chemsep_seed_20260401__restart_20260404_152634.xlsx",
+  "restart_export_error": ""
+}

@@ -1,0 +1,47 @@
+{
+  "run_id": "20260524_160208",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 39276,
+  "started_at_local": "2026-05-24 16:02:08",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\validation_relative_volatility_energy_30stage.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\validation_relative_volatility_energy_30stage_preserve_mv_fixed_600s",
+  "runtime_mode": "parity",
+  "thermo_mode": "relative-volatility",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 1,
+  "n_steps": 3000,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\validation_relative_volatility_energy_30stage_preserve_mv_fixed_600s\\column_profile_20260524_160208.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\validation_relative_volatility_energy_30stage_preserve_mv_fixed_600s\\column_summary_20260524_160208.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\validation_relative_volatility_energy_30stage_preserve_mv_fixed_600s\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\validation_relative_volatility_energy_30stage_preserve_mv_fixed_600s\\startup_trace_20260524_160207.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.006798000016715378,
+    "equilibrium_relaxation_backend_build": 3.4999975468963385e-06,
+    "francis_autocalibration": 4.399975296109915e-06
+  },
+  "startup_build_info": {},
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "feed_stage_flash": {
+      "flash_requests": 2703,
+      "wall_sec": 0.2856980005162768
+    }
+  },
+  "ended_at_local": "2026-05-24 16:02:39",
+  "elapsed_wall_sec": 31.4336829999811,
+  "final_time_s": 599.9999999999994,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\validation_relative_volatility_energy_30stage_preserve_mv_fixed_600s\\validation_relative_volatility_energy_30stage__restart_20260524_160208.xlsx",
+  "restart_export_error": ""
+}

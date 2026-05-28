@@ -1,0 +1,100 @@
+{
+  "results": [
+    {
+      "backend": "dwsim-pr",
+      "returncode": 0,
+      "elapsed_wall_sec_measured": 1023.6675319000205,
+      "run_id": "20260524_140018",
+      "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_dwsim_pr",
+      "metadata_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_dwsim_pr\\run_metadata_20260524_140018.json",
+      "summary_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_dwsim_pr\\column_summary_20260524_140018.csv",
+      "command": "C:\\Python314\\python.exe -m dynamic_distillation.dynamic_run_scaffold_v1 --excel distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx --runtime-mode parity --thermo dwsim --dwsim-property-package pr --n-steps 10 --dt 0.2 --log-every 1 --logs-dir \"C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_dwsim_pr\" --allow-repeat-command --fast-startup",
+      "stdout_tail": "[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=10/20 done beta=0.30651\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=11/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=11/20 done beta=0.31551\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=12/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=12/20 done beta=0.23509\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=13/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=13/20 done beta=0.23739\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=14/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=14/20 done beta=0.24049\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=15/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=15/20 done beta=0.23882\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=16/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=16/20 done beta=0.23615\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=17/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=17/20 done beta=0.24196\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=18/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=18/20 done beta=0.25847\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=19/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=19/20 done beta=0.28863\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=20/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=20/20 done beta=1\n[ThermoTrace][runtime_step_1:outer_rhs] post_flash equilibrium split construction complete\n[ThermoTrace][runtime_step_1:outer_rhs] post_flash building phase-holdup targets\n[ThermoTrace][runtime_step_1:outer_rhs] post_flash target construction complete\n[ThermoTrace][runtime_step_1:outer_rhs] post_flash equilibrium-relaxation diagnostics complete\n[ThermoTrace][runtime_step_1:outer_rhs] column_rhs return\n[Progress] step=     1  sim_t=      0.20 s  wall=    117.36 s  sim/wall=   0.002  SS=0  score=139.43  rel=0.0581/s  kpi=6.37e-12/s  mv=2.79e+03/s  sp=0.0149\n[Progress] step=     2  sim_t=      0.40 s  wall=    193.00 s  sim/wall=   0.002  SS=0  score=69.71  rel=0.148/s  kpi=7.16e-07/s  mv=1.39e+03/s  sp=0.0149\n[Progress] step=     3  sim_t=      0.60 s  wall=    293.69 s  sim/wall=   0.002  SS=0  score=45.42  rel=0.136/s  kpi=1.5e-06/s  mv=837/s  sp=0.0149\n[Progress] step=     4  sim_t=      0.80 s  wall=    380.07 s  sim/wall=   0.002  SS=0  score=42.12  rel=0.126/s  kpi=2.29e-06/s  mv=558/s  sp=0.0149\n[Progress] step=     5  sim_t=      1.00 s  wall=    463.17 s  sim/wall=   0.002  SS=0  score=39.21  rel=0.118/s  kpi=3.08e-06/s  mv=398/s  sp=0.0149\n[Progress] step=     6  sim_t=      1.20 s  wall=    573.70 s  sim/wall=   0.002  SS=0  score=36.63  rel=0.11/s  kpi=3.87e-06/s  mv=299/s  sp=0.0149\n[Progress] step=     7  sim_t=      1.40 s  wall=    683.07 s  sim/wall=   0.002  SS=0  score=34.32  rel=0.103/s  kpi=4.64e-06/s  mv=232/s  sp=0.0149\n[Progress] step=     8  sim_t=      1.60 s  wall=    764.86 s  sim/wall=   0.002  SS=0  score=32.26  rel=0.0968/s  kpi=5.39e-06/s  mv=186/s  sp=0.0149\n[Progress] step=     9  sim_t=      1.80 s  wall=    830.26 s  sim/wall=   0.002  SS=0  score=30.41  rel=0.0912/s  kpi=6.14e-06/s  mv=152/s  sp=0.0149\n[Progress] step=    10  sim_t=      2.00 s  wall=    934.37 s  sim/wall=   0.002  SS=0  score=28.74  rel=0.0862/s  kpi=6.87e-06/s  mv=127/s  sp=0.0149\n[SteadyState] FAIL  score=28.7  rel=0.0862/s  kpi=6.87e-06/s  mv=127/s  dT=0F/s  sp=0.0149\n[Output] Wrote restart workbook: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_dwsim_pr\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323__restart_20260524_140018.xlsx\nWrote: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_dwsim_pr\\column_profile_20260524_140018.csv\nWrote: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_dwsim_pr\\column_summary_20260524_140018.csv",
+      "stderr_tail": "",
+      "startup_timing_sec": {
+        "primary_backend_build": 0.004503900010604411,
+        "equilibrium_relaxation_backend_build": 0.00032759999157860875,
+        "francis_autocalibration": 1.4499993994832039e-05,
+        "vapor_holdup_initialization": 66.35483020002721,
+        "startup_tray_refresh": 63.16114370001014,
+        "startup_tray_refresh_source": "direct-tray-refresh",
+        "startup_tray_refresh_batch_used": false
+      },
+      "thermo_counter_totals": {
+        "flash_requests": 230.0,
+        "backend_flash_equivalents": 314.0,
+        "batch_flash_requests": 0.0,
+        "batch_flash_rows": 0.0,
+        "cp_requests": 21.0,
+        "wall_sec": 674.9994149999693,
+        "cp_wall_sec": 0.0,
+        "liquid_density_requests": 0.0,
+        "liquid_density_wall_sec": 0.0
+      },
+      "final": {
+        "time_s": 1.9999999999999998,
+        "wall_elapsed_s": 934.3714991000015,
+        "P_top_drum_psia": 177.23999397383167,
+        "P_top_ctrl_pv_psia": 177.23999397383167,
+        "xD_comp_pv": 0.09514656880317274,
+        "xD_comp_sp": 0.11,
+        "xB_comp_pv": null,
+        "xB_comp_sp": null,
+        "Reflux_cmd_lbmolph": 5394.890966682104,
+        "D_lbmolph": 2371.3818058286447,
+        "B_lbmolph": 4761.979820952076,
+        "steady_state_score": 28.741800371552948,
+        "ss_max_rel_state_rate_per_s": 0.08622540111465885,
+        "ss_max_mv_rate_per_s": 126.68182265046985
+      }
+    },
+    {
+      "backend": "clapeyron-pr",
+      "returncode": 0,
+      "elapsed_wall_sec_measured": 65.96075050000218,
+      "run_id": "20260524_141704",
+      "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_clapeyron_pr",
+      "metadata_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_clapeyron_pr\\run_metadata_20260524_141704.json",
+      "summary_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_clapeyron_pr\\column_summary_20260524_141704.csv",
+      "command": "C:\\Python314\\python.exe -m dynamic_distillation.dynamic_run_scaffold_v1 --excel distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx --runtime-mode parity --thermo clapeyron --clapeyron-model PR --n-steps 10 --dt 0.2 --log-every 1 --logs-dir \"C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_clapeyron_pr\" --allow-repeat-command --fast-startup",
+      "stdout_tail": "[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=10/20 done beta=0.27795\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=11/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=11/20 done beta=0.28027\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=12/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=12/20 done beta=0.18725\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=13/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=13/20 done beta=0.18758\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=14/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=14/20 done beta=0.18749\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=15/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=15/20 done beta=0.18074\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=16/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=16/20 done beta=0.17018\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=17/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=17/20 done beta=0.16212\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=18/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=18/20 done beta=0.15882\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=19/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=19/20 done beta=0.15424\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=20/20 start\n[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=20/20 done beta=0.96606\n[ThermoTrace][runtime_step_1:outer_rhs] post_flash equilibrium split construction complete\n[ThermoTrace][runtime_step_1:outer_rhs] post_flash building phase-holdup targets\n[ThermoTrace][runtime_step_1:outer_rhs] post_flash target construction complete\n[ThermoTrace][runtime_step_1:outer_rhs] post_flash equilibrium-relaxation diagnostics complete\n[ThermoTrace][runtime_step_1:outer_rhs] column_rhs return\n[Progress] step=     1  sim_t=      0.20 s  wall=      0.06 s  sim/wall=   3.398  SS=0  score=98.88  rel=0.0563/s  kpi=6.37e-12/s  mv=1.98e+03/s  sp=0.0149\n[Progress] step=     2  sim_t=      0.40 s  wall=      0.08 s  sim/wall=   4.815  SS=0  score=49.36  rel=0.0589/s  kpi=6.91e-07/s  mv=987/s  sp=0.0149\n[Progress] step=     3  sim_t=      0.60 s  wall=      0.11 s  sim/wall=   5.701  SS=0  score=29.55  rel=0.0548/s  kpi=1.35e-06/s  mv=591/s  sp=0.0149\n[Progress] step=     4  sim_t=      0.80 s  wall=      0.13 s  sim/wall=   6.264  SS=0  score=19.64  rel=0.0508/s  kpi=2e-06/s  mv=393/s  sp=0.0149\n[Progress] step=     5  sim_t=      1.00 s  wall=      0.15 s  sim/wall=   6.461  SS=0  score=15.64  rel=0.0469/s  kpi=2.64e-06/s  mv=280/s  sp=0.0149\n[Progress] step=     6  sim_t=      1.20 s  wall=      0.18 s  sim/wall=   6.689  SS=0  score=14.36  rel=0.0431/s  kpi=3.28e-06/s  mv=209/s  sp=0.0149\n[Progress] step=     7  sim_t=      1.40 s  wall=      0.21 s  sim/wall=   6.829  SS=0  score=13.21  rel=0.0396/s  kpi=3.9e-06/s  mv=162/s  sp=0.0149\n[Progress] step=     8  sim_t=      1.60 s  wall=      0.23 s  sim/wall=   7.060  SS=0  score=12.57  rel=0.0377/s  kpi=4.52e-06/s  mv=129/s  sp=0.0149\n[Progress] step=     9  sim_t=      1.80 s  wall=      0.25 s  sim/wall=   7.124  SS=0  score=11.95  rel=0.0358/s  kpi=5.13e-06/s  mv=105/s  sp=0.0149\n[Progress] step=    10  sim_t=      2.00 s  wall=      0.27 s  sim/wall=   7.279  SS=0  score=11.33  rel=0.034/s  kpi=5.73e-06/s  mv=86.7/s  sp=0.0149\n[SteadyState] FAIL  score=11.3  rel=0.034/s  kpi=5.73e-06/s  mv=86.7/s  dT=0F/s  sp=0.0149\n[Output] Wrote restart workbook: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_clapeyron_pr\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323__restart_20260524_141704.xlsx\nWrote: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_clapeyron_pr\\column_profile_20260524_141704.csv\nWrote: C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\pr_backend_comparison_20260524_135900\\logs_clapeyron_pr\\column_summary_20260524_141704.csv",
+      "stderr_tail": "",
+      "startup_timing_sec": {
+        "primary_backend_build": 0.0030380999960470945,
+        "equilibrium_relaxation_backend_build": 0.0031734999793116003,
+        "francis_autocalibration": 1.5399971744045615e-05,
+        "vapor_holdup_initialization": 24.24720400001388,
+        "startup_tray_refresh": 24.242943799996283,
+        "startup_tray_refresh_source": "direct-tray-refresh",
+        "startup_tray_refresh_batch_used": true
+      },
+      "thermo_counter_totals": {
+        "flash_requests": 213.0,
+        "backend_flash_equivalents": 213.0,
+        "batch_flash_requests": 11.0,
+        "batch_flash_rows": 220.0,
+        "cp_requests": 213.0,
+        "wall_sec": 22.58593839997775,
+        "cp_wall_sec": 1.5264569000864867,
+        "liquid_density_requests": 31.0,
+        "liquid_density_wall_sec": 0.0019793001702055335
+      },
+      "final": {
+        "time_s": 1.9999999999999998,
+        "wall_elapsed_s": 0.274746100010816,
+        "P_top_drum_psia": 176.52566713794351,
+        "P_top_ctrl_pv_psia": 176.52566713794351,
+        "xD_comp_pv": 0.09514431799926433,
+        "xD_comp_sp": 0.11,
+        "xB_comp_pv": null,
+        "xB_comp_sp": null,
+        "Reflux_cmd_lbmolph": 5562.930785262566,
+        "D_lbmolph": 2374.275592565392,
+        "B_lbmolph": 4761.979820952078,
+        "steady_state_score": 11.332781363666356,
+        "ss_max_rel_state_rate_per_s": 0.03399834409099907,
+        "ss_max_mv_rate_per_s": 86.7198957228511
+      }
+    }
+  ]
+}

@@ -31,6 +31,7 @@ import numpy as np
 import pytest
 from openpyxl import Workbook, load_workbook
 
+import dynamic_distillation.column_rhs_v1 as rhs_module
 import dynamic_distillation.dynamic_run_scaffold_v1 as runmod
 from dynamic_distillation.dynamic_run_scaffold_v1 import (
     PIController,
@@ -61,6 +62,11 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _pressure_resid_gain_scale,
     _update_tray_temp_pressure_slope_F_per_psi,
     _resolve_parity_runtime_thermo_defer_visible_steps,
+    _resolve_runtime_thermo_execution_plan,
+    _resolve_residual_guarded_liquid_hydraulic_alpha,
+    _resolve_residual_guarded_liquid_hydraulic_alpha_per_stage,
+    _resolve_step0_startup_packet_phase_reuse_settings,
+    _resolve_step0_startup_packet_reuse_thresholds,
     _resolve_startup_hydraulic_sequence_step,
     _resolve_startup_execution_flags,
     _sync_algebraic_tray_temperature_state,
@@ -75,6 +81,7 @@ from dynamic_distillation.column_spec_builder_v1 import (
     ColumnSpec,
     HeatDuties,
     SimulationSettings,
+    StreamSpecNormalized,
 )
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
 from dynamic_distillation.stage_hydraulics_francis_v1 import compute_francis_weir_liquid_outflow
@@ -339,10 +346,20 @@ def test_resolve_parity_runtime_thermo_defer_visible_steps_uses_log_boundary():
 def test_initialize_restart_reentry_settling_runs_bounded_hidden_pass(monkeypatch: pytest.MonkeyPatch):
     calls: dict[str, object] = {"thermo_calls": []}
 
-    def _fake_thermo(*, col, layout, y, inputs, include_temperature, max_iter, relaxation):
+    def _fake_thermo(
+        *,
+        col,
+        layout,
+        y,
+        inputs,
+        include_temperature,
+        max_iter,
+        relaxation,
+        preserve_tray_vapor_holdup=False,
+    ):
         thermo_calls = calls.setdefault("thermo_calls", [])
         assert isinstance(thermo_calls, list)
-        thermo_calls.append((include_temperature, max_iter, relaxation))
+        thermo_calls.append((include_temperature, max_iter, relaxation, preserve_tray_vapor_holdup))
         info = {
             "attempted": True,
             "success": True,
@@ -393,6 +410,7 @@ def test_initialize_restart_reentry_settling_runs_bounded_hidden_pass(monkeypatc
     assert thermo_calls[0][0] is True
     assert thermo_calls[0][1] == 1
     assert thermo_calls[0][2] == pytest.approx(0.75)
+    assert thermo_calls[0][3] is True
     assert calls["top_drum"][0] == 2
     assert calls["top_drum"][1] == pytest.approx(1.0e-4)
     assert calls["top_drum"][2] == pytest.approx(12.0)
@@ -771,6 +789,45 @@ def test_initialize_vapor_holdup_rescales_ev_when_energy_states_enabled():
     assert abs(float(ev1[0])) < 1e-12
 
 
+def test_initialize_vapor_holdup_can_preserve_excel_tray_vapor_holdup():
+    class TinyCol:
+        n_stages = 2
+        n_components = 2
+        M_L_lbmol = np.array([5.0, 5.0], dtype=float)
+        M_V_lbmol = np.array([0.2, 0.5], dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.3, 0.7]], dtype=float)
+        y0 = np.array([[0.9, 0.1], [0.4, 0.6]], dtype=float)
+        T_f = np.array([100.0, 120.0], dtype=float)
+        P_psia = np.array([200.0, 210.0], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col)
+    u0 = layout.unpack(y0)
+
+    y1 = _initialize_vapor_holdup_from_spec_pressure(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(Zfac_prev=np.ones(col.n_stages, dtype=float)),
+        include_temperature=False,
+        preserve_tray_vapor_holdup=True,
+    )
+    u1 = layout.unpack(y1)
+
+    assert np.allclose(u1["tray_V"], u0["tray_V"])
+    assert np.allclose(u1["MV_tot_tray"], col.M_V_lbmol)
+
+
 def test_initialize_vapor_holdup_can_return_startup_thermo_diag(monkeypatch):
     class TinyCol:
         n_stages = 2
@@ -824,6 +881,68 @@ def test_initialize_vapor_holdup_can_return_startup_thermo_diag(monkeypatch):
     assert isinstance(diag, dict)
     assert seen["compute_thermo_diag"] is True
     assert "K_tray" in diag
+    assert np.isfinite(np.sum(y1))
+
+
+def test_initialize_vapor_holdup_prefers_direct_tray_refresh_when_provider_available(monkeypatch):
+    class TinyCol:
+        n_stages = 2
+        n_components = 2
+        M_L_lbmol = np.array([0.0, 0.0], dtype=float)
+        M_V_lbmol = np.array([0.0, 0.0], dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.3, 0.7]], dtype=float)
+        y0 = np.array([[0.9, 0.1], [0.4, 0.6]], dtype=float)
+        T_f = np.array([100.0, 120.0], dtype=float)
+        P_psia = np.array([200.0, 210.0], dtype=float)
+        streams = {}
+
+    class FakeProvider:
+        def __init__(self):
+            self.batch_calls = []
+
+        def flash_TP_full_batch(self, T_rows_F, P_rows_psia, z_rows):
+            self.batch_calls.append((list(T_rows_F), list(P_rows_psia), [list(z) for z in z_rows]))
+            out = []
+            for z in z_rows:
+                z_arr = np.asarray(z, dtype=float).reshape((-1,))
+                z_arr = z_arr / max(float(np.sum(z_arr)), 1.0e-300)
+                out.append((z_arr, z_arr, np.ones_like(z_arr), -100.0, 100.0, 0.75))
+            return out
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col)
+    y0 = _clear_initial_tray_vapor_holdup(y0, layout)
+    provider = FakeProvider()
+
+    def _boom(*args, **kwargs):
+        _ = (args, kwargs)
+        raise AssertionError("column_rhs should not be used when direct startup tray refresh is available")
+
+    monkeypatch.setattr(runmod, "column_rhs", _boom)
+
+    y1, diag = _initialize_vapor_holdup_from_spec_pressure(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(thermo_provider=provider),
+        include_temperature=False,
+        return_diag=True,
+    )
+
+    assert len(provider.batch_calls) == 1
+    assert np.allclose(np.asarray(provider.batch_calls[0][2], dtype=float), col.x0)
+    assert diag["startup_vapor_holdup_refresh_source"] == "direct-tray-refresh"
+    assert bool(diag["startup_vapor_holdup_refresh_batch_used"]) is True
+    assert np.allclose(np.asarray(diag["Z_tray"], dtype=float), np.full(col.n_stages, 0.75, dtype=float))
     assert np.isfinite(np.sum(y1))
 
 
@@ -1027,6 +1146,707 @@ def test_condenser_duty_packet_from_diag_extracts_packet():
     assert abs(float(packet.T_bubble_F) - 111.0) < 1e-12
     assert abs(float(packet.V_vapor_in_lbmolps) - 1.2) < 1e-12
     assert np.allclose(packet.y_vapor_in, np.array([0.2, 0.8], dtype=float))
+    assert packet.hL_cond_BTU_lbmol is None
+
+
+def test_seed_startup_condenser_duty_packet_uses_startup_tray_packet_and_profiles():
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=2,
+        n_stages=3,
+        stage_1based=np.array([1, 2, 3], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=2.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={},
+        T_f=np.array([120.0, 130.0, 140.0], dtype=float),
+        P_psia=np.array([220.0, 221.0, 222.0], dtype=float),
+        V_lbmolph=np.array([1000.0, 2000.0, 3000.0], dtype=float),
+        L_lbmolph=np.array([4000.0, 5000.0, 6000.0], dtype=float),
+        M_L_lbmol=np.array([10.0, 11.0, 12.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 2.0, 3.0], dtype=float),
+        y0=np.array([[0.9, 0.1], [0.3, 0.7], [0.2, 0.8]], dtype=float),
+        x0=np.array([[0.8, 0.2], [0.4, 0.6], [0.3, 0.7]], dtype=float),
+        streams={},
+    )
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    y = layout.pack_y0(col)
+    startup_packet = runmod.TrayThermoPacket(
+        z_overall_tray=np.array([[0.8, 0.2], [0.35, 0.65], [0.25, 0.75]], dtype=float),
+        K_tray=np.ones((3, 2), dtype=float),
+        HL_BTU_lbmol_tray=np.array([100.0, 110.0, 120.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([200.0, 210.0, 220.0], dtype=float),
+        Z_tray=np.array([0.95, 0.96, 0.97], dtype=float),
+        T_tray_F=np.array([118.0, 128.0, 138.0], dtype=float),
+        P_tray_psia=np.array([219.0, 220.0, 221.0], dtype=float),
+    )
+
+    packet = runmod._seed_startup_condenser_duty_packet(
+        col=col,
+        layout=layout,
+        y=y,
+        startup_packet=startup_packet,
+        condenser_duty_mode="total-condense",
+    )
+
+    assert packet is not None
+    assert packet.mode == "total-condense"
+    assert packet.T_bubble_F == pytest.approx(118.0)
+    assert packet.V_vapor_in_lbmolps == pytest.approx(2000.0 / 3600.0)
+    assert packet.T_vapor_in_F == pytest.approx(128.0)
+    assert packet.P_vapor_in_psia == pytest.approx(220.0)
+    assert packet.P_condenser_psia == pytest.approx(219.0)
+    assert np.allclose(packet.y_vapor_in, np.array([0.3, 0.7], dtype=float))
+    assert packet.q_calc_BTUph == pytest.approx((2000.0 / 3600.0) * (100.0 - 210.0) * 3600.0)
+    assert packet.hL_cond_BTU_lbmol == pytest.approx(100.0)
+
+
+def test_startup_seed_cache_roundtrip_restores_state_and_packets(tmp_path: Path):
+    col = ColumnSpec(
+        excel_path=str(tmp_path / "case.xlsx"),
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=2,
+        n_stages=3,
+        stage_1based=np.array([1, 2, 3], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=2.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={},
+        T_f=np.array([120.0, 130.0, 140.0], dtype=float),
+        P_psia=np.array([220.0, 221.0, 222.0], dtype=float),
+        V_lbmolph=np.array([1000.0, 2000.0, 3000.0], dtype=float),
+        L_lbmolph=np.array([4000.0, 5000.0, 6000.0], dtype=float),
+        M_L_lbmol=np.array([10.0, 11.0, 12.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 2.0, 3.0], dtype=float),
+        y0=np.array([[0.9, 0.1], [0.3, 0.7], [0.2, 0.8]], dtype=float),
+        x0=np.array([[0.8, 0.2], [0.4, 0.6], [0.3, 0.7]], dtype=float),
+        streams={},
+    )
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    cfg = RunnerConfig(
+        excel_path=str(tmp_path / "case.xlsx"),
+        runtime_mode="hydraulic",
+        thermo_mode="clapeyron",
+        clapeyron_model="PR",
+        include_temperature=True,
+        include_energy=False,
+        enable_startup_seed_cache=True,
+        logs_dir=str(tmp_path / "logs"),
+    )
+    base_inputs = ColumnInputs(
+        pressure_model="hydraulic",
+        vapor_flow_model="energy",
+        condenser_duty_mode="total-condense",
+    )
+    y = layout.pack_y0(col)
+    tray_packet = runmod.TrayThermoPacket(
+        z_overall_tray=np.array([[0.8, 0.2], [0.35, 0.65], [0.25, 0.75]], dtype=float),
+        K_tray=np.array([[1.1, 0.9], [1.0, 1.0], [0.8, 1.2]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([100.0, 110.0, 120.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([200.0, 210.0, 220.0], dtype=float),
+        Z_tray=np.array([0.95, 0.96, 0.97], dtype=float),
+        cpL_BTU_lbmolF_tray=np.array([2.0, 2.1, 2.2], dtype=float),
+        cpV_BTU_lbmolF_tray=np.array([3.0, 3.1, 3.2], dtype=float),
+        T_tray_F=np.array([118.0, 128.0, 138.0], dtype=float),
+        P_tray_psia=np.array([219.0, 220.0, 221.0], dtype=float),
+        x_equilibrium_tray=np.array([[0.82, 0.18], [0.34, 0.66], [0.20, 0.80]], dtype=float),
+        y_equilibrium_tray=np.array([[0.76, 0.24], [0.30, 0.70], [0.18, 0.82]], dtype=float),
+    )
+    condenser_packet = runmod._seed_startup_condenser_duty_packet(
+        col=col,
+        layout=layout,
+        y=y,
+        startup_packet=tray_packet,
+        condenser_duty_mode="total-condense",
+    )
+    feed_packet = runmod.FeedStageFlashPacket(
+        stage0=1,
+        T_feed_F=175.0,
+        P_feed_psia=220.0,
+        z_feed=np.array([0.4, 0.6], dtype=float),
+        Fk_L_lbmolps=np.array([0.1, 0.2], dtype=float),
+        Fk_V_lbmolps=np.array([0.3, 0.4], dtype=float),
+        hL_BTU_lbmol=123.0,
+        hV_BTU_lbmol=456.0,
+    )
+    bottom_sump_packet = runmod.BottomSumpCpPacket(
+        T_sump_F=166.0,
+        P_sump_psia=221.0,
+        x_sump=np.array([0.22, 0.78], dtype=float),
+        cpL_BTU_lbmolF=2.75,
+    )
+    path = runmod._resolve_startup_seed_cache_path(cfg)
+    assert path is not None
+
+    save_info = runmod._write_startup_seed_cache(
+        path=path,
+        cfg=cfg,
+        col=col,
+        layout=layout,
+        base_inputs=base_inputs,
+        y=y,
+        last_T_tray=np.array([118.0, 128.0, 138.0], dtype=float),
+        last_P_diag=np.array([219.0, 220.0, 221.0], dtype=float),
+        last_P_hyd=np.array([219.0, 220.0, 221.0], dtype=float),
+        last_K_tray=tray_packet.K_tray,
+        last_HL=tray_packet.HL,
+        last_HV=tray_packet.HV,
+        last_Zfac=tray_packet.Zfac_tray,
+        last_z_overall=tray_packet.z_overall,
+        last_tray_bubble_target_F=np.array([118.0, 128.0, 138.0], dtype=float),
+        last_tray_thermo_packet=tray_packet,
+        last_condenser_duty_packet=condenser_packet,
+        last_feed_stage_flash_packet=feed_packet,
+        last_bottom_sump_cp_packet=bottom_sump_packet,
+        last_reb_T=141.5,
+        last_reb_x=np.array([0.25, 0.75], dtype=float),
+        last_reb_y=np.array([0.4, 0.6], dtype=float),
+        last_reb_beta=0.35,
+        startup_seeded_condenser_duty_packet=True,
+    )
+
+    assert bool(save_info["saved"]) is True
+    assert path.exists()
+
+    loaded, load_info = runmod._load_startup_seed_cache(
+        path=path,
+        cfg=cfg,
+        col=col,
+        layout=layout,
+        base_inputs=base_inputs,
+    )
+
+    assert loaded is not None
+    assert bool(load_info["loaded"]) is True
+    assert np.allclose(np.asarray(loaded["y"], dtype=float), y)
+    assert np.allclose(np.asarray(loaded["last_T_tray"], dtype=float), np.array([118.0, 128.0, 138.0], dtype=float))
+    assert np.allclose(np.asarray(loaded["last_K_tray"], dtype=float), tray_packet.K_tray)
+    assert np.allclose(np.asarray(loaded["last_tray_thermo_packet"].HL, dtype=float), tray_packet.HL)
+    assert loaded["last_condenser_duty_packet"] is not None
+    assert loaded["last_condenser_duty_packet"].mode == "total-condense"
+    assert loaded["last_condenser_duty_packet"].hL_cond_BTU_lbmol == pytest.approx(100.0)
+    assert loaded["last_feed_stage_flash_packet"] is not None
+    assert loaded["last_feed_stage_flash_packet"].hL_BTU_lbmol == pytest.approx(123.0)
+    assert loaded["last_feed_stage_flash_packet"].hV_BTU_lbmol == pytest.approx(456.0)
+    assert loaded["last_bottom_sump_cp_packet"] is not None
+    assert loaded["last_bottom_sump_cp_packet"].cpL_BTU_lbmolF == pytest.approx(2.75)
+    assert np.allclose(
+        np.asarray(loaded["last_bottom_sump_cp_packet"].x_sump, dtype=float),
+        np.array([0.22, 0.78], dtype=float),
+    )
+    assert loaded["last_reb_T"] == pytest.approx(141.5)
+    assert np.allclose(np.asarray(loaded["last_reb_x"], dtype=float), np.array([0.25, 0.75], dtype=float))
+    assert np.allclose(np.asarray(loaded["last_reb_y"], dtype=float), np.array([0.4, 0.6], dtype=float))
+    assert loaded["last_reb_beta"] == pytest.approx(0.35)
+    assert bool(loaded["startup_seeded_condenser_duty_packet"]) is True
+
+
+def test_seed_startup_feed_stage_flash_packet_normalizes_component_names():
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["n-Propane", "n-Butane", "n-Pentane"],
+        components_dwsim=["Propane", "N-butane", "N-pentane"],
+        n_components=3,
+        n_stages=2,
+        stage_1based=np.array([1, 2], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=1.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={},
+        T_f=np.array([120.0, 140.0], dtype=float),
+        P_psia=np.array([220.0, 225.0], dtype=float),
+        V_lbmolph=np.array([1000.0, 1000.0], dtype=float),
+        L_lbmolph=np.array([1000.0, 1000.0], dtype=float),
+        M_L_lbmol=np.array([10.0, 10.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.0], dtype=float),
+        y0=np.array([[0.7, 0.2, 0.1], [0.6, 0.25, 0.15]], dtype=float),
+        x0=np.array([[0.65, 0.25, 0.10], [0.55, 0.30, 0.15]], dtype=float),
+        streams={
+            "Feed": StreamSpecNormalized(
+                name="Feed",
+                stage_1based=2,
+                temperature_f=175.0,
+                vapor_fraction=0.0,
+                total_molar_flow_lbmolph=7142.98,
+                component_molar_flows_lbmolph={
+                    "n-Propane": 2380.99,
+                    "n-Butane": 3968.32,
+                    "N-Pentane": 793.664,
+                },
+            )
+        },
+    )
+
+    class _FakeProvider:
+        def flash_TP_full(self, T_f, P_psia, z):
+            return type(
+                "FlashResult",
+                (),
+                {
+                    "K": np.array([1.2, 0.9, 0.6], dtype=float),
+                    "HL_BTU_lbmol": 111.0,
+                    "HV_BTU_lbmol": 222.0,
+                },
+            )()
+
+    packet = runmod._seed_startup_feed_stage_flash_packet(
+        col=col,
+        thermo_provider=_FakeProvider(),
+        P_tray_psia=np.array([220.0, 226.896], dtype=float),
+    )
+
+    assert packet is not None
+    expected_fk = runmod._component_molar_flows_vector_lbmolps(
+        {"n-Propane": 2380.99, "n-Butane": 3968.32, "N-Pentane": 793.664},
+        np.asarray(col.components_excel, dtype=object),
+    )
+    expected_z = expected_fk / float(np.sum(expected_fk))
+    assert np.allclose(packet.z_feed, expected_z)
+    assert packet.z_feed[2] > 0.0
+    assert packet.hL_BTU_lbmol == pytest.approx(111.0)
+    assert packet.hV_BTU_lbmol == pytest.approx(222.0)
+
+
+def test_resolve_step0_startup_packet_reuse_thresholds_relaxes_loaded_seed_defaults():
+    base_inputs = ColumnInputs(
+        boundary=rhs_module.BoundaryFlows(
+            reflux_lbmolph=0.0,
+            distillate_lbmolph=0.0,
+            boilup_lbmolph=0.0,
+            bottoms_lbmolph=0.0,
+        )
+    )
+    packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[1.0]], dtype=float),
+        K_tray=np.array([[1.0]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-100.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([100.0], dtype=float),
+        Z_tray=np.array([1.0], dtype=float),
+    )
+
+    reuse, dT, dP, dx = _resolve_step0_startup_packet_reuse_thresholds(
+        startup_seed_loaded=True,
+        runtime_mode="hydraulic",
+        step=0,
+        last_tray_thermo_packet=packet,
+        last_T_tray=np.array([100.0], dtype=float),
+        last_P_hyd=np.array([200.0], dtype=float),
+        last_P_diag=None,
+        last_z_overall=np.array([[1.0]], dtype=float),
+        base_inputs=base_inputs,
+    )
+
+    assert reuse is True
+    assert dT == pytest.approx(0.5)
+    assert dP == pytest.approx(5.0)
+    assert dx == pytest.approx(1.0e-5)
+
+
+def test_resolve_step0_startup_packet_reuse_thresholds_keeps_legacy_defaults_without_loaded_seed():
+    base_inputs = ColumnInputs(
+        boundary=rhs_module.BoundaryFlows(
+            reflux_lbmolph=0.0,
+            distillate_lbmolph=0.0,
+            boilup_lbmolph=0.0,
+            bottoms_lbmolph=0.0,
+        )
+    )
+    packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[1.0]], dtype=float),
+        K_tray=np.array([[1.0]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-100.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([100.0], dtype=float),
+        Z_tray=np.array([1.0], dtype=float),
+    )
+
+    reuse, dT, dP, dx = _resolve_step0_startup_packet_reuse_thresholds(
+        startup_seed_loaded=False,
+        runtime_mode="hydraulic",
+        step=0,
+        last_tray_thermo_packet=packet,
+        last_T_tray=np.array([100.0], dtype=float),
+        last_P_hyd=np.array([200.0], dtype=float),
+        last_P_diag=None,
+        last_z_overall=np.array([[1.0]], dtype=float),
+        base_inputs=base_inputs,
+    )
+
+    assert reuse is True
+    assert dT == pytest.approx(1.0e-3)
+    assert dP == pytest.approx(1.0e-3)
+    assert dx == pytest.approx(1.0e-6)
+
+
+def test_resolve_step0_startup_packet_phase_reuse_settings_relaxes_loaded_seed_vapor_dx():
+    base_inputs = ColumnInputs(
+        boundary=rhs_module.BoundaryFlows(
+            reflux_lbmolph=0.0,
+            distillate_lbmolph=0.0,
+            boilup_lbmolph=0.0,
+            bottoms_lbmolph=0.0,
+        )
+    )
+    packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[1.0]], dtype=float),
+        K_tray=np.array([[1.0]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-100.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([100.0], dtype=float),
+        Z_tray=np.array([1.0], dtype=float),
+    )
+
+    phase_dx, vapor_dx, phase_dT, phase_dP = _resolve_step0_startup_packet_phase_reuse_settings(
+        startup_seed_loaded=True,
+        runtime_mode="hydraulic",
+        step=0,
+        last_tray_thermo_packet=packet,
+        last_T_tray=np.array([100.0], dtype=float),
+        last_P_hyd=np.array([200.0], dtype=float),
+        last_P_diag=None,
+        last_z_overall=np.array([[1.0]], dtype=float),
+        base_inputs=base_inputs,
+    )
+
+    assert phase_dx == pytest.approx(base_inputs.thermo_packet_phase_reuse_dx)
+    assert vapor_dx == pytest.approx(0.25)
+    assert phase_dT == pytest.approx(base_inputs.thermo_packet_phase_reuse_dT_F)
+    assert phase_dP == pytest.approx(base_inputs.thermo_packet_phase_reuse_dP_psia)
+
+
+def test_resolve_step0_startup_packet_phase_reuse_settings_keeps_base_without_loaded_seed():
+    base_inputs = ColumnInputs(
+        boundary=rhs_module.BoundaryFlows(
+            reflux_lbmolph=0.0,
+            distillate_lbmolph=0.0,
+            boilup_lbmolph=0.0,
+            bottoms_lbmolph=0.0,
+        )
+    )
+    packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[1.0]], dtype=float),
+        K_tray=np.array([[1.0]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-100.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([100.0], dtype=float),
+        Z_tray=np.array([1.0], dtype=float),
+    )
+
+    phase_dx, vapor_dx, phase_dT, phase_dP = _resolve_step0_startup_packet_phase_reuse_settings(
+        startup_seed_loaded=False,
+        runtime_mode="hydraulic",
+        step=0,
+        last_tray_thermo_packet=packet,
+        last_T_tray=np.array([100.0], dtype=float),
+        last_P_hyd=np.array([200.0], dtype=float),
+        last_P_diag=None,
+        last_z_overall=np.array([[1.0]], dtype=float),
+        base_inputs=base_inputs,
+    )
+
+    assert phase_dx == pytest.approx(base_inputs.thermo_packet_phase_reuse_dx)
+    assert vapor_dx == pytest.approx(base_inputs.thermo_packet_vapor_reuse_dx)
+    assert phase_dT == pytest.approx(base_inputs.thermo_packet_phase_reuse_dT_F)
+    assert phase_dP == pytest.approx(base_inputs.thermo_packet_phase_reuse_dP_psia)
+
+
+def _make_runtime_thermo_execution_plan_fixture(
+    *,
+    thermo_refresh_dx: float | None = None,
+    equilibrium_relaxation: bool = False,
+):
+    col = ColumnSpec(
+        excel_path="<unit-test>",
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=2,
+        n_stages=2,
+        stage_1based=np.array([1, 2], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={},
+        T_f=np.array([120.0, 135.0], dtype=float),
+        P_psia=np.array([210.0, 220.0], dtype=float),
+        V_lbmolph=np.array([1200.0, 1300.0], dtype=float),
+        L_lbmolph=np.array([2400.0, 2500.0], dtype=float),
+        M_L_lbmol=np.array([12.0, 11.0], dtype=float),
+        M_V_lbmol=np.array([2.0, 3.0], dtype=float),
+        y0=np.array([[0.7, 0.3], [0.45, 0.55]], dtype=float),
+        x0=np.array([[0.8, 0.2], [0.35, 0.65]], dtype=float),
+        streams={},
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    y = layout.pack_y0(col)
+    base_inputs = ColumnInputs(
+        boundary=rhs_module.BoundaryFlows(
+            reflux_lbmolph=0.0,
+            distillate_lbmolph=0.0,
+            boilup_lbmolph=0.0,
+            bottoms_lbmolph=0.0,
+        ),
+        pressure_model="hydraulic",
+        thermo_refresh_dx=thermo_refresh_dx,
+        equilibrium_relaxation=equilibrium_relaxation,
+    )
+    u = layout.unpack(y)
+    z_now = np.zeros((col.n_stages, col.n_components), dtype=float)
+    for i in range(col.n_stages):
+        z_i = np.asarray(u["tray_L"][i, :] + u["tray_V"][i, :], dtype=float)
+        z_now[i, :] = z_i / max(float(np.sum(z_i)), 1.0e-300)
+    return col, layout, y, base_inputs, z_now
+
+
+def test_resolve_runtime_thermo_execution_plan_runs_on_cadence_step():
+    col, layout, y, base_inputs, z_now = _make_runtime_thermo_execution_plan_fixture()
+
+    do_thermo, reason = _resolve_runtime_thermo_execution_plan(
+        step=10,
+        thermo_every=5,
+        col=col,
+        layout=layout,
+        y=y,
+        include_temperature=True,
+        pressure_model="hydraulic",
+        base_inputs=base_inputs,
+        last_T_tray=np.array(col.T_f, dtype=float),
+        last_P_hyd=np.array(col.P_psia, dtype=float),
+        last_P_diag=None,
+        last_Zfac=np.ones(col.n_stages, dtype=float),
+        last_z_overall=z_now.copy(),
+        last_K_tray=np.ones((col.n_stages, col.n_components), dtype=float),
+    )
+
+    assert do_thermo is True
+    assert reason == "cadence"
+
+
+def test_resolve_runtime_thermo_execution_plan_triggers_on_state_dx_guardrail():
+    col, layout, y, base_inputs, z_now = _make_runtime_thermo_execution_plan_fixture(
+        thermo_refresh_dx=1.0e-3,
+    )
+    last_z = z_now.copy()
+    last_z[0, :] = np.array([0.75, 0.25], dtype=float)
+
+    do_thermo, reason = _resolve_runtime_thermo_execution_plan(
+        step=1,
+        thermo_every=5,
+        col=col,
+        layout=layout,
+        y=y,
+        include_temperature=True,
+        pressure_model="hydraulic",
+        base_inputs=base_inputs,
+        last_T_tray=np.array(col.T_f, dtype=float),
+        last_P_hyd=np.array(col.P_psia, dtype=float),
+        last_P_diag=None,
+        last_Zfac=np.ones(col.n_stages, dtype=float),
+        last_z_overall=last_z,
+        last_K_tray=np.ones((col.n_stages, col.n_components), dtype=float),
+    )
+
+    assert do_thermo is True
+    assert reason == "state_dx"
+
+
+def test_resolve_runtime_thermo_execution_plan_holds_within_guardrails():
+    col, layout, y, base_inputs, z_now = _make_runtime_thermo_execution_plan_fixture(
+        thermo_refresh_dx=0.1,
+    )
+
+    do_thermo, reason = _resolve_runtime_thermo_execution_plan(
+        step=1,
+        thermo_every=5,
+        col=col,
+        layout=layout,
+        y=y,
+        include_temperature=True,
+        pressure_model="hydraulic",
+        base_inputs=base_inputs,
+        last_T_tray=np.array(col.T_f, dtype=float),
+        last_P_hyd=np.array(col.P_psia, dtype=float),
+        last_P_diag=None,
+        last_Zfac=np.ones(col.n_stages, dtype=float),
+        last_z_overall=z_now.copy(),
+        last_K_tray=np.ones((col.n_stages, col.n_components), dtype=float),
+    )
+
+    assert do_thermo is False
+    assert reason == "hold"
+
+
+def test_resolve_runtime_thermo_execution_plan_triggers_when_equilibrium_K_missing():
+    col, layout, y, base_inputs, z_now = _make_runtime_thermo_execution_plan_fixture(
+        equilibrium_relaxation=True,
+    )
+
+    do_thermo, reason = _resolve_runtime_thermo_execution_plan(
+        step=1,
+        thermo_every=5,
+        col=col,
+        layout=layout,
+        y=y,
+        include_temperature=True,
+        pressure_model="hydraulic",
+        base_inputs=base_inputs,
+        last_T_tray=np.array(col.T_f, dtype=float),
+        last_P_hyd=np.array(col.P_psia, dtype=float),
+        last_P_diag=None,
+        last_Zfac=np.ones(col.n_stages, dtype=float),
+        last_z_overall=z_now.copy(),
+        last_K_tray=None,
+    )
+
+    assert do_thermo is True
+    assert reason == "missing_K"
+
+
+def test_startup_seed_cache_signature_mismatch_is_rejected(tmp_path: Path):
+    col = ColumnSpec(
+        excel_path=str(tmp_path / "case.xlsx"),
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=2,
+        n_stages=2,
+        stage_1based=np.array([1, 2], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=2.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={},
+        T_f=np.array([120.0, 130.0], dtype=float),
+        P_psia=np.array([220.0, 221.0], dtype=float),
+        V_lbmolph=np.array([1000.0, 2000.0], dtype=float),
+        L_lbmolph=np.array([4000.0, 5000.0], dtype=float),
+        M_L_lbmol=np.array([10.0, 11.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 2.0], dtype=float),
+        y0=np.array([[0.9, 0.1], [0.3, 0.7]], dtype=float),
+        x0=np.array([[0.8, 0.2], [0.4, 0.6]], dtype=float),
+        streams={},
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=False,
+    )
+    cfg_write = RunnerConfig(
+        excel_path=str(tmp_path / "case.xlsx"),
+        runtime_mode="hydraulic",
+        thermo_mode="clapeyron",
+        clapeyron_model="PR",
+        enable_startup_seed_cache=True,
+        logs_dir=str(tmp_path / "logs"),
+    )
+    cfg_read = RunnerConfig(
+        excel_path=str(tmp_path / "case.xlsx"),
+        runtime_mode="hydraulic",
+        thermo_mode="clapeyron",
+        clapeyron_model="SRK",
+        enable_startup_seed_cache=True,
+        logs_dir=str(tmp_path / "logs"),
+    )
+    base_inputs = ColumnInputs(
+        pressure_model="hydraulic",
+        vapor_flow_model="energy",
+        condenser_duty_mode="total-condense",
+    )
+    y = layout.pack_y0(col)
+    path = runmod._resolve_startup_seed_cache_path(cfg_write)
+    assert path is not None
+    save_info = runmod._write_startup_seed_cache(
+        path=path,
+        cfg=cfg_write,
+        col=col,
+        layout=layout,
+        base_inputs=base_inputs,
+        y=y,
+        last_T_tray=None,
+        last_P_diag=None,
+        last_P_hyd=None,
+        last_K_tray=None,
+        last_HL=None,
+        last_HV=None,
+        last_Zfac=None,
+        last_z_overall=None,
+        last_tray_bubble_target_F=None,
+        last_tray_thermo_packet=None,
+        last_condenser_duty_packet=None,
+        last_feed_stage_flash_packet=None,
+        last_bottom_sump_cp_packet=None,
+        last_reb_T=None,
+        last_reb_x=None,
+        last_reb_y=None,
+        last_reb_beta=None,
+        startup_seeded_condenser_duty_packet=False,
+    )
+    assert bool(save_info["saved"]) is True
+
+    loaded, load_info = runmod._load_startup_seed_cache(
+        path=path,
+        cfg=cfg_read,
+        col=col,
+        layout=layout,
+        base_inputs=base_inputs,
+    )
+
+    assert loaded is None
+    assert "signature_mismatch" in str(load_info["reason"])
+
+
+def test_runner_writes_and_reuses_startup_seed_cache(tmp_path: Path):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    logs_dir = tmp_path / "seed_logs"
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        n_steps=0,
+        dt_sec=0.1,
+        log_every_n_steps=1,
+        include_temperature=True,
+        include_energy=False,
+        thermo_mode="stub",
+        logs_dir=str(logs_dir),
+        write_logs=True,
+        enable_startup_seed_cache=True,
+    )
+
+    out1 = run_smoke_simulation(cfg)
+    seed_info_1 = dict(out1.get("startup_seed_cache_info") or {})
+    seed_path = Path(str(seed_info_1.get("path") or ""))
+    assert seed_path.exists()
+    assert bool(seed_info_1.get("saved", False)) is True
+    assert bool(seed_info_1.get("loaded", False)) is False
+
+    out2 = run_smoke_simulation(cfg)
+    seed_info_2 = dict(out2.get("startup_seed_cache_info") or {})
+    assert bool(seed_info_2.get("loaded", False)) is True
+    metadata_path = Path(str(out2["run_metadata_json"]))
+    doc = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert bool(doc["startup_seed_cache"]["loaded"]) is True
 
 
 def test_bottom_true_level_control_logs_fractional_pv_and_sp(tmp_path: Path):
@@ -1237,6 +2057,142 @@ def test_summary_row_prefers_logged_hydraulic_bottom_pressure():
 
     assert float(row["P_bot_psia"]) == pytest.approx(242.0)
     assert float(row["P_bot_psia_spec"]) == pytest.approx(230.0)
+
+
+def test_summary_row_bottoms_product_composition_remains_sump_and_reports_stage_mismatch():
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    class TinyCol:
+        n_stages = 2
+        n_components = 2
+        components_excel = ["C3", "C4"]
+        T_f = np.array([120.0, 130.0], dtype=float)
+        P_psia = np.array([220.0, 230.0], dtype=float)
+        M_L_lbmol = np.array([5.0, 6.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.0], dtype=float)
+        x0 = np.array([[0.80, 0.20], [0.30, 0.70]], dtype=float)
+        y0 = np.array([[0.75, 0.25], [0.25, 0.75]], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=col.n_stages,
+        n_components=col.n_components,
+        include_top=False,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=True,
+    )
+    y = layout.pack_y0(col)
+    sl = layout.slices()
+    y[sl["bottom_L"]] = np.array([100.0, 0.0], dtype=float)
+    y[sl["bottom_T_f"]] = np.array([165.0], dtype=float)
+    diag = {
+        "x_tray": np.asarray(col.x0, dtype=float).copy(),
+        "y_tray": np.asarray(col.y0, dtype=float).copy(),
+        "P_psia_diag": np.array([222.0, 231.0], dtype=float),
+        "P_psia_hyd": np.array([224.0, 232.0], dtype=float),
+    }
+
+    row = scaffold._summary_row(
+        t_s=0.0,
+        case=None,
+        col=col,
+        layout=layout,
+        y=y,
+        diag=diag,
+        include_temperature=True,
+        volume_model=scaffold.VolumeModel(default_vapor_volume_ft3=10.0),
+        wall_clock_iso="2026-04-09T00:00:00",
+        wall_elapsed_s=0.0,
+        feed_tag=scaffold.StreamTag(name="Feed", flow_lbmolph=1000.0, stage_1based=2),
+        dist_tag=scaffold.StreamTag(name="Distillate", flow_lbmolph=200.0, stage_1based=1),
+        bots_tag=scaffold.StreamTag(name="Bottoms", flow_lbmolph=800.0, stage_1based=2),
+    )
+
+    assert float(row["x_Bottoms_C3"]) == pytest.approx(0.30)
+    assert float(row["Bottoms_x_C3"]) == pytest.approx(1.0)
+    assert float(row["Bottoms_x_C4"]) == pytest.approx(0.0)
+    assert float(row["Bottoms_sump_x_C3"]) == pytest.approx(1.0)
+    assert float(row["Bottoms_sump_x_C4"]) == pytest.approx(0.0)
+    assert str(row["Bottoms_x_source"]) == "sump"
+    assert float(row["Bottoms_stage_sump_tv_distance"]) == pytest.approx(0.70)
+
+
+def test_desired_inventory_recovery_rate_uses_volume_fraction_in_true_level_mode():
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    rate = scaffold._desired_inventory_recovery_rate_lbmolph(
+        total_lbmol=472.0,
+        pv=0.23858148859461004,
+        sp=0.5,
+        pv_mode="true-level",
+        lbmol_per_volume_fraction_scale=2679.0,
+        recover_tau_sec=120.0,
+    )
+
+    expected = 2679.0 * (
+        scaffold._horizontal_cylinder_volume_fraction_from_height_fraction(0.5)
+        - scaffold._horizontal_cylinder_volume_fraction_from_height_fraction(0.23858148859461004)
+    ) * 3600.0 / 120.0
+    assert float(rate) == pytest.approx(expected)
+    assert float(rate) > 0.0
+
+
+def test_desired_inventory_recovery_rate_uses_lbmol_delta_in_molar_holdup_mode():
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    rate = scaffold._desired_inventory_recovery_rate_lbmolph(
+        total_lbmol=450.0,
+        pv=0.3,
+        sp=500.0,
+        pv_mode="molar-holdup",
+        lbmol_per_volume_fraction_scale=9999.0,
+        recover_tau_sec=100.0,
+    )
+
+    assert float(rate) == pytest.approx((500.0 - 450.0) * 3600.0 / 100.0)
+
+
+def test_allow_coupled_total_condenser_partial_condense_defaults_on():
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    cfg = scaffold.RunnerConfig(excel_path="case.xlsx")
+
+    assert (
+        scaffold._allow_coupled_total_condenser_partial_condense(
+            cfg=cfg,
+            pressure_control_mv="condenser-duty",
+            condenser_duty_mode="total-condense",
+        )
+        is True
+    )
+
+
+def test_allow_coupled_total_condenser_partial_condense_can_be_disabled():
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    cfg = scaffold.RunnerConfig(
+        excel_path="case.xlsx",
+        enable_coupled_total_condenser_partial_condense=False,
+    )
+
+    assert (
+        scaffold._allow_coupled_total_condenser_partial_condense(
+            cfg=cfg,
+            pressure_control_mv="condenser-duty",
+            condenser_duty_mode="total-condense",
+        )
+        is False
+    )
+    assert (
+        scaffold._allow_coupled_total_condenser_partial_condense(
+            cfg=cfg,
+            pressure_control_mv="top-anchor",
+            condenser_duty_mode="total-condense",
+        )
+        is False
+    )
 
 
 def test_summary_row_includes_integrator_diagnostics():
@@ -1499,9 +2455,16 @@ def test_profile_rows_add_unit_rows_and_move_drum_sump_fields():
         "eq_target_vapor_fraction_tray": np.array([0.20, 0.257142857], dtype=float),
         "eq_current_vapor_fraction_tray": np.array([1.0 / 6.0, 1.0 / 7.0], dtype=float),
         "eq_phase_change_lbmolps_tray": np.array([0.20, 0.40], dtype=float),
+        "eq_phase_rate_guard_scale_tray": np.array([1.0, 0.5], dtype=float),
+        "eq_phase_rate_guard_limit_lbmolps_tray": np.array([np.nan, 0.4], dtype=float),
         "xB_comp_sp": np.array([0.30], dtype=float),
         "xB_comp_pv": np.array([0.28], dtype=float),
         "Boilup_cmd_lbmolph": np.array([12000.0], dtype=float),
+        "dT_energy_raw_F_per_s_tray": np.array([0.1, 25.0], dtype=float),
+        "tray_heat_capacity_BTU_per_F_tray": np.array([100.0, 5.0], dtype=float),
+        "tray_effective_heat_capacity_BTU_per_F_tray": np.array([100.0, 25.0], dtype=float),
+        "tray_temperature_guard_active_tray": np.array([0.0, 1.0], dtype=float),
+        "tray_temperature_rate_limit_F_per_s_tray": np.array([np.nan, 10.0], dtype=float),
     }
 
     rows = scaffold._profile_rows(
@@ -1561,11 +2524,16 @@ def test_profile_rows_add_unit_rows_and_move_drum_sump_fields():
     assert float(stage2["eq_target_vapor_delta_lbmol_tray"]) == pytest.approx(0.8)
     assert float(stage1["eq_current_vapor_fraction_tray"]) == pytest.approx(1.0 / 6.0)
     assert float(stage2["eq_phase_change_lbmolps_tray"]) == pytest.approx(0.40)
+    assert float(stage2["eq_phase_rate_guard_scale_tray"]) == pytest.approx(0.5)
+    assert float(stage2["eq_phase_rate_guard_limit_lbmolps_tray"]) == pytest.approx(0.4)
     assert float(stage1["eq_flash_mv_total_lbmol_tray"]) == pytest.approx(1.2)
     assert float(stage2["eq_target_mv_total_lbmol_tray"]) == pytest.approx(1.7)
     assert float(stage1["x_eq_C3"]) == pytest.approx(0.78)
     assert float(stage2["y_eq_C4"]) == pytest.approx(0.76)
     assert float(stage1["y_target_C4"]) == pytest.approx(0.255)
+    assert float(stage2["tray_effective_heat_capacity_BTU_per_F"]) == pytest.approx(25.0)
+    assert float(stage2["tray_temperature_guard_active_tray"]) == pytest.approx(1.0)
+    assert float(stage2["tray_temperature_rate_limit_F_per_s_tray"]) == pytest.approx(10.0)
 
 
 def test_clip_temperature_states_to_provider_bounds():
@@ -2097,6 +3065,70 @@ def test_startup_hydraulic_sequence_disabled_uses_base_modes():
     assert v == "energy"
     assert a == pytest.approx(0.75)
     assert ph == "base"
+
+
+def test_residual_guarded_liquid_hydraulic_alpha_backs_off_on_high_residual():
+    base = ColumnInputs(
+        pressure_model="hydraulic",
+        vapor_flow_model="energy",
+        enable_liquid_hydraulic_override=True,
+        liquid_hydraulic_override_alpha=1.0,
+    )
+    a, phase = _resolve_residual_guarded_liquid_hydraulic_alpha(
+        dt_sec=10.0,
+        base_inputs=base,
+        liquid_resid_gate_lbmolph=100.0,
+        liquid_backoff_sec=20.0,
+        liquid_recover_sec=40.0,
+        liquid_alpha_state=0.8,
+        last_mass_resid_max_lbmolph=250.0,
+    )
+    assert a == pytest.approx(0.4)
+    assert phase == "backoff"
+
+
+def test_residual_guarded_liquid_hydraulic_alpha_recovers_toward_alpha_max():
+    base = ColumnInputs(
+        pressure_model="hydraulic",
+        vapor_flow_model="energy",
+        enable_liquid_hydraulic_override=True,
+        liquid_hydraulic_override_alpha=0.75,
+    )
+    a, phase = _resolve_residual_guarded_liquid_hydraulic_alpha(
+        dt_sec=10.0,
+        base_inputs=base,
+        liquid_resid_gate_lbmolph=100.0,
+        liquid_backoff_sec=20.0,
+        liquid_recover_sec=40.0,
+        liquid_alpha_state=0.25,
+        last_mass_resid_max_lbmolph=25.0,
+    )
+    assert a == pytest.approx(0.4375)
+    assert phase == "recover"
+
+
+def test_residual_guarded_liquid_hydraulic_alpha_per_stage_only_backs_off_hot_trays():
+    base = ColumnInputs(
+        pressure_model="hydraulic",
+        vapor_flow_model="energy",
+        enable_liquid_hydraulic_override=True,
+        liquid_hydraulic_override_alpha=1.0,
+    )
+    a, phase = _resolve_residual_guarded_liquid_hydraulic_alpha_per_stage(
+        dt_sec=10.0,
+        base_inputs=base,
+        liquid_resid_gate_lbmolph=100.0,
+        liquid_recover_sec=40.0,
+        liquid_alpha_state=np.ones((5,), dtype=float),
+        last_mass_resid_lbmolph_per_stage=np.array([20.0, 250.0, 50.0, 400.0, 10.0], dtype=float),
+    )
+    assert phase == "backoff"
+    assert a.shape == (5,)
+    assert a[0] == pytest.approx(1.0)
+    assert a[1] == pytest.approx(0.4)
+    assert a[2] == pytest.approx(1.0)
+    assert a[3] == pytest.approx(0.25)
+    assert a[4] == pytest.approx(1.0)
 
 
 def test_startup_hydraulic_sequence_supports_conductance_vapor_mode():
@@ -3267,6 +4299,207 @@ def test_build_inputs_reads_equilibrium_tuning_from_specs():
     assert inputs.hydraulic_energy_temperature_follow_tau_sec == pytest.approx(1.25)
 
 
+def test_build_inputs_skips_primary_backend_prewarm_by_default(monkeypatch):
+    class TinyCol:
+        n_stages = 3
+        n_components = 2
+        components_excel = ["A", "B"]
+        components_dwsim = ["A", "B"]
+        specs_raw = {}
+        geometry = None
+        T_f = np.array([100.0, 110.0, 120.0], dtype=float)
+        P_psia = np.array([200.0, 205.0, 210.0], dtype=float)
+        V_lbmolph = np.array([10.0, 11.0, 12.0], dtype=float)
+        L_lbmolph = np.array([20.0, 21.0, 22.0], dtype=float)
+        M_L_lbmol = np.array([5.0, 6.0, 7.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.0, 1.0], dtype=float)
+        y0 = np.array([[0.6, 0.4], [0.5, 0.5], [0.4, 0.6]], dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.5, 0.5], [0.3, 0.7]], dtype=float)
+        top_L0_lbmol = None
+        top_V0_lbmol = None
+        bottom_L0_lbmol = None
+        bottom_V0_lbmol = None
+        tray_EL0_BTU = None
+        tray_EV0_BTU = None
+        controller_state = None
+        memory_state = None
+        streams = {}
+        tau_eq_sec = 4.0
+
+    class TinyCase:
+        streams = {}
+
+    class FakeProvider:
+        def __init__(self):
+            self.calls = []
+
+        def warm_startup_kernels(self, *, density_state=None, flash_rows=None):
+            self.calls.append((density_state, flash_rows))
+            return {"density_ready": bool(density_state is not None), "flash_ready": bool(flash_rows)}
+
+    from dynamic_distillation.thermo_backend_factory_v1 import ThermoBackendBuildResult
+    from dynamic_distillation.thermo_backend_protocol_v1 import get_thermo_backend_capabilities
+
+    provider = FakeProvider()
+    monkeypatch.setattr(
+        runmod,
+        "build_primary_thermo_backend",
+        lambda **kwargs: ThermoBackendBuildResult(
+            provider=provider,
+            thermo_mode="clapeyron",
+            dwsim_property_package=None,
+            capabilities=get_thermo_backend_capabilities(provider),
+        ),
+    )
+    monkeypatch.setattr(runmod, "build_equilibrium_relaxation_pr_provider", lambda **kwargs: None)
+    monkeypatch.setattr(runmod, "_autocalibrate_francis_hydraulic_c_factors_from_seed", lambda **kwargs: False)
+
+    inputs, _ = build_inputs_for_runner(
+        TinyCase(),
+        TinyCol(),
+        RunnerConfig(excel_path="<unit-test>", thermo_mode="clapeyron"),
+    )
+
+    assert provider.calls == []
+    assert hasattr(inputs, "startup_build_timing_sec")
+    assert "primary_backend_prewarm" not in inputs.startup_build_timing_sec
+    assert hasattr(inputs, "startup_build_info")
+    assert "primary_backend_prewarm" not in inputs.startup_build_info
+
+
+def test_build_inputs_records_primary_backend_prewarm_timing_when_enabled(monkeypatch):
+    class TinyCol:
+        n_stages = 3
+        n_components = 2
+        components_excel = ["A", "B"]
+        components_dwsim = ["A", "B"]
+        specs_raw = {}
+        geometry = None
+        T_f = np.array([100.0, 110.0, 120.0], dtype=float)
+        P_psia = np.array([200.0, 205.0, 210.0], dtype=float)
+        V_lbmolph = np.array([10.0, 11.0, 12.0], dtype=float)
+        L_lbmolph = np.array([20.0, 21.0, 22.0], dtype=float)
+        M_L_lbmol = np.array([5.0, 6.0, 7.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.0, 1.0], dtype=float)
+        y0 = np.array([[0.6, 0.4], [0.5, 0.5], [0.4, 0.6]], dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.5, 0.5], [0.3, 0.7]], dtype=float)
+        top_L0_lbmol = None
+        top_V0_lbmol = None
+        bottom_L0_lbmol = None
+        bottom_V0_lbmol = None
+        tray_EL0_BTU = None
+        tray_EV0_BTU = None
+        controller_state = None
+        memory_state = None
+        streams = {}
+        tau_eq_sec = 4.0
+
+    class TinyCase:
+        streams = {}
+
+    class FakeProvider:
+        def __init__(self):
+            self.calls = []
+
+        def warm_startup_kernels(self, *, density_state=None, flash_rows=None):
+            self.calls.append((density_state, flash_rows))
+            return {"density_ready": bool(density_state is not None), "flash_ready": bool(flash_rows)}
+
+    from dynamic_distillation.thermo_backend_factory_v1 import ThermoBackendBuildResult
+    from dynamic_distillation.thermo_backend_protocol_v1 import get_thermo_backend_capabilities
+
+    provider = FakeProvider()
+    monkeypatch.setattr(
+        runmod,
+        "build_primary_thermo_backend",
+        lambda **kwargs: ThermoBackendBuildResult(
+            provider=provider,
+            thermo_mode="clapeyron",
+            dwsim_property_package=None,
+            capabilities=get_thermo_backend_capabilities(provider),
+        ),
+    )
+    monkeypatch.setattr(runmod, "build_equilibrium_relaxation_pr_provider", lambda **kwargs: None)
+    monkeypatch.setattr(runmod, "_autocalibrate_francis_hydraulic_c_factors_from_seed", lambda **kwargs: False)
+
+    inputs, _ = build_inputs_for_runner(
+        TinyCase(),
+        TinyCol(),
+        RunnerConfig(
+            excel_path="<unit-test>",
+            thermo_mode="clapeyron",
+            enable_primary_thermo_startup_prewarm=True,
+        ),
+    )
+
+    assert len(provider.calls) == 1
+    density_state, flash_rows = provider.calls[0]
+    assert density_state is not None
+    assert flash_rows is not None
+    assert len(flash_rows) == 3
+    assert hasattr(inputs, "startup_build_timing_sec")
+    assert float(inputs.startup_build_timing_sec["primary_backend_prewarm"]) >= 0.0
+    assert hasattr(inputs, "startup_build_info")
+    assert bool(inputs.startup_build_info["primary_backend_prewarm"]["executed"]) is True
+
+
+def test_build_inputs_applies_default_thermo_cadence_guardrails_for_hydraulic_runs():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    inputs, _ = build_inputs_for_runner(
+        case,
+        col,
+        RunnerConfig(
+            excel_path=str(excel),
+            runtime_mode="hydraulic",
+            thermo_mode="stub",
+            thermo_every_n_steps=5,
+            include_temperature=True,
+        ),
+    )
+
+    assert inputs.thermo_refresh_dT_F == pytest.approx(1.0)
+    assert inputs.thermo_refresh_dP_psia is None
+    assert inputs.thermo_refresh_dx == pytest.approx(5.0e-3)
+
+
+def test_build_inputs_can_disable_default_thermo_cadence_guardrails():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+
+    inputs, _ = build_inputs_for_runner(
+        case,
+        col,
+        RunnerConfig(
+            excel_path=str(excel),
+            runtime_mode="hydraulic",
+            thermo_mode="stub",
+            thermo_every_n_steps=5,
+            include_temperature=True,
+            enable_thermo_cadence_guardrails=False,
+        ),
+    )
+
+    assert inputs.thermo_refresh_dT_F is None
+    assert inputs.thermo_refresh_dP_psia is None
+    assert inputs.thermo_refresh_dx is None
+
+
 def test_build_inputs_adds_overhead_and_condenser_vapor_capacitance():
     excel = Path("distillation_column_template.xlsx")
     if not excel.exists():
@@ -3639,6 +4872,27 @@ def test_build_inputs_runtime_hydraulic_defaults_equilibrium_mode_to_composition
     assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.0)
     assert inputs.vapor_holdup_relaxation_sec is None
     assert bool(inputs.flash_feed_at_stage_conditions) is False
+
+
+def test_build_inputs_runtime_hydraulic_keeps_explicit_liquid_hydraulics_opt_out():
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
+    from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
+
+    case = load_case_from_excel(str(excel))
+    col = build_column_spec_from_case(case)
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        thermo_mode="stub",
+        runtime_mode="hydraulic",
+        enable_liquid_hydraulic_override=False,
+    )
+    inputs, _ = build_inputs_for_runner(case, col, cfg)
+    assert bool(inputs.enable_liquid_hydraulic_override) is False
+    assert float(inputs.liquid_hydraulic_override_alpha) == pytest.approx(0.0)
 
 
 def test_refresh_tray_bubble_targets_uses_cached_state_and_provider(monkeypatch: pytest.MonkeyPatch):

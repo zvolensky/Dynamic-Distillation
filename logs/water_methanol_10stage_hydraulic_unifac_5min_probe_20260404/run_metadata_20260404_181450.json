@@ -1,0 +1,20 @@
+{
+  "run_id": "20260404_181450",
+  "run_name": "",
+  "run_description": "",
+  "status": "running",
+  "pid": 36540,
+  "started_at_local": "2026-04-04 18:14:50",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\water_methanol_template_10stage_chemsep_seed_20260401.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_5min_probe_20260404",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "dwsim",
+  "thermo_every_n_steps": 1,
+  "n_steps": 1500,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_5min_probe_20260404\\column_profile_20260404_181450.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_5min_probe_20260404\\column_summary_20260404_181450.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_5min_probe_20260404\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\water_methanol_10stage_hydraulic_unifac_5min_probe_20260404\\startup_trace_20260404_181400.log",
+  "thermo_call_counters": {}
+}

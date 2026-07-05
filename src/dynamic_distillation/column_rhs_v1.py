@@ -3669,6 +3669,9 @@ def column_rhs(
         # Uncondensed vapor is retained in the top vapor holdup.
         feedL0 = Fk_L if (feed_stage0 == 0) else 0.0
         feedV0 = Fk_V if (feed_stage0 == 0) else 0.0
+        stage1_dry_condenser = bool(
+            float(ML_tot_stage[0]) <= float(layout.epsilon_lbmol)
+        )
         x_condL = _safe_comp_from_holdup(tray_L[0, :], fallback=y_in[0, :], eps=layout.epsilon_lbmol)
         x_cond_diag = np.asarray(x_condL, dtype=float).reshape((Nc,))
         L_cond_to_top_lbmolps = max(
@@ -3677,6 +3680,19 @@ def column_rhs(
         )
         if feed_stage0 == 0:
             L_cond_to_top_lbmolps += float(np.sum(feedL0 + feedV0))
+        if stage1_dry_condenser and L_cond_to_top_lbmolps > float(layout.epsilon_lbmol):
+            cond_to_top_comp = (
+                float(V_condensed_in_lbmolps) * y_in[0, :]
+                + float(V_condensed_top_lbmolps) * y_topV
+            )
+            if feed_stage0 == 0:
+                cond_to_top_comp = cond_to_top_comp + feedL0 + feedV0
+            x_condL = _safe_comp_from_holdup(
+                cond_to_top_comp,
+                fallback=y_in[0, :],
+                eps=layout.epsilon_lbmol,
+            )
+            x_cond_diag = np.asarray(x_condL, dtype=float).reshape((Nc,))
 
         top_L_cond_in_comp = float(L_cond_to_top_lbmolps) * x_condL
         d_top_L += top_L_cond_in_comp

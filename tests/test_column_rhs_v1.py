@@ -222,6 +222,40 @@ def test_total_condenser_top_drum_balance():
     assert np.allclose(d_tray_L[0, :], expected_d_cond, atol=1e-12)
 
 
+def test_dry_total_condenser_sends_actual_condensate_to_top_drum():
+    col = _make_tiny_column()
+
+    col2 = ColumnSpec(**{**col.__dict__,
+        "V_lbmolph": np.array([12.0, 12.0], dtype=float),
+        "L_lbmolph": np.array([6.0, 6.0], dtype=float),
+        "M_L_lbmol": np.array([0.0, 5.0], dtype=float),
+        "streams": {},
+    })
+    object.__setattr__(col2, "top_L0_lbmol", np.array([4.0, 1.0], dtype=float))
+
+    layout = StateVectorLayout(n_stages=2, n_components=2, include_top=True, include_bottom=True, include_vapor=True)
+    y0 = layout.pack_y0(col2)
+
+    inputs = ColumnInputs(boundary=BoundaryFlows(reflux_lbmolph=6.0, boilup_lbmolph=12.0))
+    dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+
+    sl = layout.slices()
+    top_L = y0[sl["top_L"]]
+    x_topL = top_L / max(float(np.sum(top_L)), 1e-300)
+    y_in0 = layout.unpack(y0)["y_tray"][1, :]
+
+    reflux_s = 6.0 / 3600.0
+    boilup_s = 12.0 / 3600.0
+
+    expected_d_top = boilup_s * y_in0 - reflux_s * x_topL
+    d_top = dydt[sl["top_L"]].reshape((2,))
+    assert np.allclose(d_top, expected_d_top, atol=1e-12)
+    assert np.allclose(np.asarray(diag["top_L_cond_x_minus_drum_x"], dtype=float), y_in0 - x_topL)
+
+    d_tray_L = dydt[sl["tray_L"]].reshape((2, 2))
+    assert np.allclose(d_tray_L[0, :], np.zeros(2, dtype=float), atol=1e-12)
+
+
 def test_feed_stage_flash_reuses_seed_packet_with_small_state_drift():
     col = _make_tiny_column()
     object.__setattr__(col, "streams", {

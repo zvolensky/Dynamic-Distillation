@@ -234,6 +234,22 @@ def _write_markdown(path: Path, summary: Dict[str, Any], top_rows: List[Dict[str
     lines.append(f"- Max tray total material residual: `{summary['max_abs_tray_total_rate_lbmolph']:.8g} lbmol/h`")
     lines.append(f"- Total state inventory residual: `{summary['total_state_inventory_rate_lbmolph']:.8g} lbmol/h`")
     lines.append("")
+    if "diag_total_condenser_boundary_energy_residual_BTUps" in summary:
+        lines.append("## Top Boundary Diagnostics")
+        lines.append("")
+        lines.append(
+            "- Total condenser boundary energy residual: "
+            f"`{summary['diag_total_condenser_boundary_energy_residual_BTUps']:.8g} Btu/s`"
+        )
+        lines.append(
+            "- Total condenser boundary energy residual relative scale: "
+            f"`{summary['diag_total_condenser_boundary_energy_residual_rel']:.8g}`"
+        )
+        lines.append(
+            "- Total condenser boundary energy owner: "
+            f"`{summary['diag_total_condenser_boundary_energy_owner']:.8g}`"
+        )
+        lines.append("")
     lines.append("## Block Ranking")
     lines.append("")
     lines.append("| Block | Max rel 1/s | Max abs /s | Worst stage | Worst comp |")
@@ -445,6 +461,15 @@ def main() -> int:
             "total_state_inventory_rate_lbmolph": float(total_state_rate_ph),
             "diag_dM_total_dt_lbmolph": _diag_scalar(diag, "dM_total_dt_lbmolph"),
             "diag_global_mass_closure_error_lbmolph": _diag_scalar(diag, "global_mass_closure_error_lbmolph"),
+            "diag_total_condenser_boundary_energy_residual_BTUps": _diag_scalar(
+                diag, "total_condenser_boundary_energy_residual_BTUps"
+            ),
+            "diag_total_condenser_boundary_energy_residual_rel": _diag_scalar(
+                diag, "total_condenser_boundary_energy_residual_rel"
+            ),
+            "diag_total_condenser_boundary_energy_owner": _diag_scalar(
+                diag, "total_condenser_boundary_energy_owner"
+            ),
             "debug_freeze_active_diag": _diag_scalar(diag, "debug_freeze_tray_vapor_derivatives_active"),
             "debug_max_orig_dmVdt": _diag_scalar(diag, "debug_max_orig_dmVdt"),
             "debug_max_orig_dmVdt_rel_per_s": _diag_scalar(diag, "debug_max_orig_dmVdt_rel_per_s"),

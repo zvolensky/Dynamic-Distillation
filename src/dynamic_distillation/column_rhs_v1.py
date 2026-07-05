@@ -4923,8 +4923,46 @@ def column_rhs(
             pass
         no_liquid_holdup = np.asarray(diag["ML_tot_tray"], dtype=float).reshape((N,)) <= float(layout.epsilon_lbmol)
         no_vapor_holdup = np.asarray(diag["MV_tot_tray"], dtype=float).reshape((N,)) <= float(layout.epsilon_lbmol)
+        condenser_boundary_owns_duty = bool(
+            condenser_is_total
+            and N > 0
+            and bool(no_liquid_holdup[0])
+        )
         top_boundary_liquid_h_BTU_lbmol = None
-        if _Qc_hL_cond_BTU_lbmol is not None and np.isfinite(float(_Qc_hL_cond_BTU_lbmol)):
+        if bool(condenser_boundary_owns_duty) and bool(condenser_is_total) and N > 0:
+            try:
+                src_i = 1 if N > 1 else 0
+                mv_src = float(np.asarray(diag["MV_tot_tray"], dtype=float).reshape((N,))[src_i])
+                mv_top = 0.0
+                if layout.include_top and top_V is not None:
+                    mv_top = float(np.sum(np.asarray(top_V, dtype=float).reshape((Nc,))))
+                hV_src = np.nan
+                hV_top = np.nan
+                if np.isfinite(mv_src) and mv_src > float(layout.epsilon_lbmol):
+                    hV_src = float(np.asarray(EV, dtype=float).reshape((N,))[src_i]) / mv_src
+                if np.isfinite(mv_top) and mv_top > float(layout.epsilon_lbmol):
+                    # Top vapor currently has no independent energy state; use
+                    # the condenser inlet vapor enthalpy for boundary closure.
+                    hV_top = hV_src
+                v_from_column = float(V_condensed_in_lbmolps)
+                v_from_top = float(V_condensed_top_lbmolps)
+                v_total = v_from_column + v_from_top
+                e_in = 0.0
+                if np.isfinite(hV_src):
+                    e_in += v_from_column * float(hV_src)
+                if np.isfinite(hV_top):
+                    e_in += v_from_top * float(hV_top)
+                if np.isfinite(e_in) and np.isfinite(v_total) and v_total > float(layout.epsilon_lbmol):
+                    h_from_boundary = (float(e_in) + (float(Qc_BTUph) / 3600.0)) / float(v_total)
+                    if np.isfinite(h_from_boundary):
+                        top_boundary_liquid_h_BTU_lbmol = float(h_from_boundary)
+            except Exception:
+                pass
+        if (
+            top_boundary_liquid_h_BTU_lbmol is None
+            and _Qc_hL_cond_BTU_lbmol is not None
+            and np.isfinite(float(_Qc_hL_cond_BTU_lbmol))
+        ):
             top_boundary_liquid_h_BTU_lbmol = float(_Qc_hL_cond_BTU_lbmol)
         elif bool(condenser_is_total) and N > 0:
             try:
@@ -4988,11 +5026,6 @@ def column_rhs(
                     )
             except Exception:
                 pass
-        condenser_boundary_owns_duty = bool(
-            condenser_is_total
-            and N > 0
-            and bool(no_liquid_holdup[0])
-        )
         diag["total_condenser_boundary_energy_owner"] = np.array(
             [1.0 if condenser_boundary_owns_duty else 0.0],
             dtype=float,

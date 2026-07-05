@@ -3872,6 +3872,50 @@ def test_include_energy_uses_specified_condenser_duty_override():
     assert "Q_cond_calc_BTUph" not in diag
 
 
+def test_dry_total_condenser_reports_closed_boundary_energy_residual(monkeypatch):
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "V_lbmolph": np.array([0.0, 3600.0], dtype=float),
+            "L_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "M_L_lbmol": np.array([0.0, 5.0], dtype=float),
+            "M_V_lbmol": np.array([0.0, 1.0], dtype=float),
+        }
+    )
+
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=True,
+    )
+    y0 = layout.pack_y0(col2)
+    sl = layout.slices()
+    ev = y0[sl["tray_EV_BTU"]].reshape((2,))
+    ev[:] = np.array([0.0, 55.0], dtype=float)
+    y0[sl["tray_EV_BTU"]] = ev
+
+    def _fake_resolve(*, col, inputs, N, tray_T_F, P_tray_psia, V_in_lbmolps, y_in, epsilon_lbmol):
+        return -108000.0, -108000.0, 100.0, 25.0, "total-condense"
+
+    monkeypatch.setattr(rhs_module, "_resolve_condenser_duty_btu_per_h", _fake_resolve)
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=3600.0),
+        condenser_duty_mode="total-condense",
+    )
+    _dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+
+    assert float(np.asarray(diag["total_condenser_boundary_energy_owner"], dtype=float)[0]) == pytest.approx(1.0)
+    assert "total_condenser_boundary_energy_residual_BTUps" in diag
+    assert abs(float(np.asarray(diag["total_condenser_boundary_energy_residual_BTUps"], dtype=float)[0])) < 1e-12
+    assert abs(float(np.asarray(diag["total_condenser_boundary_energy_residual_rel"], dtype=float)[0])) < 1e-12
+
+
 def test_include_energy_adds_feed_enthalpy_only_on_feed_stage():
     col = _make_tiny_column()
     col2 = ColumnSpec(

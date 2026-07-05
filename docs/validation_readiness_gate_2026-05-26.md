@@ -64,6 +64,7 @@ Before claiming rigorous dynamic validation for a case involving real components
 1. Topology match is explicit.
    - The case must state whether condenser/reboiler are included as stages or represented as explicit boundary vessels.
    - Terminal liquid/vapor flows must be converted consistently when moving between source topology and model topology.
+   - For total condensers, the validation case must state whether the total condenser is an algebraic boundary, an explicit condenser/reflux-drum boundary, or a counted source stage. Condenser duty and condensed-liquid enthalpy must be owned by that boundary, not by a dry tray state.
 
 2. Material balances close by phase where phase holdups are dynamic.
    - If tray vapor states are enabled, `tray_V` residuals must be meaningful and small, not merely cancelled by opposite `tray_L` residuals.
@@ -84,6 +85,7 @@ Before claiming rigorous dynamic validation for a case involving real components
 6. Energy validation requires energy closure.
    - A case with stage energy balance must show acceptable energy residuals before its dynamic energy response is compared.
    - Material-only reconciliation cannot be used as proof of energy-model validity.
+   - A total-condenser case must pass a condenser/reflux-drum energy closure check before it is used for full-topology energy validation.
 
 7. Numerical steadiness is not enough.
    - `steady_state_flag` and `steady_state_score` remain diagnostics.
@@ -103,8 +105,9 @@ Before claiming rigorous dynamic validation for a case involving real components
    - not full rigorous dynamic validation.
 3. Use the C3/C4 case as the near-term development diagnostic for full-topology phase-holdup behavior because it shows the same class of issue with less severe source mismatch.
 4. Write or implement a feed-stage phase/energy reconciliation design before attempting another full rigorous validation claim.
-5. Implement a staged initialization workflow: residual audit first, narrow vapor/boundary closure next, then golden-seed serialization only after profile and conservation gates pass.
-6. Continue searching for a validation source whose topology, feed treatment, thermo, and dynamic outputs are sufficiently specified to avoid retrofitting the model around missing assumptions.
+5. Resolve total-condenser energy ownership (`DD-033`) so condenser duty is not deposited into a zero-holdup tray state.
+6. Implement a staged initialization workflow: residual audit first, narrow vapor/boundary closure next, then golden-seed serialization only after profile and conservation gates pass.
+7. Continue searching for a validation source whose topology, feed treatment, thermo, and dynamic outputs are sufficiently specified to avoid retrofitting the model around missing assumptions.
 
 ## Bottom Line
 

@@ -40,6 +40,23 @@ This specification captures the as-built behavior of the current codebase.
 - `FR-005` The runner shall perform preflight validation and stop before integration on blocking errors.
 
 ### 4.2 State Initialization and Startup Conditioning
+
+**Why Initialization Requires Explicit Attention**
+
+This system implements an explicit-vapor, rigorous-energy column model that produces a **stiff, Index-1+ DAE (Differential-Algebraic Equation)** with coupled pressure, holdup, composition, temperature, and hydraulic states. Unlike simplified textbook treatments that assume Constant Molar Overflow and implicit hydraulics, this model's equations directly couple differential states (like vapor moles in fixed shell volumes) to algebraic constraints (like vapor flow rates and pressure drops).
+
+From the published literature on DAE initialization (Pantelides 1988; Barton, Biegler), a steady-state profile from an external tool (ChemSep, Aspen Plus, DWSIM) satisfies only the static mass and energy balances at $t=0$. It **does not** satisfy the dynamic hydraulic equations, vapor-pipe resistances, weir crest heights, or thermal sub-cooling profiles that the dynamic RHS requires. When the integrator evaluates the right-hand side at $t=0$, it computes large, non-zero derivatives, causing computational impulse shocks.
+
+The Consistent Initialization Solver must therefore:
+1. Hold specified independent variables fixed (feed rate, geometry).
+2. Vary targeted initial states to drive all time derivatives simultaneously to zero at $t=0$.
+3. Verify block-level and global conservation/closure simultaneously.
+
+Initialization is not a trivial "switch to dynamics" operation; it is a distinct mathematical problem requiring structured root-finding, conservation audits, and acceptance gating. See `docs/dynamic_column_initialization_strategy.md` for mathematical foundation and workflow.
+
+Requirements in this section define how external seeds are loaded, how initialization passes condition the column toward dynamic self-consistency, and what acceptance gates must pass before integration begins.
+
+
 - `FR-006` The runner shall construct deterministic state layout and initial state vector from `ColumnSpec`.
 - `FR-007` The runner shall initialize tray vapor holdup to match startup pressure profile assumptions.
 - `FR-007a` When `--use-excel-vapor-holdup` is enabled, the runner shall preserve explicit tray vapor holdup from the Excel `Initial Conditions` sheet through startup pressure initialization and thermo conditioning.

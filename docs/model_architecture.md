@@ -5,6 +5,20 @@ It is intended as an implementation-level reference for model behavior, coupling
 
 For project terminology, see `docs/glossary.md`.
 
+## Design Complexity and Initialization Implications
+
+This model differs fundamentally from simplified textbook treatments of distillation. Rather than employing **Constant Molar Overflow (CMO)** assumptions and implicit hydraulics, the column uses:
+
+- **Explicit vapor volume** with physical rigidity constraints (fixed shell volumes)
+- **Rigorous energy topology** with temperature and enthalpy states on trays and boundary vessels
+- **Coupled hydraulic-pressure closure** where pressure is a differential state computed from vapor-phase accumulation
+
+This rigorous formulation aligns with published DAE (Differential-Algebraic Equation) literature and matches the hidden mathematical structure of commercial dynamic simulators like Aspen Dynamics. However, it creates a **stiff, Index-1+ DAE system** where microscopic inconsistencies at $t=0$ can produce violent computational shocks.
+
+In consequence, initialization is not a trivial "switch to dynamics" operation. The model requires a **Consistent Initialization Solver**—described in detail in `docs/dynamic_column_initialization_strategy.md`—to ensure all time derivatives are simultaneously driven to zero at $t=0$ before integration begins.
+
+See `docs/dynamic_column_initialization_strategy.md` for the mathematical foundation and practical workflow.
+
 ## 1) Scope
 
 Primary execution path:
@@ -136,6 +150,25 @@ Current practical meaning in the hydraulic parity branch:
 7. Assemble component derivatives and optional energy derivatives.
 8. Perform thermo refresh/cache update and equilibrium-relaxation terms.
 9. Emit diagnostic dictionary (flows, pressures, residuals, control PVs, closure signals).
+
+### Total-Condenser Topology Requirement
+
+For a total condenser, the model topology should distinguish the top tray from the condenser/reflux-drum boundary:
+
+- vapor leaves the top active tray and enters the condenser boundary,
+- condenser duty is applied in the condenser boundary calculation,
+- fully condensed overhead liquid enters the reflux drum/top accumulator,
+- reflux and distillate are liquid draws from the reflux drum,
+- the total condenser is not treated as a separating equilibrium tray with its own post-condenser vapor holdup.
+
+Requirement `DD-033`: total-condenser duty and condensed-liquid energy must not be owned by a tray liquid-energy state that has zero liquid holdup. If a workbook maps stage 1 as a dry/zero-holdup total-condenser boundary, the RHS should either:
+
+- route condenser energy to an explicit top-drum/condenser energy state when boundary states are enabled, or
+- treat condenser energy algebraically as a boundary duty/enthalpy calculation and omit the zero-holdup tray energy derivative.
+
+This requirement is separate from the strict total-condense mass-split rule. A run can enforce zero vapor slip to the top drum and still have the wrong energy owner if condenser duty is deposited into `tray_EL_BTU[0]` while `ML_stage1 = 0`.
+
+Implementation note: `column_rhs_v1.py` now treats a dry stage-1 total condenser as an algebraic condenser-boundary energy case in the B1 energy path. In that case, condenser duty is not deposited into `tray_EL_BTU[0]`; reflux/liquid transport uses the condensed-liquid enthalpy from the condenser packet, or a fallback enthalpy computed from the total-condenser duty relation. This is a partial `DD-033` implementation, not the final explicit reflux-drum energy model.
 
 ## 6) Coupling Behavior (Important)
 

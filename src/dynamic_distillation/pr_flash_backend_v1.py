@@ -289,6 +289,8 @@ def set_property_package(property_package: Optional[str]) -> None:
             f"Unsupported DWSIM property package: {property_package!r}. "
             f"Use one of: {', '.join(sorted(supported))}"
         )
+    if key == _property_package_key:
+        return
     _property_package_key = key
     _dwsim_initialized = False
     _dtlc = None
@@ -341,7 +343,10 @@ def set_component_ids(component_ids: List[str]) -> None:
     global _component_ids, _dwsim_initialized, _carray, _dtlc, _prop_package
     if not component_ids or not all(isinstance(s, str) and s.strip() for s in component_ids):
         raise ValueError("component_ids must be a non-empty list of non-empty strings")
-    _component_ids = [s.strip() for s in component_ids]
+    new_component_ids = [s.strip() for s in component_ids]
+    if new_component_ids == _component_ids:
+        return
+    _component_ids = new_component_ids
 
     # force rebuild on next call
     _dwsim_initialized = False

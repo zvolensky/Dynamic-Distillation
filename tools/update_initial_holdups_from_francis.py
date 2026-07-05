@@ -100,14 +100,63 @@ def _fmt(x: float) -> str:
     return f"{x:.6g}"
 
 
+def _parse_stage_range(raw: str, *, n_stages: int) -> np.ndarray:
+    mask = np.zeros(int(n_stages), dtype=bool)
+    text = str(raw or "").strip()
+    if not text:
+        return mask
+    for part in text.split(","):
+        token = part.strip()
+        if not token:
+            continue
+        if "-" in token:
+            lo_s, hi_s = token.split("-", 1)
+            lo = int(float(lo_s))
+            hi = int(float(hi_s))
+        else:
+            lo = hi = int(float(token))
+        if lo > hi:
+            lo, hi = hi, lo
+        if lo < 1 or hi > int(n_stages):
+            raise RuntimeError(f"Stage range {token!r} is outside 1..{n_stages}")
+        mask[lo - 1 : hi] = True
+    return mask
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Update Initial Conditions holdups from Francis inversion.")
     ap.add_argument("--excel", dest="excel_path", default="distillation_column_template.xlsx")
-    ap.add_argument("--thermo", dest="thermo_mode", choices=["stub", "table", "table-pool", "dwsim"], default="table-pool")
+    ap.add_argument("--output-excel", dest="output_excel_path", default=None)
+    ap.add_argument(
+        "--thermo",
+        dest="thermo_mode",
+        choices=["stub", "table", "table-pool", "dwsim", "clapeyron"],
+        default="table-pool",
+    )
+    ap.add_argument("--clapeyron-model", dest="clapeyron_model", default="PR")
+    ap.add_argument(
+        "--clapeyron-pr-parameter-source",
+        dest="clapeyron_pr_parameter_source",
+        choices=["default", "dwsim"],
+        default="default",
+    )
     ap.add_argument("--dwsim-property-package", dest="dwsim_property_package", default="pr")
     ap.add_argument("--thermo-table", dest="thermo_table_path", default="cache/thermo_table.json")
     ap.add_argument("--thermo-pool-workers", dest="thermo_pool_workers", type=int, default=6)
     ap.add_argument("--thermo-pool-chunk-size", dest="thermo_pool_chunk_size", type=int, default=4)
+    ap.add_argument(
+        "--target-liquid-flow-lbmolph",
+        dest="target_liquid_flow_lbmolph",
+        type=float,
+        default=None,
+        help="Override target liquid flow for --target-stages before Francis inversion.",
+    )
+    ap.add_argument(
+        "--target-stages",
+        dest="target_stages",
+        default="",
+        help="1-based stage list/ranges for --target-liquid-flow-lbmolph, e.g. 2-11 or 2,3,4.",
+    )
     ap.add_argument("--rho-default", dest="rho_default", type=float, default=1.0)
     ap.add_argument("--no-backup", dest="no_backup", action="store_true")
     ap.add_argument("--dry-run", dest="dry_run", action="store_true")
@@ -116,6 +165,11 @@ def main() -> int:
     excel_path = _resolve_path(str(args.excel_path))
     if not excel_path.exists():
         raise FileNotFoundError(f"Excel file not found: {excel_path}")
+    output_excel_path = (
+        _resolve_path(str(args.output_excel_path))
+        if args.output_excel_path is not None and str(args.output_excel_path).strip()
+        else excel_path
+    )
 
     thermo_table_path: Optional[Path] = None
     if str(args.thermo_mode).strip().lower() in ("table", "table-pool"):
@@ -135,7 +189,7 @@ def main() -> int:
     else:
         ml_old = np.asarray(col.M_L_lbmol, dtype=float).reshape((n,))
     ml_old = np.where(np.isfinite(ml_old), ml_old, 0.0)
-    l_target = np.asarray(col.L_lbmolph, dtype=float).reshape((n,))
+    l_target = np.asarray(col.L_lbmolph, dtype=float).reshape((n,)).copy()
     weir_h_in = np.asarray(geom.weir_height_in_per_stage, dtype=float).reshape((n,))
     weir_l_ft = np.asarray(geom.weir_length_ft_per_stage, dtype=float).reshape((n,))
     active_area_ft2 = np.asarray(geom.active_area_ft2_per_stage, dtype=float).reshape((n,))
@@ -147,6 +201,8 @@ def main() -> int:
     cfg = RunnerConfig(
         excel_path=str(excel_path),
         thermo_mode=str(args.thermo_mode),
+        clapeyron_model=str(args.clapeyron_model),
+        clapeyron_pr_parameter_source=str(args.clapeyron_pr_parameter_source),
         dwsim_property_package=str(args.dwsim_property_package),
         thermo_table_path=(None if thermo_table_path is None else str(thermo_table_path)),
         thermo_pool_workers=int(args.thermo_pool_workers),
@@ -157,6 +213,16 @@ def main() -> int:
     )
     _inputs, provider = build_inputs_for_runner(case, col, cfg)
     rho = _compute_rho_profile_lbmol_ft3(col=col, provider=provider, rho_default=float(args.rho_default))
+
+    target_override_mask = np.zeros(n, dtype=bool)
+    if args.target_liquid_flow_lbmolph is not None:
+        target_override_mask = _parse_stage_range(str(args.target_stages), n_stages=n)
+        if not np.any(target_override_mask):
+            raise RuntimeError("--target-liquid-flow-lbmolph requires non-empty --target-stages")
+        l_try = float(args.target_liquid_flow_lbmolph)
+        if (not np.isfinite(l_try)) or l_try < 0.0:
+            raise RuntimeError(f"Invalid --target-liquid-flow-lbmolph: {l_try}")
+        l_target[target_override_mask] = float(l_try)
 
     ml_new = ml_old.copy()
     l_reconstructed = np.full(n, np.nan, dtype=float)
@@ -198,12 +264,17 @@ def main() -> int:
     # Persist all stage holdups. Internal stages are updated by Francis
     # inversion; boundary rows keep their seeded values (or zero when absent).
     if not bool(args.dry_run):
-        if not bool(args.no_backup):
+        if output_excel_path != excel_path:
+            output_excel_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(excel_path, output_excel_path)
+            print(f"copied source workbook: {excel_path}")
+            print(f"output workbook: {output_excel_path}")
+        elif not bool(args.no_backup):
             bkp = _backup_path(excel_path)
             shutil.copy2(excel_path, bkp)
             print(f"backup: {bkp}")
 
-        wb = openpyxl.load_workbook(excel_path)
+        wb = openpyxl.load_workbook(output_excel_path)
         ws = wb["Initial Conditions"]
         c_stage = _find_column_index(ws, "Stage")
         c_holdup = _find_or_create_column_index(ws, "Liquid Holdup (lbmol)")
@@ -223,8 +294,8 @@ def main() -> int:
             ws.cell(row=r, column=c_holdup, value=float(ml_new[i]))
             updated_rows += 1
 
-        wb.save(excel_path)
-        print(f"updated workbook: {excel_path}")
+        wb.save(output_excel_path)
+        print(f"updated workbook: {output_excel_path}")
         print(f"updated rows: {updated_rows}")
 
     # Summary
@@ -240,6 +311,10 @@ def main() -> int:
     print(f"max |holdup delta| lbmol: {_fmt(max_abs_delta)}")
     print(f"mean |L_recon - L_target| lbmol/h: {_fmt(mae_recon)}")
     print(f"max |L_recon - L_target| lbmol/h: {_fmt(max_abs_recon)}")
+    if np.any(target_override_mask):
+        stages = ",".join(str(i + 1) for i in np.where(target_override_mask)[0])
+        print(f"target override stages: {stages}")
+        print(f"target override L lbmol/h: {_fmt(float(args.target_liquid_flow_lbmolph))}")
     print("")
     print("stage,ML_old,ML_new,delta,L_target,L_recon,rho,h_ow_ft")
     for i in idx:

@@ -253,12 +253,18 @@ python -m dynamic_distillation.dynamic_run_scaffold_v1 `
 | `--liquid-hydraulic-override-alpha` | float | `None` | Blend for liquid hydraulics override (`0=profile`, `1=full hydraulic`). |
 | `--liquid-hydraulic-model` | `francis` | `None` | Internal liquid hydraulic closure model. |
 | `--liquid-hydraulic-htc-sec` | float | `None` | Reserved hydraulic time constant for non-Francis liquid closures. |
-| `--enable-startup-hydraulic-sequence` | flag | `False` | Enable startup sequence: pressure first, then energy vapor closure, then residual-gated liquid hydraulics (`legacy` mode only; ignored by `parity`/`calibration`/`hydraulic`). |
+| `--enable-startup-hydraulic-sequence` | flag | `False` | Enable startup sequence: pressure/profile-flow first, then residual-gated liquid hydraulics; supported in `legacy` and `hydraulic` runtime modes and ignored by source-topology modes. |
 | `--startup-sequence-energy-on-sec` | float | `30.0` | Sequence time (`s`) to allow `vapor_flow_model="energy"`. |
 | `--startup-sequence-liquid-on-sec` | float | `120.0` | Sequence time (`s`) to begin liquid-hydraulics ramp. |
 | `--startup-sequence-liquid-ramp-sec` | float | `180.0` | Ramp timescale (`s`) for liquid-hydraulics blend. |
 | `--startup-sequence-mass-resid-gate-lbmolph` | float | `250.0` | Max tray mass-residual gate; above this, liquid-hydraulic blend is paused/backed off. |
 | `--startup-sequence-liquid-backoff-sec` | float | `None` | Optional timescale (`s`) for blend backoff while residual gate is exceeded. |
+| `--enable-startup-vapor-homotopy` | flag | `False` | Enable the third startup phase: blend dynamic vapor traffic from profile flow to the configured dynamic vapor closure. |
+| `--startup-sequence-profile-hold-sec` | float | `0.0` | Minimum initial hold time (`s`) with profile liquid and profile vapor traffic. |
+| `--startup-sequence-vapor-on-sec` | float | `None` | Time (`s`) to begin vapor-flow homotopy; defaults to `liquid_on + liquid_ramp`. |
+| `--startup-sequence-vapor-ramp-sec` | float | `60.0` | Cosine-ramp duration (`s`) for vapor homotopy beta. |
+| `--startup-sequence-vapor-rel-rate-gate-per-s` | float | `1.0e-2` | Pause vapor beta ramp when the previous max relative inventory rate exceeds this value. |
+| `--startup-sequence-vapor-backoff-sec` | float | `None` | Optional beta backoff timescale (`s`) when the vapor residual gate is exceeded. |
 | `--disable-steady-state-detection` | flag | `False` | Disable runtime steady-state detector diagnostics. |
 | `--steady-state-window-sec` | float | `30.0` | Time window (`s`) used for KPI/MV slope estimation. |
 | `--steady-state-min-time-sec` | float | `60.0` | Earliest simulation time (`s`) when SS flag can become `1`. |
@@ -292,8 +298,14 @@ python -m dynamic_distillation.dynamic_run_scaffold_v1 `
 | `--condenser-duty-mode` | `total-condense` \| `specified` | `total-condense` | Condenser duty model. |
 | `--condenser-duty-btuph` | float | `None` | Override condenser duty (`Btu/h`), used in `specified` mode. |
 | `--condenser-duty-trim-btuph` | float | `None` | Additive condenser duty trim (`Btu/h`); in `total-condense` this is added to computed duty. |
+| `--init-pack-top-drum-vapor-to-pressure` | flag | `False` | Initialization diagnostic: scale explicit top-drum vapor inventory so raw drum pressure starts at the target pressure. |
+| `--init-top-drum-vapor-pressure-psia` | float | `None` | Pressure target for top-drum vapor packing; defaults to `--top-pressure-sp`, then workbook stage-1 pressure. |
+| `--init-match-condenser-duty` | flag | `False` | Initialization diagnostic: evaluate the live total-condenser duty requirement at `t=0` and use it as the initial condenser-duty bias. |
+| `--init-align-top-liquid-to-condensate` | flag | `False` | Preserve reflux-drum liquid holdup but initialize its component split from the live condenser condensate composition. Diagnostic for top_L/reflux-drum composition closure. |
+| `--startup-total-reflux-washout-sec` | float | `None` | Temporarily evaluate startup steps in total-reflux mode so the reflux drum is washed by live condenser condensate before feed/product boundaries resume. |
 | `--enable-level-control` | flag | `False` | Enable inventory PI loops: top drum PV -> distillate draw, bottom sump PV -> bottoms draw. |
 | `--top-level-pv-mode` | `molar-holdup` \| `true-level` | `molar-holdup` | Top controller PV mode. |
+| `--ignore-workbook-level-pv-mode` | flag | `False` | Use CLI level-controller PV modes instead of workbook `Top/Bottom Level PV Mode` entries. Useful for diagnostics where a workbook defaults to geometry-based level but molar holdup closure is being tested. |
 | `--top-level-sp` | float | `None` | Top inventory setpoint (`sum(top_L)`, `lbmol`) when top PV mode is `molar-holdup`. |
 | `--top-level-sp-frac` | float | `None` | Top drum level setpoint as fraction of drum diameter when top PV mode is `true-level`. |
 | `--bottom-level-pv-mode` | `molar-holdup` \| `true-level` | `molar-holdup` | Bottom controller PV mode. `true-level` treats the sump as a vertical cylindrical vessel when sump volume is available. |
@@ -399,7 +411,8 @@ python -m dynamic_distillation.dynamic_run_scaffold_v1 `
   - These startup passes are important because they align vapor holdup, top-drum inventory, pressure state, and thermo state before the first timestep. Skipping or weakening them can reduce wall-clock time, but often degrades startup parity and can move the early trajectory onto a different path.
   - `--fast-startup` is a shortcut mode that skips startup thermo conditioning, skips hydraulic-energy startup consistency, and skips top-drum startup steadying to minimize pre-integration overhead.
   - If both explicit top holdup and top-drum liquid fraction are provided by the workbook, explicit top holdup wins for startup reflux-drum liquid inventory; the liquid fraction remains a secondary geometry/level hint.
-  - Optional startup hydraulic sequencing (`--enable-startup-hydraulic-sequence`) applies pressure-first startup and delays liquid-hydraulic override with residual gating in `--runtime-mode legacy` only.
+  - Optional startup hydraulic sequencing (`--enable-startup-hydraulic-sequence`) applies pressure/profile-flow startup and delays liquid-hydraulic override with residual gating in `legacy` and `hydraulic` runtime modes.
+  - Optional vapor homotopy (`--enable-startup-vapor-homotopy`) keeps vapor traffic on the profile while liquid hydraulics transition, then blends dynamic vapor flow in with a guarded beta ramp.
   - Every completed run now writes a companion restart workbook into the run folder. That restart workbook contains the updated `Initial Conditions` plus the `Boundary State`, `Energy State`, `Controller State`, and `Dynamic Memory` sheets needed to continue from the reached condition and avoid repeating most fresh-startup calculations on the next run.
   - Explicit restart runs now apply a short hidden re-entry settling pass before normal logging begins. This is much lighter than a fresh startup and is intended to reduce the restart bump at the first resumed timestep.
   - Use `--disable-restart-reentry-settling` for workbooks that already contain a deliberately reconciled initial state and should not be altered before the first logged timestep.

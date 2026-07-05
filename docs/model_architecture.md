@@ -18,6 +18,7 @@ This rigorous formulation aligns with published DAE (Differential-Algebraic Equa
 In consequence, initialization is not a trivial "switch to dynamics" operation. The model requires a **Consistent Initialization Solver**—described in detail in `docs/dynamic_column_initialization_strategy.md`—to ensure all time derivatives are simultaneously driven to zero at $t=0$ before integration begins.
 
 See `docs/dynamic_column_initialization_strategy.md` for the mathematical foundation and practical workflow.
+See `docs/initialization_code_status.md` for the current support status of initialization, reconciliation, and startup-homotopy tooling.
 
 ## 1) Scope
 

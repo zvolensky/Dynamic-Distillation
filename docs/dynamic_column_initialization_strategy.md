@@ -2,6 +2,8 @@
 
 Date: 2026-05-28
 
+Code status note: `docs/initialization_code_status.md` classifies the current initialization tooling as supported, experimental, or deprecated for acceptance.
+
 ## Fundamental Difficulty: Why Moving from Steady-State to Dynamics Is So Notoriously Fragile
 
 ### The Problem Statement

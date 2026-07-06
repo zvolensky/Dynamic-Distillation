@@ -315,6 +315,8 @@ def _selected_stages(raw: str, n: int) -> List[int]:
     key = str(raw).strip().lower()
     if key in ("all", "*"):
         return list(range(n))
+    if key in ("interior", "internal"):
+        return list(range(1, n - 1))
     out: List[int] = []
     for part in key.split(","):
         part = part.strip()
@@ -353,7 +355,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Bounded least-squares t=0 initializer.")
     ap.add_argument("--input", required=True)
     ap.add_argument("--output", required=True)
-    ap.add_argument("--stages", default="all", help="1-based stages to vary, e.g. all or 2-5,18-20.")
+    ap.add_argument("--stages", default="all", help="Stages to vary: all, interior, or 1-based ranges like 2-5,18-20.")
     ap.add_argument("--vary-liquid", action="store_true")
     ap.add_argument("--vary-vapor", action="store_true")
     ap.add_argument("--vary-liquid-flow", action="store_true")
@@ -384,7 +386,7 @@ def main() -> int:
     ap.add_argument(
         "--residual-stages",
         default="all",
-        help="1-based tray stages to include in tray_L/tray_V residuals; default all.",
+        help="Tray stages to include in tray_L/tray_V residuals: all, interior, or 1-based ranges; default all.",
     )
     ap.add_argument(
         "--residual-top-boundary-only",

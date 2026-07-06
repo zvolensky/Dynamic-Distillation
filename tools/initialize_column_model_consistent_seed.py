@@ -265,7 +265,7 @@ def main() -> int:
     ap.add_argument("--input", required=True, help="Imported/guessed seed workbook.")
     ap.add_argument("--output", required=True, help="Final selected initialized workbook.")
     ap.add_argument("--work-dir", default=None, help="Directory for candidate workbooks and audits.")
-    ap.add_argument("--stages", default="2-19")
+    ap.add_argument("--stages", default="interior")
     ap.add_argument("--residual-stages", default=None)
     ap.add_argument("--candidates", default="coupled-vle-topL,coupled-flows-boundary")
     ap.add_argument("--selection", choices=["max-rate", "balanced", "tray-total"], default="max-rate")

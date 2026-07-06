@@ -58,8 +58,8 @@ def test_balanced_score_includes_tray_total_residual():
 
 def test_optimizer_base_command_includes_residual_weights(tmp_path):
     args = Namespace(
-        stages="2-19",
-        residual_stages="2-19",
+        stages="interior",
+        residual_stages="interior",
         thermo="table",
         runtime_mode="hydraulic",
         condenser_duty_mode="total-condense",
@@ -102,8 +102,8 @@ def test_optimizer_base_command_includes_residual_weights(tmp_path):
 
 def test_bottom_boundary_candidate_varies_bottom_boundary_flows(tmp_path):
     args = Namespace(
-        stages="2-19",
-        residual_stages="2-19",
+        stages="interior",
+        residual_stages="interior",
         thermo="table",
         runtime_mode="hydraulic",
         condenser_duty_mode="total-condense",

@@ -1,11 +1,11 @@
 # Experiment Ledger
 
-Updated: 2026-06-02 18:30:06 (local)
+Updated: 2026-07-06 12:37:08 (local)
 
 This file is auto-generated from `logs/**/column_summary_*.csv`, `logs/**/feasibility_trim_search_*.csv`, and `logs/**/run_registry.csv`.
 
-Total runs indexed: **607**  
-Runs with known CLI command: **532**  
+Total runs indexed: **611**
+Runs with known CLI command: **536**
 Runs with unknown CLI command: **75**
 
 Primary searchable source: `docs/experiment_ledger.csv`.
@@ -14,33 +14,33 @@ Duplicate indicators in CSV: `exact_command_dup_group`, `exact_command_dup_count
 
 ## Duplicate Signals
 
-Exact-command duplicate groups: **76** (rows in groups: **249**)  
+Exact-command duplicate groups: **77** (rows in groups: **251**)
 Suspected-result duplicate groups: **57** (rows in groups: **216**)
 
 ### Exact Command Duplicates (Top 20)
 
 | Group | Count | Run IDs |
 |---|---:|---|
-| `CMDDUP001` | 2 | `20260602_163322`, `20260602_163132` |
-| `CMDDUP002` | 2 | `20260602_162504`, `20260602_143041` |
-| `CMDDUP003` | 2 | `20260602_093116`, `20260602_092711` |
-| `CMDDUP004` | 2 | `20260602_083648`, `20260602_083026` |
-| `CMDDUP005` | 2 | `20260528_083349`, `20260528_083013` |
-| `CMDDUP006` | 2 | `20260526_100334`, `20260526_095834` |
-| `CMDDUP007` | 2 | `20260525_213635`, `20260525_212838` |
-| `CMDDUP008` | 2 | `20260525_175852`, `20260525_172101` |
-| `CMDDUP009` | 2 | `20260525_171506`, `20260525_171050` |
-| `CMDDUP010` | 2 | `20260525_170758`, `20260525_170404` |
-| `CMDDUP011` | 3 | `20260524_214800`, `20260524_211427`, `20260524_211335` |
-| `CMDDUP012` | 3 | `20260524_210333`, `20260524_210109`, `20260524_205953` |
-| `CMDDUP013` | 3 | `20260524_160208`, `20260524_160024`, `20260524_151809` |
-| `CMDDUP014` | 5 | `20260524_155027`, `20260524_154918`, `20260524_152125`, `20260524_151511`, `20260524_151309` |
-| `CMDDUP015` | 2 | `20260409_091412`, `20260409_085920` |
-| `CMDDUP016` | 4 | `20260408_154833`, `20260408_154436`, `20260408_153047`, `20260408_152349` |
-| `CMDDUP017` | 2 | `20260408_153648`, `20260408_153234` |
-| `CMDDUP018` | 5 | `20260408_151743`, `20260408_151448`, `20260408_151145`, `20260408_150741`, `20260408_150457` |
-| `CMDDUP019` | 2 | `20260408_145031`, `20260408_143854` |
-| `CMDDUP020` | 2 | `20260408_143235`, `20260408_142925` |
+| `CMDDUP001` | 2 | `20260706_123621`, `20260601_211851` |
+| `CMDDUP002` | 2 | `20260602_163322`, `20260602_163132` |
+| `CMDDUP003` | 2 | `20260602_162504`, `20260602_143041` |
+| `CMDDUP004` | 2 | `20260602_093116`, `20260602_092711` |
+| `CMDDUP005` | 2 | `20260602_083648`, `20260602_083026` |
+| `CMDDUP006` | 2 | `20260528_083349`, `20260528_083013` |
+| `CMDDUP007` | 2 | `20260526_100334`, `20260526_095834` |
+| `CMDDUP008` | 2 | `20260525_213635`, `20260525_212838` |
+| `CMDDUP009` | 2 | `20260525_175852`, `20260525_172101` |
+| `CMDDUP010` | 2 | `20260525_171506`, `20260525_171050` |
+| `CMDDUP011` | 2 | `20260525_170758`, `20260525_170404` |
+| `CMDDUP012` | 3 | `20260524_214800`, `20260524_211427`, `20260524_211335` |
+| `CMDDUP013` | 3 | `20260524_210333`, `20260524_210109`, `20260524_205953` |
+| `CMDDUP014` | 3 | `20260524_160208`, `20260524_160024`, `20260524_151809` |
+| `CMDDUP015` | 5 | `20260524_155027`, `20260524_154918`, `20260524_152125`, `20260524_151511`, `20260524_151309` |
+| `CMDDUP016` | 2 | `20260409_091412`, `20260409_085920` |
+| `CMDDUP017` | 4 | `20260408_154833`, `20260408_154436`, `20260408_153047`, `20260408_152349` |
+| `CMDDUP018` | 2 | `20260408_153648`, `20260408_153234` |
+| `CMDDUP019` | 5 | `20260408_151743`, `20260408_151448`, `20260408_151145`, `20260408_150741`, `20260408_150457` |
+| `CMDDUP020` | 2 | `20260408_145031`, `20260408_143854` |
 
 ### Suspected Result Duplicates (Top 30)
 
@@ -81,6 +81,10 @@ Suspected-result duplicate groups: **57** (rows in groups: **216**)
 
 | Run ID | Date/Time | Source | Command | Final (P, xD, xB, R, Vb) |
 |---|---|---|---|---|
+| `20260706_123702` | 2026-07-06 12:37:02 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs\c3c4_initializer_profile_coeff_trial1_20260601.xlsx --init-from-checkpoint logs\native_checkpoint_c3c4_60s_source\c3c4_initializer_profile_coeff_trial1_20260601__checkpoint_20260706_123621.npz --run-name c3c4_native_checkpoint_10s_restart_20260706 --runtime-mode hydraulic --n-steps 50 --dt 0.2 --log-every 10 --thermo clapeyron --clapeyron-model PR --include-energy --equilibrium-relaxation-mode composition-only --equilibrium-tau-sec 0.5 --no-flash-feed-at-stage-conditions --vapor-holdup-relaxation-sec 0 --use-excel-vapor-holdup --fast-startup --disable-restart-reentry-settling --enable-pressure-control --pressure-control-mv top-anchor --top-pressure-sp 222.62 --top-pressure-kc -0.5 --top-pressure-ti 120 --top-pressure-pv-filter-tau-sec 5 --top-pressure-anchor-min 222.62 --top-pressure-anchor-max 222.62 --logs-dir logs\native_checkpoint_c3c4_10s_restart --allow-repeat-command` | P=71.151; xD=; xB=; R=; Vb= |
+| `20260706_123621` | 2026-07-06 12:36:21 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs\c3c4_initializer_profile_coeff_trial1_20260601.xlsx --run-name c3c4_native_checkpoint_60s_source_20260706 --runtime-mode hydraulic --n-steps 300 --dt 0.2 --log-every 50 --thermo clapeyron --clapeyron-model PR --include-energy --equilibrium-relaxation-mode composition-only --equilibrium-tau-sec 0.5 --no-flash-feed-at-stage-conditions --vapor-holdup-relaxation-sec 0 --use-excel-vapor-holdup --fast-startup --disable-restart-reentry-settling --enable-pressure-control --pressure-control-mv top-anchor --top-pressure-sp 222.62 --top-pressure-kc -0.5 --top-pressure-ti 120 --top-pressure-pv-filter-tau-sec 5 --top-pressure-anchor-min 222.62 --top-pressure-anchor-max 222.62 --logs-dir logs\native_checkpoint_c3c4_60s_source --allow-repeat-command` | P=77.766; xD=; xB=; R=; Vb= |
+| `20260706_123533` | 2026-07-06 12:35:33 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel validation_skogestad_column_a_relative_volatility.xlsx --init-from-checkpoint logs\checkpoint_loader_smoke_source\validation_skogestad_column_a_relative_volatility__checkpoint_20260706_123511.npz --thermo stub --runtime-mode legacy --n-steps 1 --dt 0.1 --log-every 1 --logs-dir logs\checkpoint_loader_smoke_restart --run-name checkpoint_loader_smoke_restart --allow-repeat-command` | P=14.700; xD=; xB=; R=; Vb= |
+| `20260706_123511` | 2026-07-06 12:35:11 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel validation_skogestad_column_a_relative_volatility.xlsx --thermo stub --runtime-mode legacy --n-steps 1 --dt 0.1 --log-every 1 --logs-dir logs\checkpoint_loader_smoke_source --run-name checkpoint_loader_smoke_source --allow-repeat-command` | P=14.700; xD=; xB=; R=; Vb= |
 | `20260602_182925` | 2026-06-02 18:29:25 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --allow-repeat-command --excel logs\c3c4_initializer_profile_coeff_trial1_liqenergy_topboundary2_11_noeq_20260602.xlsx --run-name c3c4_topL_align_condensate_60s --runtime-mode hydraulic --thermo table --thermo-table cache\thermo_table.json --include-energy --use-excel-vapor-holdup --no-equilibrium --vapor-holdup-relaxation-sec 0 --n-steps 300 --dt 0.2 --log-every 25 --fast-startup --disable-startup-thermo-conditioning --disable-restart-reentry-settling --reflux 5273.122789275105 --condenser-duty-mode total-condense --condenser-duty-btuph -51941932.55249542 --init-align-top-liquid-to-condensate --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --liquid-hydraulic-model francis --enable-startup-hydraulic-sequence --enable-startup-vapor-homotopy --startup-sequence-profile-hold-sec 1 --startup-sequence-energy-on-sec 1 --startup-sequence-liquid-on-sec 1 --startup-sequence-liquid-ramp-sec 30 --startup-sequence-vapor-on-sec 75 --startup-sequence-vapor-ramp-sec 60 --startup-sequence-vapor-rel-rate-gate-per-s 0.02 --startup-sequence-mass-resid-gate-lbmolph 1000000000` | P=221.518; xD=; xB=; R=; Vb= |
 | `20260602_182341` | 2026-06-02 18:23:41 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --allow-repeat-command --excel logs\c3c4_initializer_profile_coeff_trial1_liqenergy_topboundary2_11_noeq_20260602.xlsx --run-name c3c4_topL_total_reflux_washout300_300s --runtime-mode hydraulic --thermo table --thermo-table cache\thermo_table.json --include-energy --use-excel-vapor-holdup --no-equilibrium --vapor-holdup-relaxation-sec 0 --n-steps 1500 --dt 0.2 --log-every 250 --fast-startup --disable-startup-thermo-conditioning --disable-restart-reentry-settling --reflux 5273.122789275105 --condenser-duty-mode total-condense --condenser-duty-btuph -51941932.55249542 --startup-total-reflux-washout-sec 300 --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --liquid-hydraulic-model francis --enable-startup-hydraulic-sequence --enable-startup-vapor-homotopy --startup-sequence-profile-hold-sec 1 --startup-sequence-energy-on-sec 1 --startup-sequence-liquid-on-sec 1 --startup-sequence-liquid-ramp-sec 30 --startup-sequence-vapor-on-sec 350 --startup-sequence-vapor-ramp-sec 60 --startup-sequence-vapor-rel-rate-gate-per-s 0.02 --startup-sequence-mass-resid-gate-lbmolph 1000000000` | P=220.308; xD=; xB=; R=; Vb= |
 | `20260602_182218` | 2026-06-02 18:22:18 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --allow-repeat-command --excel logs\c3c4_initializer_profile_coeff_trial1_liqenergy_topboundary2_11_noeq_20260602.xlsx --run-name c3c4_topL_total_reflux_washout30_60s --runtime-mode hydraulic --thermo table --thermo-table cache\thermo_table.json --include-energy --use-excel-vapor-holdup --no-equilibrium --vapor-holdup-relaxation-sec 0 --n-steps 300 --dt 0.2 --log-every 25 --fast-startup --disable-startup-thermo-conditioning --disable-restart-reentry-settling --reflux 5273.122789275105 --condenser-duty-mode total-condense --condenser-duty-btuph -51941932.55249542 --startup-total-reflux-washout-sec 30 --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 1.0 --liquid-hydraulic-model francis --enable-startup-hydraulic-sequence --enable-startup-vapor-homotopy --startup-sequence-profile-hold-sec 1 --startup-sequence-energy-on-sec 1 --startup-sequence-liquid-on-sec 1 --startup-sequence-liquid-ramp-sec 30 --startup-sequence-vapor-on-sec 75 --startup-sequence-vapor-ramp-sec 60 --startup-sequence-vapor-rel-rate-gate-per-s 0.02 --startup-sequence-mass-resid-gate-lbmolph 1000000000` | P=220.908; xD=; xB=; R=; Vb= |
@@ -618,6 +622,10 @@ Suspected-result duplicate groups: **57** (rows in groups: **216**)
 
 | Run ID | Status | CLI Known | t_final(s) | P_top | xD | xB | Reflux | Boilup | D | B | Summary CSV |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| `20260706_123702` | `ok` | Yes | 10.0 | 71.151 |  |  |  |  | 2386.93 | 4761.98 | `logs/native_checkpoint_c3c4_10s_restart/column_summary_20260706_123702.csv` |
+| `20260706_123621` | `ok` | Yes | 60.0 | 77.766 |  |  |  |  | 2386.93 | 4761.98 | `logs/native_checkpoint_c3c4_60s_source/column_summary_20260706_123621.csv` |
+| `20260706_123533` | `ok` | Yes | 0.1 | 14.700 |  |  |  |  | 30.00 | 30.00 | `logs/checkpoint_loader_smoke_restart/column_summary_20260706_123533.csv` |
+| `20260706_123511` | `ok` | Yes | 0.1 | 14.700 |  |  |  |  | 30.00 | 30.00 | `logs/checkpoint_loader_smoke_source/column_summary_20260706_123511.csv` |
 | `20260602_182925` | `ok` | Yes | 60.0 | 221.518 |  |  |  |  | 2386.93 | 4761.98 | `logs/column_summary_20260602_182925.csv` |
 | `20260602_182341` | `ok` | Yes | 300.0 | 220.308 |  |  |  |  | 2386.93 | 4761.98 | `logs/column_summary_20260602_182341.csv` |
 | `20260602_182218` | `ok` | Yes | 60.0 | 220.908 |  |  |  |  | 2386.93 | 4761.98 | `logs/column_summary_20260602_182218.csv` |
@@ -674,7 +682,3 @@ Suspected-result duplicate groups: **57** (rows in groups: **216**)
 | `20260601_155641` | `ok` | Yes | 1.0 | 222.620 |  |  |  |  | 2386.93 | 4761.98 | `logs/column_summary_20260601_155641.csv` |
 | `20260601_155343` | `ok` | Yes | 1.0 | 222.620 |  |  |  |  | 2386.93 | 4761.98 | `logs/column_summary_20260601_155343.csv` |
 | `20260601_153919` | `ok` | Yes | 5.0 | 222.620 |  |  |  |  | 2386.93 | 4761.98 | `logs/column_summary_20260601_153919.csv` |
-| `20260601_152940` | `ok` | Yes | 10.0 | 222.524 |  |  |  |  | 2386.93 | 4761.98 | `logs/column_summary_20260601_152940.csv` |
-| `20260601_104755` | `ok` | Yes | 40.0 | 218.440 |  |  |  |  | 2386.93 | 4761.98 | `logs/column_summary_20260601_104755.csv` |
-| `20260601_104246` | `ok` | Yes | 40.0 | 218.440 |  |  |  |  | 2386.93 | 4761.98 | `logs/column_summary_20260601_104246.csv` |
-| `20260601_103656` | `ok` | Yes | 200.0 | 218.440 |  |  |  |  | 2386.93 | 4761.98 | `logs/column_summary_20260601_103656.csv` |

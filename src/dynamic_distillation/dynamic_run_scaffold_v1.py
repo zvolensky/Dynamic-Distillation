@@ -14235,6 +14235,13 @@ def load_native_checkpoint_initial_state(
         memory["last_T_tray"] = np.asarray(arrays["diag__tray_T_f"], dtype=float).reshape((col.n_stages,)).copy()
     elif "diag__T_tray_F" in arrays:
         memory["last_T_tray"] = np.asarray(arrays["diag__T_tray_F"], dtype=float).reshape((col.n_stages,)).copy()
+    elif bool(getattr(layout, "include_temperature", False)):
+        try:
+            u = layout.unpack(y)
+            if "tray_T_f" in u:
+                memory["last_T_tray"] = np.asarray(u["tray_T_f"], dtype=float).reshape((col.n_stages,)).copy()
+        except Exception:
+            pass
 
     info = {
         "enabled": True,

@@ -372,6 +372,61 @@ def test_load_native_checkpoint_initial_state_restores_state_and_memory(tmp_path
         load_native_checkpoint_initial_state(path=checkpoint_path, layout=incompatible_layout, col=col)
 
 
+def test_load_native_checkpoint_initial_state_seeds_temperature_memory_from_state(tmp_path: Path):
+    col = ColumnSpec(
+        excel_path=str(tmp_path / "case.xlsx"),
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=2,
+        n_stages=2,
+        stage_1based=np.array([1, 2], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={},
+        T_f=np.array([100.0, 120.0], dtype=float),
+        P_psia=np.array([200.0, 210.0], dtype=float),
+        V_lbmolph=np.array([10.0, 20.0], dtype=float),
+        L_lbmolph=np.array([30.0, 40.0], dtype=float),
+        M_L_lbmol=np.array([5.0, 6.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 2.0], dtype=float),
+        y0=np.array([[0.6, 0.4], [0.55, 0.45]], dtype=float),
+        x0=np.array([[0.7, 0.3], [0.65, 0.35]], dtype=float),
+        streams={},
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=True,
+    )
+    y = layout.pack_y0(col)
+    sl = layout.slices()
+    y[sl["tray_T_f"]] = np.array([88.0, 144.0], dtype=float)
+    checkpoint_path = tmp_path / "checkpoint_no_temperature_diag.npz"
+    write_native_checkpoint_from_run_result(
+        run_result={
+            "run_id": "source-run",
+            "excel_path": str(tmp_path / "case.xlsx"),
+            "final_time_s": 12.0,
+            "final_state": y,
+            "layout": layout,
+            "column": col,
+            "last_diag": {
+                "P_psia_hyd": np.array([201.0, 211.0], dtype=float),
+            },
+        },
+        output_checkpoint_path=str(checkpoint_path),
+    )
+
+    _y_loaded, info, memory = load_native_checkpoint_initial_state(path=checkpoint_path, layout=layout, col=col)
+
+    assert info["restored_memory_keys"] == ["last_P_diag", "last_P_hyd", "last_T_tray"]
+    assert memory["last_T_tray"].tolist() == pytest.approx([88.0, 144.0])
+
+
 def test_default_startup_execution_flags_preserve_existing_behavior():
     cfg = RunnerConfig(
         excel_path="dummy.xlsx",

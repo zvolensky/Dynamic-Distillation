@@ -427,6 +427,8 @@ def main() -> int:
     ap.add_argument("--top-v-residual-weight", type=float, default=1.0)
     ap.add_argument("--bottom-l-residual-weight", type=float, default=1.0)
     ap.add_argument("--bottom-v-residual-weight", type=float, default=1.0)
+    ap.add_argument("--bottom-boundary-balance-weight", type=float, default=0.0)
+    ap.add_argument("--bottom-boundary-total-weight", type=float, default=0.0)
     ap.add_argument("--profile-penalty", type=float, default=0.02)
     ap.add_argument("--flow-penalty", type=float, default=0.02)
     ap.add_argument("--boundary-penalty", type=float, default=0.02)
@@ -867,6 +869,29 @@ def main() -> int:
             total_rate = np.sum(tray_l_rate, axis=1) + np.sum(tray_v_rate, axis=1)
             total_rel = total_rate / np.maximum(total_inv + float(args.denom_floor_lbmol), 1.0e-300)
             parts.append(float(args.tray_total_penalty) * total_rel.reshape(-1))
+        if float(args.bottom_boundary_balance_weight) > 0.0 and "bottom_L" in u and "bottom_L" in du and "tray_L" in u:
+            bottom_rate = np.asarray(du["bottom_L"], dtype=float).reshape((nc,))
+            bottom_l_val = np.asarray(u["bottom_L"], dtype=float).reshape((nc,))
+            tray_l_val = np.asarray(u["tray_L"], dtype=float).reshape((n, nc))
+            x_bottom = _normalize(bottom_l_val, fallback=x_bottom_base)
+            x_bottom_tray = _normalize(tray_l_val[-1, :], fallback=x0[-1, :])
+            liquid_in = max(float(L_eval[-1]) / 3600.0, 0.0) * x_bottom_tray
+            bottoms_out = max(float(boundary_eval.get("bottoms", boundary_base["bottoms"])) / 3600.0, 0.0) * x_bottom
+            boilup_out = max(float(boundary_eval.get("boilup", boundary_base["boilup"])) / 3600.0, 0.0) * x_bottom
+            flow_denom = np.abs(liquid_in) + np.abs(bottoms_out) + np.abs(boilup_out) + float(args.denom_floor_lbmol) / 3600.0
+            parts.append(float(args.bottom_boundary_balance_weight) * bottom_rate / np.maximum(flow_denom, 1.0e-300))
+        if float(args.bottom_boundary_total_weight) > 0.0 and "bottom_L" in du:
+            bottom_total_rate = float(np.sum(np.asarray(du["bottom_L"], dtype=float).reshape((nc,))))
+            liquid_in_total = max(float(L_eval[-1]) / 3600.0, 0.0)
+            bottoms_total = max(float(boundary_eval.get("bottoms", boundary_base["bottoms"])) / 3600.0, 0.0)
+            boilup_total = max(float(boundary_eval.get("boilup", boundary_base["boilup"])) / 3600.0, 0.0)
+            total_denom = liquid_in_total + bottoms_total + boilup_total + float(args.denom_floor_lbmol) / 3600.0
+            parts.append(
+                np.array(
+                    [float(args.bottom_boundary_total_weight) * bottom_total_rate / max(total_denom, 1.0e-300)],
+                    dtype=float,
+                )
+            )
         if float(args.profile_penalty) > 0.0:
             parts.append(float(args.profile_penalty) * np.asarray(z[:n_profile_var], dtype=float).reshape(-1))
         if float(args.boundary_penalty) > 0.0 and n_top_vapor_total_var > 0:
@@ -1097,6 +1122,8 @@ def main() -> int:
         "residual_stages": [i + 1 for i in residual_stages],
         "state_residual_blocks": state_residual_blocks,
         "state_residual_weights": state_residual_weights,
+        "bottom_boundary_balance_weight": float(args.bottom_boundary_balance_weight),
+        "bottom_boundary_total_weight": float(args.bottom_boundary_total_weight),
         "energy_residual_blocks": energy_residual_blocks,
         "blocks": blocks,
         "top_comp_blocks": top_comp_blocks,

@@ -192,10 +192,35 @@ def _candidate_cmd(
                 "--vary-liquid-flow",
                 "--vary-tray-energy",
                 "--vary-top-liquid",
+                "--vary-bottom-liquid",
                 "--chemsep-product-specs",
                 "--reflux-ratio",
                 str(float(args.reflux_ratio)),
                 "--vary-boilup",
+                "--boundary-penalty",
+                str(float(args.boundary_penalty)),
+            ]
+        )
+        return cmd
+    if name == "bottom-boundary-balanced":
+        cmd.extend(
+            [
+                "--residual-state-blocks",
+                "tray_V,tray_L,top_L,bottom_L",
+                "--residual-energy-blocks",
+                "tray_EV_BTU,tray_EL_BTU",
+                "--vary-vapor",
+                "--vary-vapor-flow",
+                "--vary-liquid",
+                "--vary-liquid-flow",
+                "--vary-tray-energy",
+                "--vary-top-liquid",
+                "--vary-bottom-liquid",
+                "--chemsep-product-specs",
+                "--reflux-ratio",
+                str(float(args.reflux_ratio)),
+                "--vary-boilup",
+                "--vary-bottoms",
                 "--boundary-penalty",
                 str(float(args.boundary_penalty)),
             ]

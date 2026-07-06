@@ -11,6 +11,7 @@ _MODULE = module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_MODULE)
 
 _candidate_sort_key = _MODULE._candidate_sort_key
+_candidate_cmd = _MODULE._candidate_cmd
 _choose_best = _MODULE._choose_best
 _optimizer_base_cmd = _MODULE._optimizer_base_cmd
 
@@ -92,3 +93,45 @@ def test_optimizer_base_command_includes_residual_weights(tmp_path):
     assert "--tray-l-residual-weight" in cmd
     assert "--top-l-residual-weight" in cmd
     assert "--bottom-l-residual-weight" in cmd
+
+
+def test_bottom_boundary_candidate_varies_bottom_boundary_flows(tmp_path):
+    args = Namespace(
+        stages="2-19",
+        residual_stages="2-19",
+        thermo="table",
+        runtime_mode="hydraulic",
+        condenser_duty_mode="total-condense",
+        max_nfev=3,
+        max_logit_delta=0.25,
+        max_flow_log_delta=0.12,
+        max_energy_rel_delta=0.15,
+        profile_penalty=0.02,
+        flow_penalty=0.02,
+        boundary_penalty=0.02,
+        energy_penalty=0.02,
+        tray_total_penalty=0.25,
+        tray_v_residual_weight=3.0,
+        tray_l_residual_weight=3.0,
+        top_l_residual_weight=1.0,
+        bottom_l_residual_weight=3.0,
+        include_energy=True,
+        use_excel_vapor_holdup=True,
+        no_equilibrium=True,
+        no_flash_feed_at_stage_conditions=True,
+        reflux_ratio=2.5,
+    )
+
+    cmd = _candidate_cmd(
+        args,
+        name="bottom-boundary-balanced",
+        input_path=tmp_path / "input.xlsx",
+        output_path=tmp_path / "output.xlsx",
+        audit_dir=tmp_path / "audit",
+    )
+
+    assert "--chemsep-product-specs" in cmd
+    assert "--vary-bottom-liquid" in cmd
+    assert "--vary-boilup" in cmd
+    assert "--vary-bottoms" in cmd
+    assert cmd[cmd.index("--residual-state-blocks") + 1] == "tray_V,tray_L,top_L,bottom_L"

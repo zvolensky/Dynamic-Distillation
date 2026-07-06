@@ -1,6 +1,6 @@
 # Initialization Code Status
 
-Updated: 2026-07-05
+Updated: 2026-07-06
 
 This note classifies the current initialization-related code after the ChemSep steady-state startup work showed that raw steady profiles are not model-consistent dynamic initial conditions.
 
@@ -17,7 +17,7 @@ These tools and paths remain part of the intended workflow.
 | Item | Status | Purpose |
 |---|---|---|
 | `tools/column_initialization_residual_audit.py` | Supported | First gate for imported or generated seeds. Evaluates `column_rhs_v1.py` at `t=0` and ranks state-rate, material, and energy residuals. |
-| `tools/initialize_column_model_consistent_seed.py` | Supported workflow, pending accepted seed | Repeatable initializer orchestration: audits the input, runs named coupled reconciliation candidates, audits each candidate, selects the best workbook by explicit criteria, and writes a summary. |
+| `tools/initialize_column_model_consistent_seed.py` | Supported workflow, pending accepted seed | Repeatable initializer orchestration: audits the input, runs named coupled reconciliation candidates, audits each candidate, selects the best workbook by explicit criteria, and writes a summary. Current named candidates include coupled tray/top-boundary reconciliation and bottom-boundary-balanced continuation. |
 | Top-boundary diagnostics in `column_rhs_v1.py` | Supported | Reports reflux-drum liquid splits such as `top_L_cond_in_*`, `top_L_reflux_out_*`, `top_L_distillate_out_*`, and `top_L_net_*`. |
 | Source-topology validation flags | Supported for validation only | `--disable-boundary-states`, `--disable-vapor-states`, and `--no-equilibrium` remain valid when deliberately matching a source model such as Skogestad Column A or the narrow Gani/ChemSep material-parity case. |
 | Total-condenser dry-boundary routing | Supported | A dry stage-1 total-condenser placeholder should route condensate using the actual condensed stream mixture, not a stale tray-liquid composition. |
@@ -56,6 +56,7 @@ Near-term work should focus on making `tools/initialize_column_model_consistent_
 
 - keep ChemSep or other steady-state exports as guesses only,
 - solve coupled tray vapor/liquid/energy and top-boundary residuals with one repeatable command,
+- include bottom-boundary state and flow degrees of freedom when the audit is dominated by `bottom_L`,
 - select candidates by explicit residual metrics rather than by manual inspection,
 - require the selected workbook or checkpoint to pass the active residual audit before using it as a dynamic launch seed.
 

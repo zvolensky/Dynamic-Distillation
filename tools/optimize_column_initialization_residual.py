@@ -362,7 +362,10 @@ def main() -> int:
     ap.add_argument(
         "--chemsep-product-specs",
         action="store_true",
-        help="Use ChemSep-like product DOFs: vary distillate, enforce reflux ratio, keep bottoms fixed.",
+        help=(
+            "Use ChemSep-like product DOFs: vary distillate and enforce reflux ratio; "
+            "bottom-side DOFs remain fixed unless explicitly varied."
+        ),
     )
     ap.add_argument("--reflux-ratio", type=float, default=None)
     ap.add_argument("--vary-reflux", action="store_true")
@@ -375,6 +378,8 @@ def main() -> int:
     ap.add_argument("--vary-condenser-duty", action="store_true")
     ap.add_argument("--vary-top-liquid", action="store_true")
     ap.add_argument("--vary-top-vapor", action="store_true")
+    ap.add_argument("--vary-bottom-liquid", action="store_true")
+    ap.add_argument("--vary-bottom-vapor", action="store_true")
     ap.add_argument("--vary-top-vapor-total", action="store_true")
     ap.add_argument(
         "--residual-stages",
@@ -460,6 +465,8 @@ def main() -> int:
                     args.vary_condenser_duty,
                     args.vary_top_liquid,
                     args.vary_top_vapor,
+                    args.vary_bottom_liquid,
+                    args.vary_bottom_vapor,
                     args.vary_top_vapor_total,
                 )
             ):
@@ -470,11 +477,21 @@ def main() -> int:
         args.vary_boilup = True
         args.vary_distillate = True
         args.vary_bottoms = True
+    explicit_boundary_flags = {
+        "reflux": "--vary-reflux" in sys.argv[1:],
+        "boilup": "--vary-boilup" in sys.argv[1:],
+        "distillate": "--vary-distillate" in sys.argv[1:],
+        "bottoms": "--vary-bottoms" in sys.argv[1:],
+    }
     if bool(args.chemsep_product_specs):
-        args.vary_reflux = False
-        args.vary_boilup = False
-        args.vary_distillate = True
-        args.vary_bottoms = False
+        if not explicit_boundary_flags["reflux"]:
+            args.vary_reflux = False
+        if not explicit_boundary_flags["boilup"]:
+            args.vary_boilup = False
+        if not explicit_boundary_flags["distillate"]:
+            args.vary_distillate = True
+        if not explicit_boundary_flags["bottoms"]:
+            args.vary_bottoms = False
 
     col, layout, inputs, y_base, extra = _build_case_runtime(args)
     n = int(col.n_stages)
@@ -496,16 +513,22 @@ def main() -> int:
     tray_v_base = np.asarray(u_base["tray_V"], dtype=float).reshape((n, nc))
     top_l_base = np.asarray(u_base.get("top_L", np.zeros(nc)), dtype=float).reshape((nc,))
     top_v_base = np.asarray(u_base.get("top_V", np.zeros(nc)), dtype=float).reshape((nc,))
+    bottom_l_base = np.asarray(u_base.get("bottom_L", np.zeros(nc)), dtype=float).reshape((nc,))
+    bottom_v_base = np.asarray(u_base.get("bottom_V", np.zeros(nc)), dtype=float).reshape((nc,))
     top_l_total_base = float(np.sum(top_l_base))
     top_v_total_base = float(np.sum(top_v_base))
-    x_top_base = _normalize(top_l_base, fallback=np.asarray(col.x0, dtype=float).reshape((n, nc))[0, :])
-    y_top_base = _normalize(top_v_base, fallback=np.asarray(col.y0, dtype=float).reshape((n, nc))[0, :])
+    bottom_l_total_base = float(np.sum(bottom_l_base))
+    bottom_v_total_base = float(np.sum(bottom_v_base))
+    x0 = np.asarray(col.x0, dtype=float).reshape((n, nc))
+    yv0 = np.asarray(col.y0, dtype=float).reshape((n, nc))
+    x_top_base = _normalize(top_l_base, fallback=x0[0, :])
+    y_top_base = _normalize(top_v_base, fallback=yv0[0, :])
+    x_bottom_base = _normalize(bottom_l_base, fallback=x0[-1, :])
+    y_bottom_base = _normalize(bottom_v_base, fallback=yv0[-1, :])
     tray_el_base = np.asarray(u_base.get("tray_EL_BTU", np.zeros(n)), dtype=float).reshape((n,))
     tray_ev_base = np.asarray(u_base.get("tray_EV_BTU", np.zeros(n)), dtype=float).reshape((n,))
     ml = np.sum(tray_l_base, axis=1)
     mv = np.sum(tray_v_base, axis=1)
-    x0 = np.asarray(col.x0, dtype=float).reshape((n, nc))
-    yv0 = np.asarray(col.y0, dtype=float).reshape((n, nc))
     L0_lbmolph = np.asarray(col.L_lbmolph, dtype=float).reshape((n,))
     V0_lbmolph = np.asarray(col.V_lbmolph, dtype=float).reshape((n,))
     boundary_base = {
@@ -571,6 +594,11 @@ def main() -> int:
         top_comp_blocks.append("top_L")
     if bool(args.vary_top_vapor) and top_v_total_base > 1.0e-12:
         top_comp_blocks.append("top_V")
+    bottom_comp_blocks: List[str] = []
+    if bool(args.vary_bottom_liquid) and bottom_l_total_base > 1.0e-12:
+        bottom_comp_blocks.append("bottom_L")
+    if bool(args.vary_bottom_vapor) and bottom_v_total_base > 1.0e-12:
+        bottom_comp_blocks.append("bottom_V")
     flow_blocks: List[tuple[str, int]] = []
     for i in stages:
         if bool(args.vary_liquid_flow) and L0_lbmolph[i] > 1.0e-12:
@@ -594,8 +622,9 @@ def main() -> int:
                 energy_blocks.append(("EV", i))
     n_comp_var = len(blocks) * nc
     n_top_comp_var = len(top_comp_blocks) * nc
+    n_bottom_comp_var = len(bottom_comp_blocks) * nc
     n_top_vapor_total_var = 1 if bool(args.vary_top_vapor_total) and top_v_total_base > 1.0e-12 else 0
-    n_profile_var = n_comp_var + n_top_comp_var
+    n_profile_var = n_comp_var + n_top_comp_var + n_bottom_comp_var
     n_state_var = n_profile_var + n_top_vapor_total_var
     n_flow_var = len(flow_blocks)
     n_boundary_var = len(boundary_blocks)
@@ -617,6 +646,7 @@ def main() -> int:
         [
             np.full(n_comp_var, -abs(float(args.max_logit_delta)), dtype=float),
             np.full(n_top_comp_var, -abs(float(args.max_logit_delta)), dtype=float),
+            np.full(n_bottom_comp_var, -abs(float(args.max_logit_delta)), dtype=float),
             np.full(n_top_vapor_total_var, -abs(float(args.max_top_vapor_total_log_delta)), dtype=float),
             np.full(n_flow_var, -abs(float(args.max_flow_log_delta)), dtype=float),
             np.full(n_boundary_var, -abs(float(args.max_boundary_log_delta)), dtype=float),
@@ -630,6 +660,7 @@ def main() -> int:
         [
             np.full(n_comp_var, abs(float(args.max_logit_delta)), dtype=float),
             np.full(n_top_comp_var, abs(float(args.max_logit_delta)), dtype=float),
+            np.full(n_bottom_comp_var, abs(float(args.max_logit_delta)), dtype=float),
             np.full(n_top_vapor_total_var, abs(float(args.max_top_vapor_total_log_delta)), dtype=float),
             np.full(n_flow_var, abs(float(args.max_flow_log_delta)), dtype=float),
             np.full(n_boundary_var, abs(float(args.max_boundary_log_delta)), dtype=float),
@@ -668,6 +699,8 @@ def main() -> int:
         y_state[sl["tray_V"]] = tray_v.reshape(-1)
         top_l = np.asarray(unpacked.get("top_L", top_l_base), dtype=float).reshape((nc,)).copy()
         top_v = np.asarray(unpacked.get("top_V", top_v_base), dtype=float).reshape((nc,)).copy()
+        bottom_l = np.asarray(unpacked.get("bottom_L", bottom_l_base), dtype=float).reshape((nc,)).copy()
+        bottom_v = np.asarray(unpacked.get("bottom_V", bottom_v_base), dtype=float).reshape((nc,)).copy()
         for key in top_comp_blocks:
             delta = np.asarray(z[idx: idx + nc], dtype=float)
             idx += nc
@@ -677,6 +710,15 @@ def main() -> int:
             elif key == "top_V":
                 comp = _softmax(_logit(y_top_base) + delta)
                 top_v = float(top_v_total_base) * comp
+        for key in bottom_comp_blocks:
+            delta = np.asarray(z[idx: idx + nc], dtype=float)
+            idx += nc
+            if key == "bottom_L":
+                comp = _softmax(_logit(x_bottom_base) + delta)
+                bottom_l = float(bottom_l_total_base) * comp
+            elif key == "bottom_V":
+                comp = _softmax(_logit(y_bottom_base) + delta)
+                bottom_v = float(bottom_v_total_base) * comp
         if n_top_vapor_total_var > 0:
             scale = math.exp(float(z[idx]))
             idx += 1
@@ -685,6 +727,10 @@ def main() -> int:
             y_state[sl["top_L"]] = top_l.reshape(-1)
         if "top_V" in sl:
             y_state[sl["top_V"]] = top_v.reshape(-1)
+        if "bottom_L" in sl:
+            y_state[sl["bottom_L"]] = bottom_l.reshape(-1)
+        if "bottom_V" in sl:
+            y_state[sl["bottom_V"]] = bottom_v.reshape(-1)
         if n_energy_var > 0:
             tray_el = tray_el_base.copy()
             tray_ev = tray_ev_base.copy()
@@ -998,7 +1044,13 @@ def main() -> int:
                 continue
             ws_energy.cell(row, tray_el_col).value = float(tray_el_opt[i])
             ws_energy.cell(row, tray_ev_col).value = float(tray_ev_opt[i])
-    if bool(args.vary_top_liquid) or bool(args.vary_top_vapor) or bool(args.vary_top_vapor_total):
+    if (
+        bool(args.vary_top_liquid)
+        or bool(args.vary_top_vapor)
+        or bool(args.vary_bottom_liquid)
+        or bool(args.vary_bottom_vapor)
+        or bool(args.vary_top_vapor_total)
+    ):
         _write_boundary_state(wb, col, top_l_opt, top_v_opt, bottom_l_opt, bottom_v_opt)
     if n_condenser_duty_var > 0 or args.condenser_duty_btuph is not None:
         _update_spec_value(wb, "Condenser Duty Mode", str(args.condenser_duty_mode))
@@ -1048,6 +1100,7 @@ def main() -> int:
         "energy_residual_blocks": energy_residual_blocks,
         "blocks": blocks,
         "top_comp_blocks": top_comp_blocks,
+        "bottom_comp_blocks": bottom_comp_blocks,
         "flow_blocks": flow_blocks,
         "boundary_blocks": boundary_blocks,
         "energy_blocks": energy_blocks,
@@ -1058,6 +1111,7 @@ def main() -> int:
         "n_variables": nvar,
         "n_composition_variables": n_comp_var,
         "n_top_composition_variables": n_top_comp_var,
+        "n_bottom_composition_variables": n_bottom_comp_var,
         "n_top_vapor_total_variables": n_top_vapor_total_var,
         "n_flow_variables": n_flow_var,
         "n_boundary_variables": n_boundary_var,
@@ -1084,6 +1138,12 @@ def main() -> int:
         ),
         "max_abs_delta_top_V_y": float(
             np.max(np.abs(_normalize(top_v_opt, fallback=y_top_base) - y_top_base))
+        ),
+        "max_abs_delta_bottom_L_x": float(
+            np.max(np.abs(_normalize(bottom_l_opt, fallback=x_bottom_base) - x_bottom_base))
+        ),
+        "max_abs_delta_bottom_V_y": float(
+            np.max(np.abs(_normalize(bottom_v_opt, fallback=y_bottom_base) - y_bottom_base))
         ),
         "rel_delta_top_V_total": float(
             abs(float(np.sum(top_v_opt)) - float(top_v_total_base)) / max(abs(float(top_v_total_base)), 1.0)

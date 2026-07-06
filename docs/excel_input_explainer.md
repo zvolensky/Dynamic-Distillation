@@ -41,8 +41,8 @@ Current practical behavior:
 - ChemSep and other external steady-state profiles should be treated as initialization seeds, not as automatically valid full dynamic initial conditions. The workbook may supply approximate `T/P/x/y/L/V`, duties, products, geometry, and holdup scale, but the dynamic model must still reconcile those values against its own topology, feed treatment, explicit vapor/liquid holdup states, and RHS equations before the state is accepted for validation or controller work. See `docs/dynamic_column_initialization_strategy.md`.
 
 Completed-run restart export:
-- Every completed run now writes a companion restart workbook into the run folder.
-- That restart workbook contains the final dynamic state needed to continue a simulation without repeating most fresh-startup calculations.
+- Every completed run now writes a companion restart workbook and native `.npz` checkpoint into the run folder.
+- The restart workbook remains the Excel-readable restart artifact. The native checkpoint preserves the packed dynamic state vector, selected numeric diagnostics/memory arrays, controller state, and metadata without Excel cell round-tripping.
 - Restart runs also apply a short hidden re-entry settling pass before the first logged row so the resumed trajectory lands closer to the pre-stop state.
 - Recommended workflow:
   - keep the base workbook as the case definition

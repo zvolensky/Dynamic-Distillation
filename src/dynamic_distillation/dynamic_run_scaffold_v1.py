@@ -259,6 +259,16 @@ def _array_from_json(value: Any, *, shape: Optional[Tuple[int, ...]] = None) -> 
     return arr.copy()
 
 
+def _checkpoint_json_default(value: Any) -> Any:
+    if isinstance(value, np.generic):
+        return value.item()
+    if isinstance(value, np.ndarray):
+        return np.asarray(value).tolist()
+    if isinstance(value, Path):
+        return str(value)
+    raise TypeError(f"Object of type {type(value).__name__} is not JSON serializable")
+
+
 def _snapshot_thermo_call_counters(*providers: Any) -> Dict[str, Dict[str, Any]]:
     merged: Dict[str, Dict[str, Any]] = {}
     seen_provider_ids: set[int] = set()
@@ -13792,6 +13802,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
 
     restart_workbook_path: Optional[str] = None
     restart_export_error = ""
+    native_checkpoint_path: Optional[str] = None
+    native_checkpoint_export_error = ""
     try:
         _ensure_dir(logs_dir)
         restart_stem = Path(str(cfg.excel_path)).stem
@@ -13818,6 +13830,35 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     except Exception as exc:
         restart_export_error = str(exc)
         print(f"[Warn] Failed to write restart workbook: {exc}")
+    try:
+        _ensure_dir(logs_dir)
+        checkpoint_stem = Path(str(cfg.excel_path)).stem
+        if "__restart_" in checkpoint_stem:
+            checkpoint_stem = checkpoint_stem.split("__restart_", 1)[0]
+        max_stem_len = 80
+        if len(checkpoint_stem) > max_stem_len:
+            checkpoint_stem = checkpoint_stem[:max_stem_len].rstrip("._- ")
+        checkpoint_name = f"{checkpoint_stem}__checkpoint_{tag}.npz"
+        checkpoint_path = logs_dir / checkpoint_name
+        native_checkpoint_path = write_native_checkpoint_from_run_result(
+            run_result={
+                "run_id": str(tag),
+                "excel_path": str(Path(cfg.excel_path).resolve()),
+                "final_time_s": float(t_s),
+                "final_state": y,
+                "layout": layout,
+                "column": col,
+                "last_diag": last_diag,
+                "controller_state_final": controller_state_final,
+                "steady_state_status_final": dict(steady_state_status_last),
+                "startup_seed_cache_info": dict(startup_seed_cache_info),
+            },
+            output_checkpoint_path=str(checkpoint_path),
+        )
+        print(f"[Output] Wrote native checkpoint: {native_checkpoint_path}")
+    except Exception as exc:
+        native_checkpoint_export_error = str(exc)
+        print(f"[Warn] Failed to write native checkpoint: {exc}")
 
     if (
         bool(getattr(cfg, "enable_startup_seed_cache", False))
@@ -13927,6 +13968,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 "summary_csv": str(summary_path),
                 "restart_workbook": str(restart_workbook_path or ""),
                 "restart_export_error": restart_export_error,
+                "native_checkpoint": str(native_checkpoint_path or ""),
+                "native_checkpoint_export_error": native_checkpoint_export_error,
                 "error": "",
                 "startup_timing_sec": dict(startup_timing_sec),
                 "init_pack_top_drum_vapor": dict(init_pack_top_drum_vapor_info),
@@ -13970,6 +14013,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         "profile_csv": str(profile_path) if cfg.write_logs else None,
         "summary_csv": str(summary_path) if cfg.write_logs else None,
         "restart_workbook": str(restart_workbook_path) if restart_workbook_path else None,
+        "native_checkpoint": str(native_checkpoint_path) if native_checkpoint_path else None,
         "validation": {
             "ok": bool(validation.ok),
             "errors": list(validation.errors),
@@ -13989,6 +14033,84 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         "startup_top_drum_init_info": top_drum_init_info,
         "startup_seed_cache_info": dict(startup_seed_cache_info),
     }
+
+
+def write_native_checkpoint_from_run_result(
+    *,
+    run_result: Dict[str, Any],
+    output_checkpoint_path: str,
+) -> str:
+    """Write a native binary checkpoint from a completed run result.
+
+    This intentionally preserves the exact packed dynamic state vector plus
+    runner metadata and selected numeric diagnostic/memory arrays. Unlike the
+    Excel restart workbook, this artifact is not a human-editable case file.
+    """
+    if not isinstance(run_result, dict):
+        raise ValueError("run_result must be a dict returned by run_smoke_simulation().")
+
+    y = np.asarray(run_result.get("final_state"), dtype=float).reshape((-1,))
+    layout = run_result.get("layout")
+    col = run_result.get("column")
+    if layout is None or col is None or y.size <= 0:
+        raise ValueError("run_result is missing final_state/layout/column.")
+
+    out_path = Path(output_checkpoint_path).expanduser().resolve()
+    _ensure_dir(out_path.parent)
+    arrays: Dict[str, np.ndarray] = {
+        "final_state": y.copy(),
+    }
+    last_diag = run_result.get("last_diag") or {}
+    if isinstance(last_diag, dict):
+        for key, value in last_diag.items():
+            try:
+                arr = np.asarray(value, dtype=float)
+            except Exception:
+                continue
+            if arr.dtype.kind not in "fiu":
+                continue
+            arrays[f"diag__{str(key)}"] = arr.copy()
+
+    layout_doc = {
+        "n_stages": int(getattr(layout, "n_stages")),
+        "n_components": int(getattr(layout, "n_components")),
+        "include_top": bool(getattr(layout, "include_top", False)),
+        "include_bottom": bool(getattr(layout, "include_bottom", False)),
+        "include_vapor": bool(getattr(layout, "include_vapor", False)),
+        "include_temperature": bool(getattr(layout, "include_temperature", False)),
+        "include_energy": bool(getattr(layout, "include_energy", False)),
+    }
+    column_doc = {
+        "n_stages": int(getattr(col, "n_stages")),
+        "n_components": int(getattr(col, "n_components")),
+        "components_excel": list(getattr(col, "components_excel", []) or []),
+        "components_dwsim": list(getattr(col, "components_dwsim", []) or []),
+    }
+    metadata = {
+        "schema": "dynamic_distillation.native_checkpoint.v1",
+        "created_at_local": _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "run_id": str(run_result.get("run_id") or ""),
+        "excel_path": str(run_result.get("excel_path") or ""),
+        "final_time_s": float(run_result.get("final_time_s", np.nan)),
+        "layout": layout_doc,
+        "column": column_doc,
+        "controller_state_final": dict(run_result.get("controller_state_final") or {}),
+        "steady_state_status_final": dict(run_result.get("steady_state_status_final") or {}),
+        "startup_seed_cache_info": dict(run_result.get("startup_seed_cache_info") or {}),
+        "array_keys": sorted(arrays.keys()),
+    }
+    metadata_json = json.dumps(metadata, indent=2, sort_keys=True, default=_checkpoint_json_default)
+    arrays["metadata_json"] = np.asarray(metadata_json)
+    np.savez_compressed(out_path, **arrays)
+    return str(out_path)
+
+
+def read_native_checkpoint(path: str | Path) -> Dict[str, Any]:
+    """Read a native checkpoint written by write_native_checkpoint_from_run_result."""
+    with np.load(Path(path).expanduser().resolve(), allow_pickle=False) as data:
+        metadata = json.loads(str(data["metadata_json"].item()))
+        arrays = {key: np.asarray(data[key]).copy() for key in data.files if key != "metadata_json"}
+    return {"metadata": metadata, "arrays": arrays}
 
 
 def write_restart_workbook_from_run_result(

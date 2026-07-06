@@ -72,6 +72,8 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _sync_algebraic_tray_temperature_state,
     build_inputs_for_runner,
     run_smoke_simulation,
+    read_native_checkpoint,
+    write_native_checkpoint_from_run_result,
     write_restart_workbook_from_run_result,
 )
 from dynamic_distillation.column_rhs_v1 import ColumnInputs, column_rhs
@@ -244,6 +246,36 @@ def test_write_restart_workbook_from_run_result_writes_boundary_state_sheet(tmp_
     assert ctrl_map["boilup_cmd_lbmolph"] == pytest.approx(8014.56)
     assert ctrl_map["distillate_comp_integ"] == pytest.approx(12.5)
     assert ctrl_map["bottoms_comp_integ"] == pytest.approx(-7.25)
+
+    checkpoint_path = tmp_path / "checkpoint.npz"
+    write_native_checkpoint_from_run_result(
+        run_result={
+            "run_id": "test-run",
+            "excel_path": str(template),
+            "final_time_s": 12.5,
+            "final_state": y,
+            "layout": layout,
+            "column": col,
+            "controller_state_final": {"top_level_integ": 1.5},
+            "steady_state_status_final": {"steady_state_flag": 0.0},
+            "startup_seed_cache_info": {"loaded": False},
+            "last_diag": {
+                "x_tray": col.x0,
+                "P_psia_hyd": col.P_psia,
+            },
+        },
+        output_checkpoint_path=str(checkpoint_path),
+    )
+    checkpoint = read_native_checkpoint(checkpoint_path)
+    assert checkpoint["metadata"]["schema"] == "dynamic_distillation.native_checkpoint.v1"
+    assert checkpoint["metadata"]["run_id"] == "test-run"
+    assert checkpoint["metadata"]["final_time_s"] == pytest.approx(12.5)
+    assert checkpoint["metadata"]["layout"]["n_stages"] == 2
+    assert checkpoint["metadata"]["layout"]["include_bottom"] is True
+    assert checkpoint["metadata"]["controller_state_final"]["top_level_integ"] == pytest.approx(1.5)
+    assert checkpoint["arrays"]["final_state"].tolist() == pytest.approx(y.tolist())
+    assert checkpoint["arrays"]["diag__x_tray"].shape == (2, 2)
+    assert checkpoint["arrays"]["diag__P_psia_hyd"].tolist() == pytest.approx([200.0, 210.0])
 
 
 def test_fast_startup_skips_expensive_startup_passes():
@@ -1034,6 +1066,12 @@ def test_runner_writes_run_metadata_json(tmp_path: Path):
     assert str(doc.get("restart_workbook", "")).endswith(".xlsx")
     assert Path(str(doc["restart_workbook"])).exists()
     assert Path(str(out["restart_workbook"])).exists()
+    assert str(doc.get("native_checkpoint", "")).endswith(".npz")
+    assert Path(str(doc["native_checkpoint"])).exists()
+    assert Path(str(out["native_checkpoint"])).exists()
+    checkpoint = read_native_checkpoint(str(out["native_checkpoint"]))
+    assert checkpoint["metadata"]["run_id"] == out["run_id"]
+    assert "final_state" in checkpoint["arrays"]
 
 
 def test_snapshot_thermo_call_counters_merges_multiple_providers():

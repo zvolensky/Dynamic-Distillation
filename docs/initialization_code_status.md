@@ -21,6 +21,7 @@ These tools and paths remain part of the intended workflow.
 | Top-boundary diagnostics in `column_rhs_v1.py` | Supported | Reports reflux-drum liquid splits such as `top_L_cond_in_*`, `top_L_reflux_out_*`, `top_L_distillate_out_*`, and `top_L_net_*`. |
 | Source-topology validation flags | Supported for validation only | `--disable-boundary-states`, `--disable-vapor-states`, and `--no-equilibrium` remain valid when deliberately matching a source model such as Skogestad Column A or the narrow Gani/ChemSep material-parity case. |
 | Total-condenser dry-boundary routing | Supported | A dry stage-1 total-condenser placeholder should route condensate using the actual condensed stream mixture, not a stale tray-liquid composition. |
+| Native checkpoint export | Supported capture path | Completed runs now write a `.npz` checkpoint alongside the Excel restart workbook. The checkpoint preserves the packed dynamic state vector, selected numeric diagnostics/memory arrays, controller state, and metadata without Excel cell round-tripping. |
 
 ## Experimental
 
@@ -60,6 +61,7 @@ Near-term work should focus on making `tools/initialize_column_model_consistent_
 - include bottom-boundary state and flow degrees of freedom when the audit is dominated by `bottom_L`,
 - select candidates by explicit residual metrics rather than by manual inspection,
 - cap expensive optimizer probes gracefully so partial best-seen candidates are still audited and labeled,
+- prefer native checkpoints over Excel restart workbooks for preserving an accepted dynamic state,
 - require the selected workbook or checkpoint to pass the active residual audit before using it as a dynamic launch seed.
 
 If a tool writes a new workbook or checkpoint, it should be called an experimental or diagnostic seed until it passes the active residual audit and a short dynamic launch with hidden re-entry conditioning disabled.

@@ -81,6 +81,7 @@ def test_optimizer_base_command_includes_residual_weights(tmp_path):
         bottom_l_residual_weight=0.5,
         bottom_boundary_balance_weight=2.0,
         bottom_boundary_total_weight=1.5,
+        bottom_vapor_interface_weight=0.75,
         include_energy=True,
         use_excel_vapor_holdup=True,
         no_equilibrium=True,
@@ -108,6 +109,8 @@ def test_optimizer_base_command_includes_residual_weights(tmp_path):
     assert "--bottom-boundary-balance-weight" in cmd
     assert cmd[cmd.index("--bottom-boundary-balance-weight") + 1] == "2.0"
     assert "--bottom-boundary-total-weight" in cmd
+    assert "--bottom-vapor-interface-weight" in cmd
+    assert cmd[cmd.index("--bottom-vapor-interface-weight") + 1] == "0.75"
 
 
 def test_bottom_boundary_candidate_varies_bottom_boundary_flows(tmp_path):
@@ -136,6 +139,7 @@ def test_bottom_boundary_candidate_varies_bottom_boundary_flows(tmp_path):
         bottom_l_residual_weight=3.0,
         bottom_boundary_balance_weight=2.0,
         bottom_boundary_total_weight=1.0,
+        bottom_vapor_interface_weight=0.75,
         include_energy=True,
         use_excel_vapor_holdup=True,
         no_equilibrium=True,

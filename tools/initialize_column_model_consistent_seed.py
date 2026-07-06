@@ -153,6 +153,8 @@ def _optimizer_base_cmd(args: argparse.Namespace, *, input_path: Path, output_pa
         str(float(args.bottom_boundary_balance_weight)),
         "--bottom-boundary-total-weight",
         str(float(args.bottom_boundary_total_weight)),
+        "--bottom-vapor-interface-weight",
+        str(float(args.bottom_vapor_interface_weight)),
         "--audit-output-dir",
         str(audit_dir),
     ]
@@ -307,6 +309,7 @@ def main() -> int:
     ap.add_argument("--bottom-l-residual-weight", type=float, default=1.0)
     ap.add_argument("--bottom-boundary-balance-weight", type=float, default=0.0)
     ap.add_argument("--bottom-boundary-total-weight", type=float, default=0.0)
+    ap.add_argument("--bottom-vapor-interface-weight", type=float, default=0.0)
     ap.add_argument("--reflux-ratio", type=float, default=2.5)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()

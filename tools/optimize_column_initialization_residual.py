@@ -452,6 +452,7 @@ def main() -> int:
     ap.add_argument("--bottom-v-residual-weight", type=float, default=1.0)
     ap.add_argument("--bottom-boundary-balance-weight", type=float, default=0.0)
     ap.add_argument("--bottom-boundary-total-weight", type=float, default=0.0)
+    ap.add_argument("--bottom-vapor-interface-weight", type=float, default=0.0)
     ap.add_argument("--profile-penalty", type=float, default=0.02)
     ap.add_argument("--profile-continuity-penalty", type=float, default=0.0)
     ap.add_argument("--flow-penalty", type=float, default=0.02)
@@ -925,6 +926,20 @@ def main() -> int:
                     dtype=float,
                 )
             )
+        if float(args.bottom_vapor_interface_weight) > 0.0 and n > 1 and "tray_V" in u:
+            tray_v_val = np.asarray(u["tray_V"], dtype=float).reshape((n, nc))
+            bottom_vapor = _normalize(tray_v_val[-1, :], fallback=yv0[-1, :])
+            adjacent_vapor = _normalize(tray_v_val[-2, :], fallback=yv0[-2, :])
+            boilup_total = max(float(boundary_eval.get("boilup", boundary_base["boilup"])) / 3600.0, 0.0)
+            adjacent_total = max(float(V_eval[-2]) / 3600.0, 0.0)
+            flow_scale = max(boilup_total + adjacent_total + float(args.denom_floor_lbmol) / 3600.0, 1.0e-300)
+            composition_jump = adjacent_vapor - bottom_vapor
+            parts.append(
+                float(args.bottom_vapor_interface_weight)
+                * composition_jump.reshape(-1)
+                * (boilup_total + adjacent_total)
+                / flow_scale
+            )
         if float(args.profile_penalty) > 0.0:
             parts.append(float(args.profile_penalty) * np.asarray(z[:n_profile_var], dtype=float).reshape(-1))
         if float(args.profile_continuity_penalty) > 0.0 and n_comp_var > 0:
@@ -1212,6 +1227,7 @@ def main() -> int:
         "state_residual_weights": state_residual_weights,
         "bottom_boundary_balance_weight": float(args.bottom_boundary_balance_weight),
         "bottom_boundary_total_weight": float(args.bottom_boundary_total_weight),
+        "bottom_vapor_interface_weight": float(args.bottom_vapor_interface_weight),
         "profile_continuity_penalty": float(args.profile_continuity_penalty),
         "flow_continuity_penalty": float(args.flow_continuity_penalty),
         "energy_continuity_penalty": float(args.energy_continuity_penalty),

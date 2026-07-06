@@ -1,4 +1,5 @@
 from importlib.util import module_from_spec, spec_from_file_location
+from argparse import Namespace
 from pathlib import Path
 
 
@@ -11,6 +12,7 @@ _SPEC.loader.exec_module(_MODULE)
 
 _candidate_sort_key = _MODULE._candidate_sort_key
 _choose_best = _MODULE._choose_best
+_optimizer_base_cmd = _MODULE._optimizer_base_cmd
 
 
 def _candidate(name, *, gate=False, max_rel=1.0, tray_total=1000.0, max_abs=1.0):
@@ -51,3 +53,42 @@ def test_balanced_score_includes_tray_total_residual():
         lower_rate["audit_summary"],
         selection="balanced",
     )
+
+
+def test_optimizer_base_command_includes_residual_weights(tmp_path):
+    args = Namespace(
+        stages="2-19",
+        residual_stages="2-19",
+        thermo="table",
+        runtime_mode="hydraulic",
+        condenser_duty_mode="total-condense",
+        max_nfev=3,
+        max_logit_delta=0.25,
+        max_flow_log_delta=0.12,
+        max_energy_rel_delta=0.15,
+        profile_penalty=0.02,
+        flow_penalty=0.02,
+        energy_penalty=0.02,
+        tray_total_penalty=0.25,
+        tray_v_residual_weight=3.0,
+        tray_l_residual_weight=1.2,
+        top_l_residual_weight=0.8,
+        bottom_l_residual_weight=0.5,
+        include_energy=True,
+        use_excel_vapor_holdup=True,
+        no_equilibrium=True,
+        no_flash_feed_at_stage_conditions=True,
+    )
+
+    cmd = _optimizer_base_cmd(
+        args,
+        input_path=tmp_path / "input.xlsx",
+        output_path=tmp_path / "output.xlsx",
+        audit_dir=tmp_path / "audit",
+    )
+
+    assert "--tray-v-residual-weight" in cmd
+    assert cmd[cmd.index("--tray-v-residual-weight") + 1] == "3.0"
+    assert "--tray-l-residual-weight" in cmd
+    assert "--top-l-residual-weight" in cmd
+    assert "--bottom-l-residual-weight" in cmd

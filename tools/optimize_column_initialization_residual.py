@@ -416,6 +416,12 @@ def main() -> int:
     ap.add_argument("--energy-denom-floor-btu", type=float, default=1.0)
     ap.add_argument("--residual-scale", type=float, default=1.0)
     ap.add_argument("--energy-residual-scale", type=float, default=1.0)
+    ap.add_argument("--tray-v-residual-weight", type=float, default=1.0)
+    ap.add_argument("--tray-l-residual-weight", type=float, default=1.0)
+    ap.add_argument("--top-l-residual-weight", type=float, default=1.0)
+    ap.add_argument("--top-v-residual-weight", type=float, default=1.0)
+    ap.add_argument("--bottom-l-residual-weight", type=float, default=1.0)
+    ap.add_argument("--bottom-v-residual-weight", type=float, default=1.0)
     ap.add_argument("--profile-penalty", type=float, default=0.02)
     ap.add_argument("--flow-penalty", type=float, default=0.02)
     ap.add_argument("--boundary-penalty", type=float, default=0.02)
@@ -545,6 +551,14 @@ def main() -> int:
             feed_vapor_fraction_base = float(getattr(feed_stream_base, "vapor_fraction"))
         except Exception:
             feed_vapor_fraction_base = None
+    state_residual_weights = {
+        "tray_V": float(args.tray_v_residual_weight),
+        "tray_L": float(args.tray_l_residual_weight),
+        "top_L": float(args.top_l_residual_weight),
+        "top_V": float(args.top_v_residual_weight),
+        "bottom_L": float(args.bottom_l_residual_weight),
+        "bottom_V": float(args.bottom_v_residual_weight),
+    }
 
     blocks: List[tuple[str, int]] = []
     for i in stages:
@@ -796,7 +810,8 @@ def main() -> int:
             denom = np.abs(val) + float(args.denom_floor_lbmol)
             rel = rate / np.maximum(denom, 1.0e-300)
             max_rel = max(max_rel, float(np.max(np.abs(rel))))
-            parts.append(rel.reshape(-1) / max(float(args.residual_scale), 1.0e-300))
+            block_weight = max(float(state_residual_weights.get(key, 1.0)), 0.0)
+            parts.append(block_weight * rel.reshape(-1) / max(float(args.residual_scale), 1.0e-300))
         if float(args.tray_total_penalty) > 0.0 and "tray_L" in u and "tray_V" in u and "tray_L" in du and "tray_V" in du:
             tray_l_val = np.asarray(u["tray_L"], dtype=float).reshape((n, nc))
             tray_v_val = np.asarray(u["tray_V"], dtype=float).reshape((n, nc))
@@ -1029,6 +1044,7 @@ def main() -> int:
         "stages": [i + 1 for i in stages],
         "residual_stages": [i + 1 for i in residual_stages],
         "state_residual_blocks": state_residual_blocks,
+        "state_residual_weights": state_residual_weights,
         "energy_residual_blocks": energy_residual_blocks,
         "blocks": blocks,
         "top_comp_blocks": top_comp_blocks,

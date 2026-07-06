@@ -133,6 +133,14 @@ def _optimizer_base_cmd(args: argparse.Namespace, *, input_path: Path, output_pa
         str(float(args.energy_penalty)),
         "--tray-total-penalty",
         str(float(args.tray_total_penalty)),
+        "--tray-v-residual-weight",
+        str(float(args.tray_v_residual_weight)),
+        "--tray-l-residual-weight",
+        str(float(args.tray_l_residual_weight)),
+        "--top-l-residual-weight",
+        str(float(args.top_l_residual_weight)),
+        "--bottom-l-residual-weight",
+        str(float(args.bottom_l_residual_weight)),
         "--audit-output-dir",
         str(audit_dir),
     ]
@@ -252,6 +260,10 @@ def main() -> int:
     ap.add_argument("--boundary-penalty", type=float, default=0.02)
     ap.add_argument("--energy-penalty", type=float, default=0.02)
     ap.add_argument("--tray-total-penalty", type=float, default=0.25)
+    ap.add_argument("--tray-v-residual-weight", type=float, default=1.0)
+    ap.add_argument("--tray-l-residual-weight", type=float, default=1.0)
+    ap.add_argument("--top-l-residual-weight", type=float, default=1.0)
+    ap.add_argument("--bottom-l-residual-weight", type=float, default=1.0)
     ap.add_argument("--reflux-ratio", type=float, default=2.5)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()

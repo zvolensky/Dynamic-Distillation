@@ -71,6 +71,7 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _resolve_startup_execution_flags,
     _sync_algebraic_tray_temperature_state,
     build_inputs_for_runner,
+    load_native_checkpoint_initial_state,
     run_smoke_simulation,
     read_native_checkpoint,
     write_native_checkpoint_from_run_result,
@@ -297,6 +298,78 @@ def test_fast_startup_skips_expensive_startup_passes():
     assert flags["top_drum_steady_max_iter"] == 2
     assert flags["top_drum_steady_tol_lbmolps"] == pytest.approx(1.0e-4)
     assert flags["top_drum_steady_wall_limit_sec"] == pytest.approx(30.0)
+
+
+def test_load_native_checkpoint_initial_state_restores_state_and_memory(tmp_path: Path):
+    col = ColumnSpec(
+        excel_path=str(tmp_path / "case.xlsx"),
+        components_excel=["A", "B"],
+        components_dwsim=["A", "B"],
+        n_components=2,
+        n_stages=3,
+        stage_1based=np.array([1, 2, 3], dtype=int),
+        sim=SimulationSettings(dt_sec=1.0, t_final_sec=10.0, log_every_n_steps=1),
+        duties=HeatDuties(condenser_type="Total", q_cond_btu_per_h=0.0, q_reb_btu_per_h=0.0),
+        specs_raw={},
+        T_f=np.array([100.0, 110.0, 120.0], dtype=float),
+        P_psia=np.array([200.0, 205.0, 210.0], dtype=float),
+        V_lbmolph=np.array([10.0, 11.0, 12.0], dtype=float),
+        L_lbmolph=np.array([20.0, 21.0, 22.0], dtype=float),
+        M_L_lbmol=np.array([5.0, 6.0, 7.0], dtype=float),
+        M_V_lbmol=np.array([1.0, 1.1, 1.2], dtype=float),
+        y0=np.array([[0.6, 0.4], [0.55, 0.45], [0.5, 0.5]], dtype=float),
+        x0=np.array([[0.7, 0.3], [0.65, 0.35], [0.6, 0.4]], dtype=float),
+        streams={},
+    )
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=True,
+        include_bottom=True,
+        include_vapor=True,
+        include_temperature=True,
+        include_energy=True,
+    )
+    y = layout.pack_y0(col)
+    y = y + np.linspace(0.0, 1.0, y.size)
+    checkpoint_path = tmp_path / "checkpoint.npz"
+    write_native_checkpoint_from_run_result(
+        run_result={
+            "run_id": "source-run",
+            "excel_path": str(tmp_path / "case.xlsx"),
+            "final_time_s": 42.0,
+            "final_state": y,
+            "layout": layout,
+            "column": col,
+            "last_diag": {
+                "P_psia_hyd": np.array([201.0, 206.0, 211.0], dtype=float),
+                "tray_T_f": np.array([101.0, 111.0, 121.0], dtype=float),
+            },
+        },
+        output_checkpoint_path=str(checkpoint_path),
+    )
+
+    y_loaded, info, memory = load_native_checkpoint_initial_state(path=checkpoint_path, layout=layout, col=col)
+
+    assert y_loaded.tolist() == pytest.approx(y.tolist())
+    assert info["loaded"] is True
+    assert info["source_run_id"] == "source-run"
+    assert info["source_final_time_s"] == pytest.approx(42.0)
+    assert memory["last_P_hyd"].tolist() == pytest.approx([201.0, 206.0, 211.0])
+    assert memory["last_P_diag"].tolist() == pytest.approx([201.0, 206.0, 211.0])
+    assert memory["last_T_tray"].tolist() == pytest.approx([101.0, 111.0, 121.0])
+
+    incompatible_layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=True,
+        include_bottom=True,
+        include_vapor=False,
+        include_temperature=True,
+        include_energy=True,
+    )
+    with pytest.raises(ValueError, match="layout is incompatible"):
+        load_native_checkpoint_initial_state(path=checkpoint_path, layout=incompatible_layout, col=col)
 
 
 def test_default_startup_execution_flags_preserve_existing_behavior():

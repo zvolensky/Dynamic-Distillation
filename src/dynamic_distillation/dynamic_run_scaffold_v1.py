@@ -2670,6 +2670,7 @@ class RunnerConfig:
     run_name: Optional[str] = None
     run_description: Optional[str] = None
     write_logs: bool = True
+    init_checkpoint_path: Optional[str] = None
     use_excel_vapor_holdup: bool = False
     fast_startup: bool = False
     enable_startup_seed_cache: bool = False
@@ -10064,6 +10065,17 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     seq_vapor_guard_phase = "disabled" if not bool(cfg.enable_startup_vapor_homotopy) else "profile_hold"
     last_ss_rel_state_rate_per_s: Optional[float] = None
     explicit_runtime_restart = bool(_has_explicit_runtime_restart_state(col))
+    native_checkpoint_loaded = False
+    native_checkpoint_info: Dict[str, Any] = {
+        "enabled": bool(getattr(cfg, "init_checkpoint_path", None)),
+        "path": str(getattr(cfg, "init_checkpoint_path", "") or ""),
+        "loaded": False,
+        "reason": "disabled",
+        "schema": "",
+        "source_run_id": "",
+        "source_final_time_s": np.nan,
+        "restored_memory_keys": [],
+    }
     startup_seed_loaded = False
     startup_seed_cache_path = _resolve_startup_seed_cache_path(cfg)
     startup_seed_cache_info: Dict[str, Any] = {
@@ -10076,6 +10088,27 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
 
     # Initial conditions from ColumnSpec
     y = layout.pack_y0(col)
+    if getattr(cfg, "init_checkpoint_path", None):
+        checkpoint_load_t0 = time.perf_counter()
+        y, native_checkpoint_info, checkpoint_memory = load_native_checkpoint_initial_state(
+            path=str(cfg.init_checkpoint_path),
+            layout=layout,
+            col=col,
+        )
+        startup_timing_sec["native_checkpoint_load"] = float(time.perf_counter() - checkpoint_load_t0)
+        explicit_runtime_restart = True
+        native_checkpoint_loaded = True
+        if "last_P_hyd" in checkpoint_memory:
+            last_P_hyd = checkpoint_memory["last_P_hyd"]
+        if "last_P_diag" in checkpoint_memory:
+            last_P_diag = checkpoint_memory["last_P_diag"]
+        if "last_T_tray" in checkpoint_memory:
+            last_T_tray = checkpoint_memory["last_T_tray"]
+        _emit_progress(
+            "[Init] Loaded native checkpoint  "
+            f"path={native_checkpoint_info.get('path', '')}  "
+            "skipping fresh-startup vapor reseed and restart re-entry conditioning"
+        )
     if (
         bool(getattr(cfg, "enable_startup_seed_cache", False))
         and (not explicit_runtime_restart)
@@ -10334,6 +10367,18 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             "d_top_L_final_lbmolps": np.nan,
             "d_top_V_final_lbmolps": np.nan,
         }
+    elif native_checkpoint_loaded:
+        top_drum_init_info = {
+            "attempted": False,
+            "success": True,
+            "skipped_native_checkpoint": True,
+            "n_iter": 0,
+            "pressure_coupled": False,
+            "d_top_L_init_lbmolps": np.nan,
+            "d_top_V_init_lbmolps": np.nan,
+            "d_top_L_final_lbmolps": np.nan,
+            "d_top_V_final_lbmolps": np.nan,
+        }
     elif startup_seed_loaded:
         top_drum_init_info = {
             "attempted": False,
@@ -10383,11 +10428,13 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         )
     elif bool(top_drum_init_info.get("skipped_explicit_restart_state", False)):
         print("[Init] Top-drum startup steadying skipped  explicit boundary restart state detected")
+    elif bool(top_drum_init_info.get("skipped_native_checkpoint", False)):
+        print("[Init] Top-drum startup steadying skipped  native checkpoint loaded")
     elif bool(top_drum_init_info.get("skipped_startup_seed_cache", False)):
         print("[Init] Top-drum startup steadying skipped  startup seed cache loaded")
     elif bool(top_drum_init_info.get("skipped_fast_startup", False)):
         print("[Init] Top-drum startup steadying skipped  fast startup enabled")
-    if explicit_runtime_restart:
+    if explicit_runtime_restart and (not native_checkpoint_loaded):
         if bool(startup_flags.get("enable_restart_reentry_settling", True)):
             y, restart_reentry_info = _initialize_restart_reentry_settling(
                 col=col,
@@ -10413,6 +10460,15 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     f"wall_cap_hit={bool(top_part.get('hit_wall_limit', False))}"
                 )
         print("[Init] Explicit runtime restart state detected  skipped fresh-startup vapor reseed and heavy conditioning")
+    elif native_checkpoint_loaded:
+        restart_reentry_info = {
+            "attempted": False,
+            "success": True,
+            "reason": "native-checkpoint-loaded",
+            "thermo": {"attempted": False, "success": True, "n_iter": 0},
+            "top_drum": {"attempted": False, "success": True, "n_iter": 0, "hit_wall_limit": False},
+        }
+        print("[Init] Native checkpoint state detected  skipped restart re-entry settling")
     _milestone("initialized vapor holdup from spec pressure")
     if (
         (not startup_seed_loaded or last_tray_bubble_target_F is None)
@@ -13974,6 +14030,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 "startup_timing_sec": dict(startup_timing_sec),
                 "init_pack_top_drum_vapor": dict(init_pack_top_drum_vapor_info),
                 "init_match_condenser_duty": dict(init_match_condenser_duty_info),
+                "native_checkpoint_init": dict(native_checkpoint_info),
                 "startup_seed_cache": dict(startup_seed_cache_info),
                 "thermo_call_counters": thermo_call_counters,
             }
@@ -14031,6 +14088,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         "startup_thermo_init_info": thermo_init_info,
         "startup_hydraulic_energy_init_info": hydraulic_energy_init_info,
         "startup_top_drum_init_info": top_drum_init_info,
+        "native_checkpoint_init_info": dict(native_checkpoint_info),
         "startup_seed_cache_info": dict(startup_seed_cache_info),
     }
 
@@ -14111,6 +14169,84 @@ def read_native_checkpoint(path: str | Path) -> Dict[str, Any]:
         metadata = json.loads(str(data["metadata_json"].item()))
         arrays = {key: np.asarray(data[key]).copy() for key in data.files if key != "metadata_json"}
     return {"metadata": metadata, "arrays": arrays}
+
+
+def load_native_checkpoint_initial_state(
+    *,
+    path: str | Path,
+    layout: StateVectorLayout,
+    col: ColumnSpec,
+) -> tuple[np.ndarray, Dict[str, Any], Dict[str, np.ndarray]]:
+    """Load a native checkpoint initial state after checking layout compatibility."""
+    resolved_path = Path(path).expanduser().resolve()
+    checkpoint = read_native_checkpoint(resolved_path)
+    metadata = dict(checkpoint.get("metadata") or {})
+    arrays = dict(checkpoint.get("arrays") or {})
+    if "final_state" not in arrays:
+        raise ValueError(f"Native checkpoint is missing final_state: {resolved_path}")
+
+    y = np.asarray(arrays["final_state"], dtype=float).reshape((-1,))
+    layout_doc = metadata.get("layout") if isinstance(metadata.get("layout"), dict) else {}
+    expected_layout = {
+        "n_stages": int(getattr(layout, "n_stages")),
+        "n_components": int(getattr(layout, "n_components")),
+        "include_top": bool(getattr(layout, "include_top", False)),
+        "include_bottom": bool(getattr(layout, "include_bottom", False)),
+        "include_vapor": bool(getattr(layout, "include_vapor", False)),
+        "include_temperature": bool(getattr(layout, "include_temperature", False)),
+        "include_energy": bool(getattr(layout, "include_energy", False)),
+    }
+    mismatches: Dict[str, Dict[str, Any]] = {}
+    for key, expected in expected_layout.items():
+        if key not in layout_doc:
+            continue
+        observed = layout_doc.get(key)
+        if isinstance(expected, bool):
+            observed_cmp = bool(observed)
+        else:
+            observed_cmp = int(observed)
+        if observed_cmp != expected:
+            mismatches[key] = {"checkpoint": observed, "current": expected}
+    if mismatches:
+        raise ValueError(f"Native checkpoint layout is incompatible with current case: {mismatches}")
+
+    expected_n = int(layout.n_states())
+    if y.size != expected_n:
+        raise ValueError(
+            f"Native checkpoint state length mismatch: got {y.size}, expected {expected_n} "
+            f"for current layout."
+        )
+
+    column_doc = metadata.get("column") if isinstance(metadata.get("column"), dict) else {}
+    for key, expected in (("n_stages", int(col.n_stages)), ("n_components", int(col.n_components))):
+        if key in column_doc and int(column_doc.get(key)) != expected:
+            raise ValueError(
+                f"Native checkpoint column {key} mismatch: got {column_doc.get(key)}, expected {expected}."
+            )
+
+    memory: Dict[str, np.ndarray] = {}
+    if "diag__P_psia_hyd" in arrays:
+        p_hyd = np.asarray(arrays["diag__P_psia_hyd"], dtype=float).reshape((col.n_stages,)).copy()
+        memory["last_P_hyd"] = p_hyd
+        memory["last_P_diag"] = p_hyd.copy()
+    elif "diag__P_psia_diag" in arrays:
+        memory["last_P_diag"] = np.asarray(arrays["diag__P_psia_diag"], dtype=float).reshape((col.n_stages,)).copy()
+    if "diag__tray_T_f" in arrays:
+        memory["last_T_tray"] = np.asarray(arrays["diag__tray_T_f"], dtype=float).reshape((col.n_stages,)).copy()
+    elif "diag__T_tray_F" in arrays:
+        memory["last_T_tray"] = np.asarray(arrays["diag__T_tray_F"], dtype=float).reshape((col.n_stages,)).copy()
+
+    info = {
+        "enabled": True,
+        "loaded": True,
+        "path": str(resolved_path),
+        "reason": "loaded",
+        "schema": str(metadata.get("schema") or ""),
+        "source_run_id": str(metadata.get("run_id") or ""),
+        "source_final_time_s": float(metadata.get("final_time_s", np.nan)),
+        "restored_memory_keys": sorted(memory.keys()),
+    }
+    return y.copy(), info, memory
 
 
 def write_restart_workbook_from_run_result(
@@ -15352,6 +15488,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--no-write-logs", dest="write_logs", action="store_false")
     p.add_argument("--no-logs", dest="write_logs", action="store_false")
     p.add_argument(
+        "--init-from-checkpoint",
+        dest="init_checkpoint_path",
+        default=None,
+        help=(
+            "Load an exact native .npz checkpoint state before startup. The Excel file still defines "
+            "the case/layout; incompatible checkpoint layouts are rejected."
+        ),
+    )
+    p.add_argument(
         "--allow-repeat-command",
         dest="allow_repeat_command",
         action="store_true",
@@ -15562,6 +15707,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         run_name=args.run_name,
         run_description=args.run_description,
         write_logs=bool(args.write_logs),
+        init_checkpoint_path=args.init_checkpoint_path,
         use_excel_vapor_holdup=bool(args.use_excel_vapor_holdup),
         fast_startup=bool(args.fast_startup),
         enable_startup_seed_cache=bool(args.enable_startup_seed_cache),

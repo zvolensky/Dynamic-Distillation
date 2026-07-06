@@ -277,6 +277,7 @@ python -m dynamic_distillation.dynamic_run_scaffold_v1 `
 | `--steady-state-rate-denom-floor-lbmol` | float | `1.0` | Denominator floor (`lbmol`) used in relative inventory-rate metric. |
 | `--reb-neighbor-vflow-hi-ratio` | float | `None` | Override stage `N-1` vapor-flow upper guard as ratio of boilup in energy mode (default case value or runner fallback `1.20`). |
 | `--reb-neighbor-vflow-lo-ratio` | float | `None` | Override stage `N-1` vapor-flow lower guard as ratio of boilup in energy mode (default case value or runner fallback `0.80`). |
+| `--init-from-checkpoint` | path | `None` | Load a native `.npz` checkpoint state before startup. The Excel workbook still defines the case/layout; incompatible layouts are rejected. |
 | `--use-excel-vapor-holdup` | flag | `False` | Preserve tray vapor holdup values from Excel `Initial Conditions` through startup pressure initialization and thermo conditioning. Top-drum vapor seeding still runs. |
 | `--vapor-holdup-relaxation-sec` | float | `None` | Override vapor-holdup relaxation time constant; `<= 0` disables the source term. |
 | `--hydraulic-pressure-relaxation-sec` | float | `None` | Override hydraulic tray-pressure relaxation time constant; `<= 0` disables hydraulic pressure low-pass. |
@@ -414,6 +415,7 @@ python -m dynamic_distillation.dynamic_run_scaffold_v1 `
   - Optional startup hydraulic sequencing (`--enable-startup-hydraulic-sequence`) applies pressure/profile-flow startup and delays liquid-hydraulic override with residual gating in `legacy` and `hydraulic` runtime modes.
   - Optional vapor homotopy (`--enable-startup-vapor-homotopy`) keeps vapor traffic on the profile while liquid hydraulics transition, then blends dynamic vapor flow in with a guarded beta ramp.
   - Every completed run now writes a companion restart workbook and native `.npz` checkpoint into the run folder. The restart workbook contains the updated `Initial Conditions` plus the `Boundary State`, `Energy State`, `Controller State`, and `Dynamic Memory` sheets. The native checkpoint preserves the packed dynamic state vector, selected numeric diagnostics/memory arrays, controller state, and metadata without Excel cell round-tripping.
+  - `--init-from-checkpoint PATH` loads that packed native state and skips fresh-startup vapor reseeding, startup top-drum steadying, and hidden restart re-entry settling. Use the original/base Excel workbook to define the same case and layout.
   - Explicit restart runs now apply a short hidden re-entry settling pass before normal logging begins. This is much lighter than a fresh startup and is intended to reduce the restart bump at the first resumed timestep.
   - Use `--disable-restart-reentry-settling` for workbooks that already contain a deliberately reconciled initial state and should not be altered before the first logged timestep.
 - Equilibrium-relaxation transfer mode:

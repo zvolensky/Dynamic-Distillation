@@ -47,7 +47,8 @@ Completed-run restart export:
 - Recommended workflow:
   - keep the base workbook as the case definition
   - run the case to a good conditioned state
-  - use the generated restart workbook as the next run input when you want to continue from that state
+  - prefer `--init-from-checkpoint PATH` with the generated native checkpoint when you want exact packed-state continuation
+  - use the generated restart workbook when you specifically need an Excel-readable restart artifact
 
 Restart sheets are optional:
 - `Boundary State`: top/bottom liquid and vapor holdups

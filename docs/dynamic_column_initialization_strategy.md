@@ -603,7 +603,7 @@ CHECKPOINT USAGE MODEL:
 #### Short Term (1-2 weeks)
 1. Implement binary checkpoint capture and loader
    - capture is now implemented: completed runs write a native `.npz` checkpoint containing the packed dynamic state, selected numeric diagnostics/memory arrays, controller state, and metadata alongside the Excel restart workbook.
-   - loader/continue-from-checkpoint mode remains next.
+   - loader/continue-from-checkpoint mode is now implemented via `--init-from-checkpoint`; it reloads the packed state after generic layout checks and skips fresh-startup/restart conditioning passes.
 2. Test restart behavior at t=60s
 3. Use checkpoint for Tier 1 validation disturbance studies
 4. Document limitations clearly

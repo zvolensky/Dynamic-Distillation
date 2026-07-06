@@ -351,6 +351,22 @@ def _selected_names(raw: str, allowed: List[str], *, default: List[str]) -> List
     return out
 
 
+def _stage_continuity_terms(stage_vectors: Dict[int, np.ndarray], n: int) -> np.ndarray:
+    if not stage_vectors or n <= 1:
+        return np.zeros(0, dtype=float)
+    terms: List[np.ndarray] = []
+    zeros = np.zeros_like(next(iter(stage_vectors.values())), dtype=float)
+    for i in range(n - 1):
+        left = stage_vectors.get(i)
+        right = stage_vectors.get(i + 1)
+        if left is None and right is None:
+            continue
+        left_vec = zeros if left is None else np.asarray(left, dtype=float).reshape(-1)
+        right_vec = zeros if right is None else np.asarray(right, dtype=float).reshape(-1)
+        terms.append(right_vec - left_vec)
+    return np.concatenate(terms) if terms else np.zeros(0, dtype=float)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Bounded least-squares t=0 initializer.")
     ap.add_argument("--input", required=True)
@@ -432,11 +448,14 @@ def main() -> int:
     ap.add_argument("--bottom-boundary-balance-weight", type=float, default=0.0)
     ap.add_argument("--bottom-boundary-total-weight", type=float, default=0.0)
     ap.add_argument("--profile-penalty", type=float, default=0.02)
+    ap.add_argument("--profile-continuity-penalty", type=float, default=0.0)
     ap.add_argument("--flow-penalty", type=float, default=0.02)
+    ap.add_argument("--flow-continuity-penalty", type=float, default=0.0)
     ap.add_argument("--boundary-penalty", type=float, default=0.02)
     ap.add_argument("--feed-temperature-penalty", type=float, default=0.02)
     ap.add_argument("--feed-vapor-fraction-penalty", type=float, default=0.02)
     ap.add_argument("--energy-penalty", type=float, default=0.02)
+    ap.add_argument("--energy-continuity-penalty", type=float, default=0.0)
     ap.add_argument("--tray-total-penalty", type=float, default=0.0)
     ap.add_argument("--thermo", default="clapeyron")
     ap.add_argument("--clapeyron-model", default="PR")
@@ -896,6 +915,16 @@ def main() -> int:
             )
         if float(args.profile_penalty) > 0.0:
             parts.append(float(args.profile_penalty) * np.asarray(z[:n_profile_var], dtype=float).reshape(-1))
+        if float(args.profile_continuity_penalty) > 0.0 and n_comp_var > 0:
+            for phase in ("L", "V"):
+                stage_vectors = {
+                    stage: np.asarray(z[j * nc: (j + 1) * nc], dtype=float)
+                    for j, (block_phase, stage) in enumerate(blocks)
+                    if block_phase == phase
+                }
+                terms = _stage_continuity_terms(stage_vectors, n)
+                if terms.size:
+                    parts.append(float(args.profile_continuity_penalty) * terms.reshape(-1))
         if float(args.boundary_penalty) > 0.0 and n_top_vapor_total_var > 0:
             parts.append(
                 float(args.boundary_penalty)
@@ -903,6 +932,16 @@ def main() -> int:
             )
         if float(args.flow_penalty) > 0.0 and n_flow_var > 0:
             parts.append(float(args.flow_penalty) * np.asarray(z[n_state_var: n_state_var + n_flow_var], dtype=float).reshape(-1))
+        if float(args.flow_continuity_penalty) > 0.0 and n_flow_var > 0:
+            for phase in ("LF", "VF"):
+                stage_vectors = {
+                    stage: np.asarray([z[n_state_var + j]], dtype=float)
+                    for j, (block_phase, stage) in enumerate(flow_blocks)
+                    if block_phase == phase
+                }
+                terms = _stage_continuity_terms(stage_vectors, n)
+                if terms.size:
+                    parts.append(float(args.flow_continuity_penalty) * terms.reshape(-1))
         if float(args.boundary_penalty) > 0.0 and n_boundary_var > 0:
             parts.append(
                 float(args.boundary_penalty)
@@ -943,6 +982,24 @@ def main() -> int:
                 + n_condenser_duty_var
             )
             parts.append(float(args.energy_penalty) * np.asarray(z[start: start + n_energy_var], dtype=float).reshape(-1))
+        if float(args.energy_continuity_penalty) > 0.0 and n_energy_var > 0:
+            start = (
+                n_state_var
+                + n_flow_var
+                + n_boundary_var
+                + n_feed_temp_var
+                + n_feed_vf_var
+                + n_condenser_duty_var
+            )
+            for phase in ("EL", "EV"):
+                stage_vectors = {
+                    stage: np.asarray([z[start + j]], dtype=float)
+                    for j, (block_phase, stage) in enumerate(energy_blocks)
+                    if block_phase == phase
+                }
+                terms = _stage_continuity_terms(stage_vectors, n)
+                if terms.size:
+                    parts.append(float(args.energy_continuity_penalty) * terms.reshape(-1))
         r = np.concatenate(parts) if parts else np.zeros(0, dtype=float)
         norm = float(np.linalg.norm(r))
         if norm < float(best["norm"]):
@@ -1126,6 +1183,9 @@ def main() -> int:
         "state_residual_weights": state_residual_weights,
         "bottom_boundary_balance_weight": float(args.bottom_boundary_balance_weight),
         "bottom_boundary_total_weight": float(args.bottom_boundary_total_weight),
+        "profile_continuity_penalty": float(args.profile_continuity_penalty),
+        "flow_continuity_penalty": float(args.flow_continuity_penalty),
+        "energy_continuity_penalty": float(args.energy_continuity_penalty),
         "energy_residual_blocks": energy_residual_blocks,
         "blocks": blocks,
         "top_comp_blocks": top_comp_blocks,

@@ -68,8 +68,11 @@ def test_optimizer_base_command_includes_residual_weights(tmp_path):
         max_flow_log_delta=0.12,
         max_energy_rel_delta=0.15,
         profile_penalty=0.02,
+        profile_continuity_penalty=0.05,
         flow_penalty=0.02,
+        flow_continuity_penalty=0.05,
         energy_penalty=0.02,
+        energy_continuity_penalty=0.02,
         tray_total_penalty=0.25,
         tray_v_residual_weight=3.0,
         tray_l_residual_weight=1.2,
@@ -92,6 +95,10 @@ def test_optimizer_base_command_includes_residual_weights(tmp_path):
 
     assert "--tray-v-residual-weight" in cmd
     assert cmd[cmd.index("--tray-v-residual-weight") + 1] == "3.0"
+    assert "--profile-continuity-penalty" in cmd
+    assert cmd[cmd.index("--profile-continuity-penalty") + 1] == "0.05"
+    assert "--flow-continuity-penalty" in cmd
+    assert "--energy-continuity-penalty" in cmd
     assert "--tray-l-residual-weight" in cmd
     assert "--top-l-residual-weight" in cmd
     assert "--bottom-l-residual-weight" in cmd
@@ -112,9 +119,12 @@ def test_bottom_boundary_candidate_varies_bottom_boundary_flows(tmp_path):
         max_flow_log_delta=0.12,
         max_energy_rel_delta=0.15,
         profile_penalty=0.02,
+        profile_continuity_penalty=0.05,
         flow_penalty=0.02,
+        flow_continuity_penalty=0.05,
         boundary_penalty=0.02,
         energy_penalty=0.02,
+        energy_continuity_penalty=0.02,
         tray_total_penalty=0.25,
         tray_v_residual_weight=3.0,
         tray_l_residual_weight=3.0,

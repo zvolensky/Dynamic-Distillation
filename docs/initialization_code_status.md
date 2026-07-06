@@ -56,6 +56,7 @@ Near-term work should focus on making `tools/initialize_column_model_consistent_
 
 - keep ChemSep or other steady-state exports as guesses only,
 - solve coupled tray vapor/liquid/energy and top-boundary residuals with one repeatable command,
+- keep interior corrections smooth with generic continuity penalties instead of hard local tray windows,
 - include bottom-boundary state and flow degrees of freedom when the audit is dominated by `bottom_L`,
 - select candidates by explicit residual metrics rather than by manual inspection,
 - require the selected workbook or checkpoint to pass the active residual audit before using it as a dynamic launch seed.

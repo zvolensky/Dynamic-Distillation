@@ -127,10 +127,16 @@ def _optimizer_base_cmd(args: argparse.Namespace, *, input_path: Path, output_pa
         str(float(args.max_energy_rel_delta)),
         "--profile-penalty",
         str(float(args.profile_penalty)),
+        "--profile-continuity-penalty",
+        str(float(args.profile_continuity_penalty)),
         "--flow-penalty",
         str(float(args.flow_penalty)),
+        "--flow-continuity-penalty",
+        str(float(args.flow_continuity_penalty)),
         "--energy-penalty",
         str(float(args.energy_penalty)),
+        "--energy-continuity-penalty",
+        str(float(args.energy_continuity_penalty)),
         "--tray-total-penalty",
         str(float(args.tray_total_penalty)),
         "--tray-v-residual-weight",
@@ -285,9 +291,12 @@ def main() -> int:
     ap.add_argument("--max-flow-log-delta", type=float, default=0.12)
     ap.add_argument("--max-energy-rel-delta", type=float, default=0.15)
     ap.add_argument("--profile-penalty", type=float, default=0.02)
+    ap.add_argument("--profile-continuity-penalty", type=float, default=0.05)
     ap.add_argument("--flow-penalty", type=float, default=0.02)
+    ap.add_argument("--flow-continuity-penalty", type=float, default=0.05)
     ap.add_argument("--boundary-penalty", type=float, default=0.02)
     ap.add_argument("--energy-penalty", type=float, default=0.02)
+    ap.add_argument("--energy-continuity-penalty", type=float, default=0.02)
     ap.add_argument("--tray-total-penalty", type=float, default=0.25)
     ap.add_argument("--tray-v-residual-weight", type=float, default=1.0)
     ap.add_argument("--tray-l-residual-weight", type=float, default=1.0)

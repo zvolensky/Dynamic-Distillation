@@ -59,6 +59,7 @@ Near-term work should focus on making `tools/initialize_column_model_consistent_
 - keep interior corrections smooth with generic continuity penalties instead of hard local tray windows,
 - include bottom-boundary state and flow degrees of freedom when the audit is dominated by `bottom_L`,
 - select candidates by explicit residual metrics rather than by manual inspection,
+- cap expensive optimizer probes gracefully so partial best-seen candidates are still audited and labeled,
 - require the selected workbook or checkpoint to pass the active residual audit before using it as a dynamic launch seed.
 
 If a tool writes a new workbook or checkpoint, it should be called an experimental or diagnostic seed until it passes the active residual audit and a short dynamic launch with hidden re-entry conditioning disabled.

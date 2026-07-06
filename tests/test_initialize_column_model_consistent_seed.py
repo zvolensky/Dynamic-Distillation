@@ -64,6 +64,7 @@ def test_optimizer_base_command_includes_residual_weights(tmp_path):
         runtime_mode="hydraulic",
         condenser_duty_mode="total-condense",
         max_nfev=3,
+        max_wall_sec=0.0,
         max_logit_delta=0.25,
         max_flow_log_delta=0.12,
         max_energy_rel_delta=0.15,
@@ -94,6 +95,8 @@ def test_optimizer_base_command_includes_residual_weights(tmp_path):
     )
 
     assert "--tray-v-residual-weight" in cmd
+    assert "--max-wall-sec" in cmd
+    assert cmd[cmd.index("--max-wall-sec") + 1] == "0.0"
     assert cmd[cmd.index("--tray-v-residual-weight") + 1] == "3.0"
     assert "--profile-continuity-penalty" in cmd
     assert cmd[cmd.index("--profile-continuity-penalty") + 1] == "0.05"
@@ -115,6 +118,7 @@ def test_bottom_boundary_candidate_varies_bottom_boundary_flows(tmp_path):
         runtime_mode="hydraulic",
         condenser_duty_mode="total-condense",
         max_nfev=3,
+        max_wall_sec=0.0,
         max_logit_delta=0.25,
         max_flow_log_delta=0.12,
         max_energy_rel_delta=0.15,

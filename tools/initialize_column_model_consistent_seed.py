@@ -119,6 +119,8 @@ def _optimizer_base_cmd(args: argparse.Namespace, *, input_path: Path, output_pa
         str(args.condenser_duty_mode),
         "--max-nfev",
         str(int(args.max_nfev)),
+        "--max-wall-sec",
+        str(float(args.max_wall_sec)),
         "--max-logit-delta",
         str(float(args.max_logit_delta)),
         "--max-flow-log-delta",
@@ -287,6 +289,7 @@ def main() -> int:
     ap.add_argument("--flash-feed-at-stage-conditions", dest="no_flash_feed_at_stage_conditions", action="store_false")
     ap.add_argument("--vapor-holdup-relaxation-sec", type=float, default=0.0)
     ap.add_argument("--max-nfev", type=int, default=20)
+    ap.add_argument("--max-wall-sec", type=float, default=0.0)
     ap.add_argument("--max-logit-delta", type=float, default=0.25)
     ap.add_argument("--max-flow-log-delta", type=float, default=0.12)
     ap.add_argument("--max-energy-rel-delta", type=float, default=0.15)

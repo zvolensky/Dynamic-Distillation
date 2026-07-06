@@ -17,6 +17,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -38,6 +39,10 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (  # noqa: E402
 )
 from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel  # noqa: E402
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout  # noqa: E402
+
+
+class _WallTimeLimitReached(RuntimeError):
+    pass
 
 
 def _resolve(raw: str | Path) -> Path:
@@ -472,6 +477,12 @@ def main() -> int:
     ap.add_argument("--disable-boundary-states", dest="include_boundary_states", action="store_false")
     ap.set_defaults(include_boundary_states=True)
     ap.add_argument("--audit-output-dir", default=None)
+    ap.add_argument(
+        "--max-wall-sec",
+        type=float,
+        default=0.0,
+        help="Optional optimizer wall-clock cap. If exceeded, write/audit the best point seen so far.",
+    )
     args = ap.parse_args()
     if not args.vary_liquid and not args.vary_vapor:
         if not args.vary_liquid_flow and not args.vary_vapor_flow:
@@ -696,6 +707,7 @@ def main() -> int:
 
     eval_count = 0
     best = {"norm": float("inf"), "z": z0.copy(), "max_rel": float("inf")}
+    start_time = time.monotonic()
 
     def make_state(z: np.ndarray) -> np.ndarray:
         y_state = y_base.copy()
@@ -1005,17 +1017,34 @@ def main() -> int:
         if norm < float(best["norm"]):
             best = {"norm": norm, "z": np.asarray(z, dtype=float).copy(), "max_rel": max_rel}
         if eval_count == 1 or eval_count % 5 == 0:
-            print(f"eval={eval_count} norm={norm:.8g} max_rel={max_rel:.8g} best_max_rel={best['max_rel']:.8g}")
+            print(
+                f"eval={eval_count} norm={norm:.8g} max_rel={max_rel:.8g} "
+                f"best_max_rel={best['max_rel']:.8g}",
+                flush=True,
+            )
+        if float(args.max_wall_sec) > 0.0 and (time.monotonic() - start_time) >= float(args.max_wall_sec):
+            raise _WallTimeLimitReached(f"optimizer wall-clock limit reached after {eval_count} residual evaluations")
         return r
 
-    result = least_squares(
-        residual,
-        z0,
-        bounds=(lb, ub),
-        max_nfev=max(int(args.max_nfev), 1),
-        verbose=1,
-        x_scale="jac",
-    )
+    wall_time_limited = False
+    result_success = False
+    result_message = ""
+    try:
+        result = least_squares(
+            residual,
+            z0,
+            bounds=(lb, ub),
+            max_nfev=max(int(args.max_nfev), 1),
+            verbose=1,
+            x_scale="jac",
+        )
+        result_success = bool(result.success)
+        result_message = str(result.message)
+    except _WallTimeLimitReached as exc:
+        wall_time_limited = True
+        result_success = False
+        result_message = str(exc)
+        print(result_message, flush=True)
     z_best = np.asarray(best["z"], dtype=float)
     y_opt = make_state(z_best)
     L_opt_lbmolph, V_opt_lbmolph = apply_flows(z_best)
@@ -1216,8 +1245,10 @@ def main() -> int:
             / max(abs(float(condenser_duty_base)), 1.0)
         ),
         "eval_count": eval_count,
-        "least_squares_success": bool(result.success),
-        "least_squares_message": str(result.message),
+        "wall_time_limited": bool(wall_time_limited),
+        "max_wall_sec": float(args.max_wall_sec),
+        "least_squares_success": bool(result_success),
+        "least_squares_message": str(result_message),
         "best_objective_norm": float(best["norm"]),
         "best_max_relative_rate_per_s_inprocess": float(best["max_rel"]),
         "max_abs_delta_x": float(np.max(np.abs(x_opt - x0))),

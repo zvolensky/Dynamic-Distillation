@@ -172,6 +172,13 @@ class ThermoClapeyronProviderV1:
         self._model = ctor(list(self.component_names_excel), **kwargs)
         return self._model
 
+    def validate_backend_available(self) -> None:
+        """
+        Build the Clapeyron model once so missing optional dependencies or
+        invalid model names fail during startup instead of inside RHS fallbacks.
+        """
+        self._build_model()
+
     def _get_julia_tp_flash2_batch_helper(self, *, include_cp: bool):
         if not bool(getattr(self, "enable_julia_tp_flash2_batch_helper", False)):
             return None

@@ -202,6 +202,9 @@ def build_primary_thermo_backend(
             ideal_model_name=clapeyron_ideal_model,
             model_kwargs=model_kwargs,
         )
+        validate = getattr(provider, "validate_backend_available", None)
+        if callable(validate):
+            validate()
     elif thermo_mode == "table":
         emit_progress("[Init] Building thermo provider  mode=table")
         if not getattr(cfg, "thermo_table_path", None):

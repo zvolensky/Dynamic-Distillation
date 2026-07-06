@@ -162,6 +162,26 @@ def test_build_primary_clapeyron_backend_reports_batch_capability(monkeypatch):
     assert build.capabilities.supports_bubble_point is True
 
 
+def test_build_primary_clapeyron_backend_fails_fast_when_package_missing(monkeypatch):
+    import dynamic_distillation.thermo_clapeyron_provider_v1 as thermo_clapeyron_provider_v1
+
+    def fake_import_module(name):
+        if name == "pyclapeyron":
+            raise ImportError("missing pyclapeyron")
+        raise AssertionError(f"unexpected import: {name}")
+
+    monkeypatch.setattr(thermo_clapeyron_provider_v1.importlib, "import_module", fake_import_module)
+
+    cfg = SimpleNamespace(
+        thermo_mode="clapeyron",
+        dwsim_property_package="pr",
+        clapeyron_model="PR",
+        clapeyron_ideal_model=None,
+    )
+    with pytest.raises(RuntimeError, match="pyclapeyron"):
+        build_primary_thermo_backend(cfg=cfg, col=_fake_col(), emit_progress=lambda _msg: None)
+
+
 def test_build_equilibrium_relaxation_pr_provider_skips_redundant_pr(monkeypatch):
     import dynamic_distillation.thermo_provider_v1 as thermo_provider_v1
 

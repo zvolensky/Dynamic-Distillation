@@ -17,6 +17,7 @@ These tools and paths remain part of the intended workflow.
 | Item | Status | Purpose |
 |---|---|---|
 | `tools/column_initialization_residual_audit.py` | Supported | First gate for imported or generated seeds. Evaluates `column_rhs_v1.py` at `t=0` and ranks state-rate, material, and energy residuals. |
+| `tools/initialize_column_model_consistent_seed.py` | Supported workflow, pending accepted seed | Repeatable initializer orchestration: audits the input, runs named coupled reconciliation candidates, audits each candidate, selects the best workbook by explicit criteria, and writes a summary. |
 | Top-boundary diagnostics in `column_rhs_v1.py` | Supported | Reports reflux-drum liquid splits such as `top_L_cond_in_*`, `top_L_reflux_out_*`, `top_L_distillate_out_*`, and `top_L_net_*`. |
 | Source-topology validation flags | Supported for validation only | `--disable-boundary-states`, `--disable-vapor-states`, and `--no-equilibrium` remain valid when deliberately matching a source model such as Skogestad Column A or the narrow Gani/ChemSep material-parity case. |
 | Total-condenser dry-boundary routing | Supported | A dry stage-1 total-condenser placeholder should route condensate using the actual condensed stream mixture, not a stale tray-liquid composition. |
@@ -49,14 +50,13 @@ These paths may remain temporarily for comparison, but they must not be used as 
 
 ## Current Next Direction
 
-Proceed equation-first at the top boundary before adding more broad initializer heuristics.
+Use the explicit initializer workflow before adding more broad initializer heuristics.
 
-Near-term work should focus on the condenser/reflux-drum/top-tray interface:
+Near-term work should focus on making `tools/initialize_column_model_consistent_seed.py` produce an accepted seed:
 
-- verify component and energy ownership for total-condenser mode,
-- keep stage 1, top drum, reflux, distillate, and condenser duty topology explicit,
-- use top-boundary residual diagnostics as objective terms,
-- only then build a targeted top-boundary consistency solve if the equations are internally sound.
+- keep ChemSep or other steady-state exports as guesses only,
+- solve coupled tray vapor/liquid/energy and top-boundary residuals with one repeatable command,
+- select candidates by explicit residual metrics rather than by manual inspection,
+- require the selected workbook or checkpoint to pass the active residual audit before using it as a dynamic launch seed.
 
 If a tool writes a new workbook or checkpoint, it should be called an experimental or diagnostic seed until it passes the active residual audit and a short dynamic launch with hidden re-entry conditioning disabled.
-

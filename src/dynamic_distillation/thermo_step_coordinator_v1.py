@@ -24,6 +24,10 @@ class TrayThermoRefreshResult:
     packet: Any
     flash_skipped: np.ndarray
     flash_refreshed: np.ndarray
+    source_code: np.ndarray
+    flash_failed: np.ndarray
+    phase_count: np.ndarray
+    degenerate_two_phase_unit_K_quarantined: np.ndarray
     refresh_indices: tuple[int, ...]
     batch_used: bool
 
@@ -43,6 +47,7 @@ class EnergyVaporFlowEnthalpyRefreshResult:
 
 def _parse_batch_flash_row(fres: Any, *, n_components: int):
     if isinstance(fres, (tuple, list)):
+        phase_count_i = None
         if len(fres) == 5:
             x_i, y_i, K_i, HL_i, HV_i = fres
             Z_i = None
@@ -57,8 +62,10 @@ def _parse_batch_flash_row(fres: Any, *, n_components: int):
             cpV_i = None
         elif len(fres) == 8:
             x_i, y_i, K_i, HL_i, HV_i, Z_i, cpL_i, cpV_i = fres
+        elif len(fres) == 9:
+            x_i, y_i, K_i, HL_i, HV_i, Z_i, cpL_i, cpV_i, phase_count_i = fres
         else:
-            raise RuntimeError("flash_TP_full_batch tuple rows must be length 5, 6, 7, or 8")
+            raise RuntimeError("flash_TP_full_batch tuple rows must be length 5, 6, 7, 8, or 9")
         return (
             np.asarray(x_i, dtype=float).reshape((n_components,)),
             np.asarray(y_i, dtype=float).reshape((n_components,)),
@@ -68,6 +75,7 @@ def _parse_batch_flash_row(fres: Any, *, n_components: int):
             (None if Z_i is None else float(Z_i)),
             (None if cpL_i is None else float(cpL_i)),
             (None if cpV_i is None else float(cpV_i)),
+            (None if phase_count_i is None else float(phase_count_i)),
         )
 
     K_i = np.asarray(getattr(fres, "K"), dtype=float).reshape((n_components,))
@@ -114,6 +122,7 @@ def _parse_batch_flash_row(fres: Any, *, n_components: int):
         Z_i,
         cpL_i,
         cpV_i,
+        (None if not hasattr(fres, "phase_count") else float(getattr(fres, "phase_count"))),
     )
 
 
@@ -125,6 +134,30 @@ def _thermo_call_context(provider: Any, category: Optional[str]):
         return category_fn(category)
     except Exception:
         return nullcontext()
+
+
+def _is_unit_k_packet(K: Any, *, atol: float = 1.0e-9) -> bool:
+    try:
+        row = np.asarray(K, dtype=float).reshape((-1,))
+    except Exception:
+        return False
+    finite = row[np.isfinite(row)]
+    return bool(finite.size and float(np.max(np.abs(finite - 1.0))) <= float(atol))
+
+
+def _can_quarantine_to_existing_packet(packet: Any, stage_index0: int, *, n_components: int) -> bool:
+    try:
+        k_prev = np.asarray(packet.K_tray[stage_index0, :], dtype=float).reshape((n_components,))
+        hL_prev = float(packet.HL[stage_index0])
+        hV_prev = float(packet.HV[stage_index0])
+    except Exception:
+        return False
+    return bool(
+        np.all(np.isfinite(k_prev))
+        and not _is_unit_k_packet(k_prev)
+        and np.isfinite(hL_prev)
+        and np.isfinite(hV_prev)
+    )
 
 
 def refresh_tray_tp_packet(
@@ -154,6 +187,10 @@ def refresh_tray_tp_packet(
     Z_overall = np.asarray(z_overall_tray, dtype=float).reshape((n_stages, n_components))
     flash_skipped = np.zeros(n_stages, dtype=float)
     flash_refreshed = np.zeros(n_stages, dtype=float)
+    source_code = np.zeros(n_stages, dtype=float)
+    flash_failed = np.zeros(n_stages, dtype=float)
+    phase_count = np.full(n_stages, np.nan, dtype=float)
+    quarantined = np.zeros(n_stages, dtype=float)
     refresh_indices: list[int] = []
 
     def _trace(msg: str) -> None:
@@ -200,6 +237,7 @@ def refresh_tray_tp_packet(
 
         if gate_active and gate_pass:
             flash_skipped[i] = 1.0
+            source_code[i] = 1.0
             continue
         refresh_indices.append(i)
 
@@ -224,23 +262,41 @@ def refresh_tray_tp_packet(
                     for fres in fres_batch
                 ]
                 for pos, i in enumerate(refresh_indices):
-                    x_i, y_i, K_i, HL_i, HV_i, Z_i, cpL_i, cpV_i = parsed_rows[pos]
-                    packet.x_eq[i, :] = x_i
-                    packet.y_eq[i, :] = y_i
-                    packet.K_tray[i, :] = K_i
-                    packet.HL[i] = HL_i
-                    packet.HV[i] = HV_i
-                    if Z_i is not None:
-                        packet.Zfac_tray[i] = float(Z_i)
-                    if cpL_i is not None:
-                        if packet.cpL_tray is None:
-                            packet.cpL_BTU_lbmolF_tray = np.full(n_stages, np.nan, dtype=float)
-                        packet.cpL_tray[i] = float(cpL_i)
-                    if cpV_i is not None:
-                        if packet.cpV_tray is None:
-                            packet.cpV_BTU_lbmolF_tray = np.full(n_stages, np.nan, dtype=float)
-                        packet.cpV_tray[i] = float(cpV_i)
+                    x_i, y_i, K_i, HL_i, HV_i, Z_i, cpL_i, cpV_i, phase_count_i = parsed_rows[pos]
+                    if phase_count_i is None:
+                        phase_count_fn = getattr(provider, "flash_cached_phase_count_F_psia", None)
+                        if callable(phase_count_fn):
+                            try:
+                                phase_count_i = phase_count_fn(float(T_tray[i]), float(P_tray[i]), Z_overall[i, :])
+                            except Exception:
+                                phase_count_i = None
+                    if phase_count_i is not None:
+                        phase_count[i] = float(phase_count_i)
+                    if (
+                        phase_count_i is not None
+                        and float(phase_count_i) > 1.5
+                        and _is_unit_k_packet(K_i)
+                        and _can_quarantine_to_existing_packet(packet, i, n_components=n_components)
+                    ):
+                        quarantined[i] = 1.0
+                    else:
+                        packet.x_eq[i, :] = x_i
+                        packet.y_eq[i, :] = y_i
+                        packet.K_tray[i, :] = K_i
+                        packet.HL[i] = HL_i
+                        packet.HV[i] = HV_i
+                        if Z_i is not None:
+                            packet.Zfac_tray[i] = float(Z_i)
+                        if cpL_i is not None:
+                            if packet.cpL_tray is None:
+                                packet.cpL_BTU_lbmolF_tray = np.full(n_stages, np.nan, dtype=float)
+                            packet.cpL_tray[i] = float(cpL_i)
+                        if cpV_i is not None:
+                            if packet.cpV_tray is None:
+                                packet.cpV_BTU_lbmolF_tray = np.full(n_stages, np.nan, dtype=float)
+                            packet.cpV_tray[i] = float(cpV_i)
                     flash_refreshed[i] = 1.0
+                    source_code[i] = 2.0
                 batch_used = True
             except Exception:
                 batch_used = False
@@ -261,26 +317,41 @@ def refresh_tray_tp_packet(
                         n_components=n_components,
                         thermo_call_category=thermo_call_category,
                     )
-                    packet.x_eq[i, :] = np.asarray(fres.x, dtype=float).reshape((n_components,))
-                    packet.y_eq[i, :] = np.asarray(fres.y, dtype=float).reshape((n_components,))
-                    packet.K_tray[i, :] = fres.K
-                    packet.HL[i] = fres.HL_BTU_lbmol
-                    packet.HV[i] = fres.HV_BTU_lbmol
-                    if getattr(fres, "Z", None) is not None:
-                        packet.Zfac_tray[i] = float(fres.Z)
-                    cpL_i = getattr(fres, "cpL_BTU_lbmolF", None)
-                    if cpL_i is not None:
-                        if packet.cpL_tray is None:
-                            packet.cpL_BTU_lbmolF_tray = np.full(n_stages, np.nan, dtype=float)
-                        packet.cpL_tray[i] = float(cpL_i)
-                    cpV_i = getattr(fres, "cpV_BTU_lbmolF", None)
-                    if cpV_i is not None:
-                        if packet.cpV_tray is None:
-                            packet.cpV_BTU_lbmolF_tray = np.full(n_stages, np.nan, dtype=float)
-                        packet.cpV_tray[i] = float(cpV_i)
+                    phase_count_i = getattr(fres, "phase_count", None)
+                    if phase_count_i is not None:
+                        phase_count[i] = float(phase_count_i)
+                    K_i = np.asarray(fres.K, dtype=float).reshape((n_components,))
+                    if (
+                        phase_count_i is not None
+                        and float(phase_count_i) > 1.5
+                        and _is_unit_k_packet(K_i)
+                        and _can_quarantine_to_existing_packet(packet, i, n_components=n_components)
+                    ):
+                        quarantined[i] = 1.0
+                    else:
+                        packet.x_eq[i, :] = np.asarray(fres.x, dtype=float).reshape((n_components,))
+                        packet.y_eq[i, :] = np.asarray(fres.y, dtype=float).reshape((n_components,))
+                        packet.K_tray[i, :] = K_i
+                        packet.HL[i] = fres.HL_BTU_lbmol
+                        packet.HV[i] = fres.HV_BTU_lbmol
+                        if getattr(fres, "Z", None) is not None:
+                            packet.Zfac_tray[i] = float(fres.Z)
+                        cpL_i = getattr(fres, "cpL_BTU_lbmolF", None)
+                        if cpL_i is not None:
+                            if packet.cpL_tray is None:
+                                packet.cpL_BTU_lbmolF_tray = np.full(n_stages, np.nan, dtype=float)
+                            packet.cpL_tray[i] = float(cpL_i)
+                        cpV_i = getattr(fres, "cpV_BTU_lbmolF", None)
+                        if cpV_i is not None:
+                            if packet.cpV_tray is None:
+                                packet.cpV_BTU_lbmolF_tray = np.full(n_stages, np.nan, dtype=float)
+                            packet.cpV_tray[i] = float(cpV_i)
                     flash_refreshed[i] = 1.0
+                    source_code[i] = 3.0
                     _trace(f"main_flash stage={int(i + 1)}/{int(n_stages)} done")
                 except Exception:
+                    flash_failed[i] = 1.0
+                    source_code[i] = -1.0
                     _trace(
                         f"main_flash stage={int(i + 1)}/{int(n_stages)} failed; retaining cached thermo state"
                     )
@@ -289,6 +360,10 @@ def refresh_tray_tp_packet(
         packet=packet,
         flash_skipped=flash_skipped,
         flash_refreshed=flash_refreshed,
+        source_code=source_code,
+        flash_failed=flash_failed,
+        phase_count=phase_count,
+        degenerate_two_phase_unit_K_quarantined=quarantined,
         refresh_indices=tuple(refresh_indices),
         batch_used=bool(batch_used),
     )
@@ -569,11 +644,11 @@ def refresh_energy_vapor_flow_phase_enthalpies(
                     f"{len(fres_batch)}; expected {len(pending_liq)}"
                 )
             for pos, j in enumerate(pending_liq):
-                _x, _y, _K, HL_i, _HV, _Z, _cpL, _cpV = _parse_batch_flash_row(
+                _x, _y, _K, HL_i, _HV, _Z, _cpL, _cpV, _phase_count = _parse_batch_flash_row(
                     fres_batch[pos],
                     n_components=n_components,
                 )
-                _ = (_x, _y, _K, _HV, _Z, _cpL, _cpV)
+                _ = (_x, _y, _K, _HV, _Z, _cpL, _cpV, _phase_count)
                 hL_try[j] = float(HL_i)
                 _trace(f"energy_vapor_flow hL_flash stage={int(j + 1)}/{int(n_stages)} batch")
             pending_liq = []
@@ -594,11 +669,11 @@ def refresh_energy_vapor_flow_phase_enthalpies(
                     f"{len(fres_batch)}; expected {len(pending_vap)}"
                 )
             for pos, j in enumerate(pending_vap):
-                _x, _y, _K, _HL, HV_i, _Z, _cpL, _cpV = _parse_batch_flash_row(
+                _x, _y, _K, _HL, HV_i, _Z, _cpL, _cpV, _phase_count = _parse_batch_flash_row(
                     fres_batch[pos],
                     n_components=n_components,
                 )
-                _ = (_x, _y, _K, _HL, _Z, _cpL, _cpV)
+                _ = (_x, _y, _K, _HL, _Z, _cpL, _cpV, _phase_count)
                 hV_try[j] = float(HV_i)
                 _trace(f"energy_vapor_flow hV_flash stage={int(j + 1)}/{int(n_stages)} batch")
             pending_vap = []

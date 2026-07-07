@@ -332,6 +332,17 @@ def test_load_native_checkpoint_initial_state_restores_state_and_memory(tmp_path
     )
     y = layout.pack_y0(col)
     y = y + np.linspace(0.0, 1.0, y.size)
+    condenser_packet = runmod.CondenserDutyPacket(
+        q_calc_BTUph=-12345.0,
+        T_bubble_F=101.25,
+        mode="total-condense",
+        V_vapor_in_lbmolps=2.5,
+        T_vapor_in_F=120.0,
+        P_vapor_in_psia=205.0,
+        P_condenser_psia=200.0,
+        y_vapor_in=np.array([0.6, 0.4], dtype=float),
+        hL_cond_BTU_lbmol=-10.5,
+    )
     checkpoint_path = tmp_path / "checkpoint.npz"
     write_native_checkpoint_from_run_result(
         run_result={
@@ -345,6 +356,7 @@ def test_load_native_checkpoint_initial_state_restores_state_and_memory(tmp_path
                 "P_psia_hyd": np.array([201.0, 206.0, 211.0], dtype=float),
                 "tray_T_f": np.array([101.0, 111.0, 121.0], dtype=float),
             },
+            "last_condenser_duty_packet": condenser_packet,
         },
         output_checkpoint_path=str(checkpoint_path),
     )
@@ -358,6 +370,9 @@ def test_load_native_checkpoint_initial_state_restores_state_and_memory(tmp_path
     assert memory["last_P_hyd"].tolist() == pytest.approx([201.0, 206.0, 211.0])
     assert memory["last_P_diag"].tolist() == pytest.approx([201.0, 206.0, 211.0])
     assert memory["last_T_tray"].tolist() == pytest.approx([101.0, 111.0, 121.0])
+    assert memory["last_condenser_duty_packet"].q_calc_BTUph == pytest.approx(-12345.0)
+    assert memory["last_condenser_duty_packet"].T_bubble_F == pytest.approx(101.25)
+    assert memory["last_condenser_duty_packet"].y_vapor_in.tolist() == pytest.approx([0.6, 0.4])
 
     incompatible_layout = StateVectorLayout(
         n_stages=3,

@@ -123,6 +123,65 @@ def test_refresh_tray_tp_packet_uses_batch_backend_when_available():
     assert result.packet.Zfac_tray[1] == 0.9
 
 
+def test_refresh_tray_tp_packet_quarantines_degenerate_two_phase_unit_k_batch_result():
+    n_stages = 1
+    n_components = 2
+    z = np.array([[0.55, 0.45]], dtype=float)
+    packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=z.copy(),
+        K_tray=np.array([[2.0, 0.5]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-120.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([220.0], dtype=float),
+        Z_tray=np.array([0.8], dtype=float),
+        x_equilibrium_tray=np.array([[0.7, 0.3]], dtype=float),
+        y_equilibrium_tray=np.array([[0.4, 0.6]], dtype=float),
+    )
+
+    class Provider:
+        def flash_TP_full_batch(self, T_req, P_req, z_req):
+            return [
+                (
+                    [0.55, 0.45],
+                    [0.55, 0.45],
+                    [1.0, 1.0],
+                    -999.0,
+                    999.0,
+                    0.95,
+                    12.0,
+                    20.0,
+                )
+            ]
+
+        def flash_cached_phase_count_F_psia(self, T_F, P_psia, z_row):
+            return 2.0
+
+    result = refresh_tray_tp_packet(
+        packet=packet,
+        provider=Provider(),
+        T_tray_F=np.array([120.0], dtype=float),
+        P_tray_psia=np.array([210.0], dtype=float),
+        z_overall_tray=z,
+        n_stages=n_stages,
+        n_components=n_components,
+        dT_thresh_F=None,
+        dP_thresh_psia=None,
+        dX_thresh=None,
+        T_prev_F=None,
+        P_prev_psia=None,
+        z_prev=None,
+        ensure_packet_equilibrium_arrays=rhs_module._ensure_packet_equilibrium_arrays,
+        flash_stage_fn=rhs_module._flash_TP_full_stage_F_psia,
+    )
+
+    assert result.batch_used is True
+    assert np.allclose(result.flash_refreshed, np.ones(1, dtype=float))
+    assert np.allclose(result.phase_count, np.array([2.0], dtype=float))
+    assert np.allclose(result.degenerate_two_phase_unit_K_quarantined, np.ones(1, dtype=float))
+    assert np.allclose(result.packet.K_tray[0, :], np.array([2.0, 0.5], dtype=float))
+    assert result.packet.HL[0] == -120.0
+    assert result.packet.HV[0] == 220.0
+
+
 def test_refresh_tray_tp_packet_batch_preserves_cp_arrays_when_available():
     n_stages = 1
     n_components = 2

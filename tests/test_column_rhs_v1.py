@@ -1935,11 +1935,27 @@ def test_vapor_flow_energy_uses_fixed_liquid_outflow_balance():
 
     _dydt, diag = column_rhs(0.0, y0_state, col, layout, inputs=inputs)
     v_out = np.asarray(diag["V_out_lbmolph"], dtype=float).reshape((N,))
+    numer = np.asarray(diag["vflow_energy_numer_BTUps"], dtype=float).reshape((N,))
+    denom = np.asarray(diag["vflow_energy_denom_BTU_per_lbmol"], dtype=float).reshape((N,))
+    l_in_term = np.asarray(diag["vflow_energy_L_in_term_BTUps"], dtype=float).reshape((N,))
+    v_in_term = np.asarray(diag["vflow_energy_V_in_term_BTUps"], dtype=float).reshape((N,))
+    h_l_in = np.asarray(diag["vflow_energy_hL_in_BTU_per_lbmol"], dtype=float).reshape((N,))
+    h_l_out = np.asarray(diag["vflow_energy_hL_out_BTU_per_lbmol"], dtype=float).reshape((N,))
+    h_v_in = np.asarray(diag["vflow_energy_hV_in_BTU_per_lbmol"], dtype=float).reshape((N,))
+    h_v_out = np.asarray(diag["vflow_energy_hV_out_BTU_per_lbmol"], dtype=float).reshape((N,))
 
     # Stage 2 expected values (lbmol/s):
     # L_in=7200/3600=2, V_in=3600/3600=1, L_out=3600/3600=1
     # hL_in=90, hL_out=100, hV_in=242, hV_out=220, dE_target=0
     # V_out = [2*(90-100) + 1*(242-100)] / (220-100) = 1.016666.. lbmol/s = 3660 lbmol/h
+    assert l_in_term[1] == pytest.approx(-20.0)
+    assert v_in_term[1] == pytest.approx(142.0)
+    assert h_l_in[1] == pytest.approx(90.0)
+    assert h_l_out[1] == pytest.approx(100.0)
+    assert h_v_in[1] == pytest.approx(242.0)
+    assert h_v_out[1] == pytest.approx(220.0)
+    assert numer[1] == pytest.approx(122.0)
+    assert denom[1] == pytest.approx(120.0)
     assert np.isclose(v_out[1], 3660.0, rtol=1e-6, atol=1e-6)
 
 

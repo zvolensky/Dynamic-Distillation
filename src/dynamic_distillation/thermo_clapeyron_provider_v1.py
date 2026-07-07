@@ -56,6 +56,7 @@ class ClapeyronFlashResult:
     Z: Optional[float] = None
     cpL_BTU_lbmolF: Optional[float] = None
     cpV_BTU_lbmolF: Optional[float] = None
+    phase_count: Optional[int] = None
 
 
 def _f_to_k(T_F: float) -> float:
@@ -400,6 +401,7 @@ ddii_tp_flash2_batch_no_cp
             Z=(None if fres.Z is None else float(fres.Z)),
             cpL_BTU_lbmolF=(None if fres.cpL_BTU_lbmolF is None else float(fres.cpL_BTU_lbmolF)),
             cpV_BTU_lbmolF=(None if fres.cpV_BTU_lbmolF is None else float(fres.cpV_BTU_lbmolF)),
+            phase_count=fres.phase_count,
         )
 
     def _flash_cache_key(self, *, T_F: float, P_psia: float, z_norm: np.ndarray) -> tuple[Any, ...]:
@@ -426,6 +428,17 @@ ddii_tp_flash2_batch_no_cp
         self._flash_cache.move_to_end(key)
         while len(self._flash_cache) > self.flash_cache_size:
             self._flash_cache.popitem(last=False)
+
+    def flash_cached_phase_count_F_psia(self, T_F: float, P_psia: float, z: Sequence[float]) -> Optional[float]:
+        z_norm = _normalize_comp(z, len(self.component_names_excel))
+        cache_key = self._flash_cache_key(T_F=float(T_F), P_psia=float(P_psia), z_norm=z_norm)
+        cached = self._get_cached_flash_result(cache_key)
+        if cached is None or cached.phase_count is None:
+            return None
+        try:
+            return float(cached.phase_count)
+        except Exception:
+            return None
             self._record_call_counter("flash_cache_evictions", 1)
 
     def _get_cached_liquid_density(self, key: tuple[Any, ...]) -> Tuple[bool, Optional[float]]:
@@ -500,11 +513,11 @@ ddii_tp_flash2_batch_no_cp
         *,
         p_pa: float,
         T_K: float,
-    ) -> Tuple[np.ndarray, np.ndarray, Optional[float]]:
+    ) -> Tuple[np.ndarray, np.ndarray, Optional[float], int]:
         if phase_compositions.shape[0] == 1:
             z = _normalize_comp(phase_compositions[0, :], phase_compositions.shape[1])
             zfac = self._phase_z_factor(z, phase_name="vapor", p_pa=p_pa, T_K=T_K)
-            return z.copy(), z.copy(), zfac
+            return z.copy(), z.copy(), zfac, 1
 
         zfacs = []
         for i in range(phase_compositions.shape[0]):
@@ -526,7 +539,7 @@ ddii_tp_flash2_batch_no_cp
         x = _normalize_comp(phase_compositions[liq_i, :], phase_compositions.shape[1])
         y = _normalize_comp(phase_compositions[vap_i, :], phase_compositions.shape[1])
         zfac = z_arr[vap_i] if 0 <= vap_i < z_arr.size and np.isfinite(z_arr[vap_i]) else None
-        return x, y, (None if zfac is None else float(zfac))
+        return x, y, (None if zfac is None else float(zfac)), int(phase_compositions.shape[0])
 
     def _enrich_flash_result_with_cp(
         self,
@@ -562,6 +575,7 @@ ddii_tp_flash2_batch_no_cp
             Z=(None if fres.Z is None else float(fres.Z)),
             cpL_BTU_lbmolF=cpL,
             cpV_BTU_lbmolF=cpV,
+            phase_count=fres.phase_count,
         )
 
     def _flash_impl(
@@ -608,7 +622,7 @@ ddii_tp_flash2_batch_no_cp
         else:
             raise RuntimeError("pyclapeyron tp_flash did not return a recognized flash result")
 
-        x, y, zfac = self._split_flash_phases(
+        x, y, zfac, phase_count = self._split_flash_phases(
             phase_compositions,
             phase_moles,
             p_pa=p_pa,
@@ -626,6 +640,7 @@ ddii_tp_flash2_batch_no_cp
             Z=(float(zfac) if zfac is not None else None),
             cpL_BTU_lbmolF=None,
             cpV_BTU_lbmolF=None,
+            phase_count=int(phase_count),
         )
         if include_cp:
             fres = self._enrich_flash_result_with_cp(fres, p_pa=p_pa, T_K=T_K)
@@ -670,7 +685,7 @@ ddii_tp_flash2_batch_no_cp
         else:
             raise RuntimeError("pyclapeyron tp_flash did not return a recognized flash result")
 
-        x, y, zfac = self._split_flash_phases(
+        x, y, zfac, _phase_count = self._split_flash_phases(
             phase_compositions,
             phase_moles,
             p_pa=p_pa,
@@ -870,6 +885,7 @@ ddii_tp_flash2_batch_no_cp
                         Z=float(Zs[pos]),
                         cpL_BTU_lbmolF=float(cpLs[pos]) * _J_PER_MOLK_TO_BTU_PER_LBMOLF,
                         cpV_BTU_lbmolF=float(cpVs[pos]) * _J_PER_MOLK_TO_BTU_PER_LBMOLF,
+                        phase_count=None,
                     )
                     self._store_cached_flash_result(miss_keys[pos], fres)
                     out[idx] = (

@@ -140,6 +140,19 @@ An initialized state is accepted only if all relevant gates pass:
 
 `steady_state_flag=1` is useful diagnostic evidence. It is not sufficient by itself.
 
+The t=0 residual audit is also not sufficient by itself. A candidate that lowers
+the static residual can still inject a worse early dynamic transient if it
+achieves the lower residual by moving pressure, condenser, sump, or endpoint
+states into a less compatible region. Every residual-solver candidate must
+therefore pass a short dynamic smoke gate against the current baseline run:
+- final and peak steady-state score must not worsen,
+- final and peak relative state-rate metrics must not worsen,
+- temperature-rate behavior must remain bounded,
+- top and bottom endpoint drifts must stay within explicit tolerances when
+  those endpoints are active in the case,
+- candidates that improve the residual audit but fail this dynamic gate are
+  rejected or treated only as diagnostics.
+
 ## Near-Term Implementation Plan
 
 Use the C3/C4 case as the fast development case.
@@ -193,6 +206,181 @@ Bounded least-squares probe:
 - probe workbook: `logs/c3c4_splitter_openloop_seed_lsq_stage2_18_19_20260531_r3.xlsx`
 - audit: `logs/initialization_audits/c3c4_lsq_stage2_18_19_20260531_r3/summary.md`
 - varying only selected tray liquid/vapor composition profiles improved the original seed to `0.0307 1/s`, but did not beat the best coupled-iteration result.
+
+Residual-solver pivot, 2026-07-06:
+- Stage 1 vapor-flow-only residual solve improved the C3/C4 static audit from
+  worst relative state rate `0.0553 1/s` and max tray total residual
+  `2504 lbmol/h` to `0.0457 1/s` and `852 lbmol/h`.
+- Stage 2 vapor-state plus vapor-flow solve improved the static audit further
+  to `0.0142 1/s` and `594 lbmol/h`, but its 60 s dynamic smoke run was worse
+  than baseline, including score spikes at 40-50 s.
+- Stage 4 coupled material solve reduced max tray total residual to
+  `473 lbmol/h`, but the 60 s dynamic smoke run was also worse than baseline,
+  with higher top pressure and hotter sump behavior.
+- Conclusion: the residual solver remains viable as a diagnostic and candidate
+  generator, but static residual reduction is not a reliable acceptance metric.
+  The workflow now requires `tools/evaluate_initialization_dynamic_gate.py` or an
+  equivalent dynamic gate before accepting any residual-solver output.
+- Follow-up dynamic spike diagnosis for the Stage 2 residual candidate:
+  - tool: `tools/diagnose_initialization_dynamic_spike.py`
+  - report: `logs/c3c4_stage2_dynamic_spike_diagnosis_20260706.md`
+  - the worst early dynamic window is 40 s, where the candidate's worst
+    state-rate row is `tray_V` n-Butane on an interior stage.
+  - the dominant drivers are vapor/thermo closure, not total mass closure or a
+    top/bottom endpoint drift: relative state-rate is `26.3x` baseline,
+    steady-state score is `22.2x` baseline, `pv_inner_dv_max_lbmolph` is
+    `20.8x` baseline, and `K_state_over_K_thermo_max_abs` is `2.15x` baseline.
+  - next residual-solver attempts should protect early dynamic vapor-flow and
+    K-consistency metrics instead of only lowering the t=0 residual audit.
+- Dynamic gate hardening:
+  - `tools/evaluate_initialization_dynamic_gate.py` now supports repeatable
+    `--summary-ratio-limit FIELD=LIMIT` checks, so acceptance can explicitly
+    reject candidates that worsen early dynamic diagnostics such as
+    `pv_inner_dv_max_lbmolph` or `K_state_over_K_thermo_max_abs`.
+- Narrow runtime-coupling probe:
+  - run: `logs/c3c4_stage2_residual_pvinner5_60s_20260706`
+  - increasing pressure/vapor inner iterations from 1 to 5 did not rescue the
+    Stage 2 residual candidate. It reduced the 40 s symptom but produced a much
+    larger 50 s spike: score `287`, relative state-rate `0.861 1/s`, and
+    `K_state_over_K_thermo_max_abs` `2.84`.
+  - conclusion: this branch should not continue as broad residual tuning. The
+    residual solver remains useful for diagnostics, but accepted initialization
+    now needs either a different objective that protects dynamic vapor/thermo
+    consistency from the start or a model-equation/topology review of the
+    vapor-flow and equilibrium-state coupling.
+- Vapor/equilibrium/energy topology audit:
+  - tool: `tools/vapor_equilibrium_coupling_audit.py`
+  - first reports:
+    - `logs/c3c4_baseline_vapor_equilibrium_coupling_audit_t40_20260706.md`
+    - `logs/c3c4_stage2_vapor_equilibrium_coupling_audit_t40_20260706.md`
+  - at the Stage 2 dynamic spike time, the audit confirms that the failure is
+    interior vapor/equilibrium/energy coupling:
+    - max `|ln(K_state/K_thermo)|` increased from `0.689` baseline to `1.377`.
+    - max `|y-normalized(Kx)|` increased modestly from `0.117` to `0.126`.
+    - max raw temperature rate increased from `0.293 F/s` to `1.049 F/s`.
+    - max vapor-flow calc/used mismatch increased from `43.9 lbmol/h` to
+      `912 lbmol/h`.
+- Pressure-from-vapor-holdup instrumentation:
+  - `dynamic_run_scaffold_v1.py` now logs `P_from_vapor_holdup_psia`,
+    `tray_vapor_volume_ft3`, and `Z_tray` on stage profile rows.
+  - `tools/vapor_equilibrium_coupling_audit.py` now reports
+    `P_state_psia` versus `P_from_vapor_holdup_psia`, skipping rows with
+    negligible vapor holdup.
+  - updated reports:
+    - `logs/c3c4_baseline_pressure_consistency_audit_t40_20260706.md`
+    - `logs/c3c4_stage2_pressure_consistency_audit_t40_20260706.md`
+  - the pressure mismatch is real in both runs, but it is not the Stage 2
+    differentiator at 40 s: baseline max pressure error is `29.8 psia`
+    (`13.2%` relative), while Stage 2 is `32.5 psia` (`14.4%` relative).
+  - Stage 2 remains primarily worse in K/equilibrium, temperature-rate, and
+    vapor-flow calc/used mismatch, not in pressure-from-holdup consistency.
+- Baseline-vs-candidate coupling comparison:
+  - tool: `tools/compare_vapor_equilibrium_coupling.py`
+  - report: `logs/c3c4_stage2_vs_baseline_coupling_compare_t40_20260706.md`
+  - the comparison ranks candidate-minus-baseline worsening at the same logged
+    time by stage/component or stage, rather than relying on separate absolute
+    audits.
+  - at the 40 s Stage 2 spike, the dominant worsening family is vapor-flow
+    inconsistency. The worst `V_calc - V_used` mismatch worsened by
+    `906 lbmol/h` and `17/18` comparable vapor-flow rows worsened.
+  - the worst vapor-flow rows were not clamp events: `vflow_energy_clamped`
+    remained `0`, vapor-flow homotopy was inactive, and logged `V_out_lbmolph`
+    matched `vflow_energy_used_lbmolph`.
+  - the report now includes implied previous vapor flow from the relaxation
+    equation. For the worst row, the candidate's calculated closure flow was
+    about `927 lbmol/h` away from the implied previous-flow memory, while the
+    baseline was about `5.5 lbmol/h` away under the same `vflow_relax_alpha`.
+  - K/dew and temperature behavior also worsened, but the most direct code path
+    to inspect is the RHS vapor-flow closure handoff where the calculated
+    closure flow is clamped and then relaxed into the flow actually used by the
+    material/energy balances.
+  - next action: inspect/diagnose whether the vapor-flow relaxation/clamp path
+    is using a previous-flow memory that is incompatible with the candidate
+    vapor state, before making any model-equation changes.
+- Vapor-flow relaxation mechanism probe:
+  - run: `logs/c3c4_stage2_vflowrelax2_60s_20260706`
+  - change: reran the Stage 2 residual candidate with
+    `--vapor-flow-relaxation-sec 2`, increasing the vapor-flow relaxation
+    alpha from about `0.0167` to `0.1` at `dt=0.2 s`.
+  - report:
+    `logs/c3c4_stage2_vflowrelax2_vs_baseline_coupling_compare_t40_20260706.md`
+  - dynamic gate:
+    `logs/initialization_dynamic_gate_c3c4_stage2_vflowrelax2_20260706.md`
+  - result: the 40 s vapor-flow calc/used mismatch improved materially
+    compared with the original Stage 2 candidate, but the candidate still
+    failed the dynamic gate. Peak score ratio was `6.10`, peak relative
+    state-rate ratio was `6.79`, and final `pv_inner_dv_max_lbmolph` worsened
+    to `95.1 lbmol/h` versus `1.48 lbmol/h` baseline.
+  - conclusion: vapor-flow relaxation lag is a real symptom amplifier, but
+    faster relaxation alone is not an acceptable fix. It transfers the
+    dominant comparison failure toward energy inconsistency and pressure/vapor
+    inner mismatch. Do not continue by tuning `vapor_flow_relaxation_sec` as an
+    initializer rescue; use this probe to focus the RHS audit on the coupled
+    vapor-flow/energy residual formulation.
+- Energy/vapor-flow term instrumentation:
+  - implementation:
+    `column_rhs_v1.py` now logs the energy vapor-flow numerator terms, absolute
+    liquid/vapor enthalpies, enthalpy deltas, heat capacity, and relaxation
+    metadata used to produce each stage's calculated/used vapor flow.
+    `dynamic_run_scaffold_v1.py` writes those fields to profile CSV logs, and
+    `tools/compare_vapor_equilibrium_coupling.py` ranks candidate-minus-baseline
+    worsening for each term.
+  - report:
+    `logs/c3c4_stage2_vflowhterms_vs_baseline_coupling_compare_t40_20260706.md`
+  - result: the Stage 2 residual candidate reproduced the same 40-50 s dynamic
+    spike, so the instrumentation did not alter the behavior. At 40 s the
+    dominant worsening family is `energy/vapor-flow equation inconsistency`.
+    The worst energy numerator worsening is `1585.54 BTU/s`; the worst
+    liquid-in term worsening is `1525.59 BTU/s`; and the worst `dE_target`
+    worsening is `1039.17 BTU/s`.
+  - key observation: the liquid traffic itself is not the differentiator. In
+    the worst lower-interior rows, the candidate and baseline have the same
+    liquid-in flow, but the candidate has a large alternating liquid enthalpy
+    discontinuity. One row changes from a baseline liquid enthalpy delta of
+    about `24.7 BTU/lbmol` to `455 BTU/lbmol`; the neighboring row changes from
+    about `20.9 BTU/lbmol` to `-438 BTU/lbmol`.
+  - related thermo anomaly: the same region contains a candidate-only
+    `thermo_unit_k_packet` flag where all logged `K_thermo` values are exactly
+    `1.0`, while neighboring rows retain normal PR-like K values. That points
+    toward a thermo packet refresh/reuse/fallback consistency defect, not a
+    standalone liquid-flow or top/bottom boundary equation problem.
+  - provenance follow-up:
+    `logs/c3c4_stage2_thermoprov_vs_baseline_coupling_compare_t40_20260706.md`
+    and `logs/c3c4_stage2_thermophase_40s_20260706` show that the unit-K row
+    was not stale cache. It was a freshly refreshed batch thermo packet
+    (`thermo_flash_source_code = 2`, `thermo_flash_failed = 0`). The subsequent
+    phase-count diagnostic reports `thermo_flash_phase_count = 2`, so this is
+    not the one-phase fallback either. The provider returned a degenerate
+    two-phase packet with `x_eq == y_eq`, `K_thermo == 1`, and a liquid
+    enthalpy around `-3927 BTU/lbmol`, while neighboring rows retain normal
+    K-values and liquid enthalpies near `-4367` and `-4384 BTU/lbmol`.
+  - next action: stop broad residual-solver tuning and inspect the generic
+    Clapeyron PR TP-flash handling for refreshed degenerate two-phase unit-K
+    packets. The model should not silently accept this packet as an ordinary
+    equilibrium/enthalpy state. Do not modify the governing tray/top/bottom
+    equations until the degenerate flash handling is hardened or replaced.
+  - quarantine follow-up:
+    `logs/c3c4_stage2_quarantine_40s_20260706` and
+    `logs/c3c4_stage2_quarantine_vs_baseline_coupling_compare_t40_20260706.md`
+    confirm that the hardened thermo-refresh path catches the refreshed
+    degenerate two-phase/unit-K packet and keeps the previous finite non-unit
+    thermo packet in service when one is available. At the previously bad row,
+    `thermo_degenerate_two_phase_unit_K_flag = 1` and
+    `thermo_degenerate_two_phase_unit_K_quarantined = 1`, while the active
+    K-values remain finite and non-unit and the liquid enthalpy discontinuity is
+    reduced back to the same order as neighboring rows.
+  - dynamic impact: the Stage 2 residual candidate improved materially but did
+    not pass. At 40 s, the steady-state score fell from about `43.65` before
+    quarantine to `4.65`, and the max relative state rate fell from about
+    `0.131 1/s` to `0.0110 1/s`. The remaining score is still above the gate
+    and is dominated by `tray_L` n-Butane plus a temperature-rate criterion
+    (`0.698 F/s` versus the `0.15 F/s` tolerance).
+  - interpretation: the degenerate PR thermo packet was a real spike amplifier
+    and the generic quarantine is a valid hardening fix. It is not, by itself,
+    an accepted initialization strategy. The next investigation should target
+    the remaining energy/vapor-flow equation inconsistency and top liquid
+    composition/flow transient exposed by the post-quarantine comparison, not
+    resume broad residual-solver tuning.
 
 Spec/energy degree-of-freedom probes:
 - spec-only boundary adjustment did not solve the defect:

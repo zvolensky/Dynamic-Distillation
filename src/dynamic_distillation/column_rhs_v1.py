@@ -2153,6 +2153,21 @@ def column_rhs(
         vflow_clamped = np.full(N, np.nan, dtype=float)
         vflow_limit_hi = np.full(N, np.nan, dtype=float)
         vflow_limit_lo = np.full(N, np.nan, dtype=float)
+        vflow_L_in_term = np.full(N, np.nan, dtype=float)
+        vflow_V_in_term = np.full(N, np.nan, dtype=float)
+        vflow_feed_ref_term = np.full(N, np.nan, dtype=float)
+        vflow_duty_term = np.full(N, np.nan, dtype=float)
+        vflow_dE_target = np.full(N, np.nan, dtype=float)
+        vflow_numer = np.full(N, np.nan, dtype=float)
+        vflow_heat_capacity = np.full(N, np.nan, dtype=float)
+        vflow_L_in = np.full(N, np.nan, dtype=float)
+        vflow_V_in = np.full(N, np.nan, dtype=float)
+        vflow_hL_in = np.full(N, np.nan, dtype=float)
+        vflow_hL_out = np.full(N, np.nan, dtype=float)
+        vflow_hV_in = np.full(N, np.nan, dtype=float)
+        vflow_hV_out = np.full(N, np.nan, dtype=float)
+        vflow_hL_in_minus_hL_out = np.full(N, np.nan, dtype=float)
+        vflow_hV_in_minus_hL_out = np.full(N, np.nan, dtype=float)
         vflow_alpha = np.full(N, np.nan, dtype=float)
         if alpha_v is not None:
             vflow_alpha[1 : max(N - 1, 1)] = float(alpha_v)
@@ -2484,6 +2499,21 @@ def column_rhs(
         vflow_clamped = np.full(N, np.nan, dtype=float)
         vflow_limit_hi = np.full(N, np.nan, dtype=float)
         vflow_limit_lo = np.full(N, np.nan, dtype=float)
+        vflow_L_in_term = np.full(N, np.nan, dtype=float)
+        vflow_V_in_term = np.full(N, np.nan, dtype=float)
+        vflow_feed_ref_term = np.full(N, np.nan, dtype=float)
+        vflow_duty_term = np.full(N, np.nan, dtype=float)
+        vflow_dE_target = np.full(N, np.nan, dtype=float)
+        vflow_numer = np.full(N, np.nan, dtype=float)
+        vflow_heat_capacity = np.full(N, np.nan, dtype=float)
+        vflow_L_in = np.full(N, np.nan, dtype=float)
+        vflow_V_in = np.full(N, np.nan, dtype=float)
+        vflow_hL_in = np.full(N, np.nan, dtype=float)
+        vflow_hL_out = np.full(N, np.nan, dtype=float)
+        vflow_hV_in = np.full(N, np.nan, dtype=float)
+        vflow_hV_out = np.full(N, np.nan, dtype=float)
+        vflow_hL_in_minus_hL_out = np.full(N, np.nan, dtype=float)
+        vflow_hV_in_minus_hL_out = np.full(N, np.nan, dtype=float)
         vflow_alpha = np.full(N, np.nan, dtype=float)
         if alpha_v is not None:
             vflow_alpha[1 : max(N - 1, 1)] = float(alpha_v)
@@ -2705,16 +2735,27 @@ def column_rhs(
             #   V_out = [ ... - dE_target ] / (hV_out - hL_out)
             denom = float(hV_out - hL_out)
             ft_feed_i = (Ft_L + Ft_V) if (feed_stage0 == i) else 0.0
-            numer = (
-                L_in[i] * (hL_in - hL_out)
-                + V_in_i * (hV_in - hL_out)
-                + q_feed
-                - ft_feed_i * hL_out
-                + Q_i
-                - dE_target
-            )
+            L_in_term = L_in[i] * (hL_in - hL_out)
+            V_in_term = V_in_i * (hV_in - hL_out)
+            feed_ref_term = q_feed - ft_feed_i * hL_out
+            numer = L_in_term + V_in_term + feed_ref_term + Q_i - dE_target
 
             vflow_denom[i] = float(denom)
+            vflow_L_in_term[i] = float(L_in_term)
+            vflow_V_in_term[i] = float(V_in_term)
+            vflow_feed_ref_term[i] = float(feed_ref_term)
+            vflow_duty_term[i] = float(Q_i)
+            vflow_dE_target[i] = float(dE_target)
+            vflow_numer[i] = float(numer)
+            vflow_heat_capacity[i] = float(C)
+            vflow_L_in[i] = float(L_in[i])
+            vflow_V_in[i] = float(V_in_i)
+            vflow_hL_in[i] = float(hL_in)
+            vflow_hL_out[i] = float(hL_out)
+            vflow_hV_in[i] = float(hV_in)
+            vflow_hV_out[i] = float(hV_out)
+            vflow_hL_in_minus_hL_out[i] = float(hL_in - hL_out)
+            vflow_hV_in_minus_hL_out[i] = float(hV_in - hL_out)
             ok = bool(np.isfinite(denom) and (abs(denom) > min_latent_abs))
 
             if not ok:
@@ -2801,6 +2842,21 @@ def column_rhs(
             "vflow_energy_clamped": vflow_clamped,
             "vflow_energy_limit_hi_lbmolph": vflow_limit_hi,
             "vflow_energy_limit_lo_lbmolph": vflow_limit_lo,
+            "vflow_energy_L_in_term_BTUps": vflow_L_in_term,
+            "vflow_energy_V_in_term_BTUps": vflow_V_in_term,
+            "vflow_energy_feed_ref_term_BTUps": vflow_feed_ref_term,
+            "vflow_energy_duty_term_BTUps": vflow_duty_term,
+            "vflow_energy_dE_target_BTUps": vflow_dE_target,
+            "vflow_energy_numer_BTUps": vflow_numer,
+            "vflow_energy_heat_capacity_BTU_per_F": vflow_heat_capacity,
+            "vflow_energy_L_in_lbmolph": vflow_L_in * 3600.0,
+            "vflow_energy_V_in_lbmolph": vflow_V_in * 3600.0,
+            "vflow_energy_hL_in_BTU_per_lbmol": vflow_hL_in,
+            "vflow_energy_hL_out_BTU_per_lbmol": vflow_hL_out,
+            "vflow_energy_hV_in_BTU_per_lbmol": vflow_hV_in,
+            "vflow_energy_hV_out_BTU_per_lbmol": vflow_hV_out,
+            "vflow_energy_hL_in_minus_hL_out_BTU_per_lbmol": vflow_hL_in_minus_hL_out,
+            "vflow_energy_hV_in_minus_hL_out_BTU_per_lbmol": vflow_hV_in_minus_hL_out,
             "vflow_relax_alpha": vflow_alpha,
             "vflow_smooth_clamp_eps_lbmolph": np.array(
                 [float(vflow_smooth_eps_lbmolps) * 3600.0],
@@ -4090,7 +4146,27 @@ def column_rhs(
         nonlocal condenser_duty_cache, condenser_duty_packet_out
         tray_T_arr = np.asarray(tray_T_F, dtype=float).reshape((N,))
         P_tray_arr = np.asarray(P_tray_psia, dtype=float).reshape((N,))
+        src_i = 1 if N > 1 else 0
+        cache_packet_hit = None
+        cache_recomputed = False
+        if condenser_duty_cache is not None:
+            cache_packet_hit = _condenser_duty_packet_if_compatible(
+                condenser_duty_packet_out,
+                mode=str(condenser_duty_cache[4]),
+                V_vapor_in_lbmolps=float(V_in[0]),
+                T_vapor_in_F=float(tray_T_arr[src_i]),
+                P_vapor_in_psia=float(P_tray_arr[src_i]),
+                P_condenser_psia=float(P_tray_arr[0]),
+                y_vapor_in=np.asarray(y_in[0, :], dtype=float).reshape((Nc,)),
+                max_abs_dT_F=float(getattr(inputs, "condenser_duty_reuse_dT_F", 0.0) or 0.0),
+                max_abs_dP_psia=float(getattr(inputs, "condenser_duty_reuse_dP_psia", 0.0) or 0.0),
+                max_abs_dx=float(getattr(inputs, "condenser_duty_reuse_dx", 0.0) or 0.0),
+                max_rel_dV=float(getattr(inputs, "condenser_duty_reuse_dV_rel", 0.0) or 0.0),
+            )
+            if cache_packet_hit is None:
+                condenser_duty_cache = None
         if condenser_duty_cache is None:
+            cache_recomputed = True
             condenser_duty_cache = _resolve_condenser_duty_btu_per_h(
                 col=col,
                 inputs=inputs,
@@ -4120,7 +4196,17 @@ def column_rhs(
                     )
             except Exception:
                 pass
-        src_i = 1 if N > 1 else 0
+        packet_V_vapor_in_lbmolps = float(V_in[0])
+        packet_T_vapor_in_F = float(tray_T_arr[src_i])
+        packet_P_vapor_in_psia = float(P_tray_arr[src_i])
+        packet_P_condenser_psia = float(P_tray_arr[0])
+        packet_y_vapor_in = np.asarray(y_in[0, :], dtype=float).reshape((Nc,)).copy()
+        if (not cache_recomputed) and cache_packet_hit is not None:
+            packet_V_vapor_in_lbmolps = float(cache_packet_hit.V_vapor_in_lbmolps)
+            packet_T_vapor_in_F = float(cache_packet_hit.T_vapor_in_F)
+            packet_P_vapor_in_psia = float(cache_packet_hit.P_vapor_in_psia)
+            packet_P_condenser_psia = float(cache_packet_hit.P_condenser_psia)
+            packet_y_vapor_in = np.asarray(cache_packet_hit.y_vapor_in, dtype=float).reshape((Nc,)).copy()
         condenser_duty_packet_out = CondenserDutyPacket(
             q_calc_BTUph=(
                 float(condenser_duty_cache[1])
@@ -4133,11 +4219,11 @@ def column_rhs(
                 else None
             ),
             mode=str(condenser_duty_cache[4]),
-            V_vapor_in_lbmolps=float(V_in[0]),
-            T_vapor_in_F=float(tray_T_arr[src_i]),
-            P_vapor_in_psia=float(P_tray_arr[src_i]),
-            P_condenser_psia=float(P_tray_arr[0]),
-            y_vapor_in=np.asarray(y_in[0, :], dtype=float).reshape((Nc,)).copy(),
+            V_vapor_in_lbmolps=packet_V_vapor_in_lbmolps,
+            T_vapor_in_F=packet_T_vapor_in_F,
+            P_vapor_in_psia=packet_P_vapor_in_psia,
+            P_condenser_psia=packet_P_condenser_psia,
+            y_vapor_in=packet_y_vapor_in,
             hL_cond_BTU_lbmol=(
                 float(condenser_duty_cache[3])
                 if condenser_duty_cache[3] is not None and np.isfinite(float(condenser_duty_cache[3]))
@@ -4341,7 +4427,23 @@ def column_rhs(
         thermo_packet = thermo_refresh_result.packet
         flash_skipped = np.asarray(thermo_refresh_result.flash_skipped, dtype=float).reshape((N,))
         flash_refreshed = np.asarray(thermo_refresh_result.flash_refreshed, dtype=float).reshape((N,))
+        thermo_source_code = np.asarray(thermo_refresh_result.source_code, dtype=float).reshape((N,))
+        thermo_flash_failed = np.asarray(thermo_refresh_result.flash_failed, dtype=float).reshape((N,))
+        thermo_phase_count = np.asarray(thermo_refresh_result.phase_count, dtype=float).reshape((N,))
+        thermo_quarantined = np.asarray(
+            thermo_refresh_result.degenerate_two_phase_unit_K_quarantined, dtype=float
+        ).reshape((N,))
         batch_used = bool(thermo_refresh_result.batch_used)
+        K_packet = np.asarray(thermo_packet.K_tray, dtype=float).reshape((N, Nc))
+        finite_K = np.isfinite(K_packet)
+        K_unit_flag = np.zeros(N, dtype=float)
+        K_max_abs_minus_one = np.full(N, np.nan, dtype=float)
+        for i_unit in range(N):
+            row = K_packet[i_unit, finite_K[i_unit, :]]
+            if row.size:
+                max_abs = float(np.max(np.abs(row - 1.0)))
+                K_max_abs_minus_one[i_unit] = max_abs
+                K_unit_flag[i_unit] = 1.0 if max_abs <= 1.0e-9 else 0.0
 
         # Module 8A: if Z provided, upgrade pressure diagnostic
         diag["Z_tray"] = thermo_packet.Zfac_tray
@@ -4353,6 +4455,19 @@ def column_rhs(
         )
         diag["thermo_flash_skipped"] = flash_skipped
         diag["thermo_flash_refreshed"] = flash_refreshed
+        diag["thermo_flash_source_code"] = thermo_source_code
+        diag["thermo_flash_failed"] = thermo_flash_failed
+        diag["thermo_flash_phase_count"] = thermo_phase_count
+        diag["thermo_degenerate_two_phase_unit_K_quarantined"] = thermo_quarantined
+        diag["thermo_unit_K_flag"] = K_unit_flag
+        diag["thermo_max_abs_K_minus_1"] = K_max_abs_minus_one
+        diag["thermo_unit_K_refreshed_flag"] = K_unit_flag * np.where(flash_refreshed > 0.5, 1.0, 0.0)
+        diag["thermo_unit_K_retained_flag"] = K_unit_flag * np.where(flash_refreshed <= 0.5, 1.0, 0.0)
+        diag["thermo_degenerate_two_phase_unit_K_flag"] = (
+            np.maximum(K_unit_flag, thermo_quarantined)
+            * np.where(flash_refreshed > 0.5, 1.0, 0.0)
+            * np.where(thermo_phase_count > 1.5, 1.0, 0.0)
+        )
         diag["thermo_flash_batch_used"] = np.array([1.0 if batch_used else 0.0], dtype=float)
 
         # Module 7 diagnostics output
@@ -6410,13 +6525,27 @@ def _resolve_condenser_duty_btu_per_h(
                     1,
                     category="condenser_duty_reuse_diag",
                 )
-                q_try = prev_packet.q_calc_BTUph
-                t_try = prev_packet.T_bubble_F
-                if prev_packet.hL_cond_BTU_lbmol is not None and np.isfinite(float(prev_packet.hL_cond_BTU_lbmol)):
-                    hL_cond = float(prev_packet.hL_cond_BTU_lbmol)
+                q_try, t_try = _compute_total_condenser_duty_btu_per_h(
+                    thermo_provider=inputs.thermo_provider,
+                    V_vapor_in_lbmolps=float(V_in_lbmolps[0]),
+                    y_vapor_in=y_cond,
+                    T_vapor_in_F=float(tray_T_F[src_i]),
+                    P_vapor_in_psia=float(P_tray_psia[src_i]),
+                    P_condenser_psia=float(P_tray_psia[0]),
+                    T_guess_F=float(tray_T_F[0]),
+                    prev_bubble_packet=prev_packet,
+                    epsilon_lbmol=float(epsilon_lbmol),
+                )
+                hL_cond = _condenser_liquid_enthalpy_BTU_lbmol(
+                    thermo_provider=inputs.thermo_provider,
+                    T_bubble_F=t_try,
+                    P_condenser_psia=float(P_tray_psia[0]),
+                    x_cond=y_cond,
+                    packet=prev_packet,
+                )
                 _trace_stage_thermo(
                     inputs,
-                    "condenser duty thermo solve reused previous packet "
+                    "condenser duty thermo solve reused previous bubble state "
                     f"T_vapor_in_F={float(tray_T_F[src_i]):.3f} P_cond_psia={float(P_tray_psia[0]):.3f}",
                 )
             else:

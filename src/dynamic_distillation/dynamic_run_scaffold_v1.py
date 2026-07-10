@@ -59,7 +59,7 @@ from contextlib import nullcontext
 from dataclasses import dataclass, replace
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 import csv
 import datetime as _dt
@@ -90,6 +90,7 @@ from dynamic_distillation.column_rhs_v1 import (
     _compatible_feed_stage_flash_packet,
     _component_molar_flows_vector_lbmolps,
     _compute_top_drum_pressure_psia,
+    _feed_flash_beta_from_K,
     _bubble_point_T_F,
     column_rhs,
 )
@@ -1191,6 +1192,7 @@ def _seed_startup_feed_stage_flash_packet(
     try:
         stage0, z_feed, T_feed, P_feed, Ft_comp = feed_state
         Nc = int(col.n_components)
+        feed_stream = (getattr(col, "streams", {}) or {}).get("Feed")
         with getattr(thermo_provider, "thermo_call_category", lambda *_args, **_kwargs: nullcontext())("feed_stage_flash"):
             fres = getattr(thermo_provider, "flash_TP_full", None)
             if callable(fres):
@@ -1224,7 +1226,8 @@ def _seed_startup_feed_stage_flash_packet(
                 hV_feed = float(h_try_V)
         except Exception:
             hV_feed = None
-        beta = float(np.clip(_startup_feed_rachford_rice_beta(K, z_feed), 0.0, 1.0))
+        vf_fallback = float(getattr(feed_stream, "vapor_fraction", 0.0) or 0.0)
+        beta = _feed_flash_beta_from_K(K, z_feed, fallback_vapor_fraction=vf_fallback)
         denom = 1.0 + beta * (K - 1.0)
         denom = np.where(np.abs(denom) < 1e-12, np.sign(denom) * 1e-12 + (denom == 0) * 1e-12, denom)
         x = np.clip(z_feed / denom, 0.0, None)
@@ -2529,6 +2532,8 @@ class RunnerConfig:
     equilibrium_tau_ramp_final_sec: Optional[float] = None
     equilibrium_tau_ramp_decay_sec: Optional[float] = None
     equilibrium_phase_holdup_guard_lbmol: Optional[float] = None
+    equilibrium_component_transfer_max_cancel_multiplier: Optional[float] = None
+    equilibrium_component_transfer_floor_lbmolps: Optional[float] = None
     equilibrium_energy_damping_gain: Optional[float] = None
     hydraulic_energy_temperature_damping: Optional[float] = None
     hydraulic_energy_temperature_mode: Optional[str] = None
@@ -2573,6 +2578,8 @@ class RunnerConfig:
     hydraulic_pressure_relaxation_sec: Optional[float] = None
     top_drum_pressure_temperature_relaxation_sec: Optional[float] = None
     vapor_flow_relaxation_sec: Optional[float] = None
+    vapor_flow_zero_temperature_target: bool = False
+    dynamic_vflow_nominal_hi_ratio: Optional[float] = None
     conductance_vflow_nominal_hi_ratio: Optional[float] = None
     # Optional smooth-clamp width (lbmol/h) used only for stiff integrator RHS
     # regularization in hydraulic vapor-flow closures.
@@ -2601,6 +2608,15 @@ class RunnerConfig:
     init_top_drum_vapor_pressure_psia: Optional[float] = None
     init_match_condenser_duty: bool = False
     init_align_top_liquid_to_condensate: bool = False
+    init_top_liquid_condensate_blend: float = 1.0
+    init_align_tray_vapor_to_equilibrium: bool = False
+    init_tray_vapor_equilibrium_blend: float = 1.0
+    init_align_tray_vapor_to_linear_steady: bool = False
+    init_tray_vapor_linear_steady_blend: float = 1.0
+    init_tray_vapor_linear_steady_scope: str = "interior"
+    init_align_tray_liquid_to_equilibrium: bool = False
+    init_tray_liquid_equilibrium_blend: float = 1.0
+    init_tray_liquid_equilibrium_scope: str = "all"
     condenser_pressure_drop_psi: Optional[float] = None
     top_drum_vapor_volume_ft3: Optional[float] = None
     top_drum_total_volume_ft3: Optional[float] = None
@@ -4345,6 +4361,16 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             else None
         ),
         equilibrium_phase_holdup_guard_lbmol=float(eq_phase_guard_lbmol),
+        equilibrium_component_transfer_max_cancel_multiplier=(
+            float(cfg.equilibrium_component_transfer_max_cancel_multiplier)
+            if cfg.equilibrium_component_transfer_max_cancel_multiplier is not None
+            else ColumnInputs.equilibrium_component_transfer_max_cancel_multiplier
+        ),
+        equilibrium_component_transfer_floor_lbmolps=(
+            float(cfg.equilibrium_component_transfer_floor_lbmolps)
+            if cfg.equilibrium_component_transfer_floor_lbmolps is not None
+            else ColumnInputs.equilibrium_component_transfer_floor_lbmolps
+        ),
         equilibrium_energy_damping_gain=float(eq_energy_damping_gain),
         hydraulic_energy_temperature_damping=float(hydraulic_energy_temp_damping),
         hydraulic_energy_temperature_mode=str(hydraulic_energy_temp_mode),
@@ -4443,6 +4469,11 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             float(tau_top_pT) if tau_top_pT is not None else None
         ),
         vapor_flow_relaxation_sec=(float(tau_vflow) if tau_vflow is not None else None),
+        dynamic_vflow_nominal_hi_ratio=(
+            float(cfg.dynamic_vflow_nominal_hi_ratio)
+            if cfg.dynamic_vflow_nominal_hi_ratio is not None
+            else None
+        ),
         conductance_vflow_nominal_hi_ratio=(
             float(conductance_vflow_nominal_hi_ratio)
             if conductance_vflow_nominal_hi_ratio is not None
@@ -5965,6 +5996,454 @@ def _initialize_thermo_consistent_state(
         success = success and (float(eq_final) <= float(eq_init) + 1e-12)
     info["success"] = bool(success)
     return y_work, info
+
+
+def _initialize_tray_vapor_composition_from_equilibrium(
+    *,
+    col: ColumnSpec,
+    layout: StateVectorLayout,
+    y: np.ndarray,
+    inputs: ColumnInputs,
+    blend: float = 1.0,
+) -> Tuple[np.ndarray, Dict[str, Any]]:
+    """
+    Project initial tray vapor composition toward the RHS equilibrium target.
+
+    This preserves each tray vapor holdup total and changes only the component
+    split. It is intended as a narrow initializer diagnostic for explicit
+    vapor-state/K-state mismatch, not as a runtime relaxation mechanism.
+    """
+    info: Dict[str, Any] = {
+        "enabled": True,
+        "applied": False,
+        "blend": np.nan,
+        "max_composition_delta": np.nan,
+        "max_interior_composition_delta": np.nan,
+        "max_K_state_over_K_eq_abs_log_before": np.nan,
+        "max_K_state_over_K_eq_abs_log_after": np.nan,
+        "energy_repacked": False,
+        "reason": "not_attempted",
+    }
+    if not bool(getattr(layout, "include_vapor", False)):
+        info["reason"] = "missing_vapor_state"
+        return np.asarray(y, dtype=float), info
+    if inputs.thermo_provider is None and inputs.K_tray_prev is None:
+        info["reason"] = "missing_thermo_or_cached_K"
+        return np.asarray(y, dtype=float), info
+
+    try:
+        lam = float(blend)
+    except Exception:
+        lam = 1.0
+    if not np.isfinite(lam):
+        lam = 1.0
+    lam = float(np.clip(lam, 0.0, 1.0))
+    info["blend"] = float(lam)
+    if lam <= 0.0:
+        info["reason"] = "zero_blend"
+        return np.asarray(y, dtype=float), info
+
+    N = int(col.n_stages)
+    Nc = int(col.n_components)
+    sl = layout.slices()
+    if "tray_V" not in sl:
+        info["reason"] = "missing_tray_V_slice"
+        return np.asarray(y, dtype=float), info
+
+    y_seed = np.asarray(y, dtype=float).reshape((-1,)).copy()
+    try:
+        eval_inputs = replace(inputs, compute_thermo_diag=True, equilibrium_relaxation=True)
+        _dydt0, diag0 = column_rhs(0.0, y_seed, col, layout, inputs=eval_inputs)
+    except Exception as exc:
+        info["reason"] = f"rhs_failed:{type(exc).__name__}"
+        return y_seed, info
+
+    y_target_raw = diag0.get("y_target_tray", None)
+    if y_target_raw is None:
+        y_target_raw = diag0.get("y_eq_tray", None)
+    if y_target_raw is None:
+        info["reason"] = "missing_y_target"
+        return y_seed, info
+    try:
+        y_target = np.asarray(y_target_raw, dtype=float).reshape((N, Nc))
+    except Exception:
+        info["reason"] = "bad_y_target_shape"
+        return y_seed, info
+
+    def _max_abs_log_ratio(diag: Mapping[str, Any]) -> float:
+        for key in ("K_state_over_K_eq_relax_tray", "K_state_over_K_thermo_tray"):
+            try:
+                arr = np.asarray(diag.get(key), dtype=float).reshape((N, Nc))
+            except Exception:
+                continue
+            valid = np.isfinite(arr) & (arr > 0.0)
+            if np.any(valid):
+                return float(np.nanmax(np.abs(np.log(np.maximum(arr[valid], 1.0e-300)))))
+        return np.nan
+
+    info["max_K_state_over_K_eq_abs_log_before"] = _max_abs_log_ratio(diag0)
+
+    try:
+        u = layout.unpack(y_seed)
+        tray_V = np.asarray(u["tray_V"], dtype=float).reshape((N, Nc)).copy()
+        y_old = np.asarray(u["y_tray"], dtype=float).reshape((N, Nc))
+    except Exception:
+        info["reason"] = "unpack_failed"
+        return y_seed, info
+
+    tray_V_new = tray_V.copy()
+    max_delta = 0.0
+    max_delta_interior = 0.0
+    for i in range(N):
+        mv_i = float(np.sum(np.where(np.isfinite(tray_V[i, :]), tray_V[i, :], 0.0)))
+        if (not np.isfinite(mv_i)) or mv_i <= float(layout.epsilon_lbmol):
+            continue
+        target_i = np.where(np.isfinite(y_target[i, :]), y_target[i, :], y_old[i, :])
+        y_new_i = _normalize_comp((1.0 - lam) * y_old[i, :] + lam * target_i)
+        delta_i = float(np.max(np.abs(y_new_i - y_old[i, :])))
+        max_delta = max(max_delta, delta_i)
+        if i > 0 and i < (N - 1):
+            max_delta_interior = max(max_delta_interior, delta_i)
+        tray_V_new[i, :] = mv_i * y_new_i
+
+    y_new = y_seed.copy()
+    y_new[sl["tray_V"]] = tray_V_new.ravel(order="C")
+
+    if bool(getattr(layout, "include_energy", False)) and ("tray_EV_BTU" in sl):
+        try:
+            repack_inputs = replace(inputs, compute_thermo_diag=True, equilibrium_relaxation=False)
+            _dydt1, diag1 = column_rhs(0.0, y_new, col, layout, inputs=repack_inputs)
+            HV = np.asarray(diag1.get("HV_BTU_lbmol_tray"), dtype=float).reshape((N,))
+            MV_new = np.sum(np.asarray(tray_V_new, dtype=float).reshape((N, Nc)), axis=1)
+            tray_EV_new = MV_new * np.where(np.isfinite(HV), HV, 0.0)
+            tray_EV_new = np.where(np.isfinite(tray_EV_new), tray_EV_new, 0.0)
+            tray_EV_new[MV_new <= float(layout.epsilon_lbmol)] = 0.0
+            y_new[sl["tray_EV_BTU"]] = tray_EV_new
+            info["energy_repacked"] = True
+        except Exception:
+            info["energy_repacked"] = False
+
+    try:
+        eval_after = replace(inputs, compute_thermo_diag=True, equilibrium_relaxation=True)
+        _dydt2, diag2 = column_rhs(0.0, y_new, col, layout, inputs=eval_after)
+        info["max_K_state_over_K_eq_abs_log_after"] = _max_abs_log_ratio(diag2)
+    except Exception:
+        pass
+
+    info["max_composition_delta"] = float(max_delta)
+    info["max_interior_composition_delta"] = float(max_delta_interior)
+    info["applied"] = True
+    info["reason"] = "applied"
+    return _clamp_nonnegative_holdups(y_new, layout), info
+
+
+def _initialize_tray_vapor_composition_from_linear_steady(
+    *,
+    col: ColumnSpec,
+    layout: StateVectorLayout,
+    y: np.ndarray,
+    inputs: ColumnInputs,
+    blend: float = 1.0,
+    scope: str = "interior",
+) -> Tuple[np.ndarray, Dict[str, Any]]:
+    """
+    Project initial tray vapor composition toward the linearized local steady target.
+
+    The target comes from the t=0 RHS terms:
+
+        y_ss ~= (transport_in + feed + MV/tau * y_target) / (V_out + MV/tau)
+
+    It preserves each tray vapor holdup total and repacks vapor energy when the
+    state vector carries tray vapor energy.
+    """
+    info: Dict[str, Any] = {
+        "enabled": True,
+        "applied": False,
+        "blend": np.nan,
+        "scope": str(scope),
+        "max_composition_delta": np.nan,
+        "max_interior_composition_delta": np.nan,
+        "max_y_linear_steady_minus_y_target": np.nan,
+        "energy_repacked": False,
+        "reason": "not_attempted",
+    }
+    if not bool(getattr(layout, "include_vapor", False)):
+        info["reason"] = "missing_vapor_state"
+        return np.asarray(y, dtype=float), info
+    if inputs.thermo_provider is None and inputs.K_tray_prev is None:
+        info["reason"] = "missing_thermo_or_cached_K"
+        return np.asarray(y, dtype=float), info
+
+    try:
+        lam = float(blend)
+    except Exception:
+        lam = 1.0
+    if not np.isfinite(lam):
+        lam = 1.0
+    lam = float(np.clip(lam, 0.0, 1.0))
+    info["blend"] = float(lam)
+    if lam <= 0.0:
+        info["reason"] = "zero_blend"
+        return np.asarray(y, dtype=float), info
+
+    N = int(col.n_stages)
+    Nc = int(col.n_components)
+    scope_key = str(scope or "interior").strip().lower()
+    if scope_key in ("interior-only", "interior_only"):
+        scope_key = "interior"
+    if scope_key not in ("all", "interior"):
+        info["reason"] = f"bad_scope:{scope_key}"
+        return np.asarray(y, dtype=float), info
+    info["scope"] = scope_key
+
+    sl = layout.slices()
+    if "tray_V" not in sl:
+        info["reason"] = "missing_tray_V_slice"
+        return np.asarray(y, dtype=float), info
+
+    y_seed = np.asarray(y, dtype=float).reshape((-1,)).copy()
+    try:
+        eval_inputs = replace(inputs, compute_thermo_diag=True, equilibrium_relaxation=True)
+        _dydt0, diag0 = column_rhs(0.0, y_seed, col, layout, inputs=eval_inputs)
+    except Exception as exc:
+        info["reason"] = f"rhs_failed:{type(exc).__name__}"
+        return y_seed, info
+
+    required = (
+        "y_target_tray",
+        "tray_V_transport_in_lbmolps",
+        "tray_V_feed_lbmolps",
+        "V_out_lbmolph",
+    )
+    missing = [key for key in required if key not in diag0]
+    if missing:
+        info["reason"] = "missing_rhs_terms:" + ",".join(missing)
+        return y_seed, info
+
+    try:
+        y_target = np.asarray(diag0["y_target_tray"], dtype=float).reshape((N, Nc))
+        transport_in = np.asarray(diag0["tray_V_transport_in_lbmolps"], dtype=float).reshape((N, Nc))
+        feed = np.asarray(diag0["tray_V_feed_lbmolps"], dtype=float).reshape((N, Nc))
+        v_out = np.asarray(diag0["V_out_lbmolph"], dtype=float).reshape((N,)) / 3600.0
+    except Exception:
+        info["reason"] = "bad_rhs_term_shape"
+        return y_seed, info
+
+    tau_raw = getattr(inputs, "tau_eq_sec", None)
+    try:
+        tau = float(tau_raw)
+    except Exception:
+        tau = np.nan
+    if not np.isfinite(tau) or tau <= 0.0:
+        info["reason"] = "missing_positive_equilibrium_tau"
+        return y_seed, info
+
+    try:
+        u = layout.unpack(y_seed)
+        tray_V = np.asarray(u["tray_V"], dtype=float).reshape((N, Nc)).copy()
+        y_old = np.asarray(u["y_tray"], dtype=float).reshape((N, Nc))
+    except Exception:
+        info["reason"] = "unpack_failed"
+        return y_seed, info
+
+    tray_V_new = tray_V.copy()
+    max_delta = 0.0
+    max_delta_interior = 0.0
+    max_ss_vs_target = 0.0
+    for i in range(N):
+        if scope_key == "interior" and (i == 0 or i == (N - 1)):
+            continue
+        mv_i = float(np.sum(np.where(np.isfinite(tray_V[i, :]), tray_V[i, :], 0.0)))
+        vout_i = float(v_out[i]) if np.isfinite(v_out[i]) else np.nan
+        if (not np.isfinite(mv_i)) or mv_i <= float(layout.epsilon_lbmol):
+            continue
+        if (not np.isfinite(vout_i)) or vout_i < 0.0:
+            continue
+
+        target_i = _normalize_comp(np.where(np.isfinite(y_target[i, :]), y_target[i, :], y_old[i, :]))
+        denom = max(vout_i + mv_i / tau, 1.0e-300)
+        rhs_i = np.where(np.isfinite(transport_in[i, :]), transport_in[i, :], 0.0)
+        rhs_i = rhs_i + np.where(np.isfinite(feed[i, :]), feed[i, :], 0.0) + (mv_i / tau) * target_i
+        y_ss_i = _normalize_comp(rhs_i / denom)
+        if not np.all(np.isfinite(y_ss_i)):
+            y_ss_i = target_i
+
+        y_new_i = _normalize_comp((1.0 - lam) * y_old[i, :] + lam * y_ss_i)
+        delta_i = float(np.max(np.abs(y_new_i - y_old[i, :])))
+        max_delta = max(max_delta, delta_i)
+        if i > 0 and i < (N - 1):
+            max_delta_interior = max(max_delta_interior, delta_i)
+        max_ss_vs_target = max(max_ss_vs_target, float(np.max(np.abs(y_ss_i - target_i))))
+        tray_V_new[i, :] = mv_i * y_new_i
+
+    y_new = y_seed.copy()
+    y_new[sl["tray_V"]] = tray_V_new.ravel(order="C")
+
+    if bool(getattr(layout, "include_energy", False)) and ("tray_EV_BTU" in sl):
+        try:
+            repack_inputs = replace(inputs, compute_thermo_diag=True, equilibrium_relaxation=False)
+            _dydt1, diag1 = column_rhs(0.0, y_new, col, layout, inputs=repack_inputs)
+            HV = np.asarray(diag1.get("HV_BTU_lbmol_tray"), dtype=float).reshape((N,))
+            MV_new = np.sum(np.asarray(tray_V_new, dtype=float).reshape((N, Nc)), axis=1)
+            tray_EV_new = MV_new * np.where(np.isfinite(HV), HV, 0.0)
+            tray_EV_new = np.where(np.isfinite(tray_EV_new), tray_EV_new, 0.0)
+            tray_EV_new[MV_new <= float(layout.epsilon_lbmol)] = 0.0
+            y_new[sl["tray_EV_BTU"]] = tray_EV_new
+            info["energy_repacked"] = True
+        except Exception:
+            info["energy_repacked"] = False
+
+    info["max_composition_delta"] = float(max_delta)
+    info["max_interior_composition_delta"] = float(max_delta_interior)
+    info["max_y_linear_steady_minus_y_target"] = float(max_ss_vs_target)
+    info["applied"] = True
+    info["reason"] = "applied"
+    return _clamp_nonnegative_holdups(y_new, layout), info
+
+
+def _initialize_tray_liquid_composition_from_equilibrium(
+    *,
+    col: ColumnSpec,
+    layout: StateVectorLayout,
+    y: np.ndarray,
+    inputs: ColumnInputs,
+    blend: float = 1.0,
+    scope: str = "all",
+) -> Tuple[np.ndarray, Dict[str, Any]]:
+    """
+    Project initial tray liquid composition toward the RHS equilibrium liquid split.
+
+    This preserves each tray liquid holdup total and changes only the component
+    split. It is the liquid-side counterpart to the vapor/K-state initializer
+    projection above.
+    """
+    info: Dict[str, Any] = {
+        "enabled": True,
+        "applied": False,
+        "blend": np.nan,
+        "max_composition_delta": np.nan,
+        "max_interior_composition_delta": np.nan,
+        "max_K_state_over_K_eq_abs_log_before": np.nan,
+        "max_K_state_over_K_eq_abs_log_after": np.nan,
+        "energy_repacked": False,
+        "scope": str(scope),
+        "reason": "not_attempted",
+    }
+    if inputs.thermo_provider is None and inputs.K_tray_prev is None:
+        info["reason"] = "missing_thermo_or_cached_K"
+        return np.asarray(y, dtype=float), info
+
+    try:
+        lam = float(blend)
+    except Exception:
+        lam = 1.0
+    if not np.isfinite(lam):
+        lam = 1.0
+    lam = float(np.clip(lam, 0.0, 1.0))
+    info["blend"] = float(lam)
+    if lam <= 0.0:
+        info["reason"] = "zero_blend"
+        return np.asarray(y, dtype=float), info
+
+    N = int(col.n_stages)
+    Nc = int(col.n_components)
+    scope_key = str(scope or "all").strip().lower()
+    if scope_key in ("interior-only", "interior_only"):
+        scope_key = "interior"
+    if scope_key not in ("all", "interior"):
+        info["reason"] = f"bad_scope:{scope_key}"
+        return np.asarray(y, dtype=float), info
+    info["scope"] = scope_key
+    sl = layout.slices()
+    if "tray_L" not in sl:
+        info["reason"] = "missing_tray_L_slice"
+        return np.asarray(y, dtype=float), info
+
+    y_seed = np.asarray(y, dtype=float).reshape((-1,)).copy()
+    try:
+        eval_inputs = replace(inputs, compute_thermo_diag=True, equilibrium_relaxation=True)
+        _dydt0, diag0 = column_rhs(0.0, y_seed, col, layout, inputs=eval_inputs)
+    except Exception as exc:
+        info["reason"] = f"rhs_failed:{type(exc).__name__}"
+        return y_seed, info
+
+    x_target_raw = diag0.get("x_eq_tray", None)
+    if x_target_raw is None:
+        info["reason"] = "missing_x_eq"
+        return y_seed, info
+    try:
+        x_target = np.asarray(x_target_raw, dtype=float).reshape((N, Nc))
+    except Exception:
+        info["reason"] = "bad_x_eq_shape"
+        return y_seed, info
+
+    def _max_abs_log_ratio(diag: Mapping[str, Any]) -> float:
+        for key in ("K_state_over_K_eq_relax_tray", "K_state_over_K_thermo_tray"):
+            try:
+                arr = np.asarray(diag.get(key), dtype=float).reshape((N, Nc))
+            except Exception:
+                continue
+            valid = np.isfinite(arr) & (arr > 0.0)
+            if np.any(valid):
+                return float(np.nanmax(np.abs(np.log(np.maximum(arr[valid], 1.0e-300)))))
+        return np.nan
+
+    info["max_K_state_over_K_eq_abs_log_before"] = _max_abs_log_ratio(diag0)
+
+    try:
+        u = layout.unpack(y_seed)
+        tray_L = np.asarray(u["tray_L"], dtype=float).reshape((N, Nc)).copy()
+        x_old = np.asarray(u["x_tray"], dtype=float).reshape((N, Nc))
+    except Exception:
+        info["reason"] = "unpack_failed"
+        return y_seed, info
+
+    tray_L_new = tray_L.copy()
+    max_delta = 0.0
+    max_delta_interior = 0.0
+    for i in range(N):
+        if scope_key == "interior" and (i == 0 or i == N - 1):
+            continue
+        ml_i = float(np.sum(np.where(np.isfinite(tray_L[i, :]), tray_L[i, :], 0.0)))
+        if (not np.isfinite(ml_i)) or ml_i <= float(layout.epsilon_lbmol):
+            continue
+        target_i = np.where(np.isfinite(x_target[i, :]), x_target[i, :], x_old[i, :])
+        x_new_i = _normalize_comp((1.0 - lam) * x_old[i, :] + lam * target_i)
+        delta_i = float(np.max(np.abs(x_new_i - x_old[i, :])))
+        max_delta = max(max_delta, delta_i)
+        if i > 0 and i < (N - 1):
+            max_delta_interior = max(max_delta_interior, delta_i)
+        tray_L_new[i, :] = ml_i * x_new_i
+
+    y_new = y_seed.copy()
+    y_new[sl["tray_L"]] = tray_L_new.ravel(order="C")
+
+    if bool(getattr(layout, "include_energy", False)) and ("tray_EL_BTU" in sl):
+        try:
+            repack_inputs = replace(inputs, compute_thermo_diag=True, equilibrium_relaxation=False)
+            _dydt1, diag1 = column_rhs(0.0, y_new, col, layout, inputs=repack_inputs)
+            HL = np.asarray(diag1.get("HL_BTU_lbmol_tray"), dtype=float).reshape((N,))
+            ML_new = np.sum(np.asarray(tray_L_new, dtype=float).reshape((N, Nc)), axis=1)
+            tray_EL_new = ML_new * np.where(np.isfinite(HL), HL, 0.0)
+            tray_EL_new = np.where(np.isfinite(tray_EL_new), tray_EL_new, 0.0)
+            tray_EL_new[ML_new <= float(layout.epsilon_lbmol)] = 0.0
+            y_new[sl["tray_EL_BTU"]] = tray_EL_new
+            info["energy_repacked"] = True
+        except Exception:
+            info["energy_repacked"] = False
+
+    try:
+        eval_after = replace(inputs, compute_thermo_diag=True, equilibrium_relaxation=True)
+        _dydt2, diag2 = column_rhs(0.0, y_new, col, layout, inputs=eval_after)
+        info["max_K_state_over_K_eq_abs_log_after"] = _max_abs_log_ratio(diag2)
+    except Exception:
+        pass
+
+    info["max_composition_delta"] = float(max_delta)
+    info["max_interior_composition_delta"] = float(max_delta_interior)
+    info["applied"] = True
+    info["reason"] = "applied"
+    return _clamp_nonnegative_holdups(y_new, layout), info
 
 
 def _initialize_top_drum_dynamic_steady(
@@ -7609,6 +8088,8 @@ def _profile_rows(
         yv = diag["y_tray"]
     elif "y_eq_thermo_tray" in diag:
         yv = diag["y_eq_thermo_tray"]
+    elif "y_tray" in u:
+        yv = u["y_tray"]
     elif "y0" in dir(col):
         yv = np.asarray(getattr(col, "y0"), dtype=float).reshape((N, Nc))
     else:
@@ -7708,6 +8189,13 @@ def _profile_rows(
     vflow_hV_out = None
     vflow_hL_delta = None
     vflow_hV_delta = None
+    vflow_P_used = None
+    vflow_T_used = None
+    vflow_pressure_basis = None
+    vflow_hL_in_source = None
+    vflow_hL_out_source = None
+    vflow_hV_in_source = None
+    vflow_hV_out_source = None
     if "vflow_energy_ok" in diag:
         try:
             vflow_ok = np.asarray(diag["vflow_energy_ok"], dtype=float).reshape((N,))
@@ -7754,7 +8242,10 @@ def _profile_rows(
         "vflow_energy_feed_ref_term_BTUps": "vflow_feed_ref_term",
         "vflow_energy_duty_term_BTUps": "vflow_duty_term",
         "vflow_energy_dE_target_BTUps": "vflow_dE_target",
+        "vflow_energy_dT_target_F_per_s": "vflow_dT_target",
         "vflow_energy_numer_BTUps": "vflow_numer",
+        "vflow_energy_resid_after_used_BTUps": "vflow_resid_after_used",
+        "vflow_energy_predicted_dT_from_used_F_per_s": "vflow_predicted_dT_used",
         "vflow_energy_heat_capacity_BTU_per_F": "vflow_heat_capacity",
         "vflow_energy_L_in_lbmolph": "vflow_L_in",
         "vflow_energy_V_in_lbmolph": "vflow_V_in",
@@ -7764,6 +8255,13 @@ def _profile_rows(
         "vflow_energy_hV_out_BTU_per_lbmol": "vflow_hV_out",
         "vflow_energy_hL_in_minus_hL_out_BTU_per_lbmol": "vflow_hL_delta",
         "vflow_energy_hV_in_minus_hL_out_BTU_per_lbmol": "vflow_hV_delta",
+        "vflow_energy_P_used_psia": "vflow_P_used",
+        "vflow_energy_T_used_F": "vflow_T_used",
+        "vflow_energy_pressure_basis_code": "vflow_pressure_basis",
+        "vflow_energy_hL_in_source_code": "vflow_hL_in_source",
+        "vflow_energy_hL_out_source_code": "vflow_hL_out_source",
+        "vflow_energy_hV_in_source_code": "vflow_hV_in_source",
+        "vflow_energy_hV_out_source_code": "vflow_hV_out_source",
     }
     _vflow_term_values = {}
     for _diag_key in _vflow_term_specs:
@@ -7779,7 +8277,10 @@ def _profile_rows(
     vflow_feed_ref_term = _vflow_term_values["vflow_energy_feed_ref_term_BTUps"]
     vflow_duty_term = _vflow_term_values["vflow_energy_duty_term_BTUps"]
     vflow_dE_target = _vflow_term_values["vflow_energy_dE_target_BTUps"]
+    vflow_dT_target = _vflow_term_values["vflow_energy_dT_target_F_per_s"]
     vflow_numer = _vflow_term_values["vflow_energy_numer_BTUps"]
+    vflow_resid_after_used = _vflow_term_values["vflow_energy_resid_after_used_BTUps"]
+    vflow_predicted_dT_used = _vflow_term_values["vflow_energy_predicted_dT_from_used_F_per_s"]
     vflow_heat_capacity = _vflow_term_values["vflow_energy_heat_capacity_BTU_per_F"]
     vflow_L_in = _vflow_term_values["vflow_energy_L_in_lbmolph"]
     vflow_V_in = _vflow_term_values["vflow_energy_V_in_lbmolph"]
@@ -7789,6 +8290,13 @@ def _profile_rows(
     vflow_hV_out = _vflow_term_values["vflow_energy_hV_out_BTU_per_lbmol"]
     vflow_hL_delta = _vflow_term_values["vflow_energy_hL_in_minus_hL_out_BTU_per_lbmol"]
     vflow_hV_delta = _vflow_term_values["vflow_energy_hV_in_minus_hL_out_BTU_per_lbmol"]
+    vflow_P_used = _vflow_term_values["vflow_energy_P_used_psia"]
+    vflow_T_used = _vflow_term_values["vflow_energy_T_used_F"]
+    vflow_pressure_basis = _vflow_term_values["vflow_energy_pressure_basis_code"]
+    vflow_hL_in_source = _vflow_term_values["vflow_energy_hL_in_source_code"]
+    vflow_hL_out_source = _vflow_term_values["vflow_energy_hL_out_source_code"]
+    vflow_hV_in_source = _vflow_term_values["vflow_energy_hV_in_source_code"]
+    vflow_hV_out_source = _vflow_term_values["vflow_energy_hV_out_source_code"]
     mass_resid = None
     if "mass_balance_resid_lbmolps_tray" in diag:
         try:
@@ -7825,6 +8333,22 @@ def _profile_rows(
             dMLdt_feed = np.asarray(diag["dMLdt_feed_lbmolps_tray"], dtype=float).reshape((N,))
         except Exception:
             dMLdt_feed = None
+    feed_stage_1based = float(np.ravel(np.asarray(diag.get("feed_stage_1based", [np.nan]), dtype=float))[0])
+    feed_flash_at_stage_conditions = float(
+        np.ravel(np.asarray(diag.get("feed_flash_at_stage_conditions", [np.nan]), dtype=float))[0]
+    )
+    feed_liquid_rate_lbmolps = float(
+        np.ravel(np.asarray(diag.get("feed_liquid_rate_lbmolps", [np.nan]), dtype=float))[0]
+    )
+    feed_vapor_rate_lbmolps = float(
+        np.ravel(np.asarray(diag.get("feed_vapor_rate_lbmolps", [np.nan]), dtype=float))[0]
+    )
+    feed_total_rate_lbmolps = float(
+        np.ravel(np.asarray(diag.get("feed_total_rate_lbmolps", [np.nan]), dtype=float))[0]
+    )
+    feed_effective_vapor_fraction = float(
+        np.ravel(np.asarray(diag.get("feed_effective_vapor_fraction", [np.nan]), dtype=float))[0]
+    )
     beta_eq_tray = None
     if "beta_eq_tray" in diag:
         try:
@@ -7905,6 +8429,22 @@ def _profile_rows(
             ).reshape((N,))
         except Exception:
             eq_phase_rate_guard_limit = None
+    eq_component_transfer_guard_scale = None
+    if "eq_component_transfer_guard_scale_tray" in diag:
+        try:
+            eq_component_transfer_guard_scale = np.asarray(
+                diag["eq_component_transfer_guard_scale_tray"], dtype=float
+            ).reshape((N,))
+        except Exception:
+            eq_component_transfer_guard_scale = None
+    eq_component_transfer_guard_limit = None
+    if "eq_component_transfer_guard_limit_lbmolps_tray" in diag:
+        try:
+            eq_component_transfer_guard_limit = np.asarray(
+                diag["eq_component_transfer_guard_limit_lbmolps_tray"], dtype=float
+            ).reshape((N,))
+        except Exception:
+            eq_component_transfer_guard_limit = None
     eq_phase_weight = None
     if "eq_phase_holdup_guard_weight_tray" in diag:
         try:
@@ -7939,9 +8479,26 @@ def _profile_rows(
     tray_effective_heat_capacity = None
     tray_temperature_guard_active = None
     tray_temperature_rate_limit = None
+    temp_energy_L_in_term = None
+    temp_energy_V_in_term = None
+    temp_energy_feed_ref_term = None
+    temp_energy_duty_term = None
+    temp_energy_V_out_term = None
+    temp_energy_dE = None
+    temp_energy_hL_in = None
+    temp_energy_hL_out = None
+    temp_energy_hV_in = None
+    temp_energy_hV_out = None
+    temp_energy_P_used = None
+    temp_energy_pressure_basis_code = None
+    temp_energy_L_in = None
+    temp_energy_V_in = None
+    temp_energy_V_out = None
     K_state_tray = None
     K_thermo_tray = None
+    K_eq_relax_tray = None
     K_ratio_tray = None
+    K_eq_ratio_tray = None
     thermo_flash_source_code = None
     thermo_flash_failed = None
     thermo_flash_phase_count = None
@@ -7951,6 +8508,14 @@ def _profile_rows(
     thermo_unit_K_retained_flag = None
     thermo_degenerate_two_phase_unit_K_flag = None
     thermo_degenerate_two_phase_unit_K_quarantined = None
+    tray_V_transport_in = None
+    tray_V_transport_out = None
+    tray_V_feed = None
+    tray_V_terminal_adjust = None
+    tray_V_holdup_relax = None
+    tray_V_equilibrium_transfer = None
+    tray_V_pre_equilibrium_rhs = None
+    tray_V_final_rhs = None
     if "HL_BTU_lbmol_tray" in diag:
         try:
             HL_tray = np.asarray(diag["HL_BTU_lbmol_tray"], dtype=float).reshape((N,))
@@ -8007,6 +8572,74 @@ def _profile_rows(
             ).reshape((N,))
         except Exception:
             tray_temperature_rate_limit = None
+    _temp_energy_diag_map = {
+        "temp_energy_L_in_term_BTUps_tray": "temp_energy_L_in_term",
+        "temp_energy_V_in_term_BTUps_tray": "temp_energy_V_in_term",
+        "temp_energy_feed_ref_term_BTUps_tray": "temp_energy_feed_ref_term",
+        "temp_energy_duty_term_BTUps_tray": "temp_energy_duty_term",
+        "temp_energy_V_out_term_BTUps_tray": "temp_energy_V_out_term",
+        "temp_energy_dE_BTUps_tray": "temp_energy_dE",
+        "temp_energy_hL_in_BTU_per_lbmol_tray": "temp_energy_hL_in",
+        "temp_energy_hL_out_BTU_per_lbmol_tray": "temp_energy_hL_out",
+        "temp_energy_hV_in_BTU_per_lbmol_tray": "temp_energy_hV_in",
+        "temp_energy_hV_out_BTU_per_lbmol_tray": "temp_energy_hV_out",
+        "temp_energy_P_used_psia_tray": "temp_energy_P_used",
+        "temp_energy_pressure_basis_code_tray": "temp_energy_pressure_basis_code",
+        "temp_energy_L_in_lbmolph_tray": "temp_energy_L_in",
+        "temp_energy_V_in_lbmolph_tray": "temp_energy_V_in",
+        "temp_energy_V_out_lbmolph_tray": "temp_energy_V_out",
+    }
+    _temp_energy_values = {}
+    for _diag_key, _local_name in _temp_energy_diag_map.items():
+        _arr = None
+        if _diag_key in diag:
+            try:
+                _arr = np.asarray(diag[_diag_key], dtype=float).reshape((N,))
+            except Exception:
+                _arr = None
+        _temp_energy_values[_local_name] = _arr
+    temp_energy_L_in_term = _temp_energy_values["temp_energy_L_in_term"]
+    temp_energy_V_in_term = _temp_energy_values["temp_energy_V_in_term"]
+    temp_energy_feed_ref_term = _temp_energy_values["temp_energy_feed_ref_term"]
+    temp_energy_duty_term = _temp_energy_values["temp_energy_duty_term"]
+    temp_energy_V_out_term = _temp_energy_values["temp_energy_V_out_term"]
+    temp_energy_dE = _temp_energy_values["temp_energy_dE"]
+    temp_energy_hL_in = _temp_energy_values["temp_energy_hL_in"]
+    temp_energy_hL_out = _temp_energy_values["temp_energy_hL_out"]
+    temp_energy_hV_in = _temp_energy_values["temp_energy_hV_in"]
+    temp_energy_hV_out = _temp_energy_values["temp_energy_hV_out"]
+    temp_energy_P_used = _temp_energy_values["temp_energy_P_used"]
+    temp_energy_pressure_basis_code = _temp_energy_values["temp_energy_pressure_basis_code"]
+    temp_energy_L_in = _temp_energy_values["temp_energy_L_in"]
+    temp_energy_V_in = _temp_energy_values["temp_energy_V_in"]
+    temp_energy_V_out = _temp_energy_values["temp_energy_V_out"]
+    _tray_v_diag_map = {
+        "tray_V_transport_in_lbmolps": "tray_V_transport_in",
+        "tray_V_transport_out_lbmolps": "tray_V_transport_out",
+        "tray_V_feed_lbmolps": "tray_V_feed",
+        "tray_V_terminal_adjust_lbmolps": "tray_V_terminal_adjust",
+        "tray_V_holdup_relax_lbmolps": "tray_V_holdup_relax",
+        "eq_transfer_lbmolps_tray": "tray_V_equilibrium_transfer",
+        "tray_V_pre_equilibrium_rhs_lbmolps": "tray_V_pre_equilibrium_rhs",
+        "tray_V_final_rhs_lbmolps": "tray_V_final_rhs",
+    }
+    _tray_v_values = {}
+    for _diag_key, _local_name in _tray_v_diag_map.items():
+        _arr = None
+        if _diag_key in diag:
+            try:
+                _arr = np.asarray(diag[_diag_key], dtype=float).reshape((N, Nc))
+            except Exception:
+                _arr = None
+        _tray_v_values[_local_name] = _arr
+    tray_V_transport_in = _tray_v_values["tray_V_transport_in"]
+    tray_V_transport_out = _tray_v_values["tray_V_transport_out"]
+    tray_V_feed = _tray_v_values["tray_V_feed"]
+    tray_V_terminal_adjust = _tray_v_values["tray_V_terminal_adjust"]
+    tray_V_holdup_relax = _tray_v_values["tray_V_holdup_relax"]
+    tray_V_equilibrium_transfer = _tray_v_values["tray_V_equilibrium_transfer"]
+    tray_V_pre_equilibrium_rhs = _tray_v_values["tray_V_pre_equilibrium_rhs"]
+    tray_V_final_rhs = _tray_v_values["tray_V_final_rhs"]
     if "K_state_y_over_x_tray" in diag:
         try:
             K_state_tray = np.asarray(diag["K_state_y_over_x_tray"], dtype=float).reshape((N, Nc))
@@ -8017,11 +8650,21 @@ def _profile_rows(
             K_thermo_tray = np.asarray(diag["K_tray"], dtype=float).reshape((N, Nc))
         except Exception:
             K_thermo_tray = None
+    if "K_eq_relax_tray" in diag:
+        try:
+            K_eq_relax_tray = np.asarray(diag["K_eq_relax_tray"], dtype=float).reshape((N, Nc))
+        except Exception:
+            K_eq_relax_tray = None
     if "K_state_over_K_thermo_tray" in diag:
         try:
             K_ratio_tray = np.asarray(diag["K_state_over_K_thermo_tray"], dtype=float).reshape((N, Nc))
         except Exception:
             K_ratio_tray = None
+    if "K_state_over_K_eq_relax_tray" in diag:
+        try:
+            K_eq_ratio_tray = np.asarray(diag["K_state_over_K_eq_relax_tray"], dtype=float).reshape((N, Nc))
+        except Exception:
+            K_eq_ratio_tray = None
     if "thermo_flash_source_code" in diag:
         try:
             thermo_flash_source_code = np.asarray(diag["thermo_flash_source_code"], dtype=float).reshape((N,))
@@ -8673,8 +9316,21 @@ def _profile_rows(
             "vflow_energy_dE_target_BTUps": (
                 float(vflow_dE_target[i]) if vflow_dE_target is not None and np.isfinite(vflow_dE_target[i]) else np.nan
             ),
+            "vflow_energy_dT_target_F_per_s": (
+                float(vflow_dT_target[i]) if vflow_dT_target is not None and np.isfinite(vflow_dT_target[i]) else np.nan
+            ),
             "vflow_energy_numer_BTUps": (
                 float(vflow_numer[i]) if vflow_numer is not None and np.isfinite(vflow_numer[i]) else np.nan
+            ),
+            "vflow_energy_resid_after_used_BTUps": (
+                float(vflow_resid_after_used[i])
+                if vflow_resid_after_used is not None and np.isfinite(vflow_resid_after_used[i])
+                else np.nan
+            ),
+            "vflow_energy_predicted_dT_from_used_F_per_s": (
+                float(vflow_predicted_dT_used[i])
+                if vflow_predicted_dT_used is not None and np.isfinite(vflow_predicted_dT_used[i])
+                else np.nan
             ),
             "vflow_energy_heat_capacity_BTU_per_F": (
                 float(vflow_heat_capacity[i])
@@ -8705,6 +9361,37 @@ def _profile_rows(
             "vflow_energy_hV_in_minus_hL_out_BTU_per_lbmol": (
                 float(vflow_hV_delta[i]) if vflow_hV_delta is not None and np.isfinite(vflow_hV_delta[i]) else np.nan
             ),
+            "vflow_energy_P_used_psia": (
+                float(vflow_P_used[i]) if vflow_P_used is not None and np.isfinite(vflow_P_used[i]) else np.nan
+            ),
+            "vflow_energy_T_used_F": (
+                float(vflow_T_used[i]) if vflow_T_used is not None and np.isfinite(vflow_T_used[i]) else np.nan
+            ),
+            "vflow_energy_pressure_basis_code": (
+                float(vflow_pressure_basis[i])
+                if vflow_pressure_basis is not None and np.isfinite(vflow_pressure_basis[i])
+                else np.nan
+            ),
+            "vflow_energy_hL_in_source_code": (
+                float(vflow_hL_in_source[i])
+                if vflow_hL_in_source is not None and np.isfinite(vflow_hL_in_source[i])
+                else np.nan
+            ),
+            "vflow_energy_hL_out_source_code": (
+                float(vflow_hL_out_source[i])
+                if vflow_hL_out_source is not None and np.isfinite(vflow_hL_out_source[i])
+                else np.nan
+            ),
+            "vflow_energy_hV_in_source_code": (
+                float(vflow_hV_in_source[i])
+                if vflow_hV_in_source is not None and np.isfinite(vflow_hV_in_source[i])
+                else np.nan
+            ),
+            "vflow_energy_hV_out_source_code": (
+                float(vflow_hV_out_source[i])
+                if vflow_hV_out_source is not None and np.isfinite(vflow_hV_out_source[i])
+                else np.nan
+            ),
             "h_ow_ft": float(h_ow[i]) if h_ow is not None and np.isfinite(h_ow[i]) else np.nan,
             "ML_lbmol": float(ML[i]),
             "MV_lbmol": float(MV[i]),
@@ -8720,6 +9407,12 @@ def _profile_rows(
             "dMLdt_feed_lbmolps": (
                 float(dMLdt_feed[i]) if dMLdt_feed is not None and np.isfinite(dMLdt_feed[i]) else np.nan
             ),
+            "feed_stage_1based": feed_stage_1based,
+            "feed_flash_at_stage_conditions": feed_flash_at_stage_conditions,
+            "feed_liquid_rate_lbmolps": feed_liquid_rate_lbmolps,
+            "feed_vapor_rate_lbmolps": feed_vapor_rate_lbmolps,
+            "feed_total_rate_lbmolps": feed_total_rate_lbmolps,
+            "feed_effective_vapor_fraction": feed_effective_vapor_fraction,
             "beta_eq_tray": float(beta_eq_tray[i]) if beta_eq_tray is not None and np.isfinite(beta_eq_tray[i]) else np.nan,
             "eq_flash_mv_total_lbmol_tray": (
                 float(eq_flash_mv_total[i])
@@ -8764,6 +9457,18 @@ def _profile_rows(
                 if eq_phase_rate_guard_limit is not None and np.isfinite(eq_phase_rate_guard_limit[i])
                 else np.nan
             ),
+            "eq_component_transfer_guard_scale_tray": (
+                float(eq_component_transfer_guard_scale[i])
+                if eq_component_transfer_guard_scale is not None
+                and np.isfinite(eq_component_transfer_guard_scale[i])
+                else np.nan
+            ),
+            "eq_component_transfer_guard_limit_lbmolps_tray": (
+                float(eq_component_transfer_guard_limit[i])
+                if eq_component_transfer_guard_limit is not None
+                and np.isfinite(eq_component_transfer_guard_limit[i])
+                else np.nan
+            ),
             "eq_phase_holdup_guard_weight_tray": (
                 float(eq_phase_weight[i]) if eq_phase_weight is not None and np.isfinite(eq_phase_weight[i]) else np.nan
             ),
@@ -8787,6 +9492,75 @@ def _profile_rows(
             ),
             "dT_energy_raw_F_per_s": (
                 float(dT_energy_raw[i]) if dT_energy_raw is not None and np.isfinite(dT_energy_raw[i]) else np.nan
+            ),
+            "temp_energy_dE_BTUps": (
+                float(temp_energy_dE[i]) if temp_energy_dE is not None and np.isfinite(temp_energy_dE[i]) else np.nan
+            ),
+            "temp_energy_L_in_term_BTUps": (
+                float(temp_energy_L_in_term[i])
+                if temp_energy_L_in_term is not None and np.isfinite(temp_energy_L_in_term[i])
+                else np.nan
+            ),
+            "temp_energy_V_in_term_BTUps": (
+                float(temp_energy_V_in_term[i])
+                if temp_energy_V_in_term is not None and np.isfinite(temp_energy_V_in_term[i])
+                else np.nan
+            ),
+            "temp_energy_feed_ref_term_BTUps": (
+                float(temp_energy_feed_ref_term[i])
+                if temp_energy_feed_ref_term is not None and np.isfinite(temp_energy_feed_ref_term[i])
+                else np.nan
+            ),
+            "temp_energy_duty_term_BTUps": (
+                float(temp_energy_duty_term[i])
+                if temp_energy_duty_term is not None and np.isfinite(temp_energy_duty_term[i])
+                else np.nan
+            ),
+            "temp_energy_V_out_term_BTUps": (
+                float(temp_energy_V_out_term[i])
+                if temp_energy_V_out_term is not None and np.isfinite(temp_energy_V_out_term[i])
+                else np.nan
+            ),
+            "temp_energy_L_in_lbmolph": (
+                float(temp_energy_L_in[i]) if temp_energy_L_in is not None and np.isfinite(temp_energy_L_in[i]) else np.nan
+            ),
+            "temp_energy_V_in_lbmolph": (
+                float(temp_energy_V_in[i]) if temp_energy_V_in is not None and np.isfinite(temp_energy_V_in[i]) else np.nan
+            ),
+            "temp_energy_V_out_lbmolph": (
+                float(temp_energy_V_out[i])
+                if temp_energy_V_out is not None and np.isfinite(temp_energy_V_out[i])
+                else np.nan
+            ),
+            "temp_energy_hL_in_BTU_per_lbmol": (
+                float(temp_energy_hL_in[i])
+                if temp_energy_hL_in is not None and np.isfinite(temp_energy_hL_in[i])
+                else np.nan
+            ),
+            "temp_energy_hL_out_BTU_per_lbmol": (
+                float(temp_energy_hL_out[i])
+                if temp_energy_hL_out is not None and np.isfinite(temp_energy_hL_out[i])
+                else np.nan
+            ),
+            "temp_energy_hV_in_BTU_per_lbmol": (
+                float(temp_energy_hV_in[i])
+                if temp_energy_hV_in is not None and np.isfinite(temp_energy_hV_in[i])
+                else np.nan
+            ),
+            "temp_energy_hV_out_BTU_per_lbmol": (
+                float(temp_energy_hV_out[i])
+                if temp_energy_hV_out is not None and np.isfinite(temp_energy_hV_out[i])
+                else np.nan
+            ),
+            "temp_energy_P_used_psia": (
+                float(temp_energy_P_used[i])
+                if temp_energy_P_used is not None and np.isfinite(temp_energy_P_used[i])
+                else np.nan
+            ),
+            "temp_energy_pressure_basis_code": (
+                float(temp_energy_pressure_basis_code[i])
+                if temp_energy_pressure_basis_code is not None and np.isfinite(temp_energy_pressure_basis_code[i])
+                else np.nan
             ),
             "dT_mode_correction_F_per_s": (
                 float(dT_mode_correction[i])
@@ -8966,9 +9740,59 @@ def _profile_rows(
                 if K_thermo_tray is not None and np.isfinite(K_thermo_tray[i, k])
                 else np.nan
             )
+            r[f"K_eq_relax_{label}"] = (
+                float(K_eq_relax_tray[i, k])
+                if K_eq_relax_tray is not None and np.isfinite(K_eq_relax_tray[i, k])
+                else np.nan
+            )
             r[f"K_state_over_K_thermo_{label}"] = (
                 float(K_ratio_tray[i, k])
                 if K_ratio_tray is not None and np.isfinite(K_ratio_tray[i, k])
+                else np.nan
+            )
+            r[f"K_state_over_K_eq_relax_{label}"] = (
+                float(K_eq_ratio_tray[i, k])
+                if K_eq_ratio_tray is not None and np.isfinite(K_eq_ratio_tray[i, k])
+                else np.nan
+            )
+            r[f"tray_V_transport_in_lbmolps_{label}"] = (
+                float(tray_V_transport_in[i, k])
+                if tray_V_transport_in is not None and np.isfinite(tray_V_transport_in[i, k])
+                else np.nan
+            )
+            r[f"tray_V_transport_out_lbmolps_{label}"] = (
+                float(tray_V_transport_out[i, k])
+                if tray_V_transport_out is not None and np.isfinite(tray_V_transport_out[i, k])
+                else np.nan
+            )
+            r[f"tray_V_feed_lbmolps_{label}"] = (
+                float(tray_V_feed[i, k])
+                if tray_V_feed is not None and np.isfinite(tray_V_feed[i, k])
+                else np.nan
+            )
+            r[f"tray_V_terminal_adjust_lbmolps_{label}"] = (
+                float(tray_V_terminal_adjust[i, k])
+                if tray_V_terminal_adjust is not None and np.isfinite(tray_V_terminal_adjust[i, k])
+                else np.nan
+            )
+            r[f"tray_V_holdup_relax_lbmolps_{label}"] = (
+                float(tray_V_holdup_relax[i, k])
+                if tray_V_holdup_relax is not None and np.isfinite(tray_V_holdup_relax[i, k])
+                else np.nan
+            )
+            r[f"tray_V_equilibrium_transfer_lbmolps_{label}"] = (
+                float(tray_V_equilibrium_transfer[i, k])
+                if tray_V_equilibrium_transfer is not None and np.isfinite(tray_V_equilibrium_transfer[i, k])
+                else np.nan
+            )
+            r[f"tray_V_pre_equilibrium_rhs_lbmolps_{label}"] = (
+                float(tray_V_pre_equilibrium_rhs[i, k])
+                if tray_V_pre_equilibrium_rhs is not None and np.isfinite(tray_V_pre_equilibrium_rhs[i, k])
+                else np.nan
+            )
+            r[f"tray_V_final_rhs_lbmolps_{label}"] = (
+                float(tray_V_final_rhs[i, k])
+                if tray_V_final_rhs is not None and np.isfinite(tray_V_final_rhs[i, k])
                 else np.nan
             )
             if top_x is not None:
@@ -10761,7 +11585,13 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         except Exception:
             last_tray_bubble_target_F = None
 
-    if (not startup_seed_loaded) and base_inputs.thermo_provider is not None:
+    if (
+        (not startup_seed_loaded)
+        and base_inputs.thermo_provider is not None
+        and bool(base_inputs.flash_feed_at_stage_conditions)
+    ):
+        if not bool(base_inputs.flash_feed_at_stage_conditions):
+            last_feed_stage_flash_packet = None
         try:
             feed_seed_pressure = (
                 np.asarray(last_P_hyd, dtype=float).copy()
@@ -11271,12 +12101,21 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     init_align_top_liquid_info: Dict[str, Any] = {
         "enabled": bool(getattr(cfg, "init_align_top_liquid_to_condensate", False)),
         "applied": False,
+        "blend": np.nan,
         "top_L_total_lbmol": np.nan,
         "condensate_total_lbmolph": np.nan,
         "max_composition_delta": np.nan,
         "reason": "disabled",
     }
     if bool(getattr(cfg, "init_align_top_liquid_to_condensate", False)):
+        try:
+            align_blend = float(getattr(cfg, "init_top_liquid_condensate_blend", 1.0))
+        except Exception:
+            align_blend = 1.0
+        if not np.isfinite(float(align_blend)):
+            align_blend = 1.0
+        align_blend = float(np.clip(float(align_blend), 0.0, 1.0))
+        init_align_top_liquid_info["blend"] = float(align_blend)
         try:
             sl_init = layout.slices()
         except Exception:
@@ -11314,24 +12153,142 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     else:
                         x_old = _normalize_comp(np.where(np.isfinite(top_L_old), top_L_old, 0.0))
                         x_cond = _normalize_comp(np.where(np.isfinite(cond_comp), cond_comp, 0.0))
+                        x_target = _normalize_comp(
+                            (1.0 - float(align_blend)) * np.asarray(x_old, dtype=float)
+                            + float(align_blend) * np.asarray(x_cond, dtype=float)
+                        )
                         y = np.asarray(y, dtype=float).reshape((-1,)).copy()
-                        y[sl_init["top_L"]] = float(top_total) * np.asarray(x_cond, dtype=float)
+                        y[sl_init["top_L"]] = float(top_total) * np.asarray(x_target, dtype=float)
                         init_align_top_liquid_info["applied"] = True
                         init_align_top_liquid_info["top_L_total_lbmol"] = float(top_total)
                         init_align_top_liquid_info["condensate_total_lbmolph"] = float(cond_total)
                         init_align_top_liquid_info["max_composition_delta"] = float(
-                            np.max(np.abs(np.asarray(x_cond, dtype=float) - np.asarray(x_old, dtype=float)))
+                            np.max(np.abs(np.asarray(x_target, dtype=float) - np.asarray(x_old, dtype=float)))
                         )
                         init_align_top_liquid_info["reason"] = "applied"
                         print(
                             "[Init] Aligned top liquid composition to live condenser condensate  "
                             f"M_top_L={float(top_total):.6g} lbmol  "
                             f"condensate={float(cond_total):.6g} lbmol/h  "
+                            f"blend={float(align_blend):.3g}  "
                             f"max_dx={float(init_align_top_liquid_info['max_composition_delta']):.6g}"
                         )
             except Exception as exc:
                 init_align_top_liquid_info["reason"] = f"exception:{type(exc).__name__}"
                 print(f"[Init] Top liquid/condensate alignment skipped: {type(exc).__name__}: {exc}")
+
+    init_align_tray_liquid_info: Dict[str, Any] = {
+        "enabled": bool(getattr(cfg, "init_align_tray_liquid_to_equilibrium", False)),
+        "applied": False,
+        "blend": np.nan,
+        "max_composition_delta": np.nan,
+        "max_interior_composition_delta": np.nan,
+        "max_K_state_over_K_eq_abs_log_before": np.nan,
+        "max_K_state_over_K_eq_abs_log_after": np.nan,
+        "energy_repacked": False,
+        "scope": str(getattr(cfg, "init_tray_liquid_equilibrium_scope", "all")),
+        "reason": "disabled",
+    }
+    if bool(getattr(cfg, "init_align_tray_liquid_to_equilibrium", False)):
+        try:
+            y, init_align_tray_liquid_info = _initialize_tray_liquid_composition_from_equilibrium(
+                col=col,
+                layout=layout,
+                y=y,
+                inputs=base_inputs,
+                blend=float(getattr(cfg, "init_tray_liquid_equilibrium_blend", 1.0)),
+                scope=str(getattr(cfg, "init_tray_liquid_equilibrium_scope", "all")),
+            )
+            if bool(init_align_tray_liquid_info.get("applied", False)):
+                print(
+                    "[Init] Aligned tray liquid composition to equilibrium target  "
+                    f"scope={init_align_tray_liquid_info.get('scope', 'all')}  "
+                    f"blend={float(init_align_tray_liquid_info.get('blend', float('nan'))):.3g}  "
+                    f"max_dx={float(init_align_tray_liquid_info.get('max_composition_delta', float('nan'))):.6g}  "
+                    f"max_dx_interior={float(init_align_tray_liquid_info.get('max_interior_composition_delta', float('nan'))):.6g}"
+                )
+            else:
+                print(
+                    "[Init] Tray liquid/equilibrium alignment skipped: "
+                    f"{init_align_tray_liquid_info.get('reason', 'unknown')}"
+                )
+        except Exception as exc:
+            init_align_tray_liquid_info["reason"] = f"exception:{type(exc).__name__}"
+            print(f"[Init] Tray liquid/equilibrium alignment skipped: {type(exc).__name__}: {exc}")
+
+    init_align_tray_vapor_info: Dict[str, Any] = {
+        "enabled": bool(getattr(cfg, "init_align_tray_vapor_to_equilibrium", False)),
+        "applied": False,
+        "blend": np.nan,
+        "max_composition_delta": np.nan,
+        "max_interior_composition_delta": np.nan,
+        "max_K_state_over_K_eq_abs_log_before": np.nan,
+        "max_K_state_over_K_eq_abs_log_after": np.nan,
+        "energy_repacked": False,
+        "reason": "disabled",
+    }
+    if bool(getattr(cfg, "init_align_tray_vapor_to_equilibrium", False)):
+        try:
+            y, init_align_tray_vapor_info = _initialize_tray_vapor_composition_from_equilibrium(
+                col=col,
+                layout=layout,
+                y=y,
+                inputs=base_inputs,
+                blend=float(getattr(cfg, "init_tray_vapor_equilibrium_blend", 1.0)),
+            )
+            if bool(init_align_tray_vapor_info.get("applied", False)):
+                print(
+                    "[Init] Aligned tray vapor composition to equilibrium target  "
+                    f"blend={float(init_align_tray_vapor_info.get('blend', float('nan'))):.3g}  "
+                    f"max_dy={float(init_align_tray_vapor_info.get('max_composition_delta', float('nan'))):.6g}  "
+                    f"max_dy_interior={float(init_align_tray_vapor_info.get('max_interior_composition_delta', float('nan'))):.6g}"
+                )
+            else:
+                print(
+                    "[Init] Tray vapor/equilibrium alignment skipped: "
+                    f"{init_align_tray_vapor_info.get('reason', 'unknown')}"
+                )
+        except Exception as exc:
+            init_align_tray_vapor_info["reason"] = f"exception:{type(exc).__name__}"
+            print(f"[Init] Tray vapor/equilibrium alignment skipped: {type(exc).__name__}: {exc}")
+
+    init_align_tray_vapor_linear_info: Dict[str, Any] = {
+        "enabled": bool(getattr(cfg, "init_align_tray_vapor_to_linear_steady", False)),
+        "applied": False,
+        "blend": np.nan,
+        "scope": str(getattr(cfg, "init_tray_vapor_linear_steady_scope", "interior")),
+        "max_composition_delta": np.nan,
+        "max_interior_composition_delta": np.nan,
+        "max_y_linear_steady_minus_y_target": np.nan,
+        "energy_repacked": False,
+        "reason": "disabled",
+    }
+    if bool(getattr(cfg, "init_align_tray_vapor_to_linear_steady", False)):
+        try:
+            y, init_align_tray_vapor_linear_info = _initialize_tray_vapor_composition_from_linear_steady(
+                col=col,
+                layout=layout,
+                y=y,
+                inputs=base_inputs,
+                blend=float(getattr(cfg, "init_tray_vapor_linear_steady_blend", 1.0)),
+                scope=str(getattr(cfg, "init_tray_vapor_linear_steady_scope", "interior")),
+            )
+            if bool(init_align_tray_vapor_linear_info.get("applied", False)):
+                print(
+                    "[Init] Aligned tray vapor composition to linear steady target  "
+                    f"scope={init_align_tray_vapor_linear_info.get('scope', 'interior')}  "
+                    f"blend={float(init_align_tray_vapor_linear_info.get('blend', float('nan'))):.3g}  "
+                    f"max_dy={float(init_align_tray_vapor_linear_info.get('max_composition_delta', float('nan'))):.6g}  "
+                    f"max_dy_interior={float(init_align_tray_vapor_linear_info.get('max_interior_composition_delta', float('nan'))):.6g}"
+                )
+            else:
+                print(
+                    "[Init] Tray vapor/linear-steady alignment skipped: "
+                    f"{init_align_tray_vapor_linear_info.get('reason', 'unknown')}"
+                )
+        except Exception as exc:
+            init_align_tray_vapor_linear_info["reason"] = f"exception:{type(exc).__name__}"
+            print(f"[Init] Tray vapor/linear-steady alignment skipped: {type(exc).__name__}: {exc}")
 
     (
         pressure_control_enabled,
@@ -11584,6 +12541,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             getattr(cfg, "clapeyron_pr_parameter_source", "default") or "default"
         ),
         "thermo_every_n_steps": int(getattr(cfg, "thermo_every_n_steps", 1)),
+        "flash_feed_at_stage_conditions": bool(base_inputs.flash_feed_at_stage_conditions),
         "n_steps": int(cfg.n_steps),
         "dt_sec": float(dt),
         "profile_csv": str(profile_path) if cfg.write_logs else "",
@@ -11595,6 +12553,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         "init_pack_top_drum_vapor": dict(init_pack_top_drum_vapor_info),
         "init_match_condenser_duty": dict(init_match_condenser_duty_info),
         "init_align_top_liquid_to_condensate": dict(init_align_top_liquid_info),
+        "init_align_tray_liquid_to_equilibrium": dict(init_align_tray_liquid_info),
+        "init_align_tray_vapor_to_equilibrium": dict(init_align_tray_vapor_info),
+        "init_align_tray_vapor_to_linear_steady": dict(init_align_tray_vapor_linear_info),
         "startup_seed_cache": dict(startup_seed_cache_info),
         "thermo_call_counters": {},
     }
@@ -12469,6 +13430,12 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     equilibrium_tau_ramp_final_sec=base_inputs.equilibrium_tau_ramp_final_sec,
                     equilibrium_tau_ramp_decay_sec=base_inputs.equilibrium_tau_ramp_decay_sec,
                     equilibrium_phase_holdup_guard_lbmol=base_inputs.equilibrium_phase_holdup_guard_lbmol,
+                    equilibrium_component_transfer_max_cancel_multiplier=(
+                        base_inputs.equilibrium_component_transfer_max_cancel_multiplier
+                    ),
+                    equilibrium_component_transfer_floor_lbmolps=(
+                        base_inputs.equilibrium_component_transfer_floor_lbmolps
+                    ),
                     equilibrium_energy_damping_gain=base_inputs.equilibrium_energy_damping_gain,
                     hydraulic_energy_temperature_damping=base_inputs.hydraulic_energy_temperature_damping,
                     hydraulic_energy_temperature_mode=base_inputs.hydraulic_energy_temperature_mode,
@@ -12578,6 +13545,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     ),
                     top_drum_pressure_T_prev_F=last_top_drum_pressure_T,
                     vapor_flow_relaxation_sec=base_inputs.vapor_flow_relaxation_sec,
+                    dynamic_vflow_nominal_hi_ratio=base_inputs.dynamic_vflow_nominal_hi_ratio,
                     conductance_vflow_nominal_hi_ratio=(
                         base_inputs.conductance_vflow_nominal_hi_ratio
                     ),
@@ -12590,7 +13558,12 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     thermo_packet_vapor_reuse_dx=thermo_packet_vapor_reuse_dx_step,
                     thermo_packet_phase_reuse_dT_F=thermo_packet_phase_reuse_dT_step,
                     thermo_packet_phase_reuse_dP_psia=thermo_packet_phase_reuse_dP_step,
-                    feed_stage_flash_prev=last_feed_stage_flash_packet,
+                    flash_feed_at_stage_conditions=bool(base_inputs.flash_feed_at_stage_conditions),
+                    feed_stage_flash_prev=(
+                        last_feed_stage_flash_packet
+                        if bool(base_inputs.flash_feed_at_stage_conditions)
+                        else None
+                    ),
                     bottom_sump_cp_prev=last_bottom_sump_cp_packet,
                     enable_liquid_hydraulic_override=base_inputs.enable_liquid_hydraulic_override,
                     liquid_hydraulic_override_alpha=float(np.nanmean(seq_liquid_alpha_state)),
@@ -12604,7 +13577,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     progress_hook=base_inputs.progress_hook,
                     P_tray_prev=last_P_hyd if last_P_hyd is not None else last_P_diag,
                     V_out_prev_lbmolph=last_V_out,
-                    dT_tray_target_F_per_s=last_dT_tray,
+                    dT_tray_target_F_per_s=(
+                        None if bool(cfg.vapor_flow_zero_temperature_target) else last_dT_tray
+                    ),
                     T_tray_prev_F=last_T_tray,
                     Z_overall_prev=last_z_overall,
                     rhoL_tray_lbmol_ft3=last_rhoL,
@@ -12638,6 +13613,12 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     equilibrium_tau_ramp_final_sec=base_inputs.equilibrium_tau_ramp_final_sec,
                     equilibrium_tau_ramp_decay_sec=base_inputs.equilibrium_tau_ramp_decay_sec,
                     equilibrium_phase_holdup_guard_lbmol=base_inputs.equilibrium_phase_holdup_guard_lbmol,
+                    equilibrium_component_transfer_max_cancel_multiplier=(
+                        base_inputs.equilibrium_component_transfer_max_cancel_multiplier
+                    ),
+                    equilibrium_component_transfer_floor_lbmolps=(
+                        base_inputs.equilibrium_component_transfer_floor_lbmolps
+                    ),
                     equilibrium_energy_damping_gain=base_inputs.equilibrium_energy_damping_gain,
                     hydraulic_energy_temperature_damping=base_inputs.hydraulic_energy_temperature_damping,
                     hydraulic_energy_temperature_mode=base_inputs.hydraulic_energy_temperature_mode,
@@ -12750,6 +13731,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     ),
                     top_drum_pressure_T_prev_F=last_top_drum_pressure_T,
                     vapor_flow_relaxation_sec=base_inputs.vapor_flow_relaxation_sec,
+                    dynamic_vflow_nominal_hi_ratio=base_inputs.dynamic_vflow_nominal_hi_ratio,
                     conductance_vflow_nominal_hi_ratio=(
                         base_inputs.conductance_vflow_nominal_hi_ratio
                     ),
@@ -12758,7 +13740,12 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     thermo_refresh_dT_F=thermo_refresh_dT_step,
                     thermo_refresh_dP_psia=thermo_refresh_dP_step,
                     thermo_refresh_dx=thermo_refresh_dx_step,
-                    feed_stage_flash_prev=last_feed_stage_flash_packet,
+                    flash_feed_at_stage_conditions=bool(base_inputs.flash_feed_at_stage_conditions),
+                    feed_stage_flash_prev=(
+                        last_feed_stage_flash_packet
+                        if bool(base_inputs.flash_feed_at_stage_conditions)
+                        else None
+                    ),
                     bottom_sump_cp_prev=last_bottom_sump_cp_packet,
                     enable_liquid_hydraulic_override=base_inputs.enable_liquid_hydraulic_override,
                     liquid_hydraulic_override_alpha=float(np.nanmean(seq_liquid_alpha_state)),
@@ -12772,7 +13759,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     progress_hook=base_inputs.progress_hook,
                     P_tray_prev=last_P_hyd if last_P_hyd is not None else last_P_diag,
                     V_out_prev_lbmolph=last_V_out,
-                    dT_tray_target_F_per_s=last_dT_tray,
+                    dT_tray_target_F_per_s=(
+                        None if bool(cfg.vapor_flow_zero_temperature_target) else last_dT_tray
+                    ),
                     T_tray_prev_F=last_T_tray,
                     Z_overall_prev=last_z_overall,
                     rhoL_tray_lbmol_ft3=last_rhoL,
@@ -14243,38 +15232,39 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     else np.asarray(getattr(col, "P_psia", np.full(col.n_stages, 200.0, dtype=float)), dtype=float).copy()
                 )
             )
-            refreshed_feed_stage_flash_packet = last_feed_stage_flash_packet
-            feed_seed_state = _startup_feed_stage_flash_state(
-                col=col,
-                P_tray_psia=feed_seed_pressure,
-            )
-            if feed_seed_state is not None:
-                feed_stage0, feed_z, feed_T, feed_P, _feed_Ft = feed_seed_state
-                compatible_feed_packet, _dT_feed, _dP_feed, _dx_feed = _compatible_feed_stage_flash_packet(
-                    packet=last_feed_stage_flash_packet,
-                    stage0=int(feed_stage0),
-                    T_feed_F=float(feed_T),
-                    P_feed_psia=float(feed_P),
-                    z_feed=feed_z,
-                    n_components=int(col.n_components),
-                    max_abs_dT_F=float(getattr(base_inputs, "feed_stage_flash_reuse_dT_F", 0.5) or 0.5),
-                    max_abs_dP_psia=float(getattr(base_inputs, "feed_stage_flash_reuse_dP_psia", 2.5) or 2.5),
-                    max_abs_dx=float(getattr(base_inputs, "feed_stage_flash_reuse_dx", 1.0e-6) or 1.0e-6),
+            if bool(base_inputs.flash_feed_at_stage_conditions):
+                refreshed_feed_stage_flash_packet = last_feed_stage_flash_packet
+                feed_seed_state = _startup_feed_stage_flash_state(
+                    col=col,
+                    P_tray_psia=feed_seed_pressure,
                 )
-                if (
-                    compatible_feed_packet is None
-                    or compatible_feed_packet.hL_BTU_lbmol is None
-                    or compatible_feed_packet.hV_BTU_lbmol is None
-                ):
-                    refreshed_feed_stage_flash_packet = _seed_startup_feed_stage_flash_packet(
-                        col=col,
-                        thermo_provider=base_inputs.thermo_provider,
-                        P_tray_psia=feed_seed_pressure,
+                if feed_seed_state is not None:
+                    feed_stage0, feed_z, feed_T, feed_P, _feed_Ft = feed_seed_state
+                    compatible_feed_packet, _dT_feed, _dP_feed, _dx_feed = _compatible_feed_stage_flash_packet(
+                        packet=last_feed_stage_flash_packet,
+                        stage0=int(feed_stage0),
+                        T_feed_F=float(feed_T),
+                        P_feed_psia=float(feed_P),
+                        z_feed=feed_z,
+                        n_components=int(col.n_components),
+                        max_abs_dT_F=float(getattr(base_inputs, "feed_stage_flash_reuse_dT_F", 0.5) or 0.5),
+                        max_abs_dP_psia=float(getattr(base_inputs, "feed_stage_flash_reuse_dP_psia", 2.5) or 2.5),
+                        max_abs_dx=float(getattr(base_inputs, "feed_stage_flash_reuse_dx", 1.0e-6) or 1.0e-6),
                     )
-                else:
-                    refreshed_feed_stage_flash_packet = compatible_feed_packet
-            if refreshed_feed_stage_flash_packet is not None:
-                last_feed_stage_flash_packet = refreshed_feed_stage_flash_packet
+                    if (
+                        compatible_feed_packet is None
+                        or compatible_feed_packet.hL_BTU_lbmol is None
+                        or compatible_feed_packet.hV_BTU_lbmol is None
+                    ):
+                        refreshed_feed_stage_flash_packet = _seed_startup_feed_stage_flash_packet(
+                            col=col,
+                            thermo_provider=base_inputs.thermo_provider,
+                            P_tray_psia=feed_seed_pressure,
+                        )
+                    else:
+                        refreshed_feed_stage_flash_packet = compatible_feed_packet
+                if refreshed_feed_stage_flash_packet is not None:
+                    last_feed_stage_flash_packet = refreshed_feed_stage_flash_packet
         except Exception:
             pass
         startup_seed_refresh_t0 = time.perf_counter()
@@ -15167,6 +16157,24 @@ def main(argv: Optional[List[str]] = None) -> int:
         ),
     )
     p.add_argument(
+        "--equilibrium-component-transfer-max-cancel-multiplier",
+        dest="equilibrium_component_transfer_max_cancel_multiplier",
+        type=float,
+        default=None,
+        help=(
+            "Maximum equilibrium component-transfer strength relative to the "
+            "pre-equilibrium vapor material RHS. Opposing transfers use this "
+            "full multiplier; same-direction transfers use the excess above 1."
+        ),
+    )
+    p.add_argument(
+        "--equilibrium-component-transfer-floor-lbmolps",
+        dest="equilibrium_component_transfer_floor_lbmolps",
+        type=float,
+        default=None,
+        help="Small material-rate floor used by the equilibrium component-transfer guard.",
+    )
+    p.add_argument(
         "--equilibrium-energy-damping-gain",
         dest="equilibrium_energy_damping_gain",
         type=float,
@@ -15441,6 +16449,27 @@ def main(argv: Optional[List[str]] = None) -> int:
         default=None,
     )
     p.add_argument("--vapor-flow-relaxation-sec", dest="vapor_flow_relaxation_sec", type=float, default=None)
+    p.add_argument(
+        "--vapor-flow-zero-temperature-target",
+        "--vflow-zero-dt-target",
+        dest="vapor_flow_zero_temperature_target",
+        action="store_true",
+        help=(
+            "For energy vapor-flow closure, target zero tray temperature rate "
+            "instead of the previous step's dT memory. Useful for steady "
+            "initialization diagnostics."
+        ),
+    )
+    p.add_argument(
+        "--dynamic-vflow-nominal-hi-ratio",
+        dest="dynamic_vflow_nominal_hi_ratio",
+        type=float,
+        default=None,
+        help=(
+            "Dynamic vapor-flow clamp: max internal vapor outflow as ratio of "
+            "nominal profile V for energy/conductance closures."
+        ),
+    )
     p.add_argument(
         "--conductance-vflow-nominal-hi-ratio",
         dest="conductance_vflow_nominal_hi_ratio",
@@ -15866,7 +16895,103 @@ def main(argv: Optional[List[str]] = None) -> int:
         action="store_true",
         help=(
             "Initialization diagnostic: preserve reflux-drum liquid holdup but "
-            "replace its component split with the live condenser condensate composition."
+            "blend its component split toward the live condenser condensate composition."
+        ),
+    )
+    p.add_argument(
+        "--init-top-liquid-condensate-blend",
+        dest="init_top_liquid_condensate_blend",
+        type=float,
+        default=1.0,
+        help=(
+            "Blend fraction for --init-align-top-liquid-to-condensate; "
+            "0 preserves the seed composition, 1 uses the live condensate composition."
+        ),
+    )
+    p.add_argument(
+        "--init-align-tray-liquid-to-equilibrium",
+        "--init-align-liquid-to-equilibrium",
+        dest="init_align_tray_liquid_to_equilibrium",
+        action="store_true",
+        help=(
+            "Initialization diagnostic: preserve tray liquid holdup totals but "
+            "blend tray liquid composition toward the live RHS equilibrium liquid split."
+        ),
+    )
+    p.add_argument(
+        "--init-tray-liquid-equilibrium-blend",
+        "--init-liquid-equilibrium-blend",
+        dest="init_tray_liquid_equilibrium_blend",
+        type=float,
+        default=1.0,
+        help=(
+            "Blend fraction for --init-align-tray-liquid-to-equilibrium; "
+            "0 preserves the seed liquid composition, 1 uses the live equilibrium split."
+        ),
+    )
+    p.add_argument(
+        "--init-tray-liquid-equilibrium-scope",
+        "--init-liquid-equilibrium-scope",
+        dest="init_tray_liquid_equilibrium_scope",
+        choices=["all", "interior"],
+        default="all",
+        help=(
+            "Scope for --init-align-tray-liquid-to-equilibrium. "
+            "interior excludes the top and bottom terminal stages."
+        ),
+    )
+    p.add_argument(
+        "--init-align-tray-vapor-to-equilibrium",
+        "--init-align-vapor-to-equilibrium",
+        dest="init_align_tray_vapor_to_equilibrium",
+        action="store_true",
+        help=(
+            "Initialization diagnostic: preserve tray vapor holdup totals but "
+            "blend tray vapor composition toward the live RHS equilibrium target."
+        ),
+    )
+    p.add_argument(
+        "--init-tray-vapor-equilibrium-blend",
+        "--init-vapor-equilibrium-blend",
+        dest="init_tray_vapor_equilibrium_blend",
+        type=float,
+        default=1.0,
+        help=(
+            "Blend fraction for --init-align-tray-vapor-to-equilibrium; "
+            "0 preserves the seed vapor composition, 1 uses the live equilibrium target."
+        ),
+    )
+    p.add_argument(
+        "--init-align-tray-vapor-to-linear-steady",
+        "--init-align-vapor-to-linear-steady",
+        dest="init_align_tray_vapor_to_linear_steady",
+        action="store_true",
+        help=(
+            "Initialization diagnostic: preserve tray vapor holdup totals but "
+            "blend tray vapor composition toward the local linear steady target "
+            "implied by vapor transport and equilibrium source terms."
+        ),
+    )
+    p.add_argument(
+        "--init-tray-vapor-linear-steady-blend",
+        "--init-vapor-linear-steady-blend",
+        dest="init_tray_vapor_linear_steady_blend",
+        type=float,
+        default=1.0,
+        help=(
+            "Blend fraction for --init-align-tray-vapor-to-linear-steady; "
+            "0 preserves the seed vapor composition, 1 uses the linear steady target."
+        ),
+    )
+    p.add_argument(
+        "--init-tray-vapor-linear-steady-scope",
+        "--init-vapor-linear-steady-scope",
+        dest="init_tray_vapor_linear_steady_scope",
+        choices=["all", "interior"],
+        default="interior",
+        help=(
+            "Scope for --init-align-tray-vapor-to-linear-steady. "
+            "interior excludes the top and bottom terminal stages."
         ),
     )
     p.add_argument("--enable-level-control", dest="enable_level_control", action="store_true")
@@ -16095,6 +17220,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         equilibrium_tau_ramp_final_sec=args.equilibrium_tau_ramp_final_sec,
         equilibrium_tau_ramp_decay_sec=args.equilibrium_tau_ramp_decay_sec,
         equilibrium_phase_holdup_guard_lbmol=args.equilibrium_phase_holdup_guard_lbmol,
+        equilibrium_component_transfer_max_cancel_multiplier=(
+            args.equilibrium_component_transfer_max_cancel_multiplier
+        ),
+        equilibrium_component_transfer_floor_lbmolps=args.equilibrium_component_transfer_floor_lbmolps,
         equilibrium_energy_damping_gain=args.equilibrium_energy_damping_gain,
         hydraulic_energy_temperature_damping=args.hydraulic_energy_temperature_damping,
         hydraulic_energy_temperature_mode=args.hydraulic_energy_temperature_mode,
@@ -16115,6 +17244,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         thermo_refresh_dP_psia=args.thermo_refresh_dP_psia,
         thermo_refresh_dx=args.thermo_refresh_dx,
         equilibrium_relaxation_live_pr=bool(args.equilibrium_relaxation_live_pr),
+        flash_feed_at_stage_conditions=args.flash_feed_at_stage_conditions,
         thermo_table_path=args.thermo_table_path,
         thermo_top_saturation_table_path=args.thermo_top_saturation_table_path,
         thermo_upper_section_table_path=args.thermo_upper_section_table_path,
@@ -16139,6 +17269,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         hydraulic_pressure_relaxation_sec=args.hydraulic_pressure_relaxation_sec,
         top_drum_pressure_temperature_relaxation_sec=args.top_drum_pressure_temperature_relaxation_sec,
         vapor_flow_relaxation_sec=args.vapor_flow_relaxation_sec,
+        vapor_flow_zero_temperature_target=bool(args.vapor_flow_zero_temperature_target),
+        dynamic_vflow_nominal_hi_ratio=args.dynamic_vflow_nominal_hi_ratio,
         conductance_vflow_nominal_hi_ratio=args.conductance_vflow_nominal_hi_ratio,
         stiff_vflow_smooth_clamp_lbmolph=args.stiff_vflow_smooth_clamp_lbmolph,
         pv_inner_max_iter=int(args.pv_inner_max_iter),
@@ -16165,6 +17297,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         init_top_drum_vapor_pressure_psia=args.init_top_drum_vapor_pressure_psia,
         init_match_condenser_duty=bool(args.init_match_condenser_duty),
         init_align_top_liquid_to_condensate=bool(args.init_align_top_liquid_to_condensate),
+        init_top_liquid_condensate_blend=float(args.init_top_liquid_condensate_blend),
+        init_align_tray_liquid_to_equilibrium=bool(args.init_align_tray_liquid_to_equilibrium),
+        init_tray_liquid_equilibrium_blend=float(args.init_tray_liquid_equilibrium_blend),
+        init_tray_liquid_equilibrium_scope=str(args.init_tray_liquid_equilibrium_scope),
+        init_align_tray_vapor_to_equilibrium=bool(args.init_align_tray_vapor_to_equilibrium),
+        init_tray_vapor_equilibrium_blend=float(args.init_tray_vapor_equilibrium_blend),
+        init_align_tray_vapor_to_linear_steady=bool(args.init_align_tray_vapor_to_linear_steady),
+        init_tray_vapor_linear_steady_blend=float(args.init_tray_vapor_linear_steady_blend),
+        init_tray_vapor_linear_steady_scope=str(args.init_tray_vapor_linear_steady_scope),
         enable_level_control=bool(args.enable_level_control),
         top_level_pv_mode=str(args.top_level_pv_mode),
         ignore_workbook_level_pv_mode=bool(args.ignore_workbook_level_pv_mode),

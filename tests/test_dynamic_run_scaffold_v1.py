@@ -55,6 +55,9 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _initialize_hydraulic_energy_consistent_state,
     _initialize_restart_reentry_settling,
     _initialize_thermo_consistent_state,
+    _initialize_tray_liquid_composition_from_equilibrium,
+    _initialize_tray_vapor_composition_from_equilibrium,
+    _initialize_tray_vapor_composition_from_linear_steady,
     _initialize_vapor_holdup_from_spec_pressure,
     _initialize_top_drum_dynamic_steady,
     _refresh_tray_bubble_targets_F,
@@ -88,6 +91,55 @@ from dynamic_distillation.column_spec_builder_v1 import (
 )
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
 from dynamic_distillation.stage_hydraulics_francis_v1 import compute_francis_weir_liquid_outflow
+
+
+def test_runner_config_top_liquid_condensate_blend_defaults_and_overrides():
+    assert RunnerConfig(excel_path="case.xlsx").init_top_liquid_condensate_blend == pytest.approx(1.0)
+    cfg = RunnerConfig(
+        excel_path="case.xlsx",
+        init_align_top_liquid_to_condensate=True,
+        init_top_liquid_condensate_blend=0.25,
+    )
+    assert cfg.init_align_top_liquid_to_condensate is True
+    assert cfg.init_top_liquid_condensate_blend == pytest.approx(0.25)
+
+
+def test_runner_config_dynamic_vflow_nominal_hi_ratio_default_and_override():
+    assert RunnerConfig(excel_path="case.xlsx").dynamic_vflow_nominal_hi_ratio is None
+    cfg = RunnerConfig(excel_path="case.xlsx", dynamic_vflow_nominal_hi_ratio=1.05)
+    assert cfg.dynamic_vflow_nominal_hi_ratio == pytest.approx(1.05)
+
+
+def test_runner_config_tray_vapor_equilibrium_alignment_defaults_and_overrides():
+    cfg0 = RunnerConfig(excel_path="case.xlsx")
+    assert cfg0.init_align_tray_liquid_to_equilibrium is False
+    assert cfg0.init_tray_liquid_equilibrium_blend == pytest.approx(1.0)
+    assert cfg0.init_tray_liquid_equilibrium_scope == "all"
+    assert cfg0.init_align_tray_vapor_to_equilibrium is False
+    assert cfg0.init_tray_vapor_equilibrium_blend == pytest.approx(1.0)
+    assert cfg0.init_align_tray_vapor_to_linear_steady is False
+    assert cfg0.init_tray_vapor_linear_steady_blend == pytest.approx(1.0)
+    assert cfg0.init_tray_vapor_linear_steady_scope == "interior"
+
+    cfg1 = RunnerConfig(
+        excel_path="case.xlsx",
+        init_align_tray_liquid_to_equilibrium=True,
+        init_tray_liquid_equilibrium_blend=0.25,
+        init_tray_liquid_equilibrium_scope="interior",
+        init_align_tray_vapor_to_equilibrium=True,
+        init_tray_vapor_equilibrium_blend=0.5,
+        init_align_tray_vapor_to_linear_steady=True,
+        init_tray_vapor_linear_steady_blend=0.75,
+        init_tray_vapor_linear_steady_scope="all",
+    )
+    assert cfg1.init_align_tray_liquid_to_equilibrium is True
+    assert cfg1.init_tray_liquid_equilibrium_blend == pytest.approx(0.25)
+    assert cfg1.init_tray_liquid_equilibrium_scope == "interior"
+    assert cfg1.init_align_tray_vapor_to_equilibrium is True
+    assert cfg1.init_tray_vapor_equilibrium_blend == pytest.approx(0.5)
+    assert cfg1.init_align_tray_vapor_to_linear_steady is True
+    assert cfg1.init_tray_vapor_linear_steady_blend == pytest.approx(0.75)
+    assert cfg1.init_tray_vapor_linear_steady_scope == "all"
 
 
 def test_write_restart_workbook_from_run_result_writes_boundary_state_sheet(tmp_path: Path):
@@ -2626,6 +2678,8 @@ def test_profile_rows_add_unit_rows_and_move_drum_sump_fields():
         "x_eq_tray": np.array([[0.78, 0.22], [0.28, 0.72]], dtype=float),
         "y_eq_tray": np.array([[0.74, 0.26], [0.24, 0.76]], dtype=float),
         "y_target_tray": np.array([[0.745, 0.255], [0.245, 0.755]], dtype=float),
+        "K_eq_relax_tray": np.array([[1.2, 0.8], [0.5, 1.5]], dtype=float),
+        "K_state_over_K_eq_relax_tray": np.array([[1.1, 0.9], [0.7, 1.3]], dtype=float),
         "xD_comp_sp": np.array([0.10], dtype=float),
         "xD_comp_pv": np.array([0.12], dtype=float),
         "Reflux_cmd_lbmolph": np.array([6000.0], dtype=float),
@@ -2646,6 +2700,26 @@ def test_profile_rows_add_unit_rows_and_move_drum_sump_fields():
         "tray_effective_heat_capacity_BTU_per_F_tray": np.array([100.0, 25.0], dtype=float),
         "tray_temperature_guard_active_tray": np.array([0.0, 1.0], dtype=float),
         "tray_temperature_rate_limit_F_per_s_tray": np.array([np.nan, 10.0], dtype=float),
+        "temp_energy_dE_BTUps_tray": np.array([1.0, -2.0], dtype=float),
+        "temp_energy_L_in_term_BTUps_tray": np.array([3.0, 4.0], dtype=float),
+        "temp_energy_V_in_term_BTUps_tray": np.array([5.0, 6.0], dtype=float),
+        "temp_energy_feed_ref_term_BTUps_tray": np.array([7.0, 8.0], dtype=float),
+        "temp_energy_duty_term_BTUps_tray": np.array([9.0, 10.0], dtype=float),
+        "temp_energy_V_out_term_BTUps_tray": np.array([11.0, 12.0], dtype=float),
+        "temp_energy_L_in_lbmolph_tray": np.array([13.0, 14.0], dtype=float),
+        "temp_energy_V_in_lbmolph_tray": np.array([15.0, 16.0], dtype=float),
+        "temp_energy_V_out_lbmolph_tray": np.array([17.0, 18.0], dtype=float),
+        "temp_energy_hL_in_BTU_per_lbmol_tray": np.array([19.0, 20.0], dtype=float),
+        "temp_energy_hL_out_BTU_per_lbmol_tray": np.array([21.0, 22.0], dtype=float),
+        "temp_energy_hV_in_BTU_per_lbmol_tray": np.array([23.0, 24.0], dtype=float),
+        "temp_energy_hV_out_BTU_per_lbmol_tray": np.array([25.0, 26.0], dtype=float),
+        "vflow_energy_P_used_psia": np.array([219.5, 221.5], dtype=float),
+        "vflow_energy_T_used_F": np.array([119.0, 129.0], dtype=float),
+        "vflow_energy_pressure_basis_code": np.array([1.0, 2.0], dtype=float),
+        "vflow_energy_hL_in_source_code": np.array([1.0, 2.0], dtype=float),
+        "vflow_energy_hL_out_source_code": np.array([2.0, 3.0], dtype=float),
+        "vflow_energy_hV_in_source_code": np.array([1.0, 2.0], dtype=float),
+        "vflow_energy_hV_out_source_code": np.array([2.0, 3.0], dtype=float),
     }
 
     rows = scaffold._profile_rows(
@@ -2712,9 +2786,80 @@ def test_profile_rows_add_unit_rows_and_move_drum_sump_fields():
     assert float(stage1["x_eq_C3"]) == pytest.approx(0.78)
     assert float(stage2["y_eq_C4"]) == pytest.approx(0.76)
     assert float(stage1["y_target_C4"]) == pytest.approx(0.255)
+    assert float(stage1["K_eq_relax_C3"]) == pytest.approx(1.2)
+    assert float(stage2["K_state_over_K_eq_relax_C4"]) == pytest.approx(1.3)
     assert float(stage2["tray_effective_heat_capacity_BTU_per_F"]) == pytest.approx(25.0)
     assert float(stage2["tray_temperature_guard_active_tray"]) == pytest.approx(1.0)
     assert float(stage2["tray_temperature_rate_limit_F_per_s_tray"]) == pytest.approx(10.0)
+    assert float(stage1["temp_energy_dE_BTUps"]) == pytest.approx(1.0)
+    assert float(stage2["temp_energy_V_in_term_BTUps"]) == pytest.approx(6.0)
+    assert float(stage2["temp_energy_V_out_lbmolph"]) == pytest.approx(18.0)
+    assert float(stage2["temp_energy_hV_out_BTU_per_lbmol"]) == pytest.approx(26.0)
+    assert float(stage1["vflow_energy_P_used_psia"]) == pytest.approx(219.5)
+    assert float(stage2["vflow_energy_T_used_F"]) == pytest.approx(129.0)
+    assert float(stage1["vflow_energy_pressure_basis_code"]) == pytest.approx(1.0)
+    assert float(stage2["vflow_energy_hL_out_source_code"]) == pytest.approx(3.0)
+    assert float(stage2["vflow_energy_hV_out_source_code"]) == pytest.approx(3.0)
+
+
+def test_profile_rows_use_state_vapor_composition_when_diag_missing():
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    class TinyCol:
+        n_stages = 2
+        n_components = 2
+        components_excel = ["C3", "C4"]
+        T_f = np.array([120.0, 130.0], dtype=float)
+        P_psia = np.array([220.0, 230.0], dtype=float)
+        M_L_lbmol = np.array([5.0, 6.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.0], dtype=float)
+        x0 = np.array([[0.80, 0.20], [0.30, 0.70]], dtype=float)
+        y0 = np.array([[0.75, 0.25], [0.25, 0.75]], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=col.n_stages,
+        n_components=col.n_components,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y = layout.pack_y0(col)
+    sl = layout.slices()
+    y[sl["tray_V"]] = np.array(
+        [
+            0.10,
+            0.90,
+            0.40,
+            0.60,
+        ],
+        dtype=float,
+    )
+
+    rows = scaffold._profile_rows(
+        t_s=0.0,
+        case=None,
+        col=col,
+        layout=layout,
+        y=y,
+        diag={},
+        include_temperature=False,
+        volume_model=scaffold.VolumeModel(default_vapor_volume_ft3=10.0),
+        wall_clock_iso="2026-07-07T00:00:00",
+        wall_elapsed_s=0.0,
+        feed_tag=scaffold.StreamTag(name="Feed", flow_lbmolph=1000.0, stage_1based=2),
+        dist_tag=scaffold.StreamTag(name="Distillate", flow_lbmolph=200.0, stage_1based=1),
+        bots_tag=scaffold.StreamTag(name="Bottoms", flow_lbmolph=800.0, stage_1based=2),
+    )
+
+    stage1 = next(r for r in rows if int(r["stage"]) == 1)
+    stage2 = next(r for r in rows if int(r["stage"]) == 2)
+    assert float(stage1["y_C3"]) == pytest.approx(0.10)
+    assert float(stage1["y_C4"]) == pytest.approx(0.90)
+    assert float(stage2["y_C3"]) == pytest.approx(0.40)
+    assert float(stage2["y_C4"]) == pytest.approx(0.60)
 
 
 def test_clip_temperature_states_to_provider_bounds():
@@ -3622,6 +3767,271 @@ def test_thermo_startup_conditioner_preserves_boundary_liquid_compositions(monke
     assert info["attempted"] is True
     assert np.allclose(top_L, np.array([9.0, 1.0], dtype=float), atol=1e-12)
     assert np.allclose(bottom_L, np.array([2.0, 8.0], dtype=float), atol=1e-12)
+
+
+def test_tray_liquid_equilibrium_alignment_preserves_liquid_totals_and_repacks_energy(monkeypatch):
+    class TinyCol:
+        n_stages = 3
+        n_components = 2
+        M_L_lbmol = np.array([5.0, 6.0, 7.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.5, 2.0], dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.5, 0.5], [0.2, 0.8]], dtype=float)
+        y0 = np.array([[0.7, 0.3], [0.4, 0.6], [0.1, 0.9]], dtype=float)
+        T_f = np.array([100.0, 110.0, 120.0], dtype=float)
+        P_psia = np.array([200.0, 205.0, 210.0], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=True,
+    )
+    y0 = layout.pack_y0(col)
+
+    x_target = np.array([[0.9, 0.1], [0.6, 0.4], [0.75, 0.25]], dtype=float)
+
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    def _fake_rhs(_t, y_vec, _col, _layout, inputs=None):
+        u = layout.unpack(np.asarray(y_vec, dtype=float))
+        x_now = np.asarray(u["x_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+        hl_now = 10.0 + 100.0 * x_now[:, 0] + 10.0 * x_now[:, 1]
+        ratio_gap = np.maximum(np.abs(x_now - x_target), 1.0e-12) + 1.0
+        dydt = np.zeros(layout.n_states(), dtype=float)
+        diag = {
+            "x_eq_tray": x_target.copy(),
+            "HL_BTU_lbmol_tray": hl_now,
+            "K_state_over_K_eq_relax_tray": ratio_gap,
+        }
+        return dydt, diag
+
+    monkeypatch.setattr(scaffold, "column_rhs", _fake_rhs)
+
+    y1, info = _initialize_tray_liquid_composition_from_equilibrium(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(thermo_provider=object()),
+        blend=1.0,
+    )
+
+    u0 = layout.unpack(y0)
+    u1 = layout.unpack(y1)
+    ml0 = np.asarray(u0["ML_tot_tray"], dtype=float).reshape((col.n_stages,))
+    ml1 = np.asarray(u1["ML_tot_tray"], dtype=float).reshape((col.n_stages,))
+    x1_frac = np.asarray(u1["x_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+    tray_EL = np.asarray(y1[layout.slices()["tray_EL_BTU"]], dtype=float).reshape((col.n_stages,))
+    hl_expected = 10.0 + 100.0 * x_target[:, 0] + 10.0 * x_target[:, 1]
+
+    assert info["applied"] is True
+    assert info["energy_repacked"] is True
+    assert np.allclose(ml1, ml0, atol=1e-12)
+    assert np.allclose(x1_frac, x_target, atol=1e-12)
+    assert np.allclose(tray_EL, ml1 * hl_expected, atol=1e-12)
+    assert float(info["max_composition_delta"]) == pytest.approx(0.55)
+
+
+def test_tray_liquid_equilibrium_alignment_can_scope_to_interior(monkeypatch):
+    class TinyCol:
+        n_stages = 4
+        n_components = 2
+        M_L_lbmol = np.array([5.0, 6.0, 7.0, 8.0], dtype=float)
+        M_V_lbmol = np.ones(4, dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.5, 0.5], [0.2, 0.8], [0.3, 0.7]], dtype=float)
+        y0 = np.array([[0.7, 0.3], [0.4, 0.6], [0.1, 0.9], [0.2, 0.8]], dtype=float)
+        T_f = np.array([100.0, 110.0, 120.0, 130.0], dtype=float)
+        P_psia = np.array([200.0, 205.0, 210.0, 215.0], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=4,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=False,
+    )
+    y0 = layout.pack_y0(col)
+    x_target = np.array([[0.1, 0.9], [0.6, 0.4], [0.7, 0.3], [0.9, 0.1]], dtype=float)
+
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    def _fake_rhs(_t, y_vec, _col, _layout, inputs=None):
+        return np.zeros(layout.n_states(), dtype=float), {
+            "x_eq_tray": x_target.copy(),
+            "K_state_over_K_eq_relax_tray": np.ones((4, 2), dtype=float),
+        }
+
+    monkeypatch.setattr(scaffold, "column_rhs", _fake_rhs)
+
+    y1, info = _initialize_tray_liquid_composition_from_equilibrium(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(thermo_provider=object()),
+        blend=1.0,
+        scope="interior",
+    )
+    x1 = np.asarray(layout.unpack(y1)["x_tray"], dtype=float).reshape((4, 2))
+
+    assert info["applied"] is True
+    assert info["scope"] == "interior"
+    assert np.allclose(x1[0, :], col.x0[0, :], atol=1e-12)
+    assert np.allclose(x1[-1, :], col.x0[-1, :], atol=1e-12)
+    assert np.allclose(x1[1:-1, :], x_target[1:-1, :], atol=1e-12)
+
+
+def test_tray_vapor_equilibrium_alignment_preserves_vapor_totals_and_repacks_energy(monkeypatch):
+    class TinyCol:
+        n_stages = 3
+        n_components = 2
+        M_L_lbmol = np.array([5.0, 6.0, 7.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.5, 2.0], dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.5, 0.5], [0.2, 0.8]], dtype=float)
+        y0 = np.array([[0.7, 0.3], [0.4, 0.6], [0.1, 0.9]], dtype=float)
+        T_f = np.array([100.0, 110.0, 120.0], dtype=float)
+        P_psia = np.array([200.0, 205.0, 210.0], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=True,
+    )
+    y0 = layout.pack_y0(col)
+
+    y_target = np.array([[0.2, 0.8], [0.55, 0.45], [0.75, 0.25]], dtype=float)
+
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    def _fake_rhs(_t, y_vec, _col, _layout, inputs=None):
+        u = layout.unpack(np.asarray(y_vec, dtype=float))
+        y_now = np.asarray(u["y_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+        hv_now = 50.0 + 200.0 * y_now[:, 0] + 20.0 * y_now[:, 1]
+        ratio_gap = np.maximum(np.abs(y_now - y_target), 1.0e-12) + 1.0
+        dydt = np.zeros(layout.n_states(), dtype=float)
+        diag = {
+            "y_target_tray": y_target.copy(),
+            "y_eq_tray": y_target.copy(),
+            "HV_BTU_lbmol_tray": hv_now,
+            "K_state_over_K_eq_relax_tray": ratio_gap,
+        }
+        return dydt, diag
+
+    monkeypatch.setattr(scaffold, "column_rhs", _fake_rhs)
+
+    y1, info = _initialize_tray_vapor_composition_from_equilibrium(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(thermo_provider=object()),
+        blend=1.0,
+    )
+
+    u0 = layout.unpack(y0)
+    u1 = layout.unpack(y1)
+    mv0 = np.asarray(u0["MV_tot_tray"], dtype=float).reshape((col.n_stages,))
+    mv1 = np.asarray(u1["MV_tot_tray"], dtype=float).reshape((col.n_stages,))
+    y1_frac = np.asarray(u1["y_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+    tray_EV = np.asarray(y1[layout.slices()["tray_EV_BTU"]], dtype=float).reshape((col.n_stages,))
+    hv_expected = 50.0 + 200.0 * y_target[:, 0] + 20.0 * y_target[:, 1]
+
+    assert info["applied"] is True
+    assert info["energy_repacked"] is True
+    assert np.allclose(mv1, mv0, atol=1e-12)
+    assert np.allclose(y1_frac, y_target, atol=1e-12)
+    assert np.allclose(tray_EV, mv1 * hv_expected, atol=1e-12)
+    assert float(info["max_composition_delta"]) == pytest.approx(0.65)
+
+
+def test_tray_vapor_linear_steady_alignment_preserves_vapor_totals_and_repacks_energy(monkeypatch):
+    class TinyCol:
+        n_stages = 3
+        n_components = 2
+        M_L_lbmol = np.array([5.0, 6.0, 7.0], dtype=float)
+        M_V_lbmol = np.array([1.0, 1.5, 2.0], dtype=float)
+        x0 = np.array([[0.8, 0.2], [0.5, 0.5], [0.2, 0.8]], dtype=float)
+        y0 = np.array([[0.7, 0.3], [0.4, 0.6], [0.1, 0.9]], dtype=float)
+        T_f = np.array([100.0, 110.0, 120.0], dtype=float)
+        P_psia = np.array([200.0, 205.0, 210.0], dtype=float)
+        streams = {}
+
+    col = TinyCol()
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+        include_energy=True,
+    )
+    y0 = layout.pack_y0(col)
+
+    y_target = np.array([[0.2, 0.8], [0.55, 0.45], [0.75, 0.25]], dtype=float)
+    transport_in = np.array([[0.0, 0.0], [0.2, 0.1], [0.0, 0.0]], dtype=float)
+    feed = np.zeros((3, 2), dtype=float)
+    v_out_lbmolph = np.array([0.0, 0.4 * 3600.0, 1.0 * 3600.0], dtype=float)
+
+    import dynamic_distillation.dynamic_run_scaffold_v1 as scaffold
+
+    def _fake_rhs(_t, y_vec, _col, _layout, inputs=None):
+        u = layout.unpack(np.asarray(y_vec, dtype=float))
+        y_now = np.asarray(u["y_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+        hv_now = 50.0 + 200.0 * y_now[:, 0] + 20.0 * y_now[:, 1]
+        dydt = np.zeros(layout.n_states(), dtype=float)
+        diag = {
+            "y_target_tray": y_target.copy(),
+            "tray_V_transport_in_lbmolps": transport_in.copy(),
+            "tray_V_feed_lbmolps": feed.copy(),
+            "V_out_lbmolph": v_out_lbmolph.copy(),
+            "HV_BTU_lbmol_tray": hv_now,
+        }
+        return dydt, diag
+
+    monkeypatch.setattr(scaffold, "column_rhs", _fake_rhs)
+
+    y1, info = _initialize_tray_vapor_composition_from_linear_steady(
+        col=col,
+        layout=layout,
+        y=y0,
+        inputs=ColumnInputs(thermo_provider=object(), tau_eq_sec=0.5),
+        blend=1.0,
+        scope="interior",
+    )
+
+    u0 = layout.unpack(y0)
+    u1 = layout.unpack(y1)
+    mv0 = np.asarray(u0["MV_tot_tray"], dtype=float).reshape((col.n_stages,))
+    mv1 = np.asarray(u1["MV_tot_tray"], dtype=float).reshape((col.n_stages,))
+    y1_frac = np.asarray(u1["y_tray"], dtype=float).reshape((col.n_stages, col.n_components))
+    tray_EV = np.asarray(y1[layout.slices()["tray_EV_BTU"]], dtype=float).reshape((col.n_stages,))
+
+    raw_middle = np.array([0.2 + 3.0 * 0.55, 0.1 + 3.0 * 0.45], dtype=float) / 3.4
+    expected_middle = raw_middle / np.sum(raw_middle)
+    expected_y = np.asarray(col.y0, dtype=float).copy()
+    expected_y[1, :] = expected_middle
+    hv_expected = 50.0 + 200.0 * expected_y[:, 0] + 20.0 * expected_y[:, 1]
+
+    assert info["applied"] is True
+    assert info["scope"] == "interior"
+    assert info["energy_repacked"] is True
+    assert np.allclose(mv1, mv0, atol=1e-12)
+    assert np.allclose(y1_frac, expected_y, atol=1e-12)
+    assert np.allclose(tray_EV, mv1 * hv_expected, atol=1e-12)
+    assert float(info["max_composition_delta"]) == pytest.approx(float(np.max(np.abs(expected_middle - col.y0[1]))))
 
 
 def test_hydraulic_energy_startup_consistency_noops_for_non_hydraulic_energy_mode():
@@ -5432,6 +5842,74 @@ def test_parity_defers_live_thermo_on_first_visible_runtime_step(tmp_path: Path,
     assert captured["equilibrium_relaxation"] is False
     assert captured["progress_hook_callable"] is True
     assert captured["legacy_temperature_state"] is False
+
+
+def test_runtime_step_preserves_no_flash_feed_setting(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    excel = Path("distillation_column_template.xlsx")
+    if not excel.exists():
+        return
+
+    real_column_rhs = runmod.column_rhs
+    captured: dict[str, object] = {}
+
+    def _spy_column_rhs(t_s, y_vec, col, layout, inputs=None):
+        label = str(getattr(inputs, "thermo_stage_trace_label", "") or "").strip()
+        if label == "runtime_step_0:outer_rhs":
+            captured["flash_feed_at_stage_conditions"] = bool(
+                getattr(inputs, "flash_feed_at_stage_conditions", True)
+            )
+            captured["feed_stage_flash_prev_is_none"] = (
+                getattr(inputs, "feed_stage_flash_prev", None) is None
+            )
+            captured["eq_component_transfer_max_cancel_multiplier"] = float(
+                getattr(inputs, "equilibrium_component_transfer_max_cancel_multiplier", np.nan)
+            )
+            captured["eq_component_transfer_floor_lbmolps"] = float(
+                getattr(inputs, "equilibrium_component_transfer_floor_lbmolps", np.nan)
+            )
+        return real_column_rhs(t_s, y_vec, col, layout, inputs=inputs)
+
+    monkeypatch.setattr(runmod, "column_rhs", _spy_column_rhs)
+
+    cfg = RunnerConfig(
+        excel_path=str(excel),
+        runtime_mode="hydraulic",
+        thermo_mode="stub",
+        n_steps=1,
+        dt_sec=0.1,
+        log_every_n_steps=5,
+        include_temperature=True,
+        include_energy=False,
+        flash_feed_at_stage_conditions=False,
+        equilibrium_component_transfer_max_cancel_multiplier=1.0,
+        equilibrium_component_transfer_floor_lbmolps=2.0e-3,
+        logs_dir=str(tmp_path),
+        write_logs=False,
+        fast_startup=True,
+    )
+
+    run_smoke_simulation(cfg)
+
+    assert captured["flash_feed_at_stage_conditions"] is False
+    assert captured["feed_stage_flash_prev_is_none"] is True
+    assert captured["eq_component_transfer_max_cancel_multiplier"] == 1.0
+    assert captured["eq_component_transfer_floor_lbmolps"] == 2.0e-3
+
+
+def test_cli_feed_flash_flags_propagate_to_runner_config(monkeypatch: pytest.MonkeyPatch):
+    captured: list[object] = []
+
+    def _fake_run_smoke_simulation(cfg):
+        captured.append(cfg.flash_feed_at_stage_conditions)
+        return {}
+
+    monkeypatch.setattr(runmod, "run_smoke_simulation", _fake_run_smoke_simulation)
+
+    assert runmod.main(["--excel", "case.xlsx", "--flash-feed-at-stage-conditions"]) == 0
+    assert captured[-1] is True
+
+    assert runmod.main(["--excel", "case.xlsx", "--no-flash-feed-at-stage-conditions"]) == 0
+    assert captured[-1] is False
 
 
 def test_parity_initial_snapshot_does_not_skip_step_integration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

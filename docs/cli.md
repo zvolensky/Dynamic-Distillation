@@ -228,6 +228,8 @@ python -m dynamic_distillation.dynamic_run_scaffold_v1 `
 | `--no-equilibrium` | flag | `False` | Disables equilibrium relaxation (default is enabled). |
 | `--no-eq` | flag | `False` | Alias for `--no-equilibrium`. |
 | `--equilibrium-relaxation-mode`, `--eq-mode` | `auto` \| `phase-holdup` \| `composition-only` | `auto` | Equilibrium transfer target. `phase-holdup` keeps legacy flash phase-split transfer, `composition-only` relaxes vapor composition at fixed vapor holdup. `auto` selects mode by runtime context (hydraulic mode defaults to `composition-only`). |
+| `--equilibrium-component-transfer-max-cancel-multiplier` | float | `None` | Override the equilibrium component-transfer guard. Opposing equilibrium transfers may cancel up to this multiple of the pre-equilibrium vapor material RHS; same-direction transfers use only the excess above `1.0`, so `1.0` disables same-direction amplification. |
+| `--equilibrium-component-transfer-floor-lbmolps` | float | `None` | Small material-rate floor used by the equilibrium component-transfer guard. |
 | `--thermo` | `stub` \| `relative-volatility` \| `simple-rv` \| `constant-alpha` \| `clapeyron` \| `dwsim` \| `dwsim-unifac` \| `dwsim-nrtl` \| `dwsim-uniquac` \| `dwsim-raoult` \| `dwsim-srk` \| `table` \| `table-pool` | `table-pool` | Thermo backend selection. `relative-volatility` aliases use the workbook `Relative Volatility` spec when present, otherwise alpha defaults to `1.6`. |
 | `--clapeyron-model` | string | `PR` | Clapeyron.jl model constructor name used when `--thermo clapeyron`, e.g. `PR`, `SRK`, `PCSAFT`. |
 | `--clapeyron-ideal-model` | string | `None` | Optional Clapeyron ideal-model constructor name, e.g. `BasicIdeal` or `WalkerIdeal`. |
@@ -303,7 +305,67 @@ python -m dynamic_distillation.dynamic_run_scaffold_v1 `
 | `--init-top-drum-vapor-pressure-psia` | float | `None` | Pressure target for top-drum vapor packing; defaults to `--top-pressure-sp`, then workbook stage-1 pressure. |
 | `--init-match-condenser-duty` | flag | `False` | Initialization diagnostic: evaluate the live total-condenser duty requirement at `t=0` and use it as the initial condenser-duty bias. |
 | `--init-align-top-liquid-to-condensate` | flag | `False` | Preserve reflux-drum liquid holdup but initialize its component split from the live condenser condensate composition. Diagnostic for top_L/reflux-drum composition closure. |
+| `--init-align-tray-liquid-to-equilibrium` | flag | `False` | Preserve tray liquid holdup totals but initialize tray liquid composition from the live RHS equilibrium liquid split. Diagnostic for explicit liquid/vapor K-state closure. |
+| `--init-tray-liquid-equilibrium-blend` | float | `1.0` | Blend fraction for `--init-align-tray-liquid-to-equilibrium`; `0` preserves the seed liquid composition, `1` uses the live equilibrium split. |
+| `--init-tray-liquid-equilibrium-scope` | `all` \| `interior` | `all` | Scope for tray-liquid equilibrium projection. `interior` excludes the top and bottom terminal stages. |
+| `--init-align-tray-vapor-to-equilibrium` | flag | `False` | Preserve tray vapor holdup totals but initialize tray vapor composition from the live RHS equilibrium target. Diagnostic for explicit vapor/K-state closure. |
+| `--init-tray-vapor-equilibrium-blend` | float | `1.0` | Blend fraction for `--init-align-tray-vapor-to-equilibrium`; `0` preserves the seed vapor composition, `1` uses the live equilibrium target. |
+| `--init-align-tray-vapor-to-linear-steady` | flag | `False` | Preserve tray vapor holdup totals but initialize tray vapor composition from the local linear steady target implied by vapor transport plus equilibrium source terms. |
+| `--init-tray-vapor-linear-steady-blend` | float | `1.0` | Blend fraction for `--init-align-tray-vapor-to-linear-steady`; `0` preserves the seed vapor composition, `1` uses the linear steady target. |
+| `--init-tray-vapor-linear-steady-scope` | `all` \| `interior` | `interior` | Scope for tray-vapor linear-steady projection. `interior` excludes the top and bottom terminal stages. |
 | `--startup-total-reflux-washout-sec` | float | `None` | Temporarily evaluate startup steps in total-reflux mode so the reflux drum is washed by live condenser condensate before feed/product boundaries resume. |
+
+Post-projection diagnostic example:
+
+```powershell
+python tools/audit_vapor_inventory_rate.py `
+  --profile-csv logs/<run>/column_profile_<tag>.csv `
+  --initial-time-s 0.0 `
+  --final-time-s 0.2 `
+  --output-md logs/vapor_inventory_rate_audit.md
+
+python tools/audit_vapor_rhs_material_terms.py `
+  --profile-csv logs/<run>/column_profile_<tag>.csv `
+  --time-s 0.2 `
+  --output-md logs/vapor_rhs_material_terms_audit.md
+
+python tools/audit_vapor_transport_equilibrium_conflict.py `
+  --profile-csv logs/<run>/column_profile_<tag>.csv `
+  --time-s 0.2 `
+  --output-md logs/vapor_transport_equilibrium_conflict.md
+
+python tools/score_dynamic_one_step_initialization.py `
+  --summary-csv logs/<run>/column_summary_<tag>.csv `
+  --profile-csv logs/<run>/column_profile_<tag>.csv `
+  --max-time-s 0.2 `
+  --profile-final-time-s 0.2 `
+  --output-md logs/dynamic_one_step_score.md
+
+python tools/rank_dynamic_one_step_initialization_candidates.py `
+  --baseline-dir logs/<baseline-run> `
+  --candidate-dir logs/<baseline-run> `
+  --candidate-dir logs/<candidate-run> `
+  --max-time-s 0.2 `
+  --profile-final-time-s 0.2 `
+  --output-md logs/dynamic_one_step_candidate_ranking.md
+```
+
+Use this with `tools/audit_vapor_transport_after_projection.py` when a projection lowers K/composition mismatch but the dynamic gate still fails on `tray_V`.
+
+Experimental vapor material reconciliation:
+
+```powershell
+python tools/reconcile_vapor_material_transport_seed.py `
+  --excel logs/<seed>.xlsx `
+  --output-excel logs/<trial>.xlsx `
+  --summary-json logs/<trial>.summary.json `
+  --solve-scope interior
+```
+
+This is diagnostic only. The first vapor-composition-only trial reduced the
+static vapor RHS but worsened the dynamic launch, so do not treat its workbook
+as an accepted initialization unless it also passes the dynamic gate.
+
 | `--enable-level-control` | flag | `False` | Enable inventory PI loops: top drum PV -> distillate draw, bottom sump PV -> bottoms draw. |
 | `--top-level-pv-mode` | `molar-holdup` \| `true-level` | `molar-holdup` | Top controller PV mode. |
 | `--ignore-workbook-level-pv-mode` | flag | `False` | Use CLI level-controller PV modes instead of workbook `Top/Bottom Level PV Mode` entries. Useful for diagnostics where a workbook defaults to geometry-based level but molar holdup closure is being tested. |

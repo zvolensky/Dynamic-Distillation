@@ -29,6 +29,64 @@ DEFAULT_REL_RATE_FIELD = "ss_max_rel_state_rate_per_s"
 DEFAULT_TEMP_RATE_FIELD = "ss_max_temp_rate_F_per_s"
 
 
+FAILURE_BREAKDOWN_FIELDS = (
+    (
+        "dynamic score",
+        "final_score",
+        "steady_state_score",
+        "Overall dynamic gate score at the final evaluated row.",
+    ),
+    (
+        "relative state rate",
+        "final_rel_rate_per_s",
+        "ss_max_rel_state_rate_per_s",
+        "Largest normalized state derivative at the final evaluated row.",
+    ),
+    (
+        "temperature rate",
+        "final_temp_rate_F_per_s",
+        "ss_max_temp_rate_F_per_s",
+        "Largest absolute temperature derivative at the final evaluated row.",
+    ),
+    (
+        "top liquid component net",
+        "final_top_L_net_worst_abs_lbmolph",
+        "top_L_net_worst_abs_lbmolph",
+        "Largest top liquid component imbalance at the final evaluated row.",
+    ),
+    (
+        "top liquid total net",
+        "final_top_L_net_lbmolph",
+        "top_L_net_lbmolph",
+        "Total top liquid net imbalance at the final evaluated row.",
+    ),
+    (
+        "K-state minus K-thermo",
+        "final_K_state_minus_K_thermo_max_abs",
+        "K_state_minus_K_thermo_max_abs",
+        "Largest absolute K-state/K-thermo mismatch at the final evaluated row.",
+    ),
+    (
+        "K-state over K-thermo",
+        "final_K_state_over_K_thermo_max_abs",
+        "K_state_over_K_thermo_max_abs",
+        "Largest K-state/K-thermo ratio diagnostic at the final evaluated row.",
+    ),
+    (
+        "pressure/vapor-flow inner solve",
+        "final_pv_inner_dv_max_lbmolph",
+        "pv_inner_dv_max_lbmolph",
+        "Largest vapor-flow correction requested by the inner pressure/vapor solve.",
+    ),
+    (
+        "pressure inner solve",
+        "final_pv_inner_dp_max_psia",
+        "pv_inner_dp_max_psia",
+        "Largest pressure correction requested by the inner pressure/vapor solve.",
+    ),
+)
+
+
 def _resolve(raw: str | Path) -> Path:
     p = Path(str(raw))
     if p.is_absolute():
@@ -106,6 +164,18 @@ def summarize_run(
     return summary
 
 
+def _summary_fields_for_breakdown(rows: List[Dict[str, str]]) -> List[str]:
+    fields: List[str] = []
+    if rows:
+        available = set(rows[0])
+    else:
+        available = set()
+    for _name, _summary_key, csv_field, _description in FAILURE_BREAKDOWN_FIELDS:
+        if csv_field in available:
+            fields.append(csv_field)
+    return fields
+
+
 def _ratio(candidate: float, baseline: float) -> float:
     if not math.isfinite(candidate) or not math.isfinite(baseline):
         return math.nan
@@ -161,6 +231,44 @@ def _add_absolute_drift_check(
             "passed": bool(math.isfinite(value) and value <= float(limit)),
         }
     )
+
+
+def failure_breakdown(
+    baseline: MetricSummary,
+    candidate: MetricSummary,
+    *,
+    top_n: int = 8,
+) -> List[Dict[str, Any]]:
+    records: List[Dict[str, Any]] = []
+    for name, metric, source_field, description in FAILURE_BREAKDOWN_FIELDS:
+        cand = float(candidate.get(metric, math.nan))
+        base = float(baseline.get(metric, math.nan))
+        if not (math.isfinite(cand) and math.isfinite(base)):
+            continue
+        ratio = _ratio(cand, base)
+        delta = abs(cand) - abs(base)
+        records.append(
+            {
+                "name": name,
+                "metric": metric,
+                "source_field": source_field,
+                "description": description,
+                "candidate": cand,
+                "baseline": base,
+                "abs_candidate": abs(cand),
+                "abs_baseline": abs(base),
+                "abs_delta": delta,
+                "ratio": ratio,
+            }
+        )
+    records.sort(
+        key=lambda r: (
+            0 if math.isfinite(float(r["abs_delta"])) and float(r["abs_delta"]) > 0.0 else 1,
+            -float(r["abs_delta"]) if math.isfinite(float(r["abs_delta"])) else 0.0,
+            -float(r["ratio"]) if math.isfinite(float(r["ratio"])) else 0.0,
+        )
+    )
+    return records[: max(int(top_n), 0)]
 
 
 def evaluate_candidate(
@@ -294,6 +402,19 @@ def _write_markdown(path: Path, report: Dict[str, Any]) -> None:
                 )
             )
         lines.append("")
+        breakdown = cand.get("failure_breakdown") or []
+        if breakdown:
+            lines.append("### Failure Breakdown")
+            lines.append("")
+            lines.append("| Family | Ratio | Abs delta | Candidate | Baseline | Field |")
+            lines.append("|---|---:|---:|---:|---:|---|")
+            for item in breakdown:
+                lines.append(
+                    "| {name} | {ratio:.6g} | {abs_delta:.6g} | {candidate:.6g} | {baseline:.6g} | `{source_field}` |".format(
+                        **item
+                    )
+                )
+            lines.append("")
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -324,6 +445,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     ap.add_argument("--output-json", default=None)
     ap.add_argument("--output-md", default=None)
+    ap.add_argument("--failure-breakdown-top-n", type=int, default=8)
     args = ap.parse_args(argv)
 
     endpoint_limits = dict(args.endpoint_drift_limit or [])
@@ -332,11 +454,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     summary_ratio_fields = sorted(summary_ratio_limits)
 
     baseline_path = _resolve(args.baseline_summary)
+    baseline_rows = _read_summary_csv(baseline_path)
+    breakdown_fields = _summary_fields_for_breakdown(baseline_rows)
     baseline_summary = summarize_run(
-        _read_summary_csv(baseline_path),
+        baseline_rows,
         max_time_s=args.max_time_s,
         endpoint_fields=endpoint_fields,
-        summary_ratio_fields=summary_ratio_fields,
+        summary_ratio_fields=sorted(set(summary_ratio_fields).union(breakdown_fields)),
     )
 
     labels = list(args.candidate_label or [])
@@ -347,11 +471,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     for idx, raw_path in enumerate(args.candidate_summary):
         path = _resolve(raw_path)
         label = labels[idx] if labels else path.parent.name or path.name
+        candidate_rows = _read_summary_csv(path)
+        candidate_breakdown_fields = _summary_fields_for_breakdown(candidate_rows)
+        all_summary_ratio_fields = sorted(
+            set(summary_ratio_fields).union(breakdown_fields).union(candidate_breakdown_fields)
+        )
         candidate_summary = summarize_run(
-            _read_summary_csv(path),
+            candidate_rows,
             max_time_s=args.max_time_s,
             endpoint_fields=endpoint_fields,
-            summary_ratio_fields=summary_ratio_fields,
+            summary_ratio_fields=all_summary_ratio_fields,
         )
         report = evaluate_candidate(
             baseline_summary,
@@ -364,7 +493,18 @@ def main(argv: Optional[List[str]] = None) -> int:
             endpoint_drift_limits=endpoint_limits,
             summary_ratio_limits=summary_ratio_limits,
         )
-        report.update({"label": label, "summary_path": str(path), "summary": candidate_summary})
+        report.update(
+            {
+                "label": label,
+                "summary_path": str(path),
+                "summary": candidate_summary,
+                "failure_breakdown": failure_breakdown(
+                    baseline_summary,
+                    candidate_summary,
+                    top_n=args.failure_breakdown_top_n,
+                ),
+            }
+        )
         candidates.append(report)
 
     full_report = {
@@ -394,6 +534,14 @@ def main(argv: Optional[List[str]] = None) -> int:
                     result=result,
                 )
             )
+        if cand.get("failure_breakdown"):
+            print("  Failure breakdown:")
+            for item in cand["failure_breakdown"]:
+                print(
+                    "    {name}: ratio={ratio:.6g} abs_delta={abs_delta:.6g} candidate={candidate:.6g} baseline={baseline:.6g} field={source_field}".format(
+                        **item
+                    )
+                )
 
     return 0 if full_report["passed"] else 1
 

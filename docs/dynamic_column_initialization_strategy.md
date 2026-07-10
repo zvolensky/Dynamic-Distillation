@@ -4,6 +4,29 @@ Date: 2026-05-28
 
 Code status note: `docs/initialization_code_status.md` classifies the current initialization tooling as supported, experimental, or deprecated for acceptance.
 
+Current model-state note: `docs/dynamic_model_current_state_2026-07-08.md`.
+
+## Current Status Addendum 2026-07-08
+
+The current C3/C4 work has moved past the question "can the Excel/ChemSep seed be tuned into place?" The answer is no, not by seed manipulation alone. The best current 900 s linear-steady/equilibrium-guard checkpoint is a useful dynamic baseline, but it is not a zero-residual initialized state.
+
+The remaining initializer work should be tied directly to runtime-model coupling audits. Broad least-squares residual tuning, direct tray-energy projection, and internal liquid-holdup projection/solve have not produced an accepted seed. The initializer should therefore:
+
+1. preserve candidate states as native checkpoints when they pass a dynamic gate,
+2. use residual audits to identify the dominant inconsistency family,
+3. reject candidates that improve static residuals while worsening launch behavior,
+4. feed concrete pressure/vapor-flow/energy/equilibrium ownership defects back into the model equations.
+
+The likely long-term runtime direction is incremental DAE-like simultaneous closure for tightly coupled pressure, vapor-flow, energy, and phase-equilibrium terms. That should be developed one closure family at a time and compared against the current 900 s baseline.
+
+External review follow-up: do not jump directly from the current 900 s evidence to an implicit simultaneous-solve project. First run the cheap longer gate and a focused root-cause audit on the repeatable no-energy/checkpoint vapor-material residual family. The 900 s pulse pattern is diffuse and damping, but the degraded reload/checkpoint residuals are localized enough to still resemble the earlier specific consistency bugs that were fixed inside the explicit implementation.
+
+Longer-gate follow-up: the 1800 s extension of the current best linear-steady/equilibrium-guard recipe failed. The pulse envelope began rebuilding after the 900 s window and became a large feed-adjacent event around 1240 s. The 1200 s vapor and energy audits were still modest/quiet; by 1240 s stage 12/13 vapor transport and energy residuals dominated while vapor-flow calc/used mismatch remained zero. The next concrete target is therefore the 1200-1240 s feed-adjacent vapor-material/energy transition, not a generic least-squares initializer pass.
+
+K-level gate follow-up: the 900 s rate-based pass is not sufficient acceptance. `tools/audit_k_state_drift.py` shows that `K_state` remains far from `K_thermo` and regrows after its minimum; the final worst row is n-pentane on generic interior stage 5. This should be treated as a first-class initializer gate because it is a physical level-consistency metric, not just a derivative metric. The immediate diagnostic target is now the source of the stage 5-7 n-pentane K divergence and how that disequilibrium feeds into the later 1200-1240 s feed-adjacent event.
+
+Equilibrium-transfer guard follow-up: the K drift is consistent with the component-transfer guard limiting equilibrium relaxation to the scale of the local pre-equilibrium vapor material RHS. Existing 300 s comparisons show the tradeoff directly. Tight multiplier `1.0` gives the better dynamic score but worse K drift; default/sign-aware multiplier `1.5` improves K consistency and removes positive K-delta trend over 300 s but worsens the vapor-material wave. Do not call either setting accepted. The next work should identify why relaxing the cap reintroduces the wave, rather than choosing one side of the tradeoff blindly.
+
 ## Fundamental Difficulty: Why Moving from Steady-State to Dynamics Is So Notoriously Fragile
 
 ### The Problem Statement
@@ -217,10 +240,10 @@ Residual-solver pivot, 2026-07-06:
 - Stage 4 coupled material solve reduced max tray total residual to
   `473 lbmol/h`, but the 60 s dynamic smoke run was also worse than baseline,
   with higher top pressure and hotter sump behavior.
-- Conclusion: the residual solver remains viable as a diagnostic and candidate
-  generator, but static residual reduction is not a reliable acceptance metric.
-  The workflow now requires `tools/evaluate_initialization_dynamic_gate.py` or an
-  equivalent dynamic gate before accepting any residual-solver output.
+- Conclusion at this stage: the residual solver remained useful as a
+  diagnostic, but static residual reduction was not a reliable acceptance
+  metric. The workflow requires `tools/evaluate_initialization_dynamic_gate.py`
+  or an equivalent dynamic gate before accepting any residual-solver output.
 - Follow-up dynamic spike diagnosis for the Stage 2 residual candidate:
   - tool: `tools/diagnose_initialization_dynamic_spike.py`
   - report: `logs/c3c4_stage2_dynamic_spike_diagnosis_20260706.md`
@@ -230,8 +253,9 @@ Residual-solver pivot, 2026-07-06:
     top/bottom endpoint drift: relative state-rate is `26.3x` baseline,
     steady-state score is `22.2x` baseline, `pv_inner_dv_max_lbmolph` is
     `20.8x` baseline, and `K_state_over_K_thermo_max_abs` is `2.15x` baseline.
-  - next residual-solver attempts should protect early dynamic vapor-flow and
-    K-consistency metrics instead of only lowering the t=0 residual audit.
+  - lesson: any later residual-solver experiment must protect early dynamic
+    vapor-flow and K-consistency metrics instead of only lowering the t=0
+    residual audit.
 - Dynamic gate hardening:
   - `tools/evaluate_initialization_dynamic_gate.py` now supports repeatable
     `--summary-ratio-limit FIELD=LIMIT` checks, so acceptance can explicitly
@@ -381,6 +405,140 @@ Residual-solver pivot, 2026-07-06:
     the remaining energy/vapor-flow equation inconsistency and top liquid
     composition/flow transient exposed by the post-quarantine comparison, not
     resume broad residual-solver tuning.
+  - dynamic-gate breakdown follow-up:
+    `tools/evaluate_initialization_dynamic_gate.py` now reports a ranked
+    failure breakdown in addition to pass/fail checks. For
+    `logs/initialization_dynamic_gate_c3c4_stage2_quarantine_20260706.md`, the
+    post-quarantine candidate still fails at 40 s: final score ratio `2.37`,
+    final relative state-rate ratio `2.21`, final temperature-rate ratio
+    `2.37`, and pressure/vapor-flow inner correction ratio `17.2`. K-mismatch
+    checks pass, which confirms the remaining failure is not dominated by the
+    quarantined unit-K packet family.
+  - top-boundary liquid follow-up:
+    `tools/top_boundary_liquid_coupling_audit.py` compares top liquid component
+    nets and condensed-vs-drum composition mismatch from summary CSV logs. The
+    post-quarantine report
+    `logs/c3c4_stage2_quarantine_top_boundary_liquid_audit_20260706.md` shows
+    that final reflux and distillate totals match the baseline at 40 s
+    (`5967.32` and `2386.93 lbmol/h`), while the worst component net is larger
+    (`728.13` versus `592.20 lbmol/h`). The final composition mismatch between
+    condensed liquid and drum liquid is also worse for the light/key pair
+    (`~0.078` versus `~0.060`). Interpretation: the remaining top-boundary
+    issue is not a simple total-flow split error; it is a composition/state
+    coupling transient between condensed material and drum liquid.
+  - top-liquid condensate alignment probe:
+    `dynamic_run_scaffold_v1.py` now supports an opt-in blend for
+    `--init-align-top-liquid-to-condensate` via
+    `--init-top-liquid-condensate-blend`. This is a generic top-boundary
+    preconditioner: it preserves the top liquid holdup total and blends only
+    the initial top liquid component split toward the live condenser condensate
+    composition.
+  - blend sweep result:
+    `logs/initialization_dynamic_gate_c3c4_topLalign_sweep_20260706.md`
+    compares blend factors `0.25`, `0.50`, and `1.00` against the current
+    baseline gate. Full alignment was the only useful member of the sweep. It
+    reduced the final top liquid worst component residual from the
+    post-quarantine value of about `728 lbmol/h` to `595 lbmol/h`, essentially
+    baseline-sized (`592 lbmol/h`), and slightly improved final score from
+    about `4.65` to `4.43`. Partial blends were non-monotone; the `0.50` case
+    produced a late dynamic spike with final score `81.76`.
+  - updated interpretation:
+    top liquid composition alignment is a useful diagnostic and launch
+    preconditioner, but it is not an accepted initializer. Once the top liquid
+    component residual is reduced, the dominant remaining failure is
+    pressure/vapor-flow and energy closure. The aligned candidate still fails
+    with final pressure/vapor-flow inner correction ratio `18.75`, final
+    score ratio `2.26`, final temperature-rate ratio `2.26`, and top pressure
+    endpoint drift above the gate. The comparison report
+    `logs/c3c4_stage2_topLalign100_vs_baseline_coupling_compare_t40_20260706.md`
+    identifies the dominant worsening family as energy/vapor-flow equation
+    inconsistency. The next fix should therefore target the generic vapor-flow
+    energy closure path and its launch guard/residual terms, not another
+    tray-specific composition adjustment.
+  - dynamic vapor-flow nominal-ceiling probe:
+    the RHS/runner now expose a generic
+    `--dynamic-vflow-nominal-hi-ratio` diagnostic clamp for energy and
+    conductance vapor-flow closures. A first probe with full top-liquid
+    alignment and ratio `1.05`
+    (`logs/c3c4_stage2_topLalign100_dynvflow105_40s_20260707`) did not pass
+    and should not be promoted as a fix. Compared with the prior full
+    top-liquid alignment candidate, it slightly reduced the final
+    `pv_inner_dv_max_lbmolph` symptom (`13.94` to `12.45 lbmol/h`) but worsened
+    the final score (`4.43` to `4.77`), final temperature rate (`0.665` to
+    `0.715 F/s`), and especially the early peak score (`11.26` to `157.13`).
+    Interpretation: simply constraining dynamic vapor flow near the nominal
+    profile can suppress one pressure/vapor correction metric while injecting a
+    worse energy/temperature transient. Do not continue this branch as a
+    tuning exercise unless a future objective also protects peak dynamic score
+    and temperature-rate behavior.
+  - initializer objective follow-up:
+    `tools/optimize_column_initialization_residual.py` now supports
+    `--vflow-energy-closure-weight`, an optional residual on
+    `vflow_energy_calc_lbmolph - vflow_energy_used_lbmolph` scaled by local
+    vapor traffic. This moves the dominant audit finding into the initializer
+    objective without changing tray, top, or bottom equations. The workflow
+    wrapper passes the option through as well.
+  - smoke result:
+    `logs/c3c4_initializer_residual_stage2_vflowclosure_smoke_20260707.xlsx`
+    confirmed that the weighted residual evaluates on the real C3/C4 Stage 2
+    workbook and writes an audited candidate, but the intentionally capped
+    `max_nfev=2` smoke did not improve the seed. The audit remained at max
+    relative rate `0.014175899 1/s` and max tray total residual
+    `594.22336 lbmol/h`. Treat this as infrastructure, not evidence of an
+    accepted initialization.
+  - bounded decision run:
+    `logs/c3c4_initializer_residual_stage2_vflowclosure_stageA_20260707.xlsx`
+    gave the vapor-flow closure residual a longer capped solve
+    (`max_nfev=8`, `998` residual evaluations). The optimizer objective norm
+    improved from about `0.146` to `0.0428`, but the physical residual audit
+    worsened: max relative state rate increased to `0.017931394 1/s` and max
+    tray total material residual increased to `2192.7481 lbmol/h`. The worst
+    state moved to `tray_V` n-Propane at the upper active boundary of the
+    column interior.
+  - kill-switch conclusion:
+    this is the pattern to reject. The residual objective can be made smaller
+    while the model-consistency audit gets worse, so continuing to tune this
+    residual-solver branch is not a productive path. Do not run another broad
+    least-squares variant that only reweights vapor-flow, energy, and profile
+    residuals. The next useful work is equation/topology review of the
+    energy-vapor-flow closure itself: specifically why reducing
+    `V_calc - V_used` can push material and temperature defects into the upper
+    interior interface. Any future initializer work should be limited to
+    narrow equation-confirmation experiments with a dynamic gate, not another
+    full-profile residual sweep.
+  - RHS closure audit module:
+    `tools/audit_energy_vapor_closure.py` was added as a read-only diagnostic
+    for this next phase. It ranks generic vapor-flow interfaces and stage
+    energy terms from logged RHS diagnostics: `V_calc - V_used`, adjacent vapor
+    enthalpy discontinuity, pressure-from-holdup mismatch, K/y closure, and
+    raw temperature-rate terms. The first report,
+    `logs/energy_vapor_closure_audit_latest_20260707.md`, run on the latest
+    C3/C4 vapor-flow-ceiling profile at `40 s`, shows max
+    `|V_calc - V_used| = 734.761 lbmol/h`, max raw temperature rate
+    `0.717644 F/s`, max adjacent vapor enthalpy gap `182.273 BTU/lbmol`, and
+    dominant diagnostic families of temperature-rate spike plus equilibrium
+    K-state mismatch. This confirms the next work should inspect the generic
+    RHS energy/vapor-flow closure and thermo-state sequencing before any new
+    initializer objective is attempted.
+  - provenance follow-up:
+    RHS and profile logging now report energy vapor-flow provenance fields:
+    `vflow_energy_P_used_psia`, `vflow_energy_pressure_basis_code`, and
+    liquid/vapor enthalpy source codes. The startup smoke report
+    `logs/energy_vapor_closure_audit_provenance_smoke_20260707.md` showed that
+    the energy pressure basis was not materially stale at `0.2 s`
+    (`max |energy P used - logged P| ~= 0.008 psi`), but the energy vapor-flow
+    solve was using cached enthalpies even when provider refreshes were
+    available. The RHS has been changed so provider-refreshed enthalpies are
+    preferred, with cached enthalpies used only as fallback. A follow-up smoke
+    (`logs/energy_vapor_closure_audit_provider_enthalpy_smoke_20260707.md`)
+    confirmed the source codes switched from cached (`1`) to provider (`2`),
+    but the startup metrics changed only slightly: max `|V_calc - V_used|`
+    `1189.97 -> 1187.60 lbmol/h`, max raw temperature rate
+    `0.464816 -> 0.464801 F/s`, and max K mismatch unchanged. Interpretation:
+    enthalpy precedence was a real sequencing defect worth correcting, but it
+    is not the dominant cause of the remaining launch failure. The next
+    diagnostic target is the equilibrium/K-state mismatch and phase-split
+    coupling that remains after enthalpy source consistency is restored.
 
 Spec/energy degree-of-freedom probes:
 - spec-only boundary adjustment did not solve the defect:
@@ -816,3 +974,41 @@ Related issues:
 - `DD-030`: Gani/ChemSep model-topology reconciliation.
 - `DD-031`: profile-flow parity conflict with explicit tray vapor states.
 - `DD-032`: dynamic initialization cannot rely on raw ChemSep profiles as full model-consistent initial conditions.
+
+### 2026-07-07 Update: Residual Solver Pivot and RHS Closure Findings
+
+The past residual-solver branch should remain classified as diagnostic, not as the route to an accepted seed. Static residual reduction produced candidates that failed the dynamic gate, and a vapor-flow/energy-weighted residual solve improved its internal objective while worsening the physical residual audit.
+
+The current productive direction is RHS closure inspection:
+
+- `tools/audit_energy_vapor_closure.py` now ranks generic vapor-flow interfaces, temperature/energy terms, K-state mismatch, and vapor composition target mismatch.
+- Energy vapor-flow pressure basis was audited and is not the dominant startup defect.
+- Provider-refreshed enthalpies are now preferred over cached enthalpies in the energy vapor-flow path; this fixed a real sequencing inconsistency, but one-step metrics changed only slightly, so it is not the dominant cause.
+- `K_eq_relax` logging shows the K-state mismatch is not merely a stale `K_thermo` diagnostic-basis artifact. In composition-only relaxation mode, however, the interior `y_state-y_target` gap is much smaller than the all-row maximum because the dry total-condenser boundary row has no vapor state.
+- Removing vapor-flow lag with `--vapor-flow-relaxation-sec 0` eliminated the calc/used vapor-flow mismatch in a one-step smoke (`1187.6 lbmol/h` to `0`) and reduced normalized energy residual (`2.01 F/s` to `1.42 F/s`), but the dynamic score still failed and the temperature-rate spike remained (`~0.52 F/s`).
+- A subsequent equation audit showed that the vapor-flow closure and legacy temperature-state block were not using the same tray energy equation. Vapor-flow used a reference-invariant form around `hL_out`; the generic interior temperature-state block used absolute enthalpies, which disagrees during startup material imbalance. The interior temperature-state block now uses the same reference-invariant form. A one-step no-lag smoke reduced max raw tray temperature rate to about `0.057 F/s`, but the dynamic gate still fails on explicit vapor-state residuals.
+- The vapor-flow temperature-rate target is now explicit. Use `--vapor-flow-zero-temperature-target` / `--vflow-zero-dt-target` to make the closure target zero tray temperature rate instead of the previous step's `last_dT_tray` memory. A one-step no-lag zero-target smoke (`logs/c3c4_stage2_zero_dt_target_nolag_smoke_20260707`) kept `V_calc - V_used = 0` and confirmed the target was zero, but max raw tray temperature rate rose to about `0.222 F/s`, with the dominant gap at the top interior interface. This means the memory path can be excluded for stricter initialization diagnostics, but the remaining defect is still a real energy/thermo closure issue rather than just vapor-flow lag.
+- A term-level audit then localized the `0.222 F/s` top-adjacent temperature spike to one term: liquid enthalpy entering stage 2 from the top side. The vapor-flow closure used about `-3840 BTU/lbmol` for that top-side liquid enthalpy, while the temperature-state live refresh used about `-3995 BTU/lbmol`; at roughly `5967 lbmol/h` reflux this accounted for the `~256 BTU/s` temperature/vapor-flow term gap. A forced scalar top-liquid refresh in the vapor-flow thermo helper did not change the logged launch result, proving the issue was stream ownership rather than only cache staleness.
+- The top-boundary reflux enthalpy ownership was then corrected: when explicit top boundary liquid is present, the reflux stream entering the first interior stage below the top boundary uses the top accumulator liquid composition with the top tray temperature and pressure in both the energy vapor-flow closure and the temperature-state balance. The strict no-lag/zero-temperature-target smoke (`logs/c3c4_stage2_top_reflux_enthalpy_owner_smoke_20260707`) reduced max raw tray temperature rate from about `0.222 F/s` to `1.44e-7 F/s`, and reduced the temperature/vapor-flow term mismatch from about `256 BTU/s` to `1.65e-4 BTU/s`. This confirms the energy/top-boundary sub-branch was fruitful.
+- The remaining dominant family is now equilibrium K-state and explicit vapor-composition mismatch, not energy/vapor-flow equation inconsistency. Do not continue broad enthalpy or vapor-flow-lag tuning unless a new audit points back to those terms.
+- A narrow tray vapor projection was added as an opt-in restart initializer: `--init-align-tray-vapor-to-equilibrium` preserves tray vapor holdup totals and repacks vapor component splits from the live RHS `y_target_tray`. In the strict one-step smoke (`logs/c3c4_stage2_vapor_eq_align_smoke_20260707`), this reduced the launch score from `138.38` to `26.06`, max relative state rate from `0.415/s` to `0.0782/s`, and the interior `y_state-y_target` maximum from about `0.040` to `0.0035`. This is useful evidence that explicit vapor composition was a real blocker.
+- The corresponding full liquid+vapor projection (`--init-align-tray-liquid-to-equilibrium` plus vapor projection, `logs/c3c4_stage2_liqvap_eq_align_smoke_20260707`) did not improve the score beyond vapor-only (`26.08` vs `26.06`), although it lowered the temperature-rate criterion (`0.0833 F/s` vs `0.103 F/s`). Do not keep increasing liquid-side projection complexity without a material/transport audit. The next useful diagnosis is why the projected vapor state is pulled off the K manifold during the first dynamic step.
+- `tools/audit_vapor_transport_after_projection.py` was added to answer that question from profile logs. On `logs/c3c4_stage2_vapor_eq_align_smoke_20260707`, the first-step report (`logs/vapor_transport_after_projection_audit_vapor_eq_align_20260707.md`) shows max interior `|y-y_target| = 0.00350` after `0.2 s`, but max `|ln(K_state/K_eq)| = 0.588`. Interpretation: the vapor state remains close to its live target; the remaining K mismatch is not mainly failed vapor projection. The next closure target is liquid composition, K-basis, or material/transport consistency around the ranked generic vapor interfaces.
+- The initial profile logger was corrected on 2026-07-07 so a diagnostic-free `t=0` snapshot writes the current unpacked vapor composition rather than falling back to `col.y0`. The corrected-log strict smoke (`logs/c3c4_stage2_interior_liq_vapor_eq_align_smoke_loggingfix_20260707`) reproduced the same dynamic result (`score=26.08`, max relative state rate `0.0782/s`, max temperature rate `0.0833 F/s`), but removed a stale-profile artifact from the first-step audits.
+- `tools/audit_vapor_inventory_rate.py` was added to rank the first-step vapor component inventory rates and estimate the vapor-convective contribution from adjacent stages. On the corrected-log run (`logs/vapor_inventory_rate_audit_interior_liq_vapor_eq_align_loggingfix_20260707.md`), the worst interior score owner is `tray_V` stage 3 n-Butane at `0.0782/s`; its finite-difference rate is `0.207 lbmol/s`, and the adjacent-vapor convective estimate is `0.203 lbmol/s`. Interpretation: the remaining strict-gate failure is not mainly failed equilibrium projection or energy/vapor-flow closure. It is an explicit vapor material-transport consistency problem. Stop adding liquid/vapor equilibrium projection variants; the next initializer branch should solve or reconcile vapor component inventories against interstage vapor traffic while preserving physical bounds and staying close to the seed.
+- The RHS now logs explicit vapor material-term diagnostics and `tools/audit_vapor_rhs_material_terms.py` ranks them from profile CSVs. On `logs/c3c4_stage2_interior_liq_vapor_eq_align_rhs_terms_20260707`, the one-step result is unchanged (`score=26.08`, finite-difference max relative state rate `0.0782/s`), but the live RHS decomposition at `t=0.2 s` shows the current worst interior vapor component at `0.0454/s`. For that row, transport contributes `+0.203 lbmol/s`, equilibrium transfer contributes `-0.0827 lbmol/s`, and the final RHS is `+0.120 lbmol/s`. Interpretation: equilibrium relaxation is damping the transport imbalance, not causing it. The next branch should be a vapor material-transport reconciliation solve over explicit vapor compositions/inventories and possibly vapor traffic, with a dynamic gate. If such a solve cannot reduce this term without unphysical drift, then the vapor transport equation/path needs review.
+- The narrow vapor material-transport reconciliation branch has now been tried with `tools/reconcile_vapor_material_transport_seed.py`. It varied only interior vapor composition splits and preserved vapor holdup totals. Static RHS improved (`0.0799/s` to `0.0175/s`, max vapor-composition drift `0.00868`), but dynamic behavior worsened: with usual liquid/top alignment the one-step launch was `score=56.36`, `rel=0.169/s`; with no reprojection it was `score=249.82`, `rel=0.749/s`. Interpretation: call off vapor-composition-only static reconciliation. The next optimizer, if any, must optimize the dynamic one-step gate directly or include coupled liquid/K-basis consistency. Otherwise this is a rabbit hole.
+- `tools/audit_vapor_transport_equilibrium_conflict.py` now compares the pre-equilibrium vapor transport RHS with the equilibrium transfer needed to cancel it. On the projected one-step run, the median cancellation coverage is `0.371`, so equilibrium is mostly damping transport but under-canceling. On the failed reconciled candidate, the median coverage is `3.26`, and the leading interior rows over-cancel. Interpretation: the failed static solve pushed the equilibrium/transport balance past the dynamic target rather than finding the missing closure.
+- `tools/score_dynamic_one_step_initialization.py` now combines the actual one-step launch metrics with the vapor transport/equilibrium conflict terms. It scores dynamic score, relative state rate, temperature rate, max vapor RHS, cancellation-coverage error, overcoverage, and vapor-composition drift. On the projected one-step run the objective is `27.28`; on the failed vapor-material reconciled candidate it is `59.77`, correctly penalizing the overcorrected launch. This is the objective surface to use before attempting another optimizer.
+- `tools/rank_dynamic_one_step_initialization_candidates.py` now ranks completed one-step run directories with that objective. The first ranking (`logs/dynamic_one_step_candidate_ranking_20260707.md`) found no existing scorable candidate that beats the projected RHS-terms baseline: baseline `27.28`, vapor-material reconciled smoke `59.77`, no-reprojection reconciled smoke `261.38`. Older projection runs without live RHS material-term columns are retained as unscorable rows. Interpretation: do not mine existing static-reconciler candidates further; the next experiment must generate a new candidate against the dynamic objective.
+- A bounded tray-vapor projection blend probe (`0.75` and `0.50`) gave only a negligible score improvement: both scored about `27.2799` versus the projected RHS-terms baseline at `27.2837`. Metadata shows the vapor projection was effectively a no-op in those runs (`max_composition_delta` around `1e-10`), so the blend fraction is not a meaningful control knob in this path. Interpretation: stop projection-blend tuning; the remaining closure is not going to be found by nudging that option.
+- The next equation-based branch is materially better: `--init-align-tray-vapor-to-linear-steady` now projects tray vapor composition toward the local linear steady target implied by vapor transport plus the equilibrium source term, while preserving vapor holdup totals and repacking vapor energy. The strict one-step C3/C4 launch (`logs/c3c4_stage2_liq_eq_vap_linearsteady_rhs_terms_20260707`) improved the dynamic one-step objective from the projected RHS-terms baseline `27.2837` to `6.18033`; runner score dropped from about `26.08` to `5.84`, max relative rate from `0.0782/s` to `0.0175/s`, max vapor RHS from `0.1619` to `0.0478 lbmol/s`, and median cancellation coverage moved from `0.3708` to `0.9054`. A `10 s` smoke (`logs/c3c4_stage2_liq_eq_vap_linearsteady_10s_20260707`) did not blow up; runner score decayed to `1.30` and max relative rate to `0.00389/s`. Interpretation: this is no longer a rabbit hole at the one-step/short-smoke level. Stay on the linear-steady vapor projection path and test longer dynamic gates before making broader equation changes.
+- The first `60 s` extension with the linear-steady initializer found a distinct pressure-boundary defect rather than an initializer dead end. Even with the top-anchor command fixed at `222.62 psia`, the top hydraulic pressure drifted to `226.15 psia`, followed by a late vapor-composition flip. The RHS top pressure ordering guard was lifting the tray pressure profile above the raw top-drum pressure after the explicit anchor had already been applied. The guard now uses the explicit top anchor as the ordering reference when one is active. With that fix, the same `60 s` launch (`logs/c3c4_stage2_liq_eq_vap_linearsteady_60s_topanchorfix_20260707`) passes: score decays to `0.560`, max relative state rate to `0.00168/s`, hydraulic top pressure remains `222.62 psia`, the `60 s` vapor RHS audit reports max relative vapor RHS `0.000993/s`, and the energy/vapor audit reports `V_calc - V_used = 0` with max raw temperature rate `2.4e-15 F/s`. Interpretation: stay the course; the linear-steady initializer exposed a real generic top-boundary pressure ordering bug and is now a credible launch candidate.
+- The `300 s` extension after the top-anchor fix separates launch initialization from longer runtime coupling. The run stays healthy through roughly `120 s`, then fails around `140 s` when condensed flow jumps from about `8655 lbmol/h` to about `12245 lbmol/h` and the run deteriorates afterward. The first "total-condenser/top-drum coupling" label was too broad. A time-resolved audit (`tools/audit_time_resolved_vapor_drift.py`, reports `logs/time_resolved_vapor_drift_stage12_19_20260707.md` and `logs/time_resolved_vapor_drift_allstages_20260707.md`) shows `V_to_top_drum_lbmolph = 0` at every logged time and a blank/NaN vapor-slip pressure gate scale, so the strict total-condenser vapor-slip/gate branch is not the direct cause. The condenser-flow jump is a downstream symptom of broader vapor traffic. Around the same onset, the feed-region energy residual over heat capacity jumps from about `0.185 F/s` at `120 s` to about `6.08 F/s` at `140 s`, then about `9.43 F/s` at `160 s`; by `160 s`, the worst vapor RHS rows are generic interior vapor/equilibrium/transport rows near the feed/lower-column transition. Level-control diagnostics also do not remove the onset. Interpretation: do not turn this into another initializer search, a level-controller tuning rabbit hole, or a top vapor-slip/gate edit. The next correction target is the generic interior energy/vapor-flow/equilibrium path that causes the `140 s` vapor-traffic change.
+- 2026-07-08 follow-up: the lower-column/feed-region deterioration was traced to equilibrium component-transfer overshoot relative to the local pre-equilibrium vapor material RHS. The RHS now applies a generic row-wise component-transfer guard after the phase-holdup guard. The first size-only guard (`max_cancel_multiplier=1.5`) reduced the `180 s` post-feed-fix score from about `156` to `2.52`, and the `300 s` extension completed but still had waves up to score `64.3`. A sign-aware limiter then separated opposing transfers from same-direction amplification; with the default `1.5` multiplier, the final `300 s` score improved to `3.00` and the worst wave dropped to `50.0`. Tightening the guard with `--equilibrium-component-transfer-max-cancel-multiplier 1.0` gave the best current `300 s` result: final score `2.26`, final relative rate `0.00679/s`, and worst score `22.7` at about `155 s`. The worst remaining `155 s` audit is mostly transport-only because same-direction equilibrium amplification is blocked. Interpretation: the equilibrium-transfer guard is fruitful, not a rabbit hole, but it has exposed the next defect family: a generic vapor-transport wave that the equilibrium source should not be asked to hide.
+- `tools/audit_vapor_transport_pulse.py` was added to separate vapor-transport pulses into vapor traffic magnitude, upstream/downstream composition gradient, local inventory scale, and non-transport source terms. On the current best run, the `155 s` pulse is dominated by large composition gradients carried by roughly `8,300-8,500 lbmol/h` vapor traffic, especially the propane/butane gradient across adjacent upper/interior stages. Later pulses are smaller and migrate: the partial `600 s` extension reached `390 s`, with score down to `1.73` and live vapor RHS max down to about `0.00377/s`. The `340 s` bump is still a mixed transport wave, but by `390 s` it is much weaker. Interpretation: do not add a transport-equation limiter yet. The remaining motion looks like a long damped startup transient after the generic equilibrium-transfer fix, not a newly identified transport formula bug.
+- The sparse `900 s` dynamic gate completed and passed with the same recipe (`logs/c3c4_stage2_liq_eq_vap_linearsteady_900s_eqcompguard_m1_20260708`). The final score is `0.969`, final relative state rate is `0.00291/s`, temperature rate remains `0 F/s`, and no top-drum vapor slip is logged. The largest early pulse is still at about `200 s` (`score=14.0`), followed by a smaller `340 s` pulse (`score=10.37`). After `600 s`, the largest pulses are `720 s` (`score=3.15`) and `860 s` (`score=2.31`), and the run returns to pass by `880-900 s`. Transport-pulse audits at `720 s` and `860 s` show the same generic mixed vapor-transport family, with max relative vapor RHS reduced to about `0.00930/s` and `0.00684/s`, respectively. Interpretation: the initializer/runtime path is now viable for this gate. Treat the remaining post-600 s ripples as small damped transients unless a longer gate shows growth or a limit cycle.
+- Geometry-based level control was then activated with `--enable-level-control --ignore-workbook-level-pv-mode --top-level-pv-mode true-level --bottom-level-pv-mode true-level`. With gentle tuning (`top/bottom Kc=1`, `Ti=600 s`), the `900 s` run (`logs/c3c4_stage2_liq_eq_vap_linearsteady_900s_eqcompguard_m1_truelevel_20260708`) also passed: final score `0.972`, final relative state rate `0.00292/s`, and temperature rate `0 F/s`. The controller PVs are real geometry fractions, not molar holdup PVs. This setup reduced the largest early pulse versus open loop (`12.65` at `200 s` versus `14.0`), but the top level drifted below its initial setpoint (`0.429` versus `0.510`) while the bottom rose (`0.549` versus `0.526`). A stronger probe (`Kc=4`, `Ti=300 s`, `300 s`) held levels better but worsened the early launch pulse (`score=21.26` at `140 s`). Interpretation: geometry level control is operational and safe enough for the current gate with gentle tuning, but controller tuning should be treated as a later closed-loop operations problem, not as an initializer fix.
+- A checkpoint-guided Excel export was tested from the quiet `900 s` profile. After generic component-name and boundary-name mapping fixes, the export correctly wrote all tray composition, liquid holdup, vapor holdup, flow rows, and top/bottom liquid boundary states. However, default startup thermo conditioning changed the reconciled tray compositions before integration, and the `300 s` reload failed (`score=26.5`). Disabling startup/re-entry conditioning preserved the state better and stayed bounded for `60 s` (`score=1.44`), but the native checkpoint restart from the same source was still better (`score=1.16`). Interpretation: do not treat Excel projection as the accepted initializer artifact. The accepted path should serialize native checkpoint-style state and runtime memory; Excel export is a review/interoperability bridge unless it passes reload parity.
+
+Interpretation: vapor-flow lag is a real amplifier, enthalpy precedence was a real bug, the `last_dT_tray` target was a real dynamic-memory path, top-boundary reflux enthalpy ownership was a real RHS inconsistency, explicit tray vapor composition was a real initialization blocker, and top-anchor pressure ordering was a real boundary-pressure bug. These are now diagnosable or corrected. The current best initializer path is the linear-steady vapor projection plus the top-anchor ordering fix, gated by dynamic launch tests. Do not continue the static vapor-composition-only reconciliation branch, do not resume vapor-equilibrium blend sweeps, and do not make broader equation changes unless a longer dynamic gate exposes a specific remaining defect. The current longer-gate defect is specific enough: inspect the interior energy/vapor-flow/equilibrium path that precedes the condenser-flow symptom before changing top-drum vapor-slip, level-control, or generic tray equations.

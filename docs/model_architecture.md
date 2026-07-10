@@ -19,6 +19,19 @@ In consequence, initialization is not a trivial "switch to dynamics" operation. 
 
 See `docs/dynamic_column_initialization_strategy.md` for the mathematical foundation and practical workflow.
 See `docs/initialization_code_status.md` for the current support status of initialization, reconciliation, and startup-homotopy tooling.
+See `docs/dynamic_model_current_state_2026-07-08.md` for the latest C3/C4 model-state summary and external-review framing.
+
+2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
+
+2026-07-08 status note: the current best C3/C4 behavior is a bounded 900 s linear-steady/equilibrium-guard checkpoint run. It is a regression baseline, not proof that the full dynamic model is validated. The remaining issues are runtime coupling issues across pressure, vapor transport, energy closure, equilibrium targets, and boundary ownership. A broader implicit simultaneous solve may be the long-term architecture, but it should be introduced incrementally by promoting one closure family at a time and checking against the existing residual audits and dynamic gate.
+
+2026-07-08 sequencing note: before committing engineering time to an implicit simultaneous solve, run the longer baseline gate and a focused vapor-material audit on the localized no-energy/checkpoint residual family. Recent history shows several apparent architecture problems were actually concrete consistency bugs in the current explicit path.
+
+2026-07-08 longer-gate result: the 1800 s extension of the current best C3/C4 recipe failed after the 900 s window. The failure turns on around 1200-1240 s near the generic feed-adjacent interface: stage 12/13 vapor transport terms and energy residuals activate while the no-lag energy vapor-flow calc/used mismatch remains zero. This keeps the focus on runtime coupling and term ownership in the existing model before any broad implicit architecture rewrite.
+
+2026-07-08 K-level gate result: the 900 s run can pass the rate-based steady-state score while `K_state/K_thermo` worsens. The new `tools/audit_k_state_drift.py` report fails that run on final absolute K error, final log-ratio error, and positive trend from the run minimum, with n-pentane around generic interior stage 5 as the final dominant mismatch. Model-health claims now require both rate-based dynamic gates and K-level consistency gates.
+
+2026-07-08 equilibrium-transfer guard tradeoff: the component-transfer guard is now a central coupling issue. Multiplier `1.0` suppresses the dynamic vapor wave better but leaves persistent K drift; multiplier `1.5` improves K consistency but worsens the rate-based wave. This argues for a root-cause review of the guarded equilibrium-transfer formulation and its transport inputs before promoting either setting as the runtime default.
 
 ## 1) Scope
 
@@ -185,6 +198,10 @@ Implication:
 - In hydraulic+energy operation, increasing reboiler duty does not guarantee a same-step
   increase in vapor molar traffic (`V_out`); coupled temperature/enthalpy, pressure,
   and limiter dynamics can produce duty-up / vapor-down behavior.
+- Recent initialization probes showed that reducing a local vapor-flow mismatch or
+  a residual-solver objective is not sufficient evidence that this coupling is
+  dynamically consistent. The acceptance signal is the residual audit plus a
+  short dynamic gate, not the optimizer norm alone.
 
 Optional mitigation now available in runner:
 - inner fixed-point `P/V` coupling per timestep (`--pv-inner-max-iter` with
@@ -320,6 +337,9 @@ Duplicate command identity:
   while implicit substeps use the PV-coupled RHS with seeded algebraics.
 - Hydraulic vapor-flow clamps are still limiter-based; stiff-mode RHS now supports
   optional smooth clamp regularization to reduce derivative kinks near limits.
+- `--dynamic-vflow-nominal-hi-ratio` and the initializer's
+  `--vflow-energy-closure-weight` are diagnostic levers. Current evidence does
+  not support using them as fixes without an energy/vapor-flow topology change.
 - Startup initialization quality strongly affects early transient stiffness.
 
 ## 12) Future Architecture Options

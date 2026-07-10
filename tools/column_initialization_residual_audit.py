@@ -32,6 +32,7 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (  # noqa: E402
     _clear_initial_tray_vapor_holdup,
     _initialize_vapor_holdup_from_spec_pressure,
     build_inputs_for_runner,
+    load_native_checkpoint_initial_state,
 )
 from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel  # noqa: E402
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout  # noqa: E402
@@ -95,6 +96,52 @@ def _build_initial_state(
         preserve_tray_vapor_holdup=bool(use_excel_vapor_holdup),
     )
     return np.asarray(y, dtype=float)
+
+
+def _inputs_with_checkpoint_memory(
+    *,
+    inputs: ColumnInputs,
+    memory: Dict[str, Any],
+    vapor_flow_zero_temperature_target: bool,
+) -> ColumnInputs:
+    """Restore checkpoint runtime memory used by a normal checkpoint restart."""
+    if not memory:
+        return inputs
+
+    p_prev = memory.get("last_P_hyd")
+    if p_prev is None:
+        p_prev = memory.get("last_P_diag")
+    kwargs: Dict[str, Any] = {
+        "P_tray_prev": p_prev,
+        "T_tray_prev_F": memory.get("last_T_tray"),
+        "K_tray_prev": memory.get("last_K_tray"),
+        "HL_prev": memory.get("last_HL"),
+        "HV_prev": memory.get("last_HV"),
+        "Zfac_prev": memory.get("last_Zfac"),
+        "Z_overall_prev": memory.get("last_z_overall"),
+        "V_out_prev_lbmolph": memory.get("last_V_out"),
+        "dT_tray_target_F_per_s": (
+            None if bool(vapor_flow_zero_temperature_target) else memory.get("last_dT_tray")
+        ),
+        "rhoL_tray_lbmol_ft3": memory.get("last_rhoL"),
+        "tray_thermo_prev": memory.get("last_tray_thermo_packet"),
+        "condenser_duty_prev": memory.get("last_condenser_duty_packet"),
+        "bottom_sump_cp_prev": memory.get("last_bottom_sump_cp_packet"),
+        "energy_balance_resid_prev_BTUps_tray": memory.get("last_energy_resid_tray"),
+        "phase_energy_damping_min_prev_tray": memory.get("last_phase_energy_damping_min"),
+        "tray_temp_pressure_slope_prev_F_per_psi": memory.get("last_tray_temp_pressure_slope"),
+        "tray_bubble_target_prev_F": memory.get("last_tray_bubble_target_F"),
+        "reb_T_prev": memory.get("last_reb_T"),
+        "reb_x_prev": memory.get("last_reb_x"),
+        "reb_y_prev": memory.get("last_reb_y"),
+        "reb_beta_prev": memory.get("last_reb_beta"),
+        "top_drum_pressure_T_prev_F": memory.get("last_top_drum_pressure_T"),
+    }
+    if bool(getattr(inputs, "flash_feed_at_stage_conditions", False)):
+        kwargs["feed_stage_flash_prev"] = memory.get("last_feed_stage_flash_packet")
+    else:
+        kwargs["feed_stage_flash_prev"] = None
+    return replace(inputs, **kwargs)
 
 
 def _iter_state_rows(
@@ -219,6 +266,13 @@ def _write_markdown(path: Path, summary: Dict[str, Any], top_rows: List[Dict[str
     lines.append("# Column Initialization Residual Audit")
     lines.append("")
     lines.append(f"- Excel: `{summary['excel']}`")
+    lines.append(f"- Initial state source: `{summary['initial_state_source']}`")
+    if summary.get("init_from_checkpoint"):
+        lines.append(f"- Native checkpoint: `{summary['init_from_checkpoint']}`")
+        lines.append(
+            "- Checkpoint restored memory keys: "
+            f"`{', '.join(summary.get('checkpoint_restored_memory_keys', []))}`"
+        )
     lines.append(f"- Thermo: `{summary['thermo_mode']}`")
     lines.append(f"- Runtime mode: `{summary['runtime_mode']}`")
     lines.append(f"- Pressure model: `{summary['pressure_model']}`")
@@ -278,6 +332,14 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Audit t=0 dynamic consistency of a column initialization seed.")
     ap.add_argument("--excel", required=True, help="Input workbook to audit.")
     ap.add_argument(
+        "--init-from-checkpoint",
+        default=None,
+        help=(
+            "Load a native .npz checkpoint state before the one-shot RHS audit. "
+            "The Excel file still defines the case/layout."
+        ),
+    )
+    ap.add_argument(
         "--thermo",
         dest="thermo_mode",
         choices=["stub", "relative-volatility", "simple-rv", "constant-alpha", "clapeyron", "table", "table-pool", "dwsim"],
@@ -305,6 +367,12 @@ def main() -> int:
     ap.add_argument("--flash-feed-at-stage-conditions", dest="flash_feed_at_stage_conditions", action="store_true")
     ap.set_defaults(flash_feed_at_stage_conditions=None)
     ap.add_argument("--vapor-holdup-relaxation-sec", type=float, default=None)
+    ap.add_argument("--vapor-flow-relaxation-sec", type=float, default=None)
+    ap.add_argument(
+        "--vapor-flow-zero-temperature-target",
+        action="store_true",
+        help="Do not restore checkpoint dT/dt target memory into the energy vapor-flow closure.",
+    )
     ap.add_argument("--debug-freeze-tray-vapor-derivatives", action="store_true")
     ap.add_argument("--debug-override-reflux-composition", action="store_true")
     ap.add_argument("--debug-clamp-top-drum-pressure-psia", type=float, default=None)
@@ -318,6 +386,11 @@ def main() -> int:
     excel_path = _resolve_path(args.excel)
     if not excel_path.exists():
         raise FileNotFoundError(f"Excel case file not found: {excel_path}")
+    checkpoint_path: Optional[Path] = None
+    if args.init_from_checkpoint:
+        checkpoint_path = _resolve_path(args.init_from_checkpoint)
+        if not checkpoint_path.exists():
+            raise FileNotFoundError(f"Native checkpoint file not found: {checkpoint_path}")
 
     thermo_table_path: Optional[Path] = None
     if str(args.thermo_mode).lower() in ("table", "table-pool"):
@@ -359,6 +432,7 @@ def main() -> int:
         enable_equilibrium_relaxation=bool(args.enable_equilibrium_relaxation),
         flash_feed_at_stage_conditions=args.flash_feed_at_stage_conditions,
         vapor_holdup_relaxation_sec=args.vapor_holdup_relaxation_sec,
+        vapor_flow_relaxation_sec=args.vapor_flow_relaxation_sec,
         debug_freeze_tray_vapor_derivatives=bool(args.debug_freeze_tray_vapor_derivatives),
         debug_override_reflux_composition=bool(args.debug_override_reflux_composition),
         debug_clamp_top_drum_pressure_psia=args.debug_clamp_top_drum_pressure_psia,
@@ -373,13 +447,29 @@ def main() -> int:
         elif args.scenario == "spec_profile_with_feed_flash":
             inputs = replace(inputs, pressure_model="spec", vapor_flow_model="profile", flash_feed_at_stage_conditions=True)
 
-        y0 = _build_initial_state(
-            col=col,
-            layout=layout,
-            inputs=inputs,
-            include_temperature=bool(args.include_temperature),
-            use_excel_vapor_holdup=bool(args.use_excel_vapor_holdup),
-        )
+        checkpoint_info: Dict[str, Any] = {}
+        checkpoint_memory: Dict[str, Any] = {}
+        initial_state_source = "excel"
+        if checkpoint_path is not None:
+            y0, checkpoint_info, checkpoint_memory = load_native_checkpoint_initial_state(
+                path=checkpoint_path,
+                layout=layout,
+                col=col,
+            )
+            inputs = _inputs_with_checkpoint_memory(
+                inputs=inputs,
+                memory=checkpoint_memory,
+                vapor_flow_zero_temperature_target=bool(args.vapor_flow_zero_temperature_target),
+            )
+            initial_state_source = "native_checkpoint"
+        else:
+            y0 = _build_initial_state(
+                col=col,
+                layout=layout,
+                inputs=inputs,
+                include_temperature=bool(args.include_temperature),
+                use_excel_vapor_holdup=bool(args.use_excel_vapor_holdup),
+            )
         dydt, diag = column_rhs(0.0, y0, col, layout, inputs)
         u = layout.unpack(y0)
         du = layout.unpack(np.asarray(dydt, dtype=float))
@@ -433,6 +523,10 @@ def main() -> int:
 
         summary: Dict[str, Any] = {
             "excel": str(excel_path),
+            "initial_state_source": str(initial_state_source),
+            "init_from_checkpoint": "" if checkpoint_path is None else str(checkpoint_path),
+            "checkpoint_info": dict(checkpoint_info),
+            "checkpoint_restored_memory_keys": list(checkpoint_info.get("restored_memory_keys", [])),
             "thermo_mode": str(args.thermo_mode),
             "clapeyron_model": str(args.clapeyron_model),
             "runtime_mode": str(args.runtime_mode),
@@ -444,10 +538,12 @@ def main() -> int:
             "flash_feed_at_stage_conditions": bool(getattr(inputs, "flash_feed_at_stage_conditions", False)),
             "equilibrium_relaxation": bool(getattr(inputs, "equilibrium_relaxation", False)),
             "vapor_holdup_relaxation_sec": getattr(inputs, "vapor_holdup_relaxation_sec", None),
+            "vapor_flow_relaxation_sec": getattr(inputs, "vapor_flow_relaxation_sec", None),
             "debug_freeze_tray_vapor_derivatives": bool(getattr(inputs, "debug_freeze_tray_vapor_derivatives", False)),
             "debug_override_reflux_composition": bool(getattr(inputs, "debug_override_reflux_composition", False)),
             "debug_clamp_top_drum_pressure_psia": getattr(inputs, "debug_clamp_top_drum_pressure_psia", None),
             "use_excel_vapor_holdup": bool(args.use_excel_vapor_holdup),
+            "vapor_flow_zero_temperature_target": bool(args.vapor_flow_zero_temperature_target),
             "include_vapor_states": bool(args.include_vapor_states),
             "include_boundary_states": bool(args.include_boundary_states),
             "include_temperature": bool(args.include_temperature),
@@ -525,6 +621,8 @@ def main() -> int:
         worst = rows[0] if rows else {}
         print("Column initialization residual audit")
         print(f"Excel: {excel_path}")
+        if checkpoint_path is not None:
+            print(f"Native checkpoint: {checkpoint_path}")
         print(f"Output: {output_dir}")
         print(f"Gate pass: {gate_pass}")
         print(f"Max relative state rate: {max_rel:.8g} 1/s")

@@ -39,6 +39,7 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (  # noqa: E402
     _clear_initial_tray_vapor_holdup,
     _initialize_vapor_holdup_from_spec_pressure,
     build_inputs_for_runner,
+    load_native_checkpoint_initial_state,
 )
 from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel  # noqa: E402
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout  # noqa: E402
@@ -148,6 +149,50 @@ def _build_initial_state(
     return np.asarray(y, dtype=float)
 
 
+def _inputs_with_checkpoint_memory(
+    *,
+    inputs: ColumnInputs,
+    memory: Dict[str, Any],
+    vapor_flow_zero_temperature_target: bool,
+) -> ColumnInputs:
+    if not memory:
+        return inputs
+    p_prev = memory.get("last_P_hyd")
+    if p_prev is None:
+        p_prev = memory.get("last_P_diag")
+    kwargs: Dict[str, Any] = {
+        "P_tray_prev": p_prev,
+        "T_tray_prev_F": memory.get("last_T_tray"),
+        "K_tray_prev": memory.get("last_K_tray"),
+        "HL_prev": memory.get("last_HL"),
+        "HV_prev": memory.get("last_HV"),
+        "Zfac_prev": memory.get("last_Zfac"),
+        "Z_overall_prev": memory.get("last_z_overall"),
+        "V_out_prev_lbmolph": memory.get("last_V_out"),
+        "dT_tray_target_F_per_s": (
+            None if bool(vapor_flow_zero_temperature_target) else memory.get("last_dT_tray")
+        ),
+        "rhoL_tray_lbmol_ft3": memory.get("last_rhoL"),
+        "tray_thermo_prev": memory.get("last_tray_thermo_packet"),
+        "condenser_duty_prev": memory.get("last_condenser_duty_packet"),
+        "bottom_sump_cp_prev": memory.get("last_bottom_sump_cp_packet"),
+        "energy_balance_resid_prev_BTUps_tray": memory.get("last_energy_resid_tray"),
+        "phase_energy_damping_min_prev_tray": memory.get("last_phase_energy_damping_min"),
+        "tray_temp_pressure_slope_prev_F_per_psi": memory.get("last_tray_temp_pressure_slope"),
+        "tray_bubble_target_prev_F": memory.get("last_tray_bubble_target_F"),
+        "reb_T_prev": memory.get("last_reb_T"),
+        "reb_x_prev": memory.get("last_reb_x"),
+        "reb_y_prev": memory.get("last_reb_y"),
+        "reb_beta_prev": memory.get("last_reb_beta"),
+        "top_drum_pressure_T_prev_F": memory.get("last_top_drum_pressure_T"),
+    }
+    if bool(getattr(inputs, "flash_feed_at_stage_conditions", False)):
+        kwargs["feed_stage_flash_prev"] = memory.get("last_feed_stage_flash_packet")
+    else:
+        kwargs["feed_stage_flash_prev"] = None
+    return replace(inputs, **kwargs)
+
+
 def _safe_specific_h(energy: np.ndarray, holdup: np.ndarray, max_abs_h: float = 1.0e6) -> np.ndarray:
     den = np.maximum(np.asarray(holdup, dtype=float), 1e-8)
     with np.errstate(over="ignore", divide="ignore", invalid="ignore"):
@@ -160,10 +205,17 @@ def _safe_specific_h(energy: np.ndarray, holdup: np.ndarray, max_abs_h: float = 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Generate stage energy residual breakdown report at t=0.")
     ap.add_argument("--excel", dest="excel_path", default="distillation_column_template.xlsx")
+    ap.add_argument(
+        "--init-from-checkpoint",
+        default=None,
+        help="Load a native .npz checkpoint state before the t=0 energy breakdown.",
+    )
     ap.add_argument("--thermo", dest="thermo_mode", choices=["stub", "table", "table-pool", "dwsim"], default="table-pool")
     ap.add_argument("--thermo-table", dest="thermo_table_path", default="cache/thermo_table.json")
     ap.add_argument("--thermo-pool-workers", dest="thermo_pool_workers", type=int, default=6)
     ap.add_argument("--thermo-pool-chunk-size", dest="thermo_pool_chunk_size", type=int, default=4)
+    ap.add_argument("--runtime-mode", choices=["legacy", "parity", "calibration", "hydraulic"], default="parity")
+    ap.add_argument("--condenser-duty-mode", default="total-condense")
     ap.add_argument(
         "--scenario",
         dest="scenario",
@@ -175,15 +227,33 @@ def main() -> int:
     )
     ap.add_argument("--no-temperature", dest="include_temperature", action="store_false")
     ap.add_argument("--use-excel-vapor-holdup", dest="use_excel_vapor_holdup", action="store_true")
+    ap.add_argument("--include-energy", dest="include_energy", action="store_true")
+    ap.add_argument("--no-equilibrium", dest="enable_equilibrium_relaxation", action="store_false")
+    ap.set_defaults(enable_equilibrium_relaxation=True)
+    ap.add_argument("--no-flash-feed-at-stage-conditions", dest="flash_feed_at_stage_conditions", action="store_false")
+    ap.add_argument("--flash-feed-at-stage-conditions", dest="flash_feed_at_stage_conditions", action="store_true")
+    ap.set_defaults(flash_feed_at_stage_conditions=None)
+    ap.add_argument("--vapor-holdup-relaxation-sec", type=float, default=None)
+    ap.add_argument("--vapor-flow-relaxation-sec", type=float, default=None)
+    ap.add_argument(
+        "--vapor-flow-zero-temperature-target",
+        action="store_true",
+        help="Do not restore checkpoint dT/dt target memory into the energy vapor-flow closure.",
+    )
     ap.add_argument("--output-csv", dest="output_csv", default=None)
     ap.add_argument("--output-summary", dest="output_summary", default=None)
-    ap.set_defaults(include_temperature=True)
+    ap.set_defaults(include_temperature=True, include_energy=True)
     args = ap.parse_args()
 
     project_root = Path(__file__).resolve().parents[1]
     excel_path = _resolve_path(project_root, str(args.excel_path))
     if not excel_path.exists():
         raise FileNotFoundError(f"Excel case file not found: {excel_path}")
+    checkpoint_path: Optional[Path] = None
+    if args.init_from_checkpoint:
+        checkpoint_path = _resolve_path(project_root, str(args.init_from_checkpoint))
+        if not checkpoint_path.exists():
+            raise FileNotFoundError(f"Native checkpoint file not found: {checkpoint_path}")
 
     thermo_table_path: Optional[Path] = None
     if str(args.thermo_mode).lower() in ("table", "table-pool"):
@@ -205,25 +275,46 @@ def main() -> int:
 
     cfg = RunnerConfig(
         excel_path=str(excel_path),
+        runtime_mode=str(args.runtime_mode),
         thermo_mode=str(args.thermo_mode),
         thermo_table_path=(None if thermo_table_path is None else str(thermo_table_path)),
         thermo_pool_workers=args.thermo_pool_workers,
         thermo_pool_chunk_size=max(int(args.thermo_pool_chunk_size), 1),
         include_temperature=bool(args.include_temperature),
         include_energy=True,
+        condenser_duty_mode=str(args.condenser_duty_mode),
+        enable_equilibrium_relaxation=bool(args.enable_equilibrium_relaxation),
+        flash_feed_at_stage_conditions=args.flash_feed_at_stage_conditions,
+        vapor_holdup_relaxation_sec=args.vapor_holdup_relaxation_sec,
+        vapor_flow_relaxation_sec=args.vapor_flow_relaxation_sec,
         write_logs=False,
     )
 
     base_inputs, provider = build_inputs_for_runner(case, col, cfg)
     try:
         inputs = _scenario_inputs(base_inputs, str(args.scenario))
-        y0 = _build_initial_state(
-            col=col,
-            layout=layout,
-            inputs=inputs,
-            include_temperature=bool(args.include_temperature),
-            use_excel_vapor_holdup=bool(args.use_excel_vapor_holdup),
-        )
+        checkpoint_info: Dict[str, Any] = {}
+        initial_state_source = "excel"
+        if checkpoint_path is not None:
+            y0, checkpoint_info, checkpoint_memory = load_native_checkpoint_initial_state(
+                path=checkpoint_path,
+                layout=layout,
+                col=col,
+            )
+            inputs = _inputs_with_checkpoint_memory(
+                inputs=inputs,
+                memory=checkpoint_memory,
+                vapor_flow_zero_temperature_target=bool(args.vapor_flow_zero_temperature_target),
+            )
+            initial_state_source = "native_checkpoint"
+        else:
+            y0 = _build_initial_state(
+                col=col,
+                layout=layout,
+                inputs=inputs,
+                include_temperature=bool(args.include_temperature),
+                use_excel_vapor_holdup=bool(args.use_excel_vapor_holdup),
+            )
 
         # Evaluate RHS once at initial state.
         dydt, diag = column_rhs(0.0, y0, col, layout, inputs)
@@ -352,18 +443,49 @@ def main() -> int:
                     thermo=thermo_ref,
                     thermo_provider=getattr(inputs, "thermo_provider", None),
                     epsilon_lbmol=eps,
+                    flash_feed_at_stage_conditions=bool(getattr(inputs, "flash_feed_at_stage_conditions", True)),
                 )
             )
 
         dT = _diag_vec(diag, "dT_tray_F_per_s", N)
         energy_resid_diag = _diag_vec(diag, "energy_balance_resid_BTUps_tray", N)
+        dML_model = np.sum(np.asarray(du["tray_L"], dtype=float).reshape((N, Nc)), axis=1)
+        dMV_model = (
+            np.sum(np.asarray(du["tray_V"], dtype=float).reshape((N, Nc)), axis=1)
+            if "tray_V" in du
+            else np.zeros(N, dtype=float)
+        )
+        q_feed_diag = _diag_vec(diag, "Q_feed_BTUps_tray", N)
+        temp_energy_dE = _diag_vec(diag, "temp_energy_dE_BTUps_tray", N)
+        temp_energy_L_in = _diag_vec(diag, "temp_energy_L_in_term_BTUps_tray", N)
+        temp_energy_V_in = _diag_vec(diag, "temp_energy_V_in_term_BTUps_tray", N)
+        temp_energy_feed = _diag_vec(diag, "temp_energy_feed_ref_term_BTUps_tray", N)
+        temp_energy_duty = _diag_vec(diag, "temp_energy_duty_term_BTUps_tray", N)
+        temp_energy_V_out = _diag_vec(diag, "temp_energy_V_out_term_BTUps_tray", N)
+        temp_energy_P_used = _diag_vec(diag, "temp_energy_P_used_psia_tray", N)
+        temp_energy_h_ref = _diag_vec(diag, "temp_energy_hL_out_BTU_per_lbmol_tray", N)
+        vflow_energy_resid = _diag_vec(diag, "vflow_energy_resid_after_used_BTUps", N)
+        vflow_energy_calc = _diag_vec(diag, "vflow_energy_calc_lbmolph", N)
+        vflow_energy_used = _diag_vec(diag, "vflow_energy_used_lbmolph", N)
+        vflow_energy_clamped = _diag_vec(diag, "vflow_energy_clamped", N)
+        vflow_energy_L_in = _diag_vec(diag, "vflow_energy_L_in_term_BTUps", N)
+        vflow_energy_V_in = _diag_vec(diag, "vflow_energy_V_in_term_BTUps", N)
+        vflow_energy_feed = _diag_vec(diag, "vflow_energy_feed_ref_term_BTUps", N)
+        vflow_energy_duty = _diag_vec(diag, "vflow_energy_duty_term_BTUps", N)
+        vflow_energy_target = _diag_vec(diag, "vflow_energy_dE_target_BTUps", N)
+        vflow_energy_P_used = _diag_vec(diag, "vflow_energy_P_used_psia", N)
 
         rows: List[Dict[str, Any]] = []
         for i in range(N):
+            dM_total_i = float(dML_model[i] + dMV_model[i])
+            ref_adjusted_i = float(model_total[i] - float(temp_energy_h_ref[i]) * dM_total_i)
             rows.append(
                 {
                     "stage_1based": int(i + 1),
                     "dE_model_total_BTUps": float(model_total[i]),
+                    "dML_model_lbmolps": float(dML_model[i]),
+                    "dMV_model_lbmolps": float(dMV_model[i]),
+                    "dM_total_model_lbmolps": dM_total_i,
                     "dEL_model_BTUps": float(dEL_model[i]),
                     "dEV_model_BTUps": float(dEV_model[i]),
                     "energy_balance_resid_diag_BTUps": float(energy_resid_diag[i]),
@@ -376,7 +498,29 @@ def main() -> int:
                     "model_term_sum_BTUps": float(model_term_sum[i]),
                     "closure_error_BTUps": float(closure_err[i]),
                     "feed_enthalpy_est_BTUps": float(feed_q[i]),
+                    "feed_enthalpy_diag_BTUps": float(q_feed_diag[i]),
                     "dE_model_plus_feed_BTUps": float(model_total[i] + feed_q[i]),
+                    "energy_state_ref_adjusted_BTUps": ref_adjusted_i,
+                    "energy_state_ref_adjusted_minus_temp_BTUps": float(ref_adjusted_i - temp_energy_dE[i]),
+                    "temp_energy_dE_BTUps": float(temp_energy_dE[i]),
+                    "temp_energy_minus_energy_state_BTUps": float(temp_energy_dE[i] - model_total[i]),
+                    "temp_energy_L_in_ref_BTUps": float(temp_energy_L_in[i]),
+                    "temp_energy_V_in_ref_BTUps": float(temp_energy_V_in[i]),
+                    "temp_energy_feed_ref_BTUps": float(temp_energy_feed[i]),
+                    "temp_energy_duty_BTUps": float(temp_energy_duty[i]),
+                    "temp_energy_V_out_ref_BTUps": float(temp_energy_V_out[i]),
+                    "temp_energy_P_used_psia": float(temp_energy_P_used[i]),
+                    "vflow_energy_resid_after_used_BTUps": float(vflow_energy_resid[i]),
+                    "vflow_energy_calc_lbmolph": float(vflow_energy_calc[i]),
+                    "vflow_energy_used_lbmolph": float(vflow_energy_used[i]),
+                    "vflow_energy_calc_minus_used_lbmolph": float(vflow_energy_calc[i] - vflow_energy_used[i]),
+                    "vflow_energy_clamped": float(vflow_energy_clamped[i]),
+                    "vflow_energy_L_in_ref_BTUps": float(vflow_energy_L_in[i]),
+                    "vflow_energy_V_in_ref_BTUps": float(vflow_energy_V_in[i]),
+                    "vflow_energy_feed_ref_BTUps": float(vflow_energy_feed[i]),
+                    "vflow_energy_duty_BTUps": float(vflow_energy_duty[i]),
+                    "vflow_energy_dE_target_BTUps": float(vflow_energy_target[i]),
+                    "vflow_energy_P_used_psia": float(vflow_energy_P_used[i]),
                     "L_out_lbmolph": float(L_out[i] * 3600.0),
                     "V_out_lbmolph": float(V_out[i] * 3600.0),
                     "ML_lbmol": float(ML[i]),
@@ -409,6 +553,33 @@ def main() -> int:
                 f"duty={float(dEL_duty[j] + dEV_duty[j]): .3f}, "
                 f"feed_est={float(feed_q[j]): .3f})"
             )
+        temp_gap = temp_energy_dE - model_total
+        dM_total_model = dML_model + dMV_model
+        energy_state_ref_adjusted = model_total - temp_energy_h_ref * dM_total_model
+        ref_adjusted_gap = energy_state_ref_adjusted - temp_energy_dE
+        temp_gap_idx = np.argsort(-np.abs(temp_gap))
+        temp_gap_lines: List[str] = []
+        for j in temp_gap_idx[: min(10, N)]:
+            temp_gap_lines.append(
+                f"  stage {int(j + 1):2d}: temp_minus_energy_state={float(temp_gap[j]): .3f} BTU/s, "
+                f"temp_dE={float(temp_energy_dE[j]): .3f}, energy_state_dE={float(model_total[j]): .3f}"
+            )
+        ref_gap_idx = np.argsort(-np.abs(ref_adjusted_gap))
+        ref_gap_lines: List[str] = []
+        for j in ref_gap_idx[: min(10, N)]:
+            ref_gap_lines.append(
+                f"  stage {int(j + 1):2d}: ref_adjusted_minus_temp={float(ref_adjusted_gap[j]): .3f} BTU/s, "
+                f"ref_adjusted={float(energy_state_ref_adjusted[j]): .3f}, "
+                f"temp_dE={float(temp_energy_dE[j]): .3f}, dM={float(dM_total_model[j]): .6f} lbmol/s"
+            )
+        vflow_resid_idx = np.argsort(-np.abs(vflow_energy_resid))
+        vflow_lines: List[str] = []
+        for j in vflow_resid_idx[: min(10, N)]:
+            vflow_lines.append(
+                f"  stage {int(j + 1):2d}: vflow_resid={float(vflow_energy_resid[j]): .3f} BTU/s, "
+                f"V_calc-used={float(vflow_energy_calc[j] - vflow_energy_used[j]): .3f} lbmol/h, "
+                f"clamped={float(vflow_energy_clamped[j]):.0f}"
+            )
 
         if args.output_summary:
             out_txt = _resolve_path(project_root, str(args.output_summary))
@@ -418,11 +589,18 @@ def main() -> int:
         summary_lines = [
             "Stage Energy Residual Breakdown Report",
             f"excel: {excel_path}",
+            f"initial_state_source: {initial_state_source}",
+            f"native_checkpoint: {'' if checkpoint_path is None else checkpoint_path}",
+            f"checkpoint_restored_memory_keys: {', '.join(checkpoint_info.get('restored_memory_keys', []))}",
             f"thermo_mode: {str(args.thermo_mode).lower()}",
+            f"runtime_mode: {str(args.runtime_mode)}",
             f"scenario: {str(args.scenario)}",
             f"pressure_model: {getattr(inputs, 'pressure_model', None)}",
             f"vapor_flow_model: {getattr(inputs, 'vapor_flow_model', None)}",
             f"flash_feed_at_stage_conditions: {bool(getattr(inputs, 'flash_feed_at_stage_conditions', True))}",
+            f"equilibrium_relaxation: {bool(getattr(inputs, 'equilibrium_relaxation', False))}",
+            f"vapor_flow_zero_temperature_target: {bool(args.vapor_flow_zero_temperature_target)}",
+            f"vapor_flow_relaxation_sec: {getattr(inputs, 'vapor_flow_relaxation_sec', None)}",
             f"include_temperature: {bool(args.include_temperature)}",
             f"include_energy: True",
             "",
@@ -437,9 +615,21 @@ def main() -> int:
             f"max_abs_feed_enthalpy_est_BTUps: {float(np.nanmax(np.abs(feed_q))):.6f}",
             f"worst_feed_stage_1based: {int(np.nanargmax(np.abs(feed_q)) + 1)}",
             f"max_abs_closure_error_BTUps: {float(np.nanmax(np.abs(closure_err))):.6g}",
+            f"max_abs_temp_minus_energy_state_BTUps: {float(np.nanmax(np.abs(temp_gap))):.6f}",
+            f"max_abs_energy_state_ref_adjusted_minus_temp_BTUps: {float(np.nanmax(np.abs(ref_adjusted_gap))):.6f}",
+            f"max_abs_vflow_energy_resid_after_used_BTUps: {float(np.nanmax(np.abs(vflow_energy_resid))):.6f}",
             "",
             "Top stages by |dE_model|:",
             *top_lines,
+            "",
+            "Top stages by |temperature-state minus energy-state dE|:",
+            *temp_gap_lines,
+            "",
+            "Top stages by |reference-adjusted energy-state minus temperature-state dE|:",
+            *ref_gap_lines,
+            "",
+            "Top stages by |vflow energy residual after used V|:",
+            *vflow_lines,
             "",
             f"csv: {out_csv}",
         ]

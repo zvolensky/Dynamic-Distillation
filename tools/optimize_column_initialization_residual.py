@@ -372,6 +372,22 @@ def _stage_continuity_terms(stage_vectors: Dict[int, np.ndarray], n: int) -> np.
     return np.concatenate(terms) if terms else np.zeros(0, dtype=float)
 
 
+def _vflow_energy_closure_terms(
+    diag: Dict[str, Any],
+    v_nominal_lbmolph: np.ndarray,
+    residual_stages: List[int],
+    *,
+    denom_floor_lbmol: float,
+) -> np.ndarray:
+    v_calc = np.asarray(diag["vflow_energy_calc_lbmolph"], dtype=float).reshape((-1,))
+    v_used = np.asarray(diag["vflow_energy_used_lbmolph"], dtype=float).reshape((-1,))
+    v_nom = np.asarray(v_nominal_lbmolph, dtype=float).reshape((-1,))
+    idx = np.asarray(residual_stages, dtype=int).reshape((-1,))
+    mismatch = (v_calc - v_used)[idx]
+    scale = np.abs(v_nom[idx]) + np.abs(v_used[idx]) + float(denom_floor_lbmol)
+    return mismatch.reshape(-1) / np.maximum(scale, 1.0e-300)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Bounded least-squares t=0 initializer.")
     ap.add_argument("--input", required=True)
@@ -453,6 +469,16 @@ def main() -> int:
     ap.add_argument("--bottom-boundary-balance-weight", type=float, default=0.0)
     ap.add_argument("--bottom-boundary-total-weight", type=float, default=0.0)
     ap.add_argument("--bottom-vapor-interface-weight", type=float, default=0.0)
+    ap.add_argument(
+        "--vflow-energy-closure-weight",
+        type=float,
+        default=0.0,
+        help=(
+            "Optional residual weight for energy vapor-flow closure mismatch "
+            "(vflow_energy_calc_lbmolph - vflow_energy_used_lbmolph), scaled "
+            "by local nominal vapor traffic. Off by default."
+        ),
+    )
     ap.add_argument("--profile-penalty", type=float, default=0.02)
     ap.add_argument("--profile-continuity-penalty", type=float, default=0.0)
     ap.add_argument("--flow-penalty", type=float, default=0.02)
@@ -874,7 +900,7 @@ def main() -> int:
         L_eval, V_eval = apply_flows(z)
         feed_temperature_eval = apply_feed_temperature(z)
         inputs_eval, boundary_eval = apply_boundary(z)
-        dydt, _diag = column_rhs(0.0, y_state, col, layout, inputs_eval)
+        dydt, diag = column_rhs(0.0, y_state, col, layout, inputs_eval)
         u = layout.unpack(y_state)
         du = layout.unpack(np.asarray(dydt, dtype=float))
         parts: List[np.ndarray] = []
@@ -940,6 +966,19 @@ def main() -> int:
                 * (boilup_total + adjacent_total)
                 / flow_scale
             )
+        if float(args.vflow_energy_closure_weight) > 0.0:
+            try:
+                parts.append(
+                    float(args.vflow_energy_closure_weight)
+                    * _vflow_energy_closure_terms(
+                        diag,
+                        V_eval,
+                        residual_stages,
+                        denom_floor_lbmol=float(args.denom_floor_lbmol),
+                    )
+                )
+            except Exception:
+                pass
         if float(args.profile_penalty) > 0.0:
             parts.append(float(args.profile_penalty) * np.asarray(z[:n_profile_var], dtype=float).reshape(-1))
         if float(args.profile_continuity_penalty) > 0.0 and n_comp_var > 0:
@@ -1228,6 +1267,7 @@ def main() -> int:
         "bottom_boundary_balance_weight": float(args.bottom_boundary_balance_weight),
         "bottom_boundary_total_weight": float(args.bottom_boundary_total_weight),
         "bottom_vapor_interface_weight": float(args.bottom_vapor_interface_weight),
+        "vflow_energy_closure_weight": float(args.vflow_energy_closure_weight),
         "profile_continuity_penalty": float(args.profile_continuity_penalty),
         "flow_continuity_penalty": float(args.flow_continuity_penalty),
         "energy_continuity_penalty": float(args.energy_continuity_penalty),

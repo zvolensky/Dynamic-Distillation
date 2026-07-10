@@ -182,6 +182,63 @@ def test_refresh_tray_tp_packet_quarantines_degenerate_two_phase_unit_k_batch_re
     assert result.packet.HV[0] == 220.0
 
 
+def test_refresh_tray_tp_packet_quarantines_single_phase_unit_k_when_prior_packet_valid():
+    n_stages = 1
+    n_components = 2
+    z = np.array([[0.55, 0.45]], dtype=float)
+    packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=z.copy(),
+        K_tray=np.array([[2.0, 0.5]], dtype=float),
+        HL_BTU_lbmol_tray=np.array([-120.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([220.0], dtype=float),
+        Z_tray=np.array([0.8], dtype=float),
+        x_equilibrium_tray=np.array([[0.7, 0.3]], dtype=float),
+        y_equilibrium_tray=np.array([[0.4, 0.6]], dtype=float),
+    )
+
+    class Provider:
+        def flash_TP_full_batch(self, T_req, P_req, z_req):
+            return [
+                (
+                    [0.55, 0.45],
+                    [0.55, 0.45],
+                    [1.0, 1.0],
+                    -999.0,
+                    999.0,
+                    0.95,
+                    12.0,
+                    20.0,
+                    1.0,
+                )
+            ]
+
+    result = refresh_tray_tp_packet(
+        packet=packet,
+        provider=Provider(),
+        T_tray_F=np.array([120.0], dtype=float),
+        P_tray_psia=np.array([210.0], dtype=float),
+        z_overall_tray=z,
+        n_stages=n_stages,
+        n_components=n_components,
+        dT_thresh_F=None,
+        dP_thresh_psia=None,
+        dX_thresh=None,
+        T_prev_F=None,
+        P_prev_psia=None,
+        z_prev=None,
+        ensure_packet_equilibrium_arrays=rhs_module._ensure_packet_equilibrium_arrays,
+        flash_stage_fn=rhs_module._flash_TP_full_stage_F_psia,
+    )
+
+    assert result.batch_used is True
+    assert np.allclose(result.flash_refreshed, np.ones(1, dtype=float))
+    assert np.allclose(result.phase_count, np.array([1.0], dtype=float))
+    assert np.allclose(result.degenerate_two_phase_unit_K_quarantined, np.ones(1, dtype=float))
+    assert np.allclose(result.packet.K_tray[0, :], np.array([2.0, 0.5], dtype=float))
+    assert result.packet.HL[0] == -120.0
+    assert result.packet.HV[0] == 220.0
+
+
 def test_refresh_tray_tp_packet_batch_preserves_cp_arrays_when_available():
     n_stages = 1
     n_components = 2
@@ -298,7 +355,7 @@ def test_refresh_tray_tp_packet_batch_uses_requested_thermo_category():
     assert provider.batch_categories == ["startup_vapor_holdup_tray_refresh"]
 
 
-def test_refresh_temperature_state_phase_enthalpies_reuses_energy_packet_for_vapor():
+def test_refresh_temperature_state_phase_enthalpies_prefers_energy_packet_for_liquid_and_vapor():
     n_stages = 2
     n_components = 2
     thermo_packet = rhs_module.TrayThermoPacket(
@@ -351,7 +408,7 @@ def test_refresh_temperature_state_phase_enthalpies_reuses_energy_packet_for_vap
     )
 
     assert scalar_calls == []
-    assert np.allclose(result.hL_stage_provider, np.array([-100.0, -120.0], dtype=float))
+    assert np.allclose(result.hL_stage_provider, np.array([-90.0, -110.0], dtype=float))
     assert np.allclose(result.hV_stage_provider, np.array([150.0, 175.0], dtype=float))
 
 
@@ -527,8 +584,12 @@ def test_refresh_energy_vapor_flow_phase_enthalpies_reuses_current_packet_before
         scalar_calls.append((args, kwargs))
         raise AssertionError("energy vapor-flow helper should reuse the current packet here")
 
+    class Provider:
+        def flash_TP_full_batch(self, *args, **kwargs):
+            raise AssertionError("forced liquid refresh should use the scalar path")
+
     result = refresh_energy_vapor_flow_phase_enthalpies(
-        provider=object(),
+        provider=Provider(),
         current_packet=current_packet,
         previous_packet=None,
         tray_T_F=np.array([100.0, 120.0], dtype=float),
@@ -548,4 +609,54 @@ def test_refresh_energy_vapor_flow_phase_enthalpies_reuses_current_packet_before
 
     assert scalar_calls == []
     assert np.allclose(result.hL_stage_provider, np.array([-90.0, -110.0], dtype=float))
+    assert np.allclose(result.hV_stage_provider, np.array([150.0, 175.0], dtype=float))
+
+
+def test_refresh_energy_vapor_flow_phase_enthalpies_can_force_liquid_refresh():
+    n_stages = 2
+    n_components = 2
+    current_packet = rhs_module.TrayThermoPacket(
+        z_overall_tray=np.array([[0.8, 0.2], [0.5, 0.5]], dtype=float),
+        K_tray=np.ones((n_stages, n_components), dtype=float),
+        HL_BTU_lbmol_tray=np.array([-90.0, -110.0], dtype=float),
+        HV_BTU_lbmol_tray=np.array([150.0, 175.0], dtype=float),
+        Z_tray=np.ones(n_stages, dtype=float),
+        T_tray_F=np.array([100.0, 120.0], dtype=float),
+        P_tray_psia=np.array([200.0, 210.0], dtype=float),
+        x_equilibrium_tray=np.array([[0.8, 0.2], [0.5, 0.5]], dtype=float),
+        y_equilibrium_tray=np.array([[0.8, 0.2], [0.5, 0.5]], dtype=float),
+    )
+
+    scalar_calls = []
+
+    class FlashResult:
+        HL_BTU_lbmol = -250.0
+        HV_BTU_lbmol = 250.0
+
+    def _scalar_flash(provider, stage_index0, *args, **kwargs):
+        scalar_calls.append(stage_index0)
+        return FlashResult()
+
+    result = refresh_energy_vapor_flow_phase_enthalpies(
+        provider=object(),
+        current_packet=current_packet,
+        previous_packet=None,
+        tray_T_F=np.array([100.0, 120.0], dtype=float),
+        P_tray_psia=np.array([200.0, 210.0], dtype=float),
+        x_tray=np.array([[0.8, 0.2], [0.5, 0.5]], dtype=float),
+        y_tray=np.array([[0.8, 0.2], [0.5, 0.5]], dtype=float),
+        n_stages=n_stages,
+        n_components=n_components,
+        packet_phase_tol_liq=1.0e-6,
+        packet_phase_tol_vap=1.0e-6,
+        packet_dT_tol_F=1.0e-6,
+        packet_dP_tol_psia=1.0e-6,
+        packet_phase_enthalpy_if_compatible_fn=rhs_module._packet_phase_enthalpy_if_compatible,
+        flash_stage_fn=_scalar_flash,
+        packet_factory=rhs_module.TrayThermoPacket,
+        force_liquid_refresh_indices=(0,),
+    )
+
+    assert scalar_calls == [0]
+    assert np.allclose(result.hL_stage_provider, np.array([-250.0, -110.0], dtype=float))
     assert np.allclose(result.hV_stage_provider, np.array([150.0, 175.0], dtype=float))

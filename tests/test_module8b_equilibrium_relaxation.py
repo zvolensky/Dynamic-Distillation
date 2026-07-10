@@ -24,7 +24,12 @@ import numpy as np
 
 from dynamic_distillation.column_spec_builder_v1 import ColumnSpec, HeatDuties, SimulationSettings
 from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
-from dynamic_distillation.column_rhs_v1 import column_rhs, ColumnInputs, BoundaryFlows
+from dynamic_distillation.column_rhs_v1 import (
+    BoundaryFlows,
+    ColumnInputs,
+    _limit_equilibrium_component_transfer_by_transport,
+    column_rhs,
+)
 
 
 class _ThermoProviderWithK:
@@ -185,6 +190,100 @@ def test_equilibrium_relaxation_composition_only_mode_keeps_net_phase_change_nea
     assert np.allclose(phase_change, 0.0, atol=1e-12)
     mode_flag = float(np.asarray(diag["eq_relaxation_mode_comp_only"], dtype=float).reshape((-1,))[0])
     assert mode_flag == 1.0
+
+
+def test_equilibrium_component_transfer_guard_limits_transport_overshoot():
+    col = _make_zero_flow_column_3stage()
+    col = ColumnSpec(
+        **{
+            **col.__dict__,
+            "M_V_lbmol": np.array([1.0, 10.0, 1.0], dtype=float),
+            "V_lbmolph": np.array([0.0, 3600.0, 3600.0], dtype=float),
+            "y0": np.array(
+                [
+                    [0.5, 0.5],
+                    [0.50, 0.50],
+                    [0.51, 0.49],
+                ],
+                dtype=float,
+            ),
+            "x0": np.array(
+                [
+                    [0.5, 0.5],
+                    [0.50, 0.50],
+                    [0.51, 0.49],
+                ],
+                dtype=float,
+            ),
+        }
+    )
+    layout = StateVectorLayout(n_stages=3, n_components=2, include_top=False, include_bottom=False, include_vapor=True)
+    y0_vec = layout.pack_y0(col)
+
+    class StrongShiftProvider:
+        uses_direct_vapor_equilibrium = True
+        uses_liquid_composition_for_equilibrium = True
+
+        def equilibrium_y_K_from_x(self, x):
+            return np.array([0.9, 0.1], dtype=float), np.array([1.8, 0.2], dtype=float)
+
+        def flash_TP_full_F_psia(self, T_F, P_psia, z):
+            return [0.5, 0.5], [0.9, 0.1], [1.8, 0.2], 0.0, 0.0, 1.0
+
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo_provider=StrongShiftProvider(),
+        equilibrium_relaxation_thermo_provider=StrongShiftProvider(),
+        compute_thermo_diag=False,
+        equilibrium_relaxation=True,
+        equilibrium_relaxation_mode="composition-only",
+        tau_eq_sec=1.0,
+        equilibrium_component_transfer_max_cancel_multiplier=1.5,
+        equilibrium_component_transfer_floor_lbmolps=0.0,
+    )
+
+    _dydt, diag = column_rhs(0.0, y0_vec, col, layout, inputs=inputs)
+
+    pre = np.asarray(diag["tray_V_pre_equilibrium_rhs_lbmolps"], dtype=float).reshape((3, 2))
+    transfer = np.asarray(diag["eq_transfer_lbmolps_tray"], dtype=float).reshape((3, 2))
+    scale = np.asarray(diag["eq_component_transfer_guard_scale_tray"], dtype=float).reshape((3,))
+
+    # Middle tray has a small transport residual but a large equilibrium target
+    # shift. The component guard should scale the whole row so no component
+    # exceeds 1.5x the local pre-equilibrium material motion.
+    assert float(scale[1]) < 1.0
+    assert np.all(np.abs(transfer[1, :]) <= 1.5 * np.abs(pre[1, :]) + 1.0e-12)
+
+
+def test_equilibrium_component_transfer_guard_limits_same_direction_amplification():
+    transfer = np.array(
+        [
+            [-3.0, 1.0],
+            [-3.0, 1.0],
+        ],
+        dtype=float,
+    )
+    pre = np.array(
+        [
+            [-1.0, 1.0],
+            [1.0, -1.0],
+        ],
+        dtype=float,
+    )
+
+    adjusted, scale, limit = _limit_equilibrium_component_transfer_by_transport(
+        transfer,
+        pre,
+        max_cancel_multiplier=1.5,
+        floor_lbmolps=0.0,
+    )
+
+    assert np.allclose(adjusted[0, :], [-0.5, 1.0 / 6.0])
+    assert np.isclose(scale[0], 1.0 / 6.0)
+    assert np.isclose(limit[0], 0.5)
+    assert np.allclose(adjusted[1, :], [-1.5, 0.5])
+    assert np.isclose(scale[1], 0.5)
+    assert np.isclose(limit[1], 1.5)
 
 
 def test_equilibrium_relaxation_uses_cached_k_without_live_thermo_provider():

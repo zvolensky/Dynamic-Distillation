@@ -3,6 +3,7 @@
 Date: 2026-05-26
 
 Related initialization note: `docs/dynamic_column_initialization_strategy.md`
+Current model-state note: `docs/dynamic_model_current_state_2026-07-08.md`
 
 ## Position
 
@@ -57,6 +58,12 @@ This suggests the issue is not purely Gani-specific, but Gani amplifies it throu
 
 Follow-up on 2026-05-28: freezing tray vapor derivatives in the C3/C4 open-loop parity case made the steady-state detector pass, but the liquid profile drifted far outside validation tolerance. This confirms that a quiet derivative score can be produced by suppressing one dynamic block while still losing the intended source profile. That result supports treating ChemSep or Excel steady-state data as initialization guesses requiring model-consistent reconciliation, not as final dynamic initial conditions.
 
+Follow-up on 2026-07-07: the C3/C4 case remains the best near-term diagnostic, but recent probes argue against more broad residual tuning. Quarantining degenerate PR unit-K packets improved thermo hygiene but did not produce an accepted launch. Top-liquid condensate alignment reduced the targeted top-boundary liquid residual but still failed the dynamic gate. A vapor-flow nominal ceiling probe slightly improved one local vapor-flow mismatch while worsening score, peak score, and temperature behavior. A vapor-flow/energy-closure residual objective reduced optimizer norm but worsened physical residual audits. Current stance: do not claim full-topology C3/C4 validation, and do not pursue another generic residual-reweighting initializer before reviewing the energy/vapor-flow closure equations and topology.
+
+Follow-up on 2026-07-08: the C3/C4 case now has a useful 900 s linear-steady/equilibrium-guard working baseline and native checkpoint path, but it is still not a full validation case. No-energy checkpoint reloads, top-pressure anchoring, top-vapor packing, and liquid-holdup projection/solve probes did not remove the remaining vapor/material/pressure residual family. The model should be described as improved and bounded under a specific diagnostic recipe, not as generally healthy or production-validated. The next validation-relevant work is a dynamic-model coupling audit and incremental equation/closure repair, not another generic initializer tuning pass.
+
+Follow-up on 2026-07-08 K-level gate: the 900 s C3/C4 rate-based pass is not enough for validation readiness. `K_state` versus `K_thermo` remains materially inconsistent and worsens late in the run, dominated by n-pentane in generic interior stages. Validation readiness now requires a K-level consistency gate in addition to derivative/rate gates.
+
 ## Gate Criteria
 
 Before claiming rigorous dynamic validation for a case involving real components and full topology, the model should satisfy all relevant criteria below.
@@ -96,6 +103,15 @@ Before claiming rigorous dynamic validation for a case involving real components
    - Full dynamic acceptance requires an initialization residual audit against this model's RHS and topology.
    - Freezing dynamic states or disabling physics may be useful diagnostically, but cannot validate behavior that depends on those states or physics.
 
+9. Equilibrium level consistency must hold.
+   - A rate-based steady-state score is not sufficient if `K_state` is drifting away from `K_thermo`.
+   - Accepted full-topology runs must pass an explicit K-state drift gate, including final magnitude and trend checks.
+
+10. Internal liquid inventories must remain buffered.
+   - A full-topology dynamic run must not pass validation if an internal tray liquid inventory slowly drains toward zero and then produces a large explicit composition step.
+   - Use `tools/audit_liquid_inventory_depletion.py` on dynamic profile CSVs to check minimum internal liquid inventory, inventory update fraction, and largest composition step.
+   - Top and bottom terminal equipment should be assessed by their boundary-specific inventory/level checks; the liquid-inventory depletion audit defaults to internal stages.
+
 ## Recommended Path
 
 1. Keep Skogestad as the accepted Tier 1 validation baseline.
@@ -106,8 +122,10 @@ Before claiming rigorous dynamic validation for a case involving real components
 3. Use the C3/C4 case as the near-term development diagnostic for full-topology phase-holdup behavior because it shows the same class of issue with less severe source mismatch.
 4. Write or implement a feed-stage phase/energy reconciliation design before attempting another full rigorous validation claim.
 5. Resolve total-condenser energy ownership (`DD-033`) so condenser duty is not deposited into a zero-holdup tray state.
-6. Implement a staged initialization workflow: residual audit first, narrow vapor/boundary closure next, then golden-seed serialization only after profile and conservation gates pass.
-7. Continue searching for a validation source whose topology, feed treatment, thermo, and dynamic outputs are sufficiently specified to avoid retrofitting the model around missing assumptions.
+6. Review the energy/vapor-flow closure equations and topology before running more broad residual-solver variants; then use the residual audit and dynamic gate to evaluate any proposed fix.
+7. Use the current 900 s C3/C4 baseline as a regression target while pressure/vapor-flow/energy/equilibrium coupling is repaired.
+8. Add the liquid-inventory depletion audit to C3/C4 regression evidence before treating any long-horizon run as healthy.
+9. Continue searching for a validation source whose topology, feed treatment, thermo, and dynamic outputs are sufficiently specified to avoid retrofitting the model around missing assumptions.
 
 ## Bottom Line
 

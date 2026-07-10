@@ -13,6 +13,7 @@ _SPEC.loader.exec_module(_MODULE)
 
 summarize_run = _MODULE.summarize_run
 evaluate_candidate = _MODULE.evaluate_candidate
+failure_breakdown = _MODULE.failure_breakdown
 _parse_ratio_limit = _MODULE._parse_ratio_limit
 
 
@@ -129,6 +130,49 @@ def test_evaluate_candidate_checks_requested_summary_ratio_limits():
     assert report["passed"] is False
     failed = {check["name"] for check in report["checks"] if not check["passed"]}
     assert "pv_inner_dv_max_lbmolph peak ratio" in failed
+
+
+def test_failure_breakdown_ranks_largest_abs_worsening_first():
+    baseline = {
+        "final_score": 1.0,
+        "final_rel_rate_per_s": 0.01,
+        "final_temp_rate_F_per_s": 0.2,
+        "final_top_L_net_worst_abs_lbmolph": 10.0,
+        "final_K_state_minus_K_thermo_max_abs": 0.5,
+    }
+    candidate = {
+        "final_score": 4.0,
+        "final_rel_rate_per_s": 0.02,
+        "final_temp_rate_F_per_s": 0.7,
+        "final_top_L_net_worst_abs_lbmolph": 75.0,
+        "final_K_state_minus_K_thermo_max_abs": 0.4,
+    }
+
+    out = failure_breakdown(baseline, candidate, top_n=3)
+
+    assert [row["name"] for row in out] == [
+        "top liquid component net",
+        "dynamic score",
+        "temperature rate",
+    ]
+    assert out[0]["ratio"] == pytest.approx(7.5)
+    assert out[0]["abs_delta"] == pytest.approx(65.0)
+
+
+def test_summarize_run_can_feed_failure_breakdown_fields():
+    rows = [
+        {
+            "time_s": "0",
+            "steady_state_score": "1",
+            "ss_max_rel_state_rate_per_s": "0.01",
+            "ss_max_temp_rate_F_per_s": "0.2",
+            "top_L_net_worst_abs_lbmolph": "10",
+        },
+    ]
+
+    summary = summarize_run(rows, summary_ratio_fields=["top_L_net_worst_abs_lbmolph"])
+
+    assert summary["final_top_L_net_worst_abs_lbmolph"] == pytest.approx(10.0)
 
 
 def test_parse_ratio_limit_requires_field_and_nonnegative_limit():

@@ -273,9 +273,7 @@ def refresh_tray_tp_packet(
                     if phase_count_i is not None:
                         phase_count[i] = float(phase_count_i)
                     if (
-                        phase_count_i is not None
-                        and float(phase_count_i) > 1.5
-                        and _is_unit_k_packet(K_i)
+                        _is_unit_k_packet(K_i)
                         and _can_quarantine_to_existing_packet(packet, i, n_components=n_components)
                     ):
                         quarantined[i] = 1.0
@@ -322,9 +320,7 @@ def refresh_tray_tp_packet(
                         phase_count[i] = float(phase_count_i)
                     K_i = np.asarray(fres.K, dtype=float).reshape((n_components,))
                     if (
-                        phase_count_i is not None
-                        and float(phase_count_i) > 1.5
-                        and _is_unit_k_packet(K_i)
+                        _is_unit_k_packet(K_i)
                         and _can_quarantine_to_existing_packet(packet, i, n_components=n_components)
                     ):
                         quarantined[i] = 1.0
@@ -410,8 +406,8 @@ def refresh_temperature_state_phase_enthalpies(
 
     _trace("temperature_state provider enthalpy refresh start")
     for j in range(n_stages):
-        reused_hL = packet_phase_enthalpy_first_match_fn(
-            [thermo_packet, previous_packet],
+        reused_hL = packet_phase_enthalpy_if_compatible_fn(
+            energy_vapor_flow_packet,
             stage_index0=j,
             T_F=float(T_arr[j]),
             P_psia=float(P_arr[j]),
@@ -421,10 +417,10 @@ def refresh_temperature_state_phase_enthalpies(
             max_abs_dT_F=packet_dT_tol_F,
             max_abs_dP_psia=packet_dP_tol_psia,
         )
-        used_energy_packet = False
+        used_energy_packet = reused_hL is not None and np.isfinite(float(reused_hL))
         if reused_hL is None or (not np.isfinite(float(reused_hL))):
-            reused_hL = packet_phase_enthalpy_if_compatible_fn(
-                energy_vapor_flow_packet,
+            reused_hL = packet_phase_enthalpy_first_match_fn(
+                [thermo_packet, previous_packet],
                 stage_index0=j,
                 T_F=float(T_arr[j]),
                 P_psia=float(P_arr[j]),
@@ -434,7 +430,6 @@ def refresh_temperature_state_phase_enthalpies(
                 max_abs_dT_F=packet_dT_tol_F,
                 max_abs_dP_psia=packet_dP_tol_psia,
             )
-            used_energy_packet = reused_hL is not None and np.isfinite(float(reused_hL))
         if reused_hL is not None and np.isfinite(float(reused_hL)):
             hL_try[j] = float(reused_hL)
             if used_energy_packet:
@@ -547,6 +542,7 @@ def refresh_energy_vapor_flow_phase_enthalpies(
     packet_phase_enthalpy_if_compatible_fn: Callable[..., Optional[float]],
     flash_stage_fn: Callable[..., Any],
     packet_factory: Callable[..., Any],
+    force_liquid_refresh_indices: Optional[Sequence[int]] = None,
     trace_fn: Optional[Callable[[Any, str], None]] = None,
     trace_context: Any = None,
 ) -> EnergyVaporFlowEnthalpyRefreshResult:
@@ -566,26 +562,22 @@ def refresh_energy_vapor_flow_phase_enthalpies(
     pending_liq: list[int] = []
     pending_vap: list[int] = []
     batch_fn = getattr(provider, "flash_TP_full_batch", None)
+    force_liq = set()
+    if force_liquid_refresh_indices is not None:
+        try:
+            force_liq = {int(i) for i in force_liquid_refresh_indices if 0 <= int(i) < n_stages}
+        except Exception:
+            force_liq = set()
 
     def _trace(msg: str) -> None:
         if callable(trace_fn):
             trace_fn(trace_context, msg)
 
     for j in range(n_stages):
-        reused_hL = packet_phase_enthalpy_if_compatible_fn(
-            current_packet,
-            stage_index0=j,
-            T_F=float(T_arr[j]),
-            P_psia=float(P_arr[j]),
-            phase_composition=x_arr[j, :],
-            phase="liquid",
-            max_abs_dx=packet_phase_tol_liq,
-            max_abs_dT_F=packet_dT_tol_F,
-            max_abs_dP_psia=packet_dP_tol_psia,
-        )
-        if reused_hL is None or not np.isfinite(float(reused_hL)):
+        reused_hL = None
+        if j not in force_liq:
             reused_hL = packet_phase_enthalpy_if_compatible_fn(
-                previous_packet,
+                current_packet,
                 stage_index0=j,
                 T_F=float(T_arr[j]),
                 P_psia=float(P_arr[j]),
@@ -595,6 +587,18 @@ def refresh_energy_vapor_flow_phase_enthalpies(
                 max_abs_dT_F=packet_dT_tol_F,
                 max_abs_dP_psia=packet_dP_tol_psia,
             )
+            if reused_hL is None or not np.isfinite(float(reused_hL)):
+                reused_hL = packet_phase_enthalpy_if_compatible_fn(
+                    previous_packet,
+                    stage_index0=j,
+                    T_F=float(T_arr[j]),
+                    P_psia=float(P_arr[j]),
+                    phase_composition=x_arr[j, :],
+                    phase="liquid",
+                    max_abs_dx=packet_phase_tol_liq,
+                    max_abs_dT_F=packet_dT_tol_F,
+                    max_abs_dP_psia=packet_dP_tol_psia,
+                )
         if reused_hL is not None and np.isfinite(float(reused_hL)):
             hL_try[j] = float(reused_hL)
             _trace(f"energy_vapor_flow hL_flash stage={int(j + 1)}/{int(n_stages)} reused packet")
@@ -629,6 +633,10 @@ def refresh_energy_vapor_flow_phase_enthalpies(
             _trace(f"energy_vapor_flow hV_flash stage={int(j + 1)}/{int(n_stages)} reused packet")
         else:
             pending_vap.append(j)
+
+    forced_scalar_liq = [j for j in pending_liq if j in force_liq]
+    if forced_scalar_liq:
+        pending_liq = [j for j in pending_liq if j not in force_liq]
 
     if callable(batch_fn) and pending_liq:
         try:
@@ -680,7 +688,7 @@ def refresh_energy_vapor_flow_phase_enthalpies(
         except Exception:
             pass
 
-    for j in pending_liq:
+    for j in [*forced_scalar_liq, *pending_liq]:
         try:
             fres_L = flash_stage_fn(
                 provider,

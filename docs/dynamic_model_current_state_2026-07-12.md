@@ -4,6 +4,31 @@ Date: 2026-07-12
 
 Status: Authoritative current-state summary. This supersedes `docs/dynamic_model_current_state_2026-07-08.md` for current decisions while retaining that document as historical evidence.
 
+## 2026-07-17 frozen-closure addendum
+
+DD-065 converted the accepted 2400-second C3/C4 checkpoint to frozen interior
+component totals and total internal energy, using checkpoint phase inventories
+only as initial guesses. All 18 active interior trays passed the local DWSIM
+Peng-Robinson UV reconstruction gates, with maximum relative component,
+energy, and volume residuals of `5.78e-11`, `4.73e-12`, and `1.15e-10`.
+
+The column-wide pressure/liquid-flow/vapor-flow solve did not converge:
+liquid- and vapor-flow scaled residuals were `1.0545` and `6.8154`, local UV
+pressure disagreed with the attempted global solution by as much as
+`86.78 psi`, and all 18 interior liquid and vapor profile/previous-flow
+limiters were active. The local UV pressure implied by frozen checkpoint
+totals also ran in the wrong overall direction, from `321.89 psia` at stage 2
+to `205.16 psia` at stage 19, while the checkpoint hydraulic profile rose from
+about `225.11` to `232.18 psia`. The current terminal sandbox mapping also
+omits virtual terminal-stage vapor inventory and represents the top vessel as
+liquid-only.
+
+This sharpens, rather than reverses, the architecture conclusion below:
+conserved-state local thermo is viable, but the global pressure/vapor-flow
+network and terminal conserved-state mapping require redesign before a
+production implicit residual is attempted. See
+`docs/dd_065_frozen_checkpoint_uv_hydraulic_closure_20260717.md`.
+
 ## Executive assessment
 
 The repository now contains a credible, numerically stable, controlled C3/C4 operating checkpoint and a strong supporting platform for thermo integration, controls, diagnostics, continuation, reporting, and model investigation.

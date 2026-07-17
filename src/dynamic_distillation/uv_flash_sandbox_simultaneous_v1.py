@@ -162,6 +162,8 @@ class SimultaneousSolveResult:
     accepted_alpha: float
     relaxed_accept: bool
     vapor_target_relax: float
+    projection_count: int = 0
+    accepted_projection_count: int = 0
 
 
 def _safe_scale(values: np.ndarray, floor: float) -> np.ndarray:
@@ -800,7 +802,20 @@ def solve_simultaneous_algebraic_state(
         n_active=int(spec.active_stage0.size),
         n_total_stages=int(spec.n_total_stages),
     )
-    z_work = layout.clip(z_seed)
+    projection_count = 0
+
+    def _project(z_in: np.ndarray) -> np.ndarray:
+        nonlocal projection_count
+        projected = layout.clip(z_in)
+        if not np.array_equal(np.asarray(z_in, dtype=float), projected, equal_nan=True):
+            projection_count += 1
+        return projected
+
+    z_initial = np.asarray(z_seed, dtype=float).copy()
+    z_work = _project(z_seed)
+    accepted_projection_count = int(
+        not np.array_equal(z_initial, z_work, equal_nan=True)
+    )
     anchor_z = np.asarray(z_work, dtype=float).copy()
     vapor_relax_local = float(np.clip(vapor_target_relax, vapor_target_relax_min, 1.0))
     last_eval = evaluate_simultaneous_algebraic_state(
@@ -820,7 +835,7 @@ def solve_simultaneous_algebraic_state(
     relaxed_accept = False
 
     def _residual_fn(z_vec: np.ndarray) -> np.ndarray:
-            z_try = layout.clip(z_vec)
+            z_try = _project(z_vec)
             return evaluate_simultaneous_algebraic_state(
                 provider=provider,
                 spec=spec,
@@ -860,6 +875,7 @@ def solve_simultaneous_algebraic_state(
         base_norm = inf_norm(resid)
         accepted = False
         alpha = 1.0
+        z_base = np.asarray(z_work, dtype=float).copy()
         best_try_eval = None
         best_try_z = None
         best_try_norm = float("inf")
@@ -867,7 +883,13 @@ def solve_simultaneous_algebraic_state(
         accepted_alpha = 0.0
         relaxed_accept = False
         for _ in range(max(1, int(line_search_max))):
-            z_try = layout.clip(z_work + float(alpha) * delta)
+            z_unprojected = z_work + float(alpha) * delta
+            z_try = _project(z_unprojected)
+            trial_was_projected = not np.array_equal(
+                np.asarray(z_unprojected, dtype=float),
+                z_try,
+                equal_nan=True,
+            )
             eval_try = evaluate_simultaneous_algebraic_state(
                 provider=provider,
                 spec=spec,
@@ -889,6 +911,8 @@ def solve_simultaneous_algebraic_state(
                 last_eval = eval_try
                 accepted = True
                 accepted_alpha = float(alpha)
+                if trial_was_projected:
+                    accepted_projection_count += 1
                 break
             alpha *= 0.5
         if not accepted:
@@ -897,6 +921,15 @@ def solve_simultaneous_algebraic_state(
                 last_eval = best_try_eval
                 accepted_alpha = float(best_try_alpha)
                 relaxed_accept = True
+                # best_try_z is already projected. Count it only when it differs
+                # from the unprojected trial associated with the accepted alpha.
+                best_unprojected = z_base + float(best_try_alpha) * delta
+                if not np.array_equal(
+                    np.asarray(best_unprojected, dtype=float),
+                    np.asarray(best_try_z, dtype=float),
+                    equal_nan=True,
+                ):
+                    accepted_projection_count += 1
             else:
                 try:
                     vflow_scaled_inf = float(
@@ -963,6 +996,8 @@ def solve_simultaneous_algebraic_state(
         accepted_alpha=float(accepted_alpha),
         relaxed_accept=bool(relaxed_accept),
         vapor_target_relax=float(vapor_relax_local),
+        projection_count=int(projection_count),
+        accepted_projection_count=int(accepted_projection_count),
     )
 
 

@@ -49,6 +49,8 @@ class UvFlashStageResult:
     residual_beta: float
     converged: bool
     iterations: int
+    projection_count: int = 0
+    accepted_projection_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -312,7 +314,20 @@ def solve_uv_flash_stage(
         [float(guess.T_F), float(guess.P_psia)] + ([float(guess.beta_vapor)] if mode == "free" else []),
         dtype=float,
     )
-    x_vec = _clip_trial_vector(x_vec, beta_mode=mode)
+    projection_count = 0
+
+    def _project(x_in: np.ndarray) -> np.ndarray:
+        nonlocal projection_count
+        projected = _clip_trial_vector(x_in, beta_mode=mode)
+        if not np.array_equal(np.asarray(x_in, dtype=float), projected, equal_nan=True):
+            projection_count += 1
+        return projected
+
+    x_initial = np.asarray(x_vec, dtype=float).copy()
+    x_vec = _project(x_vec)
+    accepted_projection_count = int(
+        not np.array_equal(x_initial, x_vec, equal_nan=True)
+    )
 
     last_state: Optional[_TpStageState] = None
     last_beta = float(beta_fixed) if mode == "fixed" else float(guess.beta_vapor)
@@ -355,6 +370,8 @@ def solve_uv_flash_stage(
                 residual_beta=(0.0 if mode != "free" else float(residual[2])),
                 converged=True,
                 iterations=int(it),
+                projection_count=int(projection_count),
+                accepted_projection_count=int(accepted_projection_count),
             )
 
         J = np.zeros((residual.size, x_vec.size), dtype=float)
@@ -362,7 +379,7 @@ def solve_uv_flash_stage(
             x_pert = x_vec.copy()
             step = max(abs(float(x_vec[j])) * float(jac_rel_step), 1.0e-6)
             x_pert[j] = float(x_pert[j]) + float(step)
-            x_pert = _clip_trial_vector(x_pert, beta_mode=mode)
+            x_pert = _project(x_pert)
             res_pert, _state_pert, _beta_pert = _residual_for_state(
                 provider,
                 z_overall=z_norm,
@@ -389,7 +406,13 @@ def solve_uv_flash_stage(
         accepted = False
         alpha = 1.0
         for _ in range(8):
-            x_try = _clip_trial_vector(x_vec + alpha * delta, beta_mode=mode)
+            x_unprojected = x_vec + alpha * delta
+            x_try = _project(x_unprojected)
+            trial_was_projected = not np.array_equal(
+                np.asarray(x_unprojected, dtype=float),
+                x_try,
+                equal_nan=True,
+            )
             res_try, _state_try, _beta_try = _residual_for_state(
                 provider,
                 z_overall=z_norm,
@@ -402,6 +425,8 @@ def solve_uv_flash_stage(
             try_norm = float(np.max(np.abs(res_try)))
             if np.isfinite(try_norm) and try_norm <= base_norm:
                 x_vec = x_try
+                if trial_was_projected:
+                    accepted_projection_count += 1
                 accepted = True
                 break
             alpha *= 0.5
@@ -430,6 +455,8 @@ def solve_uv_flash_stage(
         residual_beta=(0.0 if mode != "free" else float(last_residual[2])),
         converged=False,
         iterations=int(max_iter),
+        projection_count=int(projection_count),
+        accepted_projection_count=int(accepted_projection_count),
     )
 
 

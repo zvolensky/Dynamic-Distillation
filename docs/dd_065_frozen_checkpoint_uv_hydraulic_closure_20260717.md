@@ -85,22 +85,27 @@ The `+/-10%` robustness repetitions were intentionally not run after the
 nominal solve met several explicit stop conditions. A failed nominal solve
 that depends on widespread flow limiting cannot pass the robustness gate.
 
-## Terminal Mapping Limitation
+## Terminal Mapping Follow-Up
 
-The current sandbox represents the total condenser and partial reboiler
-algebraically, while its dynamic conserved block covers interior trays plus
-liquid vessel nodes. It does not yet conserve the virtual terminal-stage vapor
-inventory from the production checkpoint.
+DD-066 replaced the earlier excluded-inventory diagnostic with an explicit
+four-block ownership map:
 
-For this checkpoint:
+- empty algebraic total-condenser stage;
+- physical reflux drum;
+- physical partial-reboiler stage;
+- physical bottoms sump.
 
-- excluded virtual terminal-stage inventory: `12.686165 lbmol`;
-- top-vessel vapor inventory not represented by the liquid-only node:
-  `107.728968 lbmol`;
-- bottom-vessel vapor inventory: approximately `1e-8 lbmol`.
+The full checkpoint now closes its inventory bookkeeping to
+`2.27e-13 lbmol` maximum component error and `1.86e-9 BTU` energy error. The
+empty total-condenser stage is eliminated algebraically rather than assigned
+the nonphysical `-P*V` energy of an empty fixed-volume vessel.
 
-This limitation prevents a full-column frozen-closure PASS even if the
-interior and hydraulic residuals were otherwise satisfactory.
+The terminal gate still does not pass. The simultaneous residual continues to
+use liquid-only top and bottom nodes and does not yet include the mapped
+reflux-drum vapor, partial-reboiler inventory, or sump headspace as algebraic
+unknowns. Separate terminal UV closure also produces a reversed pressure
+ordering: `P_bottom-P_top=-13.95 psi`. See
+`docs/dd_066_terminal_conserved_inventory_mapping_20260717.md`.
 
 ## Controller Degree-of-Freedom Audit
 
@@ -129,7 +134,7 @@ Classify the result as:
 This is real progress because it localizes the architecture problem. The
 conserved-state and DWSIM UV formulation are viable for the interior trays.
 The next work belongs in an isolated, uncapped pressure/vapor-flow constraint
-probe and terminal-equipment conserved-state mapping. If the pressure network
+probe and terminal-equipment algebraic coupling. If the pressure network
 cannot close because the frozen per-tray totals imply the reversed pressure
 profile above, the following experiment must allow the tray conserved totals
 and energies to move subject to global component and energy conservation. It

@@ -186,12 +186,14 @@ For production acceptance, the initializer should be able to run an optional che
 
 The dynamic gate should also reject candidates that hide a slow internal liquid inventory depletion. A run can look acceptable by rate metrics until a nearly empty internal liquid inventory produces a large explicit composition step. The profile-level audit for this failure mode is `tools/audit_liquid_inventory_depletion.py`; by default it evaluates internal stages and leaves top/bottom terminal equipment to boundary-specific checks.
 
-DD-065 is the current acceptance example. All active interior trays passed
-local component/energy/volume UV closure, but the global pressure/vapor-flow
-solve failed with a reversed locally implied pressure profile, large hydraulic
-residuals, binding flow limiters, and incomplete terminal mapping. The correct
-classification is `local_uv_passed_global_hydraulics_failed`, not an accepted
-seed and not a reason to launch a longer dynamic settling run.
+DD-065/DD-066 are the current acceptance example. All active interior trays
+passed local component/energy/volume UV closure, and terminal inventory
+bookkeeping now closes numerically. The global pressure/vapor-flow solve still
+fails with a reversed locally implied pressure profile, large hydraulic
+residuals, and binding flow limiters. Independent top and bottom terminal UV
+assemblies also imply `P_bottom-P_top=-13.95 psi`. The correct classification
+is `local_uv_passed_global_hydraulics_failed`, not an accepted seed and not a
+reason to launch a longer dynamic settling run.
 
 ## Current Implementation Direction
 

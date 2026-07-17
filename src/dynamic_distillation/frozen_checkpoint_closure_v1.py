@@ -39,9 +39,69 @@ from dynamic_distillation.uv_flash_stage_v1 import (
     BTU_PER_PSI_FT3,
     UvFlashStageGuess,
     UvFlashStageResult,
+    _internal_energy_from_enthalpy_BTU_lbmol,
+    _provider_vapor_z_factor,
     _residual_for_state,
+    _vapor_molar_volume_ft3_lbmol,
     solve_uv_flash_stage,
 )
+
+
+@dataclass(frozen=True)
+class TerminalConservedNode:
+    node_id: str
+    topology_role: str
+    source_blocks: tuple[str, ...]
+    conserved: bool
+    total_component_inventory_lbmol: np.ndarray
+    total_internal_energy_BTU: float
+    fixed_total_volume_ft3: float
+    liquid_inventory_lbmol: np.ndarray
+    vapor_inventory_lbmol: np.ndarray
+    temperature_guess_F: float
+    pressure_guess_psia: float
+
+
+@dataclass(frozen=True)
+class TerminalInventoryMap:
+    nodes: tuple[TerminalConservedNode, ...]
+    checkpoint_total_components_lbmol: np.ndarray
+    mapped_total_components_lbmol: np.ndarray
+    component_balance_abs_max_lbmol: float
+    checkpoint_total_internal_energy_BTU: float
+    mapped_total_internal_energy_BTU: float
+    energy_balance_abs_BTU: float
+    expected_source_blocks: tuple[str, ...]
+    mapped_source_blocks: tuple[str, ...]
+    accounting_complete: bool
+    algebraic_coupling_complete: bool
+
+
+@dataclass(frozen=True)
+class TerminalAssemblyClosure:
+    assembly_id: str
+    source_node_ids: tuple[str, ...]
+    target: TerminalConservedNode
+    result: UvFlashStageResult
+    component_relative_residual: float
+    energy_relative_residual: float
+    volume_relative_residual: float
+    equilibrium_beta_residual: float
+
+
+@dataclass(frozen=True)
+class TerminalClosureAudit:
+    assemblies: tuple[TerminalAssemblyClosure, ...]
+    converged: bool
+    component_relative_max: float
+    energy_relative_max: float
+    volume_relative_max: float
+    equilibrium_beta_max: float
+    accepted_projection_count: int
+    attempted_projection_count: int
+    bottom_minus_top_pressure_psi: float
+    pressure_ordering_pass: bool
+    strict_gate_pass: bool
 
 
 @dataclass(frozen=True)
@@ -58,7 +118,9 @@ class FrozenCheckpointBridge:
     stage_pressure_guess_psia: np.ndarray
     stage_temperature_guess_F: np.ndarray
     stage_beta_guess: np.ndarray
+    terminal_inventory_map: TerminalInventoryMap
     terminal_mapping_complete: bool
+    terminal_coupling_complete: bool
     mapping_notes: tuple[str, ...]
 
 
@@ -107,6 +169,159 @@ class HydraulicClosureAudit:
     strict_gate_pass: bool
 
 
+def summarize_terminal_inventory_mapping(
+    *,
+    interior_components_lbmol: np.ndarray,
+    interior_internal_energy_BTU: np.ndarray,
+    checkpoint_total_components_lbmol: np.ndarray,
+    checkpoint_total_internal_energy_BTU: float,
+    nodes: Sequence[TerminalConservedNode],
+    algebraic_coupling_complete: bool = False,
+) -> TerminalInventoryMap:
+    """Account for every terminal source block without claiming equation closure."""
+    interior_components = np.asarray(interior_components_lbmol, dtype=float)
+    interior_u = np.asarray(interior_internal_energy_BTU, dtype=float).reshape((-1,))
+    checkpoint_components = np.asarray(
+        checkpoint_total_components_lbmol,
+        dtype=float,
+    ).reshape((-1,))
+    terminal_nodes = tuple(nodes)
+    if interior_components.ndim != 2:
+        raise ValueError("interior component inventory must be a 2-D array")
+    if interior_components.shape[1] != checkpoint_components.size:
+        raise ValueError("component count mismatch in terminal inventory mapping")
+    if interior_components.shape[0] != interior_u.size:
+        raise ValueError("interior component and energy stage counts differ")
+
+    mapped_components = np.sum(interior_components, axis=0)
+    mapped_u = float(np.sum(interior_u))
+    mapped_blocks: List[str] = []
+    node_values_finite = True
+    for node in terminal_nodes:
+        node_components = np.asarray(
+            node.total_component_inventory_lbmol,
+            dtype=float,
+        ).reshape((checkpoint_components.size,))
+        mapped_components = mapped_components + node_components
+        mapped_u += float(node.total_internal_energy_BTU)
+        mapped_blocks.extend(str(block) for block in node.source_blocks)
+        node_inventory = float(np.sum(np.abs(node_components)))
+        if bool(node.conserved):
+            node_valid = bool(
+                np.all(np.isfinite(node_components))
+                and np.isfinite(float(node.total_internal_energy_BTU))
+                and np.isfinite(float(node.fixed_total_volume_ft3))
+                and float(node.fixed_total_volume_ft3) > 0.0
+            )
+        else:
+            node_valid = bool(
+                np.all(np.isfinite(node_components))
+                and node_inventory <= 1.0e-10
+                and abs(float(node.total_internal_energy_BTU)) <= 1.0e-6
+                and float(node.fixed_total_volume_ft3) == 0.0
+            )
+        node_values_finite = bool(node_values_finite and node_valid)
+
+    expected_blocks = (
+        "tray_stage_1",
+        "top_boundary",
+        "tray_stage_N",
+        "bottom_boundary",
+    )
+    mapped_unique = tuple(sorted(set(mapped_blocks)))
+    component_error = float(
+        np.max(np.abs(mapped_components - checkpoint_components))
+    )
+    energy_error = abs(mapped_u - float(checkpoint_total_internal_energy_BTU))
+    component_scale = max(
+        float(np.max(np.abs(checkpoint_components))),
+        1.0,
+    )
+    energy_scale = max(abs(float(checkpoint_total_internal_energy_BTU)), 1.0)
+    accounting_complete = bool(
+        node_values_finite
+        and set(mapped_unique) == set(expected_blocks)
+        and component_error <= 1.0e-10 * component_scale
+        and energy_error <= 1.0e-10 * energy_scale
+    )
+    return TerminalInventoryMap(
+        nodes=terminal_nodes,
+        checkpoint_total_components_lbmol=checkpoint_components.copy(),
+        mapped_total_components_lbmol=np.asarray(mapped_components, dtype=float).copy(),
+        component_balance_abs_max_lbmol=float(component_error),
+        checkpoint_total_internal_energy_BTU=float(checkpoint_total_internal_energy_BTU),
+        mapped_total_internal_energy_BTU=float(mapped_u),
+        energy_balance_abs_BTU=float(energy_error),
+        expected_source_blocks=expected_blocks,
+        mapped_source_blocks=mapped_unique,
+        accounting_complete=bool(accounting_complete),
+        algebraic_coupling_complete=bool(algebraic_coupling_complete),
+    )
+
+
+def combine_terminal_nodes(
+    *,
+    assembly_id: str,
+    topology_role: str,
+    nodes: Sequence[TerminalConservedNode],
+) -> TerminalConservedNode:
+    """Combine topology subnodes into one conserved UV assembly target."""
+    members = tuple(nodes)
+    if not members:
+        raise ValueError("terminal assembly requires at least one source node")
+    component_count = int(
+        np.asarray(members[0].total_component_inventory_lbmol).reshape((-1,)).size
+    )
+    components = np.zeros(component_count, dtype=float)
+    liquid = np.zeros(component_count, dtype=float)
+    vapor = np.zeros(component_count, dtype=float)
+    total_u = 0.0
+    total_volume = 0.0
+    source_blocks: List[str] = []
+    weighted_t = 0.0
+    weighted_p = 0.0
+    weight = 0.0
+    for node in members:
+        node_components = np.asarray(
+            node.total_component_inventory_lbmol,
+            dtype=float,
+        ).reshape((component_count,))
+        node_weight = float(np.sum(node_components))
+        components += node_components
+        liquid += np.asarray(node.liquid_inventory_lbmol, dtype=float).reshape(
+            (component_count,)
+        )
+        vapor += np.asarray(node.vapor_inventory_lbmol, dtype=float).reshape(
+            (component_count,)
+        )
+        total_u += float(node.total_internal_energy_BTU)
+        total_volume += float(node.fixed_total_volume_ft3)
+        source_blocks.extend(node.source_blocks)
+        if np.isfinite(node_weight) and node_weight > 0.0:
+            weighted_t += node_weight * float(node.temperature_guess_F)
+            weighted_p += node_weight * float(node.pressure_guess_psia)
+            weight += node_weight
+    if weight <= 0.0:
+        temperature = float(members[0].temperature_guess_F)
+        pressure = float(members[0].pressure_guess_psia)
+    else:
+        temperature = weighted_t / weight
+        pressure = weighted_p / weight
+    return TerminalConservedNode(
+        node_id=str(assembly_id),
+        topology_role=str(topology_role),
+        source_blocks=tuple(sorted(set(str(block) for block in source_blocks))),
+        conserved=True,
+        total_component_inventory_lbmol=components,
+        total_internal_energy_BTU=float(total_u),
+        fixed_total_volume_ft3=float(total_volume),
+        liquid_inventory_lbmol=liquid,
+        vapor_inventory_lbmol=vapor,
+        temperature_guess_F=float(temperature),
+        pressure_guess_psia=float(pressure),
+    )
+
+
 def checkpoint_phase_state_to_conserved_totals(
     *,
     unpacked: Dict[str, np.ndarray],
@@ -151,6 +366,187 @@ def _array_or_default(
     if arr.size != int(np.prod(shape)) or not np.all(np.isfinite(arr)):
         return np.asarray(default, dtype=float).reshape(shape).copy()
     return arr.reshape(shape).copy()
+
+
+def _normalized_inventory(values: np.ndarray) -> tuple[float, np.ndarray]:
+    arr = np.asarray(values, dtype=float).reshape((-1,))
+    arr = np.where(np.isfinite(arr), arr, 0.0)
+    arr = np.clip(arr, 0.0, None)
+    total = float(np.sum(arr))
+    if total <= 1.0e-12:
+        return 0.0, np.full(arr.size, 1.0 / max(arr.size, 1), dtype=float)
+    return total, arr / total
+
+
+def _liquid_inventory_volume_ft3(
+    *,
+    provider: Any,
+    inventory_lbmol: np.ndarray,
+    temperature_F: float,
+    pressure_psia: float,
+) -> float:
+    total, x_liq = _normalized_inventory(inventory_lbmol)
+    if total <= 0.0:
+        return 0.0
+    rho = provider.liquid_density_lbmol_ft3(
+        float(temperature_F),
+        float(pressure_psia),
+        x_liq.tolist(),
+    )
+    if rho is None or (not np.isfinite(float(rho))) or float(rho) <= 0.0:
+        return float("nan")
+    return float(total) / float(rho)
+
+
+def _phase_inventory_internal_energy_BTU(
+    *,
+    provider: Any,
+    liquid_inventory_lbmol: np.ndarray,
+    vapor_inventory_lbmol: np.ndarray,
+    temperature_F: float,
+    pressure_psia: float,
+) -> float:
+    liquid_total, x_liq = _normalized_inventory(liquid_inventory_lbmol)
+    vapor_total, y_vap = _normalized_inventory(vapor_inventory_lbmol)
+    total_u = 0.0
+    if liquid_total > 0.0:
+        u_liq, _h_liq = _liquid_internal_energy_from_tp(
+            provider,
+            T_F=float(temperature_F),
+            P_psia=float(pressure_psia),
+            x_liq=x_liq,
+        )
+        total_u += float(liquid_total) * float(u_liq)
+    if vapor_total > 0.0:
+        h_vap = provider.phase_enthalpy_BTU_lbmol(
+            "vapor",
+            float(temperature_F),
+            float(pressure_psia),
+            y_vap.tolist(),
+        )
+        z_vap = _provider_vapor_z_factor(
+            provider,
+            T_F=float(temperature_F),
+            P_psia=float(pressure_psia),
+            y=y_vap,
+            flash_Z=None,
+        )
+        v_vap = _vapor_molar_volume_ft3_lbmol(
+            float(temperature_F),
+            float(pressure_psia),
+            float(z_vap),
+        )
+        u_vap = _internal_energy_from_enthalpy_BTU_lbmol(
+            float(h_vap),
+            float(pressure_psia),
+            float(v_vap),
+        )
+        total_u += float(vapor_total) * float(u_vap)
+    return float(total_u)
+
+
+def _positive_spec_float(specs: Dict[str, Any], *keys: str) -> Optional[float]:
+    for key in keys:
+        try:
+            value = float(specs.get(key))
+        except (TypeError, ValueError):
+            continue
+        if np.isfinite(value) and value > 0.0:
+            return float(value)
+    return None
+
+
+def _cylindrical_volume_from_specs(
+    specs: Dict[str, Any],
+    *,
+    diameter_keys: Sequence[str],
+    length_keys: Sequence[str],
+) -> Optional[float]:
+    diameter = _positive_spec_float(specs, *diameter_keys)
+    length = _positive_spec_float(specs, *length_keys)
+    if diameter is None or length is None:
+        return None
+    return float(np.pi * 0.25 * diameter * diameter * length)
+
+
+def _top_drum_total_volume_ft3(
+    *,
+    arrays: Dict[str, np.ndarray],
+    specs: Dict[str, Any],
+) -> float:
+    liquid = _scalar_array(arrays, "diag__V_top_drum_liquid_ft3", float("nan"))
+    vapor = _scalar_array(arrays, "diag__V_top_drum_vapor_ft3", float("nan"))
+    if np.isfinite(liquid) and liquid >= 0.0 and np.isfinite(vapor) and vapor >= 0.0:
+        total = float(liquid + vapor)
+        if total > 0.0:
+            return total
+    direct = _positive_spec_float(
+        specs,
+        "Top Drum Total Volume (ft3)",
+        "Top Accumulator Total Volume (ft3)",
+        "Reflux Drum Total Volume (ft3)",
+        "Distillate Drum Total Volume (ft3)",
+        "Top Drum Volume (ft3)",
+        "Reflux Drum Volume (ft3)",
+        "Distillate Drum Volume (ft3)",
+    )
+    if direct is not None:
+        return float(direct)
+    inferred = _cylindrical_volume_from_specs(
+        specs,
+        diameter_keys=(
+            "Top Drum Diameter (ft)",
+            "Top Accumulator Diameter (ft)",
+            "Reflux Drum Diameter (ft)",
+            "Distillate Drum Diameter (ft)",
+            "Top Drum ID (ft)",
+            "Reflux Drum ID (ft)",
+            "Distillate Drum ID (ft)",
+        ),
+        length_keys=(
+            "Top Drum Length (ft)",
+            "Top Accumulator Length (ft)",
+            "Reflux Drum Length (ft)",
+            "Distillate Drum Length (ft)",
+        ),
+    )
+    return float(inferred) if inferred is not None else float("nan")
+
+
+def _bottom_sump_total_volume_ft3(specs: Dict[str, Any]) -> float:
+    direct = _positive_spec_float(
+        specs,
+        "Bottom Sump Total Volume (ft3)",
+        "Bottom Sump Volume (ft3)",
+        "Bottom Total Volume (ft3)",
+        "Bottom Vessel Total Volume (ft3)",
+        "Bottom Vessel Volume (ft3)",
+        "Bottom Drum Total Volume (ft3)",
+        "Bottom Drum Volume (ft3)",
+    )
+    if direct is not None:
+        return float(direct)
+    inferred = _cylindrical_volume_from_specs(
+        specs,
+        diameter_keys=(
+            "Bottom Sump Diameter (ft)",
+            "Bottom Sump ID (ft)",
+            "Bottom Vessel Diameter (ft)",
+            "Bottom Vessel ID (ft)",
+            "Bottom Drum Diameter (ft)",
+            "Bottom Drum ID (ft)",
+        ),
+        length_keys=(
+            "Bottom Sump Height (ft)",
+            "Bottom Sump height (ft)",
+            "Bottom Sump Length (ft)",
+            "Bottom Vessel Height (ft)",
+            "Bottom Vessel Length (ft)",
+            "Bottom Drum Height (ft)",
+            "Bottom Drum Length (ft)",
+        ),
+    )
+    return float(inferred) if inferred is not None else float("nan")
 
 
 def _layout_from_checkpoint(metadata: Dict[str, Any], *, n_stages: int, n_components: int) -> StateVectorLayout:
@@ -308,18 +704,162 @@ def build_frozen_checkpoint_bridge(
         vapor,
     )
 
-    top_vapor = float(np.sum(np.asarray(unpacked.get("top_V", 0.0), dtype=float)))
-    bottom_vapor = float(np.sum(np.asarray(unpacked.get("bottom_V", 0.0), dtype=float)))
+    top_vapor_vec = np.asarray(
+        unpacked.get("top_V", np.zeros(int(col.n_components), dtype=float)),
+        dtype=float,
+    ).reshape((int(col.n_components),))
+    bottom_vapor_vec = np.asarray(
+        unpacked.get("bottom_V", np.zeros(int(col.n_components), dtype=float)),
+        dtype=float,
+    ).reshape((int(col.n_components),))
+    top_vapor = float(np.sum(top_vapor_vec))
+    bottom_vapor = float(np.sum(bottom_vapor_vec))
     terminal_stage_inventory = float(
         np.sum(tray_l[[0, int(col.n_stages) - 1], :])
         + np.sum(tray_v[[0, int(col.n_stages) - 1], :])
     )
+    if col.geometry is None or col.geometry.vapor_volume_ft3_per_stage is None:
+        raise ValueError("Frozen terminal mapping requires stage vapor-volume geometry.")
+    stage_vapor_volume = np.asarray(
+        col.geometry.vapor_volume_ft3_per_stage,
+        dtype=float,
+    ).reshape((int(col.n_stages),))
+    top_stage_volume = float(stage_vapor_volume[0]) + _liquid_inventory_volume_ft3(
+        provider=provider,
+        inventory_lbmol=tray_l[0, :],
+        temperature_F=float(temperature_full[0]),
+        pressure_psia=float(pressure_full[0]),
+    )
+    bottom_stage_volume = float(stage_vapor_volume[-1]) + _liquid_inventory_volume_ft3(
+        provider=provider,
+        inventory_lbmol=tray_l[-1, :],
+        temperature_F=float(temperature_full[-1]),
+        pressure_psia=float(pressure_full[-1]),
+    )
+    tray_el = np.asarray(unpacked["tray_EL_BTU"], dtype=float).reshape((int(col.n_stages),))
+    tray_ev = np.asarray(unpacked["tray_EV_BTU"], dtype=float).reshape((int(col.n_stages),))
+    top_stage_inventory = float(np.sum(tray_l[0, :] + tray_v[0, :]))
+    top_stage_conserved = bool(top_stage_inventory > 1.0e-10)
+    if top_stage_conserved:
+        top_stage_u = float(tray_el[0] + tray_ev[0]) - (
+            float(pressure_full[0]) * float(top_stage_volume) * BTU_PER_PSI_FT3
+        )
+    else:
+        # A total-condenser stage with no material is an algebraic topology
+        # placeholder, not an empty fixed-volume thermodynamic control volume.
+        top_stage_u = 0.0
+        top_stage_volume = 0.0
+    bottom_stage_u = float(tray_el[-1] + tray_ev[-1]) - (
+        float(pressure_full[-1]) * float(bottom_stage_volume) * BTU_PER_PSI_FT3
+    )
+    top_boundary_u = _phase_inventory_internal_energy_BTU(
+        provider=provider,
+        liquid_inventory_lbmol=top_liquid,
+        vapor_inventory_lbmol=top_vapor_vec,
+        temperature_F=float(top_t),
+        pressure_psia=float(top_p),
+    )
+    bottom_boundary_u = _phase_inventory_internal_energy_BTU(
+        provider=provider,
+        liquid_inventory_lbmol=bottom_liquid,
+        vapor_inventory_lbmol=bottom_vapor_vec,
+        temperature_F=float(bottom_t),
+        pressure_psia=float(bottom_p),
+    )
+    top_drum_volume = _top_drum_total_volume_ft3(
+        arrays=arrays,
+        specs=dict(getattr(col, "specs_raw", {}) or {}),
+    )
+    bottom_sump_volume = _bottom_sump_total_volume_ft3(
+        dict(getattr(col, "specs_raw", {}) or {})
+    )
+    terminal_nodes = (
+        TerminalConservedNode(
+            node_id="condenser_stage",
+            topology_role=(
+                "total_condenser_stage"
+                if top_stage_conserved
+                else "eliminated_algebraic_total_condenser_stage"
+            ),
+            source_blocks=("tray_stage_1",),
+            conserved=bool(top_stage_conserved),
+            total_component_inventory_lbmol=(tray_l[0, :] + tray_v[0, :]).copy(),
+            total_internal_energy_BTU=float(top_stage_u),
+            fixed_total_volume_ft3=float(top_stage_volume),
+            liquid_inventory_lbmol=tray_l[0, :].copy(),
+            vapor_inventory_lbmol=tray_v[0, :].copy(),
+            temperature_guess_F=float(temperature_full[0]),
+            pressure_guess_psia=float(pressure_full[0]),
+        ),
+        TerminalConservedNode(
+            node_id="reflux_drum",
+            topology_role="reflux_drum",
+            source_blocks=("top_boundary",),
+            conserved=True,
+            total_component_inventory_lbmol=(top_liquid + top_vapor_vec).copy(),
+            total_internal_energy_BTU=float(top_boundary_u),
+            fixed_total_volume_ft3=float(top_drum_volume),
+            liquid_inventory_lbmol=top_liquid.copy(),
+            vapor_inventory_lbmol=top_vapor_vec.copy(),
+            temperature_guess_F=float(top_t),
+            pressure_guess_psia=float(top_p),
+        ),
+        TerminalConservedNode(
+            node_id="reboiler_stage",
+            topology_role="partial_reboiler_stage",
+            source_blocks=("tray_stage_N",),
+            conserved=True,
+            total_component_inventory_lbmol=(tray_l[-1, :] + tray_v[-1, :]).copy(),
+            total_internal_energy_BTU=float(bottom_stage_u),
+            fixed_total_volume_ft3=float(bottom_stage_volume),
+            liquid_inventory_lbmol=tray_l[-1, :].copy(),
+            vapor_inventory_lbmol=tray_v[-1, :].copy(),
+            temperature_guess_F=float(temperature_full[-1]),
+            pressure_guess_psia=float(pressure_full[-1]),
+        ),
+        TerminalConservedNode(
+            node_id="bottoms_sump",
+            topology_role="bottoms_sump",
+            source_blocks=("bottom_boundary",),
+            conserved=True,
+            total_component_inventory_lbmol=(bottom_liquid + bottom_vapor_vec).copy(),
+            total_internal_energy_BTU=float(bottom_boundary_u),
+            fixed_total_volume_ft3=float(bottom_sump_volume),
+            liquid_inventory_lbmol=bottom_liquid.copy(),
+            vapor_inventory_lbmol=bottom_vapor_vec.copy(),
+            temperature_guess_F=float(bottom_t),
+            pressure_guess_psia=float(bottom_p),
+        ),
+    )
+    checkpoint_components = (
+        np.sum(tray_l + tray_v, axis=0)
+        + top_liquid
+        + top_vapor_vec
+        + bottom_liquid
+        + bottom_vapor_vec
+    )
+    checkpoint_u = float(
+        np.sum(u_total)
+        + top_stage_u
+        + bottom_stage_u
+        + top_boundary_u
+        + bottom_boundary_u
+    )
+    terminal_inventory_map = summarize_terminal_inventory_mapping(
+        interior_components_lbmol=n_total,
+        interior_internal_energy_BTU=u_total,
+        checkpoint_total_components_lbmol=checkpoint_components,
+        checkpoint_total_internal_energy_BTU=checkpoint_u,
+        nodes=terminal_nodes,
+        algebraic_coupling_complete=False,
+    )
     notes = (
         "Interior tray totals and U are frozen; checkpoint liquid/vapor splits are guesses only.",
-        "Top and bottom vessel nodes use checkpoint liquid inventory and reconstructed liquid internal energy.",
-        "The current sandbox represents terminal equipment algebraically and does not conserve virtual terminal-stage inventory.",
-        f"Excluded terminal-stage inventory is {terminal_stage_inventory:.9g} lbmol; "
-        f"top-vessel vapor={top_vapor:.9g} lbmol and bottom-vessel vapor={bottom_vapor:.9g} lbmol.",
+        "Condenser stage, reflux drum, reboiler stage, and bottoms sump now have explicit inventory ownership and volume mappings.",
+        "An empty total-condenser stage is eliminated as an algebraic topology placeholder instead of assigning -P*V energy to an empty vessel.",
+        f"Terminal inventory accounting includes {terminal_stage_inventory:.9g} lbmol in virtual terminal stages, "
+        f"top-vessel vapor={top_vapor:.9g} lbmol, and bottom-vessel vapor={bottom_vapor:.9g} lbmol.",
+        "The current simultaneous algebraic residual still couples liquid-only terminal nodes; terminal conserved nodes are not yet unknowns in that solve.",
     )
     return FrozenCheckpointBridge(
         excel_path=str(Path(excel_path).resolve()),
@@ -334,7 +874,11 @@ def build_frozen_checkpoint_bridge(
         stage_pressure_guess_psia=pressure_full[active],
         stage_temperature_guess_F=temperature_full[active],
         stage_beta_guess=beta,
-        terminal_mapping_complete=False,
+        terminal_inventory_map=terminal_inventory_map,
+        terminal_mapping_complete=bool(terminal_inventory_map.accounting_complete),
+        terminal_coupling_complete=bool(
+            terminal_inventory_map.algebraic_coupling_complete
+        ),
         mapping_notes=notes,
     )
 
@@ -432,6 +976,146 @@ def run_local_closure_audit(
         projection_count=int(projection_count),
         attempted_projection_count=int(attempted_projection_count),
         fugacity_residual_available=bool(fugacity_available),
+        strict_gate_pass=bool(strict_pass),
+    )
+
+
+def run_terminal_closure_audit(
+    *,
+    bridge: FrozenCheckpointBridge,
+    provider: Any,
+) -> TerminalClosureAudit:
+    nodes_by_id = {
+        str(node.node_id): node for node in bridge.terminal_inventory_map.nodes
+    }
+    assembly_specs = (
+        (
+            "top_terminal",
+            "total_condenser_and_reflux_drum",
+            ("condenser_stage", "reflux_drum"),
+        ),
+        (
+            "bottom_terminal",
+            "partial_reboiler_and_bottoms_sump",
+            ("reboiler_stage", "bottoms_sump"),
+        ),
+    )
+    rows: List[TerminalAssemblyClosure] = []
+    for assembly_id, topology_role, node_ids in assembly_specs:
+        missing = [node_id for node_id in node_ids if node_id not in nodes_by_id]
+        if missing:
+            raise ValueError(
+                f"terminal assembly {assembly_id} is missing nodes: {missing}"
+            )
+        target = combine_terminal_nodes(
+            assembly_id=assembly_id,
+            topology_role=topology_role,
+            nodes=[nodes_by_id[node_id] for node_id in node_ids],
+        )
+        n_total = np.asarray(
+            target.total_component_inventory_lbmol,
+            dtype=float,
+        )
+        total = float(np.sum(n_total))
+        if total <= 1.0e-12 or float(target.fixed_total_volume_ft3) <= 0.0:
+            raise ValueError(f"terminal assembly {assembly_id} has no physical UV target")
+        z = n_total / total
+        u_target = float(target.total_internal_energy_BTU) / total
+        v_target = float(target.fixed_total_volume_ft3) / total
+        beta_guess = float(np.sum(target.vapor_inventory_lbmol)) / total
+        guess = UvFlashStageGuess(
+            T_F=float(target.temperature_guess_F),
+            P_psia=float(target.pressure_guess_psia),
+            beta_vapor=float(np.clip(beta_guess, 1.0e-8, 1.0 - 1.0e-8)),
+        )
+        result = solve_uv_flash_stage(
+            provider,
+            z_overall=z,
+            u_target_BTU_lbmol=u_target,
+            v_target_ft3_lbmol=v_target,
+            guess=guess,
+            beta_mode="free",
+            max_iter=20,
+            tol_u_BTU_lbmol=max(abs(u_target) * 1.0e-9, 1.0e-7),
+            tol_v_ft3_lbmol=max(abs(v_target) * 1.0e-9, 1.0e-11),
+            tol_beta=1.0e-9,
+        )
+        if not result.converged:
+            result = _solve_scaled_local_uv(
+                provider=provider,
+                z=z,
+                u_target=u_target,
+                v_target=v_target,
+                guess=guess,
+            )
+        beta = float(result.beta_vapor)
+        reconstructed = (
+            (1.0 - beta) * np.asarray(result.x)
+            + beta * np.asarray(result.y)
+        )
+        component_rel = float(
+            np.max(
+                np.abs(reconstructed - z)
+                / np.maximum(np.abs(z), 1.0e-12)
+            )
+        )
+        rows.append(
+            TerminalAssemblyClosure(
+                assembly_id=str(assembly_id),
+                source_node_ids=tuple(node_ids),
+                target=target,
+                result=result,
+                component_relative_residual=float(component_rel),
+                energy_relative_residual=abs(
+                    float(result.residual_u_BTU_lbmol)
+                )
+                / max(abs(u_target), 1.0),
+                volume_relative_residual=abs(
+                    float(result.residual_v_ft3_lbmol)
+                )
+                / max(abs(v_target), 1.0e-12),
+                equilibrium_beta_residual=abs(float(result.residual_beta)),
+            )
+        )
+
+    comp_max = max((row.component_relative_residual for row in rows), default=np.inf)
+    energy_max = max((row.energy_relative_residual for row in rows), default=np.inf)
+    volume_max = max((row.volume_relative_residual for row in rows), default=np.inf)
+    beta_max = max((row.equilibrium_beta_residual for row in rows), default=np.inf)
+    accepted_projections = sum(
+        int(row.result.accepted_projection_count) for row in rows
+    )
+    attempted_projections = sum(int(row.result.projection_count) for row in rows)
+    pressures = {row.assembly_id: float(row.result.P_psia) for row in rows}
+    bottom_minus_top = float(
+        pressures.get("bottom_terminal", np.nan)
+        - pressures.get("top_terminal", np.nan)
+    )
+    pressure_ordering_pass = bool(
+        np.isfinite(bottom_minus_top) and bottom_minus_top > 0.0
+    )
+    converged = bool(rows) and all(bool(row.result.converged) for row in rows)
+    strict_pass = bool(
+        bridge.terminal_mapping_complete
+        and converged
+        and comp_max < 1.0e-8
+        and energy_max < 1.0e-7
+        and volume_max < 1.0e-7
+        and beta_max < 1.0e-6
+        and accepted_projections == 0
+        and pressure_ordering_pass
+    )
+    return TerminalClosureAudit(
+        assemblies=tuple(rows),
+        converged=bool(converged),
+        component_relative_max=float(comp_max),
+        energy_relative_max=float(energy_max),
+        volume_relative_max=float(volume_max),
+        equilibrium_beta_max=float(beta_max),
+        accepted_projection_count=int(accepted_projections),
+        attempted_projection_count=int(attempted_projections),
+        bottom_minus_top_pressure_psi=float(bottom_minus_top),
+        pressure_ordering_pass=bool(pressure_ordering_pass),
         strict_gate_pass=bool(strict_pass),
     )
 
@@ -631,7 +1315,6 @@ def run_hydraulic_closure_audit(
         and v_limit == 0
         and projections == 0
         and robust
-        and bridge.terminal_mapping_complete
     )
     return HydraulicClosureAudit(
         nominal=nominal,
@@ -671,5 +1354,7 @@ def classify_frozen_closure(
     if hydraulic is None or not hydraulic.strict_gate_pass:
         return "local_uv_passed_global_hydraulics_failed_or_unverified"
     if not bridge.terminal_mapping_complete:
-        return "interior_closure_passed_terminal_mapping_incomplete"
+        return "global_hydraulics_passed_terminal_mapping_incomplete"
+    if not bridge.terminal_coupling_complete:
+        return "terminal_inventory_mapped_algebraic_coupling_incomplete"
     return "frozen_closure_passed"

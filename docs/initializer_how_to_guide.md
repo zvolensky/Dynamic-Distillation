@@ -24,9 +24,11 @@ Before pursuing zero differential residuals, verify that pressure, phase
 totals, energy, hydraulic flow, and terminal inventories have unique and
 compatible owners. DD-065 showed that the current C3/C4 checkpoint can pass
 interior local UV closure while failing the global pressure/vapor-flow closure.
-Until that global and terminal architecture is corrected, initializer
-optimization is diagnostic and operational checkpoints are not rigorous golden
-seeds.
+DD-066 completed terminal inventory accounting, then showed that frozen top
+and bottom terminal UV assemblies imply reversed pressure ordering. Until a
+globally conservative redistribution solve corrects that global and terminal
+incompatibility, initializer optimization is diagnostic and operational
+checkpoints are not rigorous golden seeds.
 
 ## Recommended Workflow
 

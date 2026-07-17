@@ -251,8 +251,9 @@ Current status:
 
 - DD-058: operational dynamic gates pass; rigorous physical-closure gate fails.
 - DD-060 `phase-exponential`: experimental diagnostic; physical-closure and dynamic gates fail.
-- DD-065: all active interior trays pass local UV closure, but the global pressure/vapor-flow solve fails and terminal mapping is incomplete.
-- UV/DAE architecture: local conserved-state viability is demonstrated; global and terminal closure remain unaccepted.
+- DD-065: all active interior trays pass local UV closure, but the global pressure/vapor-flow solve fails.
+- DD-066: terminal checkpoint inventories are fully accounted, but independent terminal UV closure implies `P_bottom-P_top=-13.95 psi`; frozen terminal states cannot be coupled unchanged into a physical upward-vapor-flow network.
+- UV/DAE architecture: local conserved-state viability and terminal bookkeeping are demonstrated; global hydraulic and terminal-equation closure remain unaccepted.
 
 ### 9.1 Local Thermodynamic Closure Gate
 

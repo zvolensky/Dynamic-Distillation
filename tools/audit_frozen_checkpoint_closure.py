@@ -23,6 +23,7 @@ from dynamic_distillation.frozen_checkpoint_closure_v1 import (
     classify_frozen_closure,
     run_hydraulic_closure_audit,
     run_local_closure_audit,
+    run_terminal_closure_audit,
 )
 from dynamic_distillation.uv_flash_sandbox_v1 import _build_provider
 
@@ -45,6 +46,7 @@ def _render_markdown(report: Dict[str, Any]) -> str:
         f"- Checkpoint run: `{report['checkpoint_run_id']}` at `{report['checkpoint_time_s']:.6g} s`",
         f"- Thermo: `{report['thermo_mode']}`",
         f"- Terminal mapping complete: `{report['terminal_mapping_complete']}`",
+        f"- Terminal algebraic coupling complete: `{report['terminal_coupling_complete']}`",
         "",
         "## Local UV Closure",
         "",
@@ -85,6 +87,55 @@ def _render_markdown(report: Dict[str, Any]) -> str:
                 f"| +/-10% flow relative spread | {_format_optional(hydraulic['perturbation_flow_relative_spread_max'])} | <1e-4 |",
             ]
         )
+    terminal = report["terminal_inventory"]
+    lines.extend(
+        [
+            "",
+            "## Terminal Conserved Inventory",
+            "",
+            "| Metric | Value | Gate |",
+            "|---|---:|---:|",
+            f"| All expected source blocks mapped | {terminal['accounting_complete']} | True |",
+            f"| Component accounting max error, lbmol | {terminal['component_balance_abs_max_lbmol']:.6g} | numerical zero |",
+            f"| Internal-energy accounting error, BTU | {terminal['energy_balance_abs_BTU']:.6g} | numerical zero |",
+            f"| Algebraic coupling complete | {terminal['algebraic_coupling_complete']} | True |",
+            "",
+            "| Node | Topology role | Conserved | Inventory, lbmol | Volume, ft3 | T guess, F | P guess, psia |",
+            "|---|---|---:|---:|---:|---:|---:|",
+        ]
+    )
+    for node in terminal["nodes"]:
+        lines.append(
+            f"| {node['node_id']} | {node['topology_role']} | "
+            f"{node['conserved']} | {node['total_inventory_lbmol']:.6g} | "
+            f"{node['fixed_total_volume_ft3']:.6g} | "
+            f"{node['temperature_guess_F']:.6g} | {node['pressure_guess_psia']:.6g} |"
+        )
+    terminal_closure = report["terminal_closure"]
+    lines.extend(
+        [
+            "",
+            "## Terminal UV Assemblies",
+            "",
+            "| Metric | Value | Gate |",
+            "|---|---:|---:|",
+            f"| Both assemblies converged | {terminal_closure['converged']} | True |",
+            f"| Component reconstruction relative max | {terminal_closure['component_relative_max']:.6g} | <1e-8 |",
+            f"| Energy relative max | {terminal_closure['energy_relative_max']:.6g} | <1e-7 |",
+            f"| Volume relative max | {terminal_closure['volume_relative_max']:.6g} | <1e-7 |",
+            f"| Equilibrium beta residual max | {terminal_closure['equilibrium_beta_max']:.6g} | <1e-6 |",
+            f"| Accepted projections | {terminal_closure['accepted_projection_count']} | 0 |",
+            f"| Bottom minus top pressure, psi | {terminal_closure['bottom_minus_top_pressure_psi']:.6g} | >0 |",
+            "",
+            "| Assembly | T, F | P, psia | Vapor fraction |",
+            "|---|---:|---:|---:|",
+        ]
+    )
+    for assembly in terminal_closure["assemblies"]:
+        lines.append(
+            f"| {assembly['assembly_id']} | {assembly['T_F']:.6g} | "
+            f"{assembly['P_psia']:.6g} | {assembly['beta_vapor']:.6g} |"
+        )
     lines.extend(["", "## Mapping Notes", ""])
     lines.extend(f"- {note}" for note in report["mapping_notes"])
     lines.extend(
@@ -117,6 +168,10 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
             provider=provider,
         )
         local = run_local_closure_audit(bridge=bridge, provider=provider)
+        terminal_closure = run_terminal_closure_audit(
+            bridge=bridge,
+            provider=provider,
+        )
         hydraulic = None
         if not args.local_only:
             hydraulic = run_hydraulic_closure_audit(
@@ -138,6 +193,12 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
                 "Stop before hydraulic or production DAE work. Reconcile the checkpoint U mapping, "
                 "fixed tray volume, or property interface."
             )
+        elif classification == "terminal_inventory_mapped_algebraic_coupling_incomplete":
+            decision = (
+                "Terminal checkpoint inventory is fully accounted, but the four terminal conserved "
+                "nodes must still be added to the simultaneous algebraic residual before a production "
+                "DAE prototype can be accepted."
+            )
         else:
             decision = (
                 "Do not begin the production DAE rewrite. Local closure and global hydraulic closure "
@@ -152,7 +213,103 @@ def run(args: argparse.Namespace) -> Dict[str, Any]:
             "checkpoint_run_id": bridge.checkpoint_run_id,
             "checkpoint_time_s": bridge.checkpoint_time_s,
             "terminal_mapping_complete": bridge.terminal_mapping_complete,
+            "terminal_coupling_complete": bridge.terminal_coupling_complete,
             "mapping_notes": list(bridge.mapping_notes),
+            "terminal_inventory": {
+                "accounting_complete": bridge.terminal_inventory_map.accounting_complete,
+                "algebraic_coupling_complete": (
+                    bridge.terminal_inventory_map.algebraic_coupling_complete
+                ),
+                "component_balance_abs_max_lbmol": (
+                    bridge.terminal_inventory_map.component_balance_abs_max_lbmol
+                ),
+                "energy_balance_abs_BTU": (
+                    bridge.terminal_inventory_map.energy_balance_abs_BTU
+                ),
+                "checkpoint_total_components_lbmol": (
+                    bridge.terminal_inventory_map.checkpoint_total_components_lbmol.tolist()
+                ),
+                "mapped_total_components_lbmol": (
+                    bridge.terminal_inventory_map.mapped_total_components_lbmol.tolist()
+                ),
+                "checkpoint_total_internal_energy_BTU": (
+                    bridge.terminal_inventory_map.checkpoint_total_internal_energy_BTU
+                ),
+                "mapped_total_internal_energy_BTU": (
+                    bridge.terminal_inventory_map.mapped_total_internal_energy_BTU
+                ),
+                "expected_source_blocks": list(
+                    bridge.terminal_inventory_map.expected_source_blocks
+                ),
+                "mapped_source_blocks": list(
+                    bridge.terminal_inventory_map.mapped_source_blocks
+                ),
+                "nodes": [
+                    {
+                        "node_id": node.node_id,
+                        "topology_role": node.topology_role,
+                        "source_blocks": list(node.source_blocks),
+                        "conserved": node.conserved,
+                        "total_inventory_lbmol": float(
+                            np.sum(node.total_component_inventory_lbmol)
+                        ),
+                        "total_component_inventory_lbmol": (
+                            node.total_component_inventory_lbmol.tolist()
+                        ),
+                        "total_internal_energy_BTU": node.total_internal_energy_BTU,
+                        "fixed_total_volume_ft3": node.fixed_total_volume_ft3,
+                        "liquid_inventory_lbmol": float(
+                            np.sum(node.liquid_inventory_lbmol)
+                        ),
+                        "vapor_inventory_lbmol": float(
+                            np.sum(node.vapor_inventory_lbmol)
+                        ),
+                        "temperature_guess_F": node.temperature_guess_F,
+                        "pressure_guess_psia": node.pressure_guess_psia,
+                    }
+                    for node in bridge.terminal_inventory_map.nodes
+                ],
+            },
+            "terminal_closure": {
+                "converged": terminal_closure.converged,
+                "strict_gate_pass": terminal_closure.strict_gate_pass,
+                "component_relative_max": terminal_closure.component_relative_max,
+                "energy_relative_max": terminal_closure.energy_relative_max,
+                "volume_relative_max": terminal_closure.volume_relative_max,
+                "equilibrium_beta_max": terminal_closure.equilibrium_beta_max,
+                "accepted_projection_count": (
+                    terminal_closure.accepted_projection_count
+                ),
+                "attempted_projection_count": (
+                    terminal_closure.attempted_projection_count
+                ),
+                "bottom_minus_top_pressure_psi": (
+                    terminal_closure.bottom_minus_top_pressure_psi
+                ),
+                "pressure_ordering_pass": terminal_closure.pressure_ordering_pass,
+                "assemblies": [
+                    {
+                        "assembly_id": row.assembly_id,
+                        "source_node_ids": list(row.source_node_ids),
+                        "T_F": row.result.T_F,
+                        "P_psia": row.result.P_psia,
+                        "beta_vapor": row.result.beta_vapor,
+                        "component_relative_residual": (
+                            row.component_relative_residual
+                        ),
+                        "energy_relative_residual": row.energy_relative_residual,
+                        "volume_relative_residual": row.volume_relative_residual,
+                        "equilibrium_beta_residual": (
+                            row.equilibrium_beta_residual
+                        ),
+                        "accepted_projection_count": (
+                            row.result.accepted_projection_count
+                        ),
+                        "attempted_projection_count": row.result.projection_count,
+                    }
+                    for row in terminal_closure.assemblies
+                ],
+            },
             "local_closure": {
                 "converged": local.converged,
                 "strict_gate_pass": local.strict_gate_pass,

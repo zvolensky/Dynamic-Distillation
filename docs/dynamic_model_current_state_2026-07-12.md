@@ -36,13 +36,25 @@ construction moved `9.32%` of energy inventory on an L1 basis, changed one
 pressure by `93.66 psi`, and did not include hydraulics. It is therefore an
 existence proof, not a usable initializer.
 
+DD-068 allowed both component inventory and internal energy to move under
+exact global conservation and minimized normalized L2 movement. Two of five
+starts reproduced the same objective to `2.57e-9` relative spread, but three
+starts failed. The best candidate moved `1,012,849 BTU`, retained a maximum
+pressure correction of `79.159 psi`, and concentrated `80.3%` of absolute
+energy movement in the terminal assemblies. Its top terminal was about
+`60 psi` below the first interior tray. This is a reproducible local basin,
+not a robust global least-movement solution.
+
 This sharpens, rather than reverses, the architecture conclusion below:
-conserved-state local thermo is viable, but the global pressure/vapor-flow
-network requires a least-movement conservative redistribution solve followed
-by uncapped hydraulic closure before a production implicit residual is
-attempted. See `docs/dd_065_frozen_checkpoint_uv_hydraulic_closure_20260717.md`,
-`docs/dd_066_terminal_conserved_inventory_mapping_20260717.md`, and
-`docs/dd_067_conservative_energy_redistribution_probe_20260717.md`.
+conserved-state local thermo is viable, but the current checkpoint mapping
+must not proceed to hydraulics. Audit terminal energy ownership, fixed
+stage/terminal volumes and vapor spaces, and the `U=H-PV` conversion first.
+If those bases are confirmed, replace checkpoint repair with a full
+steady-state conserved-state solve from operating specifications. See
+`docs/dd_065_frozen_checkpoint_uv_hydraulic_closure_20260717.md`,
+`docs/dd_066_terminal_conserved_inventory_mapping_20260717.md`,
+`docs/dd_067_conservative_energy_redistribution_probe_20260717.md`, and
+`docs/dd_068_least_movement_redistribution_20260717.md`.
 
 ## Executive assessment
 

@@ -35,8 +35,17 @@ local UV level: fixed component inventories and redistributed internal energy
 produced an ordered 20-node profile with exact whole-column conservation.
 However, that pressure-isotonic construction moved `9.32%` of the checkpoint
 energy inventory on an L1 basis and excluded hydraulics. It is an existence
-proof, not an accepted seed. The next solve must minimize scaled `Delta N` and
-`Delta U` directly before adding the hydraulic network.
+proof, not an accepted seed. DD-068 therefore minimized scaled `Delta N` and
+`Delta U` directly before considering the hydraulic network.
+
+DD-068 completed that next diagnostic. A normalized L2 `Delta N`/`Delta U`
+solve found the same local objective from the checkpoint and a moderate
+random start, but three of five starts failed. The candidate moved more energy
+than DD-067, retained a `79.159 psi` maximum pressure correction, and placed
+`80.3%` of absolute energy movement in the terminal assemblies. Do not add
+hydraulics to this state. Audit terminal energy ownership, fixed volumes,
+vapor spaces, and `U=H-PV` conversion first. The controller degree-of-freedom
+audit already passed in DD-065 and is not an open item.
 
 ## Recommended Workflow
 
@@ -57,6 +66,7 @@ proof, not an accepted seed. The next solve must minimize scaled `Delta N` and
    - Solve and report local component/energy/volume UV closure.
    - Solve and report the global pressure-drop/vapor-flow network separately.
    - Verify complete condenser, reflux-drum, reboiler, and sump mappings.
+   - For conserved-state redistribution, require multi-start reproducibility and reject terminal-dominated movement before adding hydraulics.
    - Stop before dynamic integration if any required algebraic gate fails.
 
 5. Evaluate steady-state residuals only after algebraic closure.

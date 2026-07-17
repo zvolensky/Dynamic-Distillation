@@ -254,6 +254,7 @@ Current status:
 - DD-065: all active interior trays pass local UV closure, but the global pressure/vapor-flow solve fails.
 - DD-066: terminal checkpoint inventories are fully accounted, but independent terminal UV closure implies `P_bottom-P_top=-13.95 psi`; frozen terminal states cannot be coupled unchanged into a physical upward-vapor-flow network.
 - DD-067: energy-only conservative redistribution can produce ordered local UV pressure with exact whole-column conservation, but the pressure-isotonic construction moves `9.32%` of energy inventory on an L1 basis and excludes hydraulics; feasibility therefore passes while initializer acceptance remains blocked.
+- DD-068: normalized L2 component-and-energy redistribution finds one local basin from two independent starts, but three of five starts fail, energy movement is `1.356` times DD-067, maximum pressure movement remains `79.159 psi`, and terminal assemblies absorb `80.3%` of absolute energy movement; the robustness and movement gates therefore stop the workflow before hydraulics.
 - UV/DAE architecture: local conserved-state viability and terminal bookkeeping are demonstrated; global hydraulic and terminal-equation closure remain unaccepted.
 
 ### 9.1 Local Thermodynamic Closure Gate
@@ -297,6 +298,24 @@ The condenser, reflux drum, reboiler, and sump must preserve every component,
 energy, and volume inventory required by their selected topology. Omitted
 resident vapor or virtual terminal-stage inventory is a gate failure, not a
 small reporting discrepancy.
+
+### 9.4 Conservative Redistribution Gate
+
+Before a redistributed conserved state is passed to the hydraulic network:
+
+- every component and whole-column internal energy must remain conserved;
+- all accepted local UV states must pass without active projection;
+- materially different initial guesses must reproduce the accepted basin;
+- normalized L2 movement is the primary objective, with L1 and Huber movement
+  reported for interpretation;
+- per-node donors, receivers, sign reversals, pressure movement, and
+  terminal-versus-interior movement shares must be reported;
+- large terminal concentration of movement or a large terminal-to-interior
+  pressure discontinuity blocks hydraulic continuation.
+
+DD-068 demonstrates this stop gate. Local feasibility and a stationary
+objective are not enough when only two of five starts converge and the
+terminal assemblies carry most of the energy correction.
 
 ## Where Gates Are Used In The Workflow
 

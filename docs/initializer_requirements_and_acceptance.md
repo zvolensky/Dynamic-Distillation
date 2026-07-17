@@ -186,16 +186,18 @@ For production acceptance, the initializer should be able to run an optional che
 
 The dynamic gate should also reject candidates that hide a slow internal liquid inventory depletion. A run can look acceptable by rate metrics until a nearly empty internal liquid inventory produces a large explicit composition step. The profile-level audit for this failure mode is `tools/audit_liquid_inventory_depletion.py`; by default it evaluates internal stages and leaves top/bottom terminal equipment to boundary-specific checks.
 
-DD-065 through DD-067 are the current acceptance example. All active interior
+DD-065 through DD-068 are the current acceptance example. All active interior
 trays passed local component/energy/volume UV closure, and terminal inventory
 bookkeeping closes numerically. The frozen global pressure/vapor-flow solve
 still fails with a reversed locally implied pressure profile, large hydraulic
 residuals, and binding flow limiters. DD-067 proves that energy redistribution
 alone can recover an ordered local UV profile under exact whole-column
-conservation, but that pressure-isotonic construction moves `9.32%` of energy
-inventory on an L1 basis and excludes hydraulics. The correct classification
-remains `local_uv_passed_global_hydraulics_failed`, not an accepted seed and
-not a reason to launch a longer dynamic settling run.
+conservation. DD-068 minimizes normalized component-and-energy movement and
+finds a repeatable local basin from two starts, but three of five starts fail,
+energy movement is larger than DD-067, and terminal assemblies absorb `80.3%`
+of absolute energy movement. The correct classification remains
+`local_uv_passed_global_hydraulics_failed`, not an accepted seed and not a
+reason to launch hydraulics or a longer dynamic settling run.
 
 ## Current Implementation Direction
 
@@ -206,6 +208,7 @@ The current recommended direction is:
 - distinguish rejected trial projections from accepted projected states and reject the latter for rigorous acceptance,
 - allow conserved tray totals and energies to redistribute only in a formal steady-state solve that preserves whole-column components and energy,
 - minimize and report scaled conserved-state movement from the reference seed instead of treating any conservative feasible point as acceptable,
+- require multi-start convergence and report terminal-versus-interior movement before calling a least-movement basin robust,
 - use relaxation/homotopy only as startup or solve stabilizers, not as proof of a steady initial condition,
 - prefer native checkpoint-style serialization for accepted seeds,
 - treat Excel-only checkpoint-guided exports as diagnostic bridges until they pass reload tests with startup/re-entry conditioning disabled,

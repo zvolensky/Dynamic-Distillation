@@ -28,6 +28,7 @@ from dynamic_distillation.column_rhs_v1 import (
     BoundaryFlows,
     ColumnInputs,
     _limit_equilibrium_component_transfer_by_transport,
+    _transport_balanced_phase_transfer,
     column_rhs,
 )
 
@@ -253,6 +254,176 @@ def test_equilibrium_component_transfer_guard_limits_transport_overshoot():
     # exceeds 1.5x the local pre-equilibrium material motion.
     assert float(scale[1]) < 1.0
     assert np.all(np.abs(transfer[1, :]) <= 1.5 * np.abs(pre[1, :]) + 1.0e-12)
+
+
+def test_composition_exponential_relaxation_applies_exact_bounded_split_step():
+    col = _make_zero_flow_column_3stage()
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+    )
+    y0_vec = layout.pack_y0(col)
+    provider = _DirectAlphaThermoProvider([2.0, 0.5])
+    dt = 0.2
+    tau = 0.5
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo_provider=provider,
+        compute_thermo_diag=False,
+        equilibrium_relaxation=True,
+        equilibrium_relaxation_mode="composition-exponential",
+        equilibrium_step_dt_sec=dt,
+        tau_eq_sec=tau,
+        equilibrium_component_transfer_max_cancel_multiplier=1.0,
+    )
+
+    dydt, diag = column_rhs(0.0, y0_vec, col, layout, inputs=inputs)
+    sl = layout.slices()
+    tray_V0 = y0_vec[sl["tray_V"]].reshape((3, 2))
+    tray_L0 = y0_vec[sl["tray_L"]].reshape((3, 2))
+    dV = dydt[sl["tray_V"]].reshape((3, 2))
+    dL = dydt[sl["tray_L"]].reshape((3, 2))
+    y_target = np.asarray(diag["y_target_tray"], dtype=float).reshape((3, 2))
+    alpha = 1.0 - np.exp(-dt / tau)
+
+    middle_total = float(np.sum(tray_V0[1, :]))
+    expected_middle = (1.0 - alpha) * tray_V0[1, :] + alpha * middle_total * y_target[1, :]
+    actual_middle = tray_V0[1, :] + dt * dV[1, :]
+
+    assert np.allclose(actual_middle, expected_middle, atol=1.0e-12)
+    assert np.all(actual_middle >= 0.0)
+    assert np.isclose(np.sum(actual_middle), middle_total, atol=1.0e-12)
+    assert np.allclose(dL + dV, 0.0, atol=1.0e-12)
+    assert np.isclose(float(np.asarray(diag["eq_exponential_alpha"]).reshape((-1,))[0]), alpha)
+    assert float(np.asarray(diag["eq_exponential_split_active"]).reshape((-1,))[0]) == 1.0
+    assert np.all(tray_L0[1, :] + dt * dL[1, :] >= 0.0)
+
+
+def test_transport_balanced_phase_transfer_cancels_only_active_tray_vapor_totals():
+    pre = np.array(
+        [
+            [1.0, -0.5],
+            [-0.3, -0.2],
+            [0.4, 0.6],
+        ],
+        dtype=float,
+    )
+    y_eq = np.array(
+        [
+            [0.7, 0.3],
+            [0.8, 0.2],
+            [0.6, 0.4],
+        ],
+        dtype=float,
+    )
+    y_current = np.array(
+        [
+            [0.5, 0.5],
+            [0.25, 0.75],
+            [0.4, 0.6],
+        ],
+        dtype=float,
+    )
+
+    transfer, required = _transport_balanced_phase_transfer(
+        pre,
+        vaporization_composition=y_eq,
+        current_vapor_composition=y_current,
+        active_trays=np.array([False, True, True]),
+    )
+
+    assert np.allclose(required, [0.0, 0.5, -1.0])
+    assert np.allclose(transfer[0, :], 0.0)
+    assert np.allclose(transfer[1, :], 0.5 * y_eq[1, :])
+    assert np.allclose(transfer[2, :], -1.0 * y_current[2, :])
+    assert np.allclose(np.sum(pre + transfer, axis=1)[1:], 0.0)
+
+
+def test_transport_balanced_phase_transfer_is_opt_in_and_reports_closure():
+    col = _make_zero_flow_column_3stage()
+    col.V_lbmolph[:] = np.array([0.0, 360.0, 0.0], dtype=float)
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+    )
+    y0_vec = layout.pack_y0(col)
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo_provider=_DirectAlphaThermoProvider([2.0, 0.5]),
+        compute_thermo_diag=False,
+        equilibrium_relaxation=True,
+        equilibrium_relaxation_mode="composition-exponential",
+        equilibrium_transport_balanced_phase_transfer=True,
+        equilibrium_step_dt_sec=0.2,
+        tau_eq_sec=0.5,
+    )
+
+    dydt, diag = column_rhs(0.0, y0_vec, col, layout, inputs=inputs)
+    sl = layout.slices()
+    dL = dydt[sl["tray_L"]].reshape((3, 2))
+    dV = dydt[sl["tray_V"]].reshape((3, 2))
+    residual = np.asarray(
+        diag["eq_transport_balance_residual_lbmolps_tray"], dtype=float
+    ).reshape((3,))
+    required = np.asarray(
+        diag["eq_transport_balance_required_lbmolps_tray"], dtype=float
+    ).reshape((3,))
+    phase_change = np.asarray(
+        diag["eq_phase_change_lbmolps_tray"], dtype=float
+    ).reshape((3,))
+
+    assert float(np.asarray(diag["eq_transport_balance_active"]).reshape((-1,))[0]) == 1.0
+    assert np.isclose(residual[1], 0.0, atol=1.0e-12)
+    assert np.isclose(np.sum(dV[1, :]), 0.0, atol=1.0e-12)
+    assert np.isclose(phase_change[1], required[1], atol=1.0e-12)
+    assert np.isclose(np.sum(dL[1, :] + dV[1, :]), -required[1], atol=1.0e-12)
+
+
+def test_phase_exponential_relaxation_changes_phase_total_without_changing_total_inventory():
+    col = _make_zero_flow_column_3stage()
+    layout = StateVectorLayout(
+        n_stages=3,
+        n_components=2,
+        include_top=False,
+        include_bottom=False,
+        include_vapor=True,
+    )
+    y0_vec = layout.pack_y0(col)
+    provider = _ThermoProviderWithK([2.0, 0.5])
+    dt = 0.2
+    tau = 0.5
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=0.0),
+        thermo_provider=provider,
+        compute_thermo_diag=False,
+        equilibrium_relaxation=True,
+        equilibrium_relaxation_mode="phase-exponential",
+        equilibrium_step_dt_sec=dt,
+        tau_eq_sec=tau,
+    )
+
+    dydt, diag = column_rhs(0.0, y0_vec, col, layout, inputs=inputs)
+    sl = layout.slices()
+    tray_V0 = y0_vec[sl["tray_V"]].reshape((3, 2))
+    tray_L0 = y0_vec[sl["tray_L"]].reshape((3, 2))
+    dV = dydt[sl["tray_V"]].reshape((3, 2))
+    dL = dydt[sl["tray_L"]].reshape((3, 2))
+    target = np.asarray(diag["eq_target_vapor_lbmol_tray"], dtype=float).reshape((3, 2))
+
+    actual_middle = tray_V0[1, :] + dt * dV[1, :]
+
+    assert np.linalg.norm(actual_middle - target[1, :]) < np.linalg.norm(tray_V0[1, :] - target[1, :])
+    assert not np.isclose(np.sum(actual_middle), np.sum(tray_V0[1, :]), atol=1.0e-12)
+    assert np.allclose(dL + dV, 0.0, atol=1.0e-12)
+    assert np.all(tray_L0[1, :] + dt * dL[1, :] >= 0.0)
+    assert np.all(actual_middle >= 0.0)
+    assert float(np.asarray(diag["eq_exponential_split_active"]).reshape((-1,))[0]) == 1.0
 
 
 def test_equilibrium_component_transfer_guard_limits_same_direction_amplification():

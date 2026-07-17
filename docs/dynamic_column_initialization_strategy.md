@@ -4,7 +4,7 @@ Date: 2026-05-28
 
 Code status note: `docs/initialization_code_status.md` classifies the current initialization tooling as supported, experimental, or deprecated for acceptance.
 
-Current model-state note: `docs/dynamic_model_current_state_2026-07-08.md`.
+Current model-state note: `docs/dynamic_model_current_state_2026-07-12.md`.
 
 ## Current Status Addendum 2026-07-08
 
@@ -23,7 +23,7 @@ External review follow-up: do not jump directly from the current 900 s evidence 
 
 Longer-gate follow-up: the 1800 s extension of the current best linear-steady/equilibrium-guard recipe failed. The pulse envelope began rebuilding after the 900 s window and became a large feed-adjacent event around 1240 s. The 1200 s vapor and energy audits were still modest/quiet; by 1240 s stage 12/13 vapor transport and energy residuals dominated while vapor-flow calc/used mismatch remained zero. The next concrete target is therefore the 1200-1240 s feed-adjacent vapor-material/energy transition, not a generic least-squares initializer pass.
 
-K-level gate follow-up: the 900 s rate-based pass is not sufficient acceptance. `tools/audit_k_state_drift.py` shows that `K_state` remains far from `K_thermo` and regrows after its minimum; the final worst row is n-pentane on generic interior stage 5. This should be treated as a first-class initializer gate because it is a physical level-consistency metric, not just a derivative metric. The immediate diagnostic target is now the source of the stage 5-7 n-pentane K divergence and how that disequilibrium feeds into the later 1200-1240 s feed-adjacent event.
+2026-07-12 correction: the historical raw `K_state=y/x` versus thermo-K comparison below is not a valid general physical gate because the model normalizes vapor targets by `sum(K*x)`. Retain those historical findings as investigation context, but use normalized interior `y-y_target` consistency for acceptance. The corrected tool excludes generic terminal states by default and keeps raw-K fields informational.
 
 Equilibrium-transfer guard follow-up: the K drift is consistent with the component-transfer guard limiting equilibrium relaxation to the scale of the local pre-equilibrium vapor material RHS. Existing 300 s comparisons show the tradeoff directly. Tight multiplier `1.0` gives the better dynamic score but worse K drift; default/sign-aware multiplier `1.5` improves K consistency and removes positive K-delta trend over 300 s but worsens the vapor-material wave. Do not call either setting accepted. The next work should identify why relaxing the cap reintroduces the wave, rather than choosing one side of the tradeoff blindly.
 
@@ -1011,4 +1011,24 @@ The current productive direction is RHS closure inspection:
 - Geometry-based level control was then activated with `--enable-level-control --ignore-workbook-level-pv-mode --top-level-pv-mode true-level --bottom-level-pv-mode true-level`. With gentle tuning (`top/bottom Kc=1`, `Ti=600 s`), the `900 s` run (`logs/c3c4_stage2_liq_eq_vap_linearsteady_900s_eqcompguard_m1_truelevel_20260708`) also passed: final score `0.972`, final relative state rate `0.00292/s`, and temperature rate `0 F/s`. The controller PVs are real geometry fractions, not molar holdup PVs. This setup reduced the largest early pulse versus open loop (`12.65` at `200 s` versus `14.0`), but the top level drifted below its initial setpoint (`0.429` versus `0.510`) while the bottom rose (`0.549` versus `0.526`). A stronger probe (`Kc=4`, `Ti=300 s`, `300 s`) held levels better but worsened the early launch pulse (`score=21.26` at `140 s`). Interpretation: geometry level control is operational and safe enough for the current gate with gentle tuning, but controller tuning should be treated as a later closed-loop operations problem, not as an initializer fix.
 - A checkpoint-guided Excel export was tested from the quiet `900 s` profile. After generic component-name and boundary-name mapping fixes, the export correctly wrote all tray composition, liquid holdup, vapor holdup, flow rows, and top/bottom liquid boundary states. However, default startup thermo conditioning changed the reconciled tray compositions before integration, and the `300 s` reload failed (`score=26.5`). Disabling startup/re-entry conditioning preserved the state better and stayed bounded for `60 s` (`score=1.44`), but the native checkpoint restart from the same source was still better (`score=1.16`). Interpretation: do not treat Excel projection as the accepted initializer artifact. The accepted path should serialize native checkpoint-style state and runtime memory; Excel export is a review/interoperability bridge unless it passes reload parity.
 
-Interpretation: vapor-flow lag is a real amplifier, enthalpy precedence was a real bug, the `last_dT_tray` target was a real dynamic-memory path, top-boundary reflux enthalpy ownership was a real RHS inconsistency, explicit tray vapor composition was a real initialization blocker, and top-anchor pressure ordering was a real boundary-pressure bug. These are now diagnosable or corrected. The current best initializer path is the linear-steady vapor projection plus the top-anchor ordering fix, gated by dynamic launch tests. Do not continue the static vapor-composition-only reconciliation branch, do not resume vapor-equilibrium blend sweeps, and do not make broader equation changes unless a longer dynamic gate exposes a specific remaining defect. The current longer-gate defect is specific enough: inspect the interior energy/vapor-flow/equilibrium path that precedes the condenser-flow symptom before changing top-drum vapor-slip, level-control, or generic tray equations.
+Historical 2026-07-08 interpretation: vapor-flow lag is a real amplifier, enthalpy precedence was a real bug, the `last_dT_tray` target was a real dynamic-memory path, top-boundary reflux enthalpy ownership was a real RHS inconsistency, explicit tray vapor composition was a real initialization blocker, and top-anchor pressure ordering was a real boundary-pressure bug. These became diagnosable or corrected. At that point, the best initializer path appeared to be linear-steady vapor projection plus the top-anchor ordering fix, gated by dynamic launch tests. The 2026-07-12 section below supersedes that recommendation after the physical tray-flow and pressure-ownership findings.
+
+## 2026-07-12 Authoritative Update: Model Closure Precedes Further Initializer Optimization
+
+This section supersedes earlier recommendations in this document that identify linear-steady projection, broader residual least-squares, or additional profile reconciliation as the current best initializer path.
+
+DD-053 through DD-058 produced a stable, controlled, restartable operating checkpoint under DWSIM PR. DD-058 passes the dynamic rate and normalized vapor-target gates and is the preferred operational checkpoint. It is not a rigorous golden seed.
+
+The final liquid-flow audit showed nearly exact section-wise liquid-flow plateaus. These arise because runtime liquid flow remains a `25%` Francis/`75%` imported-profile blend and `composition-exponential` relaxation preserves phase totals. Therefore the accepted quiet profile is not fully physics owned.
+
+DD-060 tested a full phase-total exponential TP-flash target. It failed in one `0.2 s` step because large phase changes were requested without simultaneous latent-energy closure. Representative conserved-energy/volume UV solves converged, but exposed substantial disagreement between hydraulic pressure and pressure implied by explicit vapor holdup.
+
+Current decision:
+
+1. Freeze DD-058 as the operational baseline.
+2. Keep least-squares, projection, homotopy, and `phase-exponential` as diagnostics only.
+3. Do not pursue a zero-residual initializer against the present conflicting pressure/phase ownership.
+4. Explore a conserved component/internal-energy state formulation with a coupled UV/volume/pressure/vapor-flow algebraic block in an isolated branch or sandbox.
+5. Resume rigorous initializer development only after that model-core closure passes single-stage and small-column physical gates.
+
+See `docs/dynamic_model_current_state_2026-07-12.md` and `docs/dd_060_physics_owned_tray_flow_probe_20260712.md`.

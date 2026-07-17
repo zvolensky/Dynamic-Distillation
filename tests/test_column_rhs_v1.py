@@ -296,6 +296,30 @@ def test_feed_stage_flash_reuses_seed_packet_with_small_state_drift():
     assert np.allclose(Fk_V, prev_packet.Fk_V_lbmolps)
 
 
+def test_numbered_feed_stream_is_applied_to_rhs_feed_rates():
+    col = _make_tiny_column()
+    object.__setattr__(col, "streams", {
+        "Feed1": StreamSpecNormalized(
+            name="Feed1",
+            stage_1based=2,
+            total_molar_flow_lbmolph=3600.0,
+            component_molar_flows_lbmolph={"A": 1200.0, "B": 2400.0},
+            vapor_fraction=0.0,
+            temperature_f=150.0,
+        )
+    })
+
+    stage0, Fk_L, Fk_V = _feed_component_rates_lbmolps(
+        col=col,
+        Nc=2,
+        flash_feed_at_stage_conditions=False,
+    )
+
+    assert stage0 == 1
+    assert np.allclose(Fk_L, np.array([1.0 / 3.0, 2.0 / 3.0]))
+    assert np.allclose(Fk_V, np.zeros(2))
+
+
 def test_feed_stage_flash_misses_seed_packet_when_pressure_shift_is_material():
     col = _make_tiny_column()
     object.__setattr__(col, "streams", {
@@ -1461,6 +1485,83 @@ def test_top_drum_pressure_gate_conductance_reduces_stage2_vapor_outflow(monkeyp
     assert abs(v_cond_in_lbmolph - 1800.0) < 1e-6
     assert abs(v_blocked_lbmolph - 1800.0) < 1e-6
     assert abs(v_out_stage2_lbmolph - 1800.0) < 1e-6
+
+
+def test_pressure_targeted_resident_condensation_is_capacity_and_target_bounded():
+    rate, target_mv, excess_mv = rhs_module._pressure_targeted_resident_condensation_rate_lbmolps(
+        top_vapor_lbmol=100.0,
+        pressure_psia=250.0,
+        target_pressure_psia=200.0,
+        remaining_duty_capacity_lbmolps=1.0,
+        tau_sec=10.0,
+        dt_sec=0.2,
+        max_frac_per_step=0.10,
+    )
+
+    assert target_mv == pytest.approx(80.0)
+    assert excess_mv == pytest.approx(20.0)
+    assert rate == pytest.approx(1.0)
+
+    rate_below, _target_below, _excess_below = (
+        rhs_module._pressure_targeted_resident_condensation_rate_lbmolps(
+            top_vapor_lbmol=100.0,
+            pressure_psia=190.0,
+            target_pressure_psia=200.0,
+            remaining_duty_capacity_lbmolps=10.0,
+            tau_sec=10.0,
+            dt_sec=0.2,
+            max_frac_per_step=0.10,
+        )
+    )
+    assert rate_below == 0.0
+
+
+def test_specified_duty_can_condense_resident_top_vapor_without_crossing_pressure_target(monkeypatch):
+    col = _make_tiny_column()
+    col2 = ColumnSpec(
+        **{
+            **col.__dict__,
+            "V_lbmolph": np.array([0.0, 3600.0], dtype=float),
+            "L_lbmolph": np.array([0.0, 0.0], dtype=float),
+            "streams": {},
+        }
+    )
+    layout = StateVectorLayout(
+        n_stages=2,
+        n_components=2,
+        include_top=True,
+        include_bottom=False,
+        include_vapor=True,
+        include_temperature=False,
+    )
+    y0 = layout.pack_y0(col2)
+    sl = layout.slices()
+    y0[sl["top_V"]] = np.array([10.0, 0.0], dtype=float)
+
+    def _fake_total_cond_duty(**_kwargs):
+        return -3600.0, 100.0
+
+    monkeypatch.setattr(rhs_module, "_compute_total_condenser_duty_btu_per_h", _fake_total_cond_duty)
+    inputs = ColumnInputs(
+        boundary=BoundaryFlows(reflux_lbmolph=0.0, boilup_lbmolph=3600.0),
+        condenser_duty_mode="specified",
+        condenser_duty_btu_per_h=-7200.0,
+        thermo_provider=object(),
+        pressure_model="spec",
+        top_drum_vapor_volume_ft3=1.0,
+        enable_top_drum_resident_condensation=True,
+        top_drum_resident_condensation_target_psia=200.0,
+        top_drum_resident_condensation_tau_sec=1.0,
+        equilibrium_step_dt_sec=0.2,
+    )
+
+    dydt, diag = column_rhs(0.0, y0, col2, layout, inputs=inputs)
+    resident = float(np.asarray(diag["top_resident_condensation_lbmolph"]).reshape((-1,))[0])
+    d_top_v = np.asarray(dydt[sl["top_V"]], dtype=float).reshape((2,))
+
+    assert resident == pytest.approx(3600.0)
+    assert float(np.sum(d_top_v)) == pytest.approx(-1.0)
+    assert float(np.asarray(diag["top_resident_condensation_active"]).reshape((-1,))[0]) == 1.0
 
 
 def test_hydraulic_top_pressure_ordering_prevents_stage1_below_drum_with_top_anchor(monkeypatch):

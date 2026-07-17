@@ -514,13 +514,24 @@ ddii_tp_flash2_batch_no_cp
         p_pa: float,
         T_K: float,
     ) -> Tuple[np.ndarray, np.ndarray, Optional[float], int]:
-        if phase_compositions.shape[0] == 1:
-            z = _normalize_comp(phase_compositions[0, :], phase_compositions.shape[1])
+        phase_compositions = np.asarray(phase_compositions, dtype=float)
+        phase_moles = np.asarray(phase_moles, dtype=float)
+        if phase_compositions.shape != phase_moles.shape:
+            raise ValueError("Flash phase compositions and phase moles must have matching shapes")
+
+        totals = _phase_totals_from_phase_moles(phase_moles)
+        total_scale = max(1.0, float(np.sum(np.abs(totals))))
+        active_tol = np.finfo(float).eps * total_scale
+        active = np.flatnonzero(np.isfinite(totals) & (totals > active_tol))
+        if active.size == 0:
+            raise RuntimeError("Clapeyron TP flash returned no active phase")
+        if active.size == 1:
+            z = _normalize_comp(phase_compositions[int(active[0]), :], phase_compositions.shape[1])
             zfac = self._phase_z_factor(z, phase_name="vapor", p_pa=p_pa, T_K=T_K)
             return z.copy(), z.copy(), zfac, 1
 
         zfacs = []
-        for i in range(phase_compositions.shape[0]):
+        for i in active:
             zf = self._phase_z_factor(
                 _normalize_comp(phase_compositions[i, :], phase_compositions.shape[1]),
                 phase_name="vapor",
@@ -530,16 +541,26 @@ ddii_tp_flash2_batch_no_cp
             zfacs.append(np.nan if zf is None else float(zf))
         z_arr = np.asarray(zfacs, dtype=float)
         if np.all(np.isfinite(z_arr)):
-            vap_i = int(np.argmax(z_arr))
-            liq_i = int(np.argmin(z_arr))
+            vap_pos = int(np.argmax(z_arr))
+            liq_pos = int(np.argmin(z_arr))
         else:
-            totals = _phase_totals_from_phase_moles(phase_moles)
-            vap_i = int(np.argmax(totals))
-            liq_i = 0 if vap_i != 0 else 1
+            active_totals = totals[active]
+            vap_pos = int(np.argmax(active_totals))
+            liq_pos = int(np.argmin(active_totals))
+        vap_i = int(active[vap_pos])
+        liq_i = int(active[liq_pos])
         x = _normalize_comp(phase_compositions[liq_i, :], phase_compositions.shape[1])
         y = _normalize_comp(phase_compositions[vap_i, :], phase_compositions.shape[1])
-        zfac = z_arr[vap_i] if 0 <= vap_i < z_arr.size and np.isfinite(z_arr[vap_i]) else None
-        return x, y, (None if zfac is None else float(zfac)), int(phase_compositions.shape[0])
+        zfac = z_arr[vap_pos] if 0 <= vap_pos < z_arr.size and np.isfinite(z_arr[vap_pos]) else None
+        return x, y, (None if zfac is None else float(zfac)), int(active.size)
+
+    @staticmethod
+    def _require_exposed_equilibrium_pair(phase_count: int) -> None:
+        if int(phase_count) < 2:
+            raise RuntimeError(
+                "Clapeyron TP flash returned one active phase and did not expose the "
+                "incipient-phase K-values required by the dynamic model"
+            )
 
     def _enrich_flash_result_with_cp(
         self,
@@ -628,6 +649,7 @@ ddii_tp_flash2_batch_no_cp
             p_pa=p_pa,
             T_K=T_K,
         )
+        self._require_exposed_equilibrium_pair(phase_count)
         K = np.divide(y, np.maximum(x, 1.0e-300))
         HL = self._phase_enthalpy_btu_lbmol(x, phase_name="liquid", p_pa=p_pa, T_K=T_K)
         HV = self._phase_enthalpy_btu_lbmol(y, phase_name="vapor", p_pa=p_pa, T_K=T_K)
@@ -685,14 +707,15 @@ ddii_tp_flash2_batch_no_cp
         else:
             raise RuntimeError("pyclapeyron tp_flash did not return a recognized flash result")
 
-        x, y, zfac, _phase_count = self._split_flash_phases(
+        x, y, zfac, phase_count = self._split_flash_phases(
             phase_compositions,
             phase_moles,
             p_pa=p_pa,
             T_K=T_K,
         )
-        self._record_call_counter("wall_sec", float(time.perf_counter() - t0))
+        self._require_exposed_equilibrium_pair(phase_count)
         K = np.divide(y, np.maximum(x, 1.0e-300))
+        self._record_call_counter("wall_sec", float(time.perf_counter() - t0))
         return (
             np.asarray(x, dtype=float).reshape((-1,)).copy(),
             np.asarray(y, dtype=float).reshape((-1,)).copy(),

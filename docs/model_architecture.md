@@ -11,15 +11,15 @@ This model differs fundamentally from simplified textbook treatments of distilla
 
 - **Explicit vapor volume** with physical rigidity constraints (fixed shell volumes)
 - **Rigorous energy topology** with temperature and enthalpy states on trays and boundary vessels
-- **Coupled hydraulic-pressure closure** where pressure is a differential state computed from vapor-phase accumulation
+- **Hydraulic-pressure and explicit vapor-inventory paths** that are intended to be coupled
 
-This rigorous formulation aligns with published DAE (Differential-Algebraic Equation) literature and matches the hidden mathematical structure of commercial dynamic simulators like Aspen Dynamics. However, it creates a **stiff, Index-1+ DAE system** where microscopic inconsistencies at $t=0$ can produce violent computational shocks.
+The intended formulation resembles the DAE structure used by rigorous commercial dynamic simulators. The current implementation does not yet complete that structure: DD-060 shows that hydraulic pressure and pressure implied by explicit vapor holdup can disagree materially, and the accepted composition-only equilibrium path preserves phase totals. This is an open model-closure issue, not merely an initialization sensitivity.
 
-In consequence, initialization is not a trivial "switch to dynamics" operation. The model requires a **Consistent Initialization Solver**—described in detail in `docs/dynamic_column_initialization_strategy.md`—to ensure all time derivatives are simultaneously driven to zero at $t=0$ before integration begins.
+In consequence, initialization is not a trivial "switch to dynamics" operation. A future rigorous formulation will require consistent DAE initialization, but model ownership must first be made internally consistent. An initializer cannot drive all derivatives to a meaningful zero while pressure, phase totals, and energy have competing closures.
 
 See `docs/dynamic_column_initialization_strategy.md` for the mathematical foundation and practical workflow.
 See `docs/initialization_code_status.md` for the current support status of initialization, reconciliation, and startup-homotopy tooling.
-See `docs/dynamic_model_current_state_2026-07-08.md` for the latest C3/C4 model-state summary and external-review framing.
+See `docs/dynamic_model_current_state_2026-07-12.md` for the latest C3/C4 model-state summary and external-review framing.
 
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
@@ -29,7 +29,9 @@ See `docs/dynamic_model_current_state_2026-07-08.md` for the latest C3/C4 model-
 
 2026-07-08 longer-gate result: the 1800 s extension of the current best C3/C4 recipe failed after the 900 s window. The failure turns on around 1200-1240 s near the generic feed-adjacent interface: stage 12/13 vapor transport terms and energy residuals activate while the no-lag energy vapor-flow calc/used mismatch remains zero. This keeps the focus on runtime coupling and term ownership in the existing model before any broad implicit architecture rewrite.
 
-2026-07-08 K-level gate result: the 900 s run can pass the rate-based steady-state score while `K_state/K_thermo` worsens. The new `tools/audit_k_state_drift.py` report fails that run on final absolute K error, final log-ratio error, and positive trend from the run minimum, with n-pentane around generic interior stage 5 as the final dominant mismatch. Model-health claims now require both rate-based dynamic gates and K-level consistency gates.
+2026-07-12 equilibrium-gate correction: raw `K_state=y/x` cannot generally be compared directly with raw thermo `K` because vapor targets are normalized by `sum(K*x)`. Model-health claims require the rate gate plus normalized interior `y-y_target` consistency. `tools/audit_k_state_drift.py` retains raw-K context but no longer treats it as the physical acceptance metric.
+
+2026-07-12 tray-flow ownership finding: DD-058's section-wise liquid-flow plateaus are a structural consequence of profile-blended liquid hydraulics plus composition-only equilibrium transfer at fixed phase totals. DD-060 proved that directly applying a full fixed-T/P flash phase target is not an energy-conserving remedy. The existing stage UV solver converges on representative C3/C4 states, but the live state also permits hydraulic pressure and vapor-holdup pressure to disagree. A rigorous next architecture must give conserved component totals/internal energy differential ownership and solve phase split, temperature, pressure, and vapor traffic as a coupled UV/volume algebraic block. See `docs/dd_060_physics_owned_tray_flow_probe_20260712.md`.
 
 2026-07-08 equilibrium-transfer guard tradeoff: the component-transfer guard is now a central coupling issue. Multiplier `1.0` suppresses the dynamic vapor wave better but leaves persistent K drift; multiplier `1.5` improves K consistency but worsens the rate-based wave. This argues for a root-cause review of the guarded equilibrium-transfer formulation and its transport inputs before promoting either setting as the runtime default.
 

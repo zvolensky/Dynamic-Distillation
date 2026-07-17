@@ -345,11 +345,12 @@ def refresh_tray_tp_packet(
                     flash_refreshed[i] = 1.0
                     source_code[i] = 3.0
                     _trace(f"main_flash stage={int(i + 1)}/{int(n_stages)} done")
-                except Exception:
+                except Exception as exc:
                     flash_failed[i] = 1.0
                     source_code[i] = -1.0
                     _trace(
-                        f"main_flash stage={int(i + 1)}/{int(n_stages)} failed; retaining cached thermo state"
+                        f"main_flash stage={int(i + 1)}/{int(n_stages)} failed; retaining cached thermo state; "
+                        f"error={type(exc).__name__}: {exc}"
                     )
 
     return TrayThermoRefreshResult(

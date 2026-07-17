@@ -1,5 +1,7 @@
 # Dynamic Model Current State
 
+> Historical snapshot dated 2026-07-08. For the authoritative current position, see `docs/dynamic_model_current_state_2026-07-12.md`.
+
 Date: 2026-07-08
 
 This note records the current working interpretation of the C3/C4 dynamic-column work after the initializer, residual-solver, checkpoint, and controller probes run during July 6-8, 2026.

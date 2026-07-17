@@ -10,6 +10,7 @@ In this project, gates are needed because a dynamic distillation run can look ac
 - a run can pass a rate-based steady-state score while an internal liquid inventory is slowly draining,
 - a run can look quiet while `K_state` drifts away from live thermo `K_thermo`,
 - a startup sequence can become unstable if liquid or vapor hydraulics are turned on too abruptly.
+- a controlled run can be quiet and mass-conserving while imported flow profiles or incompatible pressure states still own part of the solution.
 
 Gates keep those cases from being treated as accepted results just because one diagnostic improved.
 
@@ -109,6 +110,7 @@ The runtime writes a rate-based steady-state score into the summary CSV:
 - `steady_state_flag`,
 - `ss_max_rel_state_rate_per_s`,
 - `ss_max_temp_rate_F_per_s`,
+- `ss_global_inventory_rate_frac_feed`,
 - related fields identifying the worst state, stage, and component.
 
 Primary implementation:
@@ -124,14 +126,15 @@ Typical use:
 Important limitation:
 
 - this is mostly a rate gate. It can miss level or consistency problems such as slow K-state drift or slow liquid inventory depletion. That is why additional gates now exist.
+- the runtime now also rejects a nominal steady-state result when the absolute whole-column inventory rate exceeds `1%` of feed by default. This prevents a quiet run with `D + B` materially different from `F` from passing merely because the loss is distributed across many state variables.
 
-### 4. K-State Drift Gate
+### 4. Normalized Equilibrium-Target Gate
 
-The K-state gate checks whether the integrated composition state remains consistent with thermo equilibrium.
+This gate checks whether the integrated vapor composition remains consistent with the normalized equilibrium target actually used by the model.
 
 It asks whether:
 
-- `K_state = y/x` remains close to live thermo `K_thermo`,
+- live `y` remains close to normalized `y_target`,
 - the mismatch is growing,
 - the final mismatch is physically meaningful.
 
@@ -144,7 +147,7 @@ Typical use:
 - reject a run that looks quiet by rate metrics but is drifting away from thermo consistency,
 - distinguish a truly healthy dynamic run from a merely slow-moving inconsistent run.
 
-This gate was added because a 900 s run could pass the rate-based score while `K_state` versus `K_thermo` remained materially inconsistent.
+Raw `K_state = y/x` must not be compared directly with raw thermo `K` unless `sum(K*x)=1`. In the general normalized target, `y_i/x_i = K_i/sum(K*x)`. The tool retains raw-K fields as diagnostic context, excludes generic terminal states by default, and gates interior normalized `y-y_target` consistency.
 
 ### 5. Liquid Inventory Depletion Gate
 
@@ -230,6 +233,26 @@ Typical criteria:
 
 This is the highest-level gate. It prevents a diagnostic pass from being overstated as full rigorous dynamic validation.
 
+### 9. Physical Closure Gate
+
+The physical-closure gate asks whether the final operating profile is actually determined by one internally consistent equation set.
+
+It checks at least:
+
+- `L_out_used` is owned by active hydraulics rather than a nonzero blend with an imported profile,
+- net tray evaporation or condensation is coupled to component and total-energy conservation,
+- hydraulic pressure agrees with pressure implied by vapor holdup, vapor volume, temperature, composition, and Z,
+- vapor-flow profile caps or imported nominal traffic are not binding at the accepted operating point,
+- feed and boundary flows explain section-to-section material changes without replacing interior phase physics.
+
+DD-058 demonstrates why this gate is separate from the dynamic score. DD-058 is quiet, controlled, and mass-conserving, but its section-wise liquid-flow plateaus are partly imposed by profile blending and fixed phase totals. DD-060 demonstrates why simply enabling full TP-flash phase relaxation is not sufficient: phase-total changes must also conserve energy.
+
+Current status:
+
+- DD-058: operational dynamic gates pass; rigorous physical-closure gate fails.
+- DD-060 `phase-exponential`: experimental diagnostic; physical-closure and dynamic gates fail.
+- UV/DAE architecture: proposed path for satisfying the gate, not yet an accepted implementation.
+
 ## Where Gates Are Used In The Workflow
 
 ### During Initializer Development
@@ -268,8 +291,9 @@ Current examples:
 1. Confirm the case topology and assumptions.
 2. Confirm the model is not passing only because physics were disabled.
 3. Apply dynamic health gates.
-4. Apply source-comparison or validation-specific metrics.
-5. Only then claim validation.
+4. Apply the physical-closure gate.
+5. Apply source-comparison or validation-specific metrics.
+6. Only then claim validation.
 
 ## What A Gate Should Report
 
@@ -317,6 +341,9 @@ For an initializer candidate, that means at minimum:
 - dynamic score is stable or improving over the final window,
 - K-state drift gate is acceptable,
 - internal liquid inventory gate is acceptable,
+- physical ownership is appropriate for the claimed use; rigorous claims require the physical-closure gate,
 - restart/reload gate passes if the artifact is meant to be reused.
 
 For a dynamic model development run, a failed gate is still useful. It tells us where the model or handoff strategy is still internally inconsistent.
+
+Passing the rate, controller, and conservation gates permits the label **operational baseline**. It does not by itself permit **rigorous physical validation**. That stronger label also requires the physical-closure gate.

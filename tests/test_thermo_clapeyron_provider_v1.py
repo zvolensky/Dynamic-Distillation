@@ -104,6 +104,38 @@ def test_clapeyron_provider_flash_and_scalar_helpers(monkeypatch):
     assert counters["uncategorized"]["flash_cache_hits"] == 1
 
 
+@pytest.mark.parametrize("result_style", ["tp_flash", "tp_flash2"])
+def test_clapeyron_provider_rejects_inactive_duplicate_phase_as_equilibrium_pair(
+    monkeypatch,
+    result_style,
+):
+    mod = _install_fake_pyclapeyron(monkeypatch)
+    composition = np.array([0.538735876451746, 0.4158730527654586, 0.045391070782795466])
+
+    def inactive_phase_flash(model, p, T, n):
+        _ = (model, p, T, n)
+        duplicate_rows = np.vstack([composition, composition])
+        if result_style == "tp_flash":
+            phase_moles = np.vstack([composition, np.zeros_like(composition)])
+            return duplicate_rows, phase_moles, -3.7432526457996
+
+        class FlashState:
+            compositions = duplicate_rows
+            fractions = np.array([1.0, 0.0], dtype=float)
+
+        return FlashState()
+
+    mod.tp_flash = inactive_phase_flash
+    provider = ThermoClapeyronProviderV1(
+        component_names_excel=["Propane", "Butane", "Pentane"],
+        component_ids_dwsim=["Propane", "Butane", "Pentane"],
+        model_name="PR",
+    )
+
+    with pytest.raises(RuntimeError, match="one active phase.*incipient-phase K-values"):
+        provider.flash_TP_equilibrium_F_psia(80.0, 200.0, composition)
+
+
 def test_clapeyron_provider_batch_flash_reuses_scalar_contract(monkeypatch):
     mod = _install_fake_pyclapeyron(monkeypatch)
     provider = ThermoClapeyronProviderV1(

@@ -1,5 +1,9 @@
 # Initializer Requirements and Acceptance Criteria
 
+Updated: 2026-07-12
+
+Current model-state authority: `docs/dynamic_model_current_state_2026-07-12.md`.
+
 ## Purpose
 
 This document captures the user and functional requirements for the dynamic column initializer, including its inputs, outputs, acceptance criteria, and the current implementation strategy.
@@ -52,6 +56,7 @@ This document captures the user and functional requirements for the dynamic colu
 
 9. Dynamic acceptance gate.
    - A candidate should only be accepted if it performs better than the baseline in a short dynamic smoke test or equivalent acceptance metrics.
+   - A rigorous or golden candidate must also pass the physical-closure prerequisite: pressure and vapor holdup describe the same state, phase-total changes conserve energy, and imported flow profiles do not retain runtime ownership. DD-058 is an accepted operational checkpoint only and does not yet meet this stronger criterion.
 
 10. Serialization.
     - The accepted state must be serialized to a restartable artifact. A native checkpoint or structured state file is preferred for accepted dynamic seeds because it can preserve packed state, thermo/hydraulic memory, controller state, and boundary state without Excel round-tripping.

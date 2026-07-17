@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -38,12 +39,14 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _advance_explicit_euler_step,
     _autocalibrate_francis_hydraulic_c_factors_from_seed,
     _max_abs_temperature_fd_rate_per_s,
+    _global_inventory_rate_frac_feed,
     _max_rel_inventory_fd_rate_detail_per_s,
     _max_rel_inventory_rate_detail_per_s,
     _effective_hydraulic_ida_profile,
     _integrate_one_step,
     _integrate_one_step_ida,
     _normalize_integrator_mode,
+    _normalize_equilibrium_relaxation_mode,
     _normalize_runtime_mode,
     _column_rhs_with_inner_pv_coupling,
     _solve_dae_pilot_algebraic,
@@ -61,8 +64,11 @@ from dynamic_distillation.dynamic_run_scaffold_v1 import (
     _initialize_vapor_holdup_from_spec_pressure,
     _initialize_top_drum_dynamic_steady,
     _refresh_tray_bubble_targets_F,
+    _pi_backcalculate_integral,
     _pi_update,
     _pressure_resid_gain_scale,
+    _controller_integral_rebase_is_requested,
+    _rebase_selected_controller_integrals,
     _update_tray_temp_pressure_slope_F_per_psi,
     _resolve_parity_runtime_thermo_defer_visible_steps,
     _resolve_runtime_thermo_execution_plan,
@@ -93,6 +99,42 @@ from dynamic_distillation.state_vector_layout_v1 import StateVectorLayout
 from dynamic_distillation.stage_hydraulics_francis_v1 import compute_francis_weir_liquid_outflow
 
 
+def test_logging_stream_resolution_accepts_numbered_feed_and_top_product_aliases():
+    col = SimpleNamespace(
+        n_stages=10,
+        specs_raw={},
+        streams={
+            "Feed1": StreamSpecNormalized(
+                name="Feed1",
+                stage_1based=8,
+                total_molar_flow_lbmolph=15873.3,
+            ),
+            "Top": StreamSpecNormalized(
+                name="Top",
+                stage_1based=1,
+                total_molar_flow_lbmolph=7936.64,
+            ),
+            "Bottom": StreamSpecNormalized(
+                name="Bottom",
+                stage_1based=10,
+                total_molar_flow_lbmolph=7936.64,
+            ),
+        },
+    )
+
+    feed, distillate, bottoms = runmod._resolve_logging_streams(
+        case=SimpleNamespace(streams={}),
+        col=col,
+    )
+
+    assert feed.name == "Feed1"
+    assert feed.flow_lbmolph == pytest.approx(15873.3)
+    assert distillate.name == "Top"
+    assert distillate.flow_lbmolph == pytest.approx(7936.64)
+    assert bottoms.name == "Bottom"
+    assert bottoms.flow_lbmolph == pytest.approx(7936.64)
+
+
 def test_runner_config_top_liquid_condensate_blend_defaults_and_overrides():
     assert RunnerConfig(excel_path="case.xlsx").init_top_liquid_condensate_blend == pytest.approx(1.0)
     cfg = RunnerConfig(
@@ -102,6 +144,24 @@ def test_runner_config_top_liquid_condensate_blend_defaults_and_overrides():
     )
     assert cfg.init_align_top_liquid_to_condensate is True
     assert cfg.init_top_liquid_condensate_blend == pytest.approx(0.25)
+
+
+def test_normalize_equilibrium_relaxation_mode_accepts_exponential_split():
+    assert _normalize_equilibrium_relaxation_mode("composition-exponential") == "composition-exponential"
+    assert _normalize_equilibrium_relaxation_mode("exponential_split") == "composition-exponential"
+    assert _normalize_equilibrium_relaxation_mode("phase-exponential") == "phase-exponential"
+    assert _normalize_equilibrium_relaxation_mode("phase_split_exponential") == "phase-exponential"
+
+
+def test_runner_config_transport_balanced_phase_transfer_is_opt_in():
+    assert RunnerConfig(
+        excel_path="case.xlsx"
+    ).equilibrium_transport_balanced_phase_transfer is False
+    cfg = RunnerConfig(
+        excel_path="case.xlsx",
+        equilibrium_transport_balanced_phase_transfer=True,
+    )
+    assert cfg.equilibrium_transport_balanced_phase_transfer is True
 
 
 def test_runner_config_dynamic_vflow_nominal_hi_ratio_default_and_override():
@@ -352,6 +412,19 @@ def test_fast_startup_skips_expensive_startup_passes():
     assert flags["top_drum_steady_wall_limit_sec"] == pytest.approx(30.0)
 
 
+def test_pi_backcalculate_integral_preserves_restart_output_after_gain_change():
+    ctrl = PIController(kc=1800.0, ti_sec=300.0, bias=4762.0, out_min=0.0, out_max=10000.0)
+
+    applied = _pi_backcalculate_integral(ctrl, pv=0.3474, sp=0.4944, output=4305.0)
+    debug = {}
+    output = _pi_update(ctrl, pv=0.3474, sp=0.4944, dt_sec=0.0, debug=debug)
+
+    assert applied is True
+    assert output == pytest.approx(4305.0)
+    assert debug["sat_hi"] == pytest.approx(0.0)
+    assert debug["sat_lo"] == pytest.approx(0.0)
+
+
 def test_load_native_checkpoint_initial_state_restores_state_and_memory(tmp_path: Path):
     col = ColumnSpec(
         excel_path=str(tmp_path / "case.xlsx"),
@@ -407,6 +480,15 @@ def test_load_native_checkpoint_initial_state_restores_state_and_memory(tmp_path
             "last_diag": {
                 "P_psia_hyd": np.array([201.0, 206.0, 211.0], dtype=float),
                 "tray_T_f": np.array([101.0, 111.0, 121.0], dtype=float),
+                "Top_level_ctrl_pv": np.array([0.48], dtype=float),
+                "Top_level_ctrl_sp": np.array([0.52], dtype=float),
+                "Bottom_level_ctrl_pv": np.array([0.35], dtype=float),
+                "Bottom_level_ctrl_sp": np.array([0.49], dtype=float),
+            },
+            "controller_state_final": {
+                "top_level_integ": -0.01,
+                "bottom_level_integ": -0.137,
+                "bottoms_cmd_lbmolph": 4305.0,
             },
             "last_condenser_duty_packet": condenser_packet,
         },
@@ -425,6 +507,11 @@ def test_load_native_checkpoint_initial_state_restores_state_and_memory(tmp_path
     assert memory["last_condenser_duty_packet"].q_calc_BTUph == pytest.approx(-12345.0)
     assert memory["last_condenser_duty_packet"].T_bubble_F == pytest.approx(101.25)
     assert memory["last_condenser_duty_packet"].y_vapor_in.tolist() == pytest.approx([0.6, 0.4])
+    assert memory["controller_state"]["top_level_integ"] == pytest.approx(-0.01)
+    assert memory["controller_state"]["bottom_level_integ"] == pytest.approx(-0.137)
+    assert memory["controller_state"]["bottoms_cmd_lbmolph"] == pytest.approx(4305.0)
+    assert memory["controller_state"]["top_level_sp_frac"] == pytest.approx(0.52)
+    assert memory["controller_state"]["bottom_level_sp_frac"] == pytest.approx(0.49)
 
     incompatible_layout = StateVectorLayout(
         n_stages=3,
@@ -816,6 +903,19 @@ def test_steady_state_temperature_fd_rate_ignores_boundary_temperatures():
 
     max_rate = _max_abs_temperature_fd_rate_per_s(layout, y0, y1, dt_sec=10.0)
     assert float(max_rate) == pytest.approx(0.0)
+
+
+def test_global_inventory_rate_fraction_rejects_large_product_imbalance():
+    assert _global_inventory_rate_frac_feed(-530.0, 7143.0) == pytest.approx(
+        530.0 / 7143.0
+    )
+    assert np.isnan(_global_inventory_rate_frac_feed(1.0, 0.0))
+    assert np.isnan(_global_inventory_rate_frac_feed(np.nan, 1000.0))
+
+
+def test_runner_config_global_inventory_gate_defaults_to_one_percent_of_feed():
+    cfg = RunnerConfig(excel_path="case.xlsx")
+    assert cfg.steady_state_global_inventory_rate_tol_frac_feed == pytest.approx(0.01)
 
 
 def test_smoke_runner_builds_and_rhs_runs(tmp_path: Path):
@@ -1591,7 +1691,7 @@ def test_startup_seed_cache_roundtrip_restores_state_and_packets(tmp_path: Path)
     assert bool(loaded["startup_seeded_condenser_duty_packet"]) is True
 
 
-def test_seed_startup_feed_stage_flash_packet_normalizes_component_names():
+def test_seed_startup_numbered_feed_flash_packet_normalizes_component_names():
     col = ColumnSpec(
         excel_path="<unit-test>",
         components_excel=["n-Propane", "n-Butane", "n-Pentane"],
@@ -1611,8 +1711,8 @@ def test_seed_startup_feed_stage_flash_packet_normalizes_component_names():
         y0=np.array([[0.7, 0.2, 0.1], [0.6, 0.25, 0.15]], dtype=float),
         x0=np.array([[0.65, 0.25, 0.10], [0.55, 0.30, 0.15]], dtype=float),
         streams={
-            "Feed": StreamSpecNormalized(
-                name="Feed",
+            "Feed1": StreamSpecNormalized(
+                name="Feed1",
                 stage_1based=2,
                 temperature_f=175.0,
                 vapor_fraction=0.0,
@@ -2602,6 +2702,7 @@ def test_summary_row_includes_steady_state_diagnostics():
         "ss_max_kpi_slope_per_s": np.array([8.0e-5], dtype=float),
         "ss_max_mv_rate_per_s": np.array([9.0], dtype=float),
         "ss_max_temp_rate_F_per_s": np.array([0.08], dtype=float),
+        "ss_global_inventory_rate_frac_feed": np.array([0.005], dtype=float),
         "ss_max_sp_error": np.array([0.015], dtype=float),
         "ss_window_samples": np.array([31.0], dtype=float),
         "ss_window_sec": np.array([30.0], dtype=float),
@@ -2631,6 +2732,7 @@ def test_summary_row_includes_steady_state_diagnostics():
     assert float(row["ss_max_kpi_slope_per_s"]) == pytest.approx(8.0e-5)
     assert float(row["ss_max_mv_rate_per_s"]) == pytest.approx(9.0)
     assert float(row["ss_max_temp_rate_F_per_s"]) == pytest.approx(0.08)
+    assert float(row["ss_global_inventory_rate_frac_feed"]) == pytest.approx(0.005)
     assert float(row["ss_max_sp_error"]) == pytest.approx(0.015)
 
 
@@ -5910,6 +6012,56 @@ def test_cli_feed_flash_flags_propagate_to_runner_config(monkeypatch: pytest.Mon
 
     assert runmod.main(["--excel", "case.xlsx", "--no-flash-feed-at-stage-conditions"]) == 0
     assert captured[-1] is False
+
+
+def test_rebase_selected_controller_integrals_is_selective_and_non_mutating() -> None:
+    original = {
+        "top_level_integ": 12.0,
+        "bottom_level_integ": 34.0,
+        "top_pressure_integ": -56.0,
+        "top_pressure_mv_cmd_btuph": -4.9e7,
+    }
+
+    rebased, applied = _rebase_selected_controller_integrals(
+        original,
+        ("bottom-level", "top-pressure"),
+    )
+
+    assert original["bottom_level_integ"] == 34.0
+    assert rebased["top_level_integ"] == 12.0
+    assert rebased["bottom_level_integ"] == 0.0
+    assert rebased["top_pressure_integ"] == 0.0
+    assert rebased["top_pressure_mv_cmd_btuph"] == -4.9e7
+    assert applied == ("bottom-level", "top-pressure")
+    assert _controller_integral_rebase_is_requested(applied, "bottom-level")
+    assert not _controller_integral_rebase_is_requested(applied, "top-level")
+    assert _controller_integral_rebase_is_requested(("all",), "top-level")
+
+
+def test_cli_controller_integral_rebase_propagates_to_runner_config(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: list[tuple[str, ...]] = []
+
+    def _fake_run_smoke_simulation(cfg):
+        captured.append(cfg.rebase_controller_integrals)
+        return {}
+
+    monkeypatch.setattr(runmod, "run_smoke_simulation", _fake_run_smoke_simulation)
+
+    result = runmod.main(
+        [
+            "--excel",
+            "case.xlsx",
+            "--rebase-controller-integral",
+            "bottom-level",
+            "--rebase-controller-integral",
+            "top-pressure",
+        ]
+    )
+
+    assert result == 0
+    assert captured == [("bottom-level", "top-pressure")]
 
 
 def test_parity_initial_snapshot_does_not_skip_step_integration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

@@ -3,7 +3,7 @@
 Date: 2026-05-26
 
 Related initialization note: `docs/dynamic_column_initialization_strategy.md`
-Current model-state note: `docs/dynamic_model_current_state_2026-07-08.md`
+Current model-state note: `docs/dynamic_model_current_state_2026-07-12.md`
 
 ## Position
 

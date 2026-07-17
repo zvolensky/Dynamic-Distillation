@@ -227,9 +227,12 @@ python -m dynamic_distillation.dynamic_run_scaffold_v1 `
 | `--disable-vapor-states` | flag | `False` | Do not integrate tray vapor holdup/composition states. Vapor composition is treated algebraically from liquid equilibrium; use only for validation sources with no vapor-holdup ODE. |
 | `--no-equilibrium` | flag | `False` | Disables equilibrium relaxation (default is enabled). |
 | `--no-eq` | flag | `False` | Alias for `--no-equilibrium`. |
-| `--equilibrium-relaxation-mode`, `--eq-mode` | `auto` \| `phase-holdup` \| `composition-only` | `auto` | Equilibrium transfer target. `phase-holdup` keeps legacy flash phase-split transfer, `composition-only` relaxes vapor composition at fixed vapor holdup. `auto` selects mode by runtime context (hydraulic mode defaults to `composition-only`). |
+| `--equilibrium-relaxation-mode`, `--eq-mode` | `auto` \| `phase-holdup` \| `composition-only` \| `composition-exponential` \| `phase-exponential` | `auto` | Equilibrium transfer treatment. `phase-holdup` keeps legacy flash phase-split transfer. `composition-only` keeps the transport-limited vapor-composition relaxation. `composition-exponential` advances the transport-predicted vapor state by the bounded fraction `1-exp(-dt/tau)` toward equilibrium composition while preserving its total. `phase-exponential` is an experimental diagnostic that uses the same bounded update toward the full fixed-T/P flash phase split. DD-060 showed that it is not an energy-conserving runtime closure and must not be used as a production hydraulic recipe. `auto` selects mode by runtime context. |
 | `--equilibrium-component-transfer-max-cancel-multiplier` | float | `None` | Override the equilibrium component-transfer guard. Opposing equilibrium transfers may cancel up to this multiple of the pre-equilibrium vapor material RHS; same-direction transfers use only the excess above `1.0`, so `1.0` disables same-direction amplification. |
 | `--equilibrium-component-transfer-floor-lbmolps` | float | `None` | Small material-rate floor used by the equilibrium component-transfer guard. |
+| `--enable-top-drum-resident-condensation` | flag | `False` | Allow excess specified condenser duty to condense vapor already resident in the top accumulator when pressure exceeds the pressure-control setpoint. The sink is bounded by excess duty, available vapor, and the pressure-target inventory so it cannot reproduce the former vacuum-collapse behavior. |
+| `--top-drum-resident-condensation-tau-sec` | float | `30` | Relaxation timescale for pressure-targeted resident-vapor condensation. |
+| `--top-drum-resident-condensation-max-frac-per-step` | float | `0.10` | Maximum fraction of resident vapor that the pressure-targeted condensation path may remove in one integration step. |
 | `--thermo` | `stub` \| `relative-volatility` \| `simple-rv` \| `constant-alpha` \| `clapeyron` \| `dwsim` \| `dwsim-unifac` \| `dwsim-nrtl` \| `dwsim-uniquac` \| `dwsim-raoult` \| `dwsim-srk` \| `table` \| `table-pool` | `table-pool` | Thermo backend selection. `relative-volatility` aliases use the workbook `Relative Volatility` spec when present, otherwise alpha defaults to `1.6`. |
 | `--clapeyron-model` | string | `PR` | Clapeyron.jl model constructor name used when `--thermo clapeyron`, e.g. `PR`, `SRK`, `PCSAFT`. |
 | `--clapeyron-ideal-model` | string | `None` | Optional Clapeyron ideal-model constructor name, e.g. `BasicIdeal` or `WalkerIdeal`. |
@@ -274,12 +277,14 @@ python -m dynamic_distillation.dynamic_run_scaffold_v1 `
 | `--steady-state-kpi-slope-tol-per-s` | float | `1e-4` | Tolerance on KPI slope magnitude (`1/s`) using distillate/bottoms composition trends. |
 | `--steady-state-mv-rate-tol-per-s` | float | `20.0` | Tolerance on MV trend rate (`lbmol/h/s`) for reflux/boilup commands. |
 | `--steady-state-temp-rate-tol-fps` | float | `0.15` | Tolerance on maximum tray temperature derivative (`F/s`). |
+| `--steady-state-global-inventory-rate-tol-frac-feed` | float | `0.01` | Maximum accepted whole-column inventory rate `abs(dM/dt)/F`; nonpositive disables this criterion. |
 | `--steady-state-sp-error-tol` | float | `0.02` | Tolerance on max composition setpoint error (mole fraction). |
 | `--steady-state-require-sp` | flag | `False` | Require setpoint-error criterion for `steady_state_flag=1`. |
 | `--steady-state-rate-denom-floor-lbmol` | float | `1.0` | Denominator floor (`lbmol`) used in relative inventory-rate metric. |
 | `--reb-neighbor-vflow-hi-ratio` | float | `None` | Override stage `N-1` vapor-flow upper guard as ratio of boilup in energy mode (default case value or runner fallback `1.20`). |
 | `--reb-neighbor-vflow-lo-ratio` | float | `None` | Override stage `N-1` vapor-flow lower guard as ratio of boilup in energy mode (default case value or runner fallback `0.80`). |
 | `--init-from-checkpoint` | path | `None` | Load a native `.npz` checkpoint state before startup. The Excel workbook still defines the case/layout; incompatible layouts are rejected. |
+| `--rebase-controller-integral` | controller name; repeatable | none | On native checkpoint load, zero only the selected saved PI integral before controller construction. Choices: `top-level`, `bottom-level`, `top-pressure`, `distillate-composition`, `bottoms-composition`, or `all`. Use when deliberately changing tuning, bias, limits, or MV ownership; omit for ordinary bumpless continuation. Physical state, setpoints, filters, and other controller memory are preserved. |
 | `--use-excel-vapor-holdup` | flag | `False` | Preserve tray vapor holdup values from Excel `Initial Conditions` through startup pressure initialization and thermo conditioning. Top-drum vapor seeding still runs. |
 | `--vapor-holdup-relaxation-sec` | float | `None` | Override vapor-holdup relaxation time constant; `<= 0` disables the source term. |
 | `--hydraulic-pressure-relaxation-sec` | float | `None` | Override hydraulic tray-pressure relaxation time constant; `<= 0` disables hydraulic pressure low-pass. |
@@ -424,6 +429,7 @@ as an accepted initialization unless it also passes the dynamic gate.
 | `--logs-dir` | path | `logs` | Directory for CSV outputs. |
 | `--no-write-logs` | flag | `False` | Disable CSV outputs. |
 | `--no-logs` | flag | `False` | Alias for `--no-write-logs`. |
+| `--no-word-report` | flag | `False` | Skip the human-readable Microsoft Word report normally generated after a completed logged run. |
 | `--allow-repeat-command` | flag | `False` | Bypass exact-command duplicate guard against `docs/experiment_ledger.csv`. |
 
 **Current Behavior Notes**

@@ -65,6 +65,7 @@ import csv
 import datetime as _dt
 import json
 import os
+import subprocess
 import sys
 import time
 import traceback
@@ -91,6 +92,7 @@ from dynamic_distillation.column_rhs_v1 import (
     _component_molar_flows_vector_lbmolps,
     _compute_top_drum_pressure_psia,
     _feed_flash_beta_from_K,
+    _primary_feed_stream,
     _bubble_point_T_F,
     column_rhs,
 )
@@ -1129,7 +1131,7 @@ def _startup_feed_stage_flash_state(
     P_tray_psia: Optional[np.ndarray],
 ) -> Optional[Tuple[int, np.ndarray, float, float, float]]:
     try:
-        s = (getattr(col, "streams", {}) or {}).get("Feed")
+        s = _primary_feed_stream(col)
     except Exception:
         s = None
     if s is None or getattr(s, "stage_1based", None) is None or getattr(s, "total_molar_flow_lbmolph", None) is None:
@@ -1192,7 +1194,7 @@ def _seed_startup_feed_stage_flash_packet(
     try:
         stage0, z_feed, T_feed, P_feed, Ft_comp = feed_state
         Nc = int(col.n_components)
-        feed_stream = (getattr(col, "streams", {}) or {}).get("Feed")
+        feed_stream = _primary_feed_stream(col)
         with getattr(thermo_provider, "thermo_call_category", lambda *_args, **_kwargs: nullcontext())("feed_stage_flash"):
             fres = getattr(thermo_provider, "flash_TP_full", None)
             if callable(fres):
@@ -1758,6 +1760,21 @@ def _linear_trend_slope_per_s(times_s: Sequence[float], values: Sequence[float])
     return float(np.dot(t0, v0) / denom)
 
 
+def _global_inventory_rate_frac_feed(
+    dM_total_dt_lbmolph: Any,
+    feed_rate_lbmolph: Any,
+) -> float:
+    """Return absolute whole-column inventory rate as a fraction of feed."""
+    try:
+        dM = float(dM_total_dt_lbmolph)
+        feed = float(feed_rate_lbmolph)
+    except Exception:
+        return np.nan
+    if (not np.isfinite(dM)) or (not np.isfinite(feed)) or abs(feed) <= 1.0e-12:
+        return np.nan
+    return float(abs(dM) / abs(feed))
+
+
 def _max_rel_inventory_rate_per_s(
     layout: StateVectorLayout,
     y: np.ndarray,
@@ -2109,6 +2126,25 @@ def _pi_update(
             }
         )
     return u
+
+
+def _pi_backcalculate_integral(
+    controller: PIController,
+    *,
+    pv: float,
+    sp: float,
+    output: float,
+) -> bool:
+    """Seed PI integral memory so a restart reproduces the saved output."""
+    values = (controller.kc, controller.bias, pv, sp, output)
+    if not all(np.isfinite(float(value)) for value in values):
+        return False
+    if abs(float(controller.kc)) <= 1.0e-12:
+        return False
+    target = float(np.clip(float(output), float(controller.out_min), float(controller.out_max)))
+    error = float(pv) - float(sp)
+    controller.integ = (target - float(controller.bias)) / float(controller.kc) - error
+    return bool(np.isfinite(float(controller.integ)))
 
 
 def _pressure_resid_gain_scale(
@@ -2526,7 +2562,8 @@ class RunnerConfig:
     include_boundary_states: bool = True
     include_vapor_states: bool = True
     enable_equilibrium_relaxation: bool = True
-    equilibrium_relaxation_mode: str = "auto"  # auto | phase-holdup | composition-only
+    equilibrium_relaxation_mode: str = "auto"  # auto | phase-holdup | composition-only | composition-exponential | phase-exponential
+    equilibrium_transport_balanced_phase_transfer: bool = False
     equilibrium_tau_sec: Optional[float] = None
     equilibrium_tau_ramp_initial_sec: Optional[float] = None
     equilibrium_tau_ramp_final_sec: Optional[float] = None
@@ -2628,6 +2665,9 @@ class RunnerConfig:
     top_psv_setpoint_psia: Optional[float] = None
     top_psv_gain_lbmolps_per_psi: Optional[float] = None
     top_psv_max_vent_lbmolps: Optional[float] = None
+    enable_top_drum_resident_condensation: bool = False
+    top_drum_resident_condensation_tau_sec: float = 30.0
+    top_drum_resident_condensation_max_frac_per_step: float = 0.10
     enable_level_control: bool = False
     top_level_pv_mode: str = "molar-holdup"  # molar-holdup|true-level
     ignore_workbook_level_pv_mode: bool = False
@@ -2686,7 +2726,9 @@ class RunnerConfig:
     run_name: Optional[str] = None
     run_description: Optional[str] = None
     write_logs: bool = True
+    generate_word_report: bool = True
     init_checkpoint_path: Optional[str] = None
+    rebase_controller_integrals: Tuple[str, ...] = ()
     use_excel_vapor_holdup: bool = False
     fast_startup: bool = False
     enable_startup_seed_cache: bool = False
@@ -2735,6 +2777,7 @@ class RunnerConfig:
     steady_state_kpi_slope_tol_per_s: Optional[float] = 1.0e-4
     steady_state_mv_rate_tol_per_s: Optional[float] = 20.0
     steady_state_temp_rate_tol_F_per_s: Optional[float] = 0.15
+    steady_state_global_inventory_rate_tol_frac_feed: Optional[float] = 0.01
     steady_state_sp_error_tol: Optional[float] = 0.02
     steady_state_require_sp: bool = False
     steady_state_rate_denom_floor_lbmol: float = 1.0
@@ -3053,6 +3096,10 @@ def _normalize_equilibrium_relaxation_mode(mode: Any, default: str = "phase-hold
         return "phase-holdup"
     if m in ("composition-only", "composition", "comp-only", "y-only"):
         return "composition-only"
+    if m in ("composition-exponential", "composition-exp", "exponential-split"):
+        return "composition-exponential"
+    if m in ("phase-exponential", "phase-exp", "phase-split-exponential"):
+        return "phase-exponential"
     return str(default).strip().lower()
 
 
@@ -4345,6 +4392,14 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
         compute_thermo_diag=True,
         equilibrium_relaxation=bool(cfg.enable_equilibrium_relaxation),
         equilibrium_relaxation_mode=str(eq_mode),
+        equilibrium_transport_balanced_phase_transfer=bool(
+            cfg.equilibrium_transport_balanced_phase_transfer
+        ),
+        equilibrium_step_dt_sec=(
+            float(cfg.dt_sec)
+            if cfg.dt_sec is not None
+            else float(getattr(getattr(col, "sim", None), "dt_sec", 0.0))
+        ),
         equilibrium_tau_ramp_initial_sec=(
             float(cfg.equilibrium_tau_ramp_initial_sec)
             if cfg.equilibrium_tau_ramp_initial_sec is not None
@@ -4442,6 +4497,20 @@ def build_inputs_for_runner(case: CaseData, col: ColumnSpec, cfg: RunnerConfig) 
             float(cfg.debug_clamp_top_drum_pressure_psia)
             if cfg.debug_clamp_top_drum_pressure_psia is not None
             else None
+        ),
+        enable_top_drum_resident_condensation=bool(
+            cfg.enable_top_drum_resident_condensation
+        ),
+        top_drum_resident_condensation_target_psia=(
+            float(cfg.top_pressure_sp_psia)
+            if cfg.top_pressure_sp_psia is not None
+            else None
+        ),
+        top_drum_resident_condensation_tau_sec=float(
+            cfg.top_drum_resident_condensation_tau_sec
+        ),
+        top_drum_resident_condensation_max_frac_per_step=float(
+            cfg.top_drum_resident_condensation_max_frac_per_step
         ),
         debug_clamp_top_drum_pressure_duration_sec=(
             float(cfg.debug_clamp_top_drum_pressure_duration_sec)
@@ -7209,7 +7278,7 @@ def _resolve_logging_streams(case: CaseData, col: ColumnSpec) -> Tuple[StreamTag
     N = col.n_stages
 
     feed = _lookup_named_stream(col=col, case=case, aliases=("Feed",))
-    dist = _lookup_named_stream(col=col, case=case, aliases=("Distillate", "Dist", "Overhead", "D"))
+    dist = _lookup_named_stream(col=col, case=case, aliases=("Distillate", "Dist", "Overhead", "Top", "D"))
     bots = _lookup_named_stream(col=col, case=case, aliases=("Bottoms", "Bottom", "B"))
 
     # Feed stage fallback from specs_raw
@@ -7410,11 +7479,15 @@ def _build_level_controllers(
 
     sp_top = cfg.top_level_sp_lbmol
     if sp_top is None:
+        sp_top = _get_controller_restart_value(col, "top_level_sp_lbmol")
+    if sp_top is None:
         sp_top = _spec_float(specs, "Top Level SP (lbmol)", "Top Drum Level SP (lbmol)", "Reflux Drum Level SP (lbmol)")
     if sp_top is None and top0 is not None:
         sp_top = float(top0)
 
     sp_bot = cfg.bottom_level_sp_lbmol
+    if sp_bot is None:
+        sp_bot = _get_controller_restart_value(col, "bottom_level_sp_lbmol")
     if sp_bot is None:
         sp_bot = _spec_float(specs, "Bottom Level SP (lbmol)", "Bottom Sump Level SP (lbmol)")
     if sp_bot is None and bot0 is not None:
@@ -7756,6 +7829,54 @@ def _component_index_by_name(col: ColumnSpec, token: str) -> Optional[int]:
             if len(tok) >= 2 and (a.startswith(tok) or tok in a):
                 return i
     return None
+
+
+_CONTROLLER_INTEGRAL_REBASE_KEYS: Dict[str, str] = {
+    "top-level": "top_level_integ",
+    "bottom-level": "bottom_level_integ",
+    "top-pressure": "top_pressure_integ",
+    "distillate-composition": "distillate_comp_integ",
+    "bottoms-composition": "bottoms_comp_integ",
+}
+
+
+def _controller_integral_rebase_is_requested(
+    selections: Sequence[str],
+    controller_name: str,
+) -> bool:
+    normalized = {
+        str(value).strip().lower().replace("_", "-")
+        for value in selections
+        if str(value).strip()
+    }
+    name = str(controller_name).strip().lower().replace("_", "-")
+    return "all" in normalized or name in normalized
+
+
+def _rebase_selected_controller_integrals(
+    controller_state: Mapping[str, Any],
+    selections: Sequence[str],
+) -> Tuple[Dict[str, Any], Tuple[str, ...]]:
+    """Return controller state with explicitly selected PI integrals zeroed."""
+    selected = {
+        str(value).strip().lower().replace("_", "-")
+        for value in selections
+        if str(value).strip()
+    }
+    if "all" in selected:
+        selected = set(_CONTROLLER_INTEGRAL_REBASE_KEYS)
+
+    unknown = selected.difference(_CONTROLLER_INTEGRAL_REBASE_KEYS)
+    if unknown:
+        raise ValueError(f"Unknown controller integral rebase selection(s): {sorted(unknown)}")
+
+    rebased = dict(controller_state)
+    applied: List[str] = []
+    for name in sorted(selected):
+        state_key = _CONTROLLER_INTEGRAL_REBASE_KEYS[name]
+        rebased[state_key] = 0.0
+        applied.append(name)
+    return rebased, tuple(applied)
 
 
 def _build_distillate_composition_controller(
@@ -8415,6 +8536,39 @@ def _profile_rows(
             eq_phase_change = np.asarray(diag["eq_phase_change_lbmolps_tray"], dtype=float).reshape((N,))
         except Exception:
             eq_phase_change = None
+    eq_transport_balance_pre_vapor_rate = None
+    if "eq_transport_balance_pre_vapor_rate_lbmolps_tray" in diag:
+        try:
+            eq_transport_balance_pre_vapor_rate = np.asarray(
+                diag["eq_transport_balance_pre_vapor_rate_lbmolps_tray"], dtype=float
+            ).reshape((N,))
+        except Exception:
+            eq_transport_balance_pre_vapor_rate = None
+    eq_transport_balance_required = None
+    if "eq_transport_balance_required_lbmolps_tray" in diag:
+        try:
+            eq_transport_balance_required = np.asarray(
+                diag["eq_transport_balance_required_lbmolps_tray"], dtype=float
+            ).reshape((N,))
+        except Exception:
+            eq_transport_balance_required = None
+    eq_transport_balance_applied = None
+    if "eq_transport_balance_applied_lbmolps_tray" in diag:
+        try:
+            eq_transport_balance_applied = np.asarray(
+                diag["eq_transport_balance_applied_lbmolps_tray"], dtype=float
+            ).reshape((N,))
+        except Exception:
+            eq_transport_balance_applied = None
+    eq_transport_balance_residual = None
+    if "eq_transport_balance_residual_lbmolps_tray" in diag:
+        try:
+            eq_transport_balance_residual = np.asarray(
+                diag["eq_transport_balance_residual_lbmolps_tray"], dtype=float
+            ).reshape((N,))
+        except Exception:
+            eq_transport_balance_residual = None
+    eq_transport_balance_active = _mapping_scalar(diag, "eq_transport_balance_active")
     eq_phase_rate_guard_scale = None
     if "eq_phase_rate_guard_scale_tray" in diag:
         try:
@@ -8445,6 +8599,17 @@ def _profile_rows(
             ).reshape((N,))
         except Exception:
             eq_component_transfer_guard_limit = None
+    eq_component_inventory_guard_scale = None
+    if "eq_component_inventory_guard_scale_tray" in diag:
+        try:
+            eq_component_inventory_guard_scale = np.asarray(
+                diag["eq_component_inventory_guard_scale_tray"], dtype=float
+            ).reshape((N,))
+        except Exception:
+            eq_component_inventory_guard_scale = None
+    eq_exponential_split_active = _mapping_scalar(diag, "eq_exponential_split_active")
+    eq_exponential_alpha = _mapping_scalar(diag, "eq_exponential_alpha")
+    eq_exponential_dt_sec = _mapping_scalar(diag, "eq_exponential_dt_sec")
     eq_phase_weight = None
     if "eq_phase_holdup_guard_weight_tray" in diag:
         try:
@@ -9447,6 +9612,31 @@ def _profile_rows(
             "eq_phase_change_lbmolps_tray": (
                 float(eq_phase_change[i]) if eq_phase_change is not None and np.isfinite(eq_phase_change[i]) else np.nan
             ),
+            "eq_transport_balance_active": float(eq_transport_balance_active),
+            "eq_transport_balance_pre_vapor_rate_lbmolps_tray": (
+                float(eq_transport_balance_pre_vapor_rate[i])
+                if eq_transport_balance_pre_vapor_rate is not None
+                and np.isfinite(eq_transport_balance_pre_vapor_rate[i])
+                else np.nan
+            ),
+            "eq_transport_balance_required_lbmolps_tray": (
+                float(eq_transport_balance_required[i])
+                if eq_transport_balance_required is not None
+                and np.isfinite(eq_transport_balance_required[i])
+                else np.nan
+            ),
+            "eq_transport_balance_applied_lbmolps_tray": (
+                float(eq_transport_balance_applied[i])
+                if eq_transport_balance_applied is not None
+                and np.isfinite(eq_transport_balance_applied[i])
+                else np.nan
+            ),
+            "eq_transport_balance_residual_lbmolps_tray": (
+                float(eq_transport_balance_residual[i])
+                if eq_transport_balance_residual is not None
+                and np.isfinite(eq_transport_balance_residual[i])
+                else np.nan
+            ),
             "eq_phase_rate_guard_scale_tray": (
                 float(eq_phase_rate_guard_scale[i])
                 if eq_phase_rate_guard_scale is not None and np.isfinite(eq_phase_rate_guard_scale[i])
@@ -9469,6 +9659,15 @@ def _profile_rows(
                 and np.isfinite(eq_component_transfer_guard_limit[i])
                 else np.nan
             ),
+            "eq_component_inventory_guard_scale_tray": (
+                float(eq_component_inventory_guard_scale[i])
+                if eq_component_inventory_guard_scale is not None
+                and np.isfinite(eq_component_inventory_guard_scale[i])
+                else np.nan
+            ),
+            "eq_exponential_split_active": float(eq_exponential_split_active),
+            "eq_exponential_alpha": float(eq_exponential_alpha),
+            "eq_exponential_dt_sec": float(eq_exponential_dt_sec),
             "eq_phase_holdup_guard_weight_tray": (
                 float(eq_phase_weight[i]) if eq_phase_weight is not None and np.isfinite(eq_phase_weight[i]) else np.nan
             ),
@@ -10311,6 +10510,9 @@ def _summary_row(
     ss_max_kpi_slope_per_s = _mapping_scalar(diag, "ss_max_kpi_slope_per_s")
     ss_max_mv_rate_per_s = _mapping_scalar(diag, "ss_max_mv_rate_per_s")
     ss_max_temp_rate_F_per_s = _mapping_scalar(diag, "ss_max_temp_rate_F_per_s")
+    ss_global_inventory_rate_frac_feed = _mapping_scalar(
+        diag, "ss_global_inventory_rate_frac_feed"
+    )
     ss_max_sp_error = _mapping_scalar(diag, "ss_max_sp_error")
     ss_window_samples = _mapping_scalar(diag, "ss_window_samples")
     ss_window_sec = _mapping_scalar(diag, "ss_window_sec")
@@ -10319,6 +10521,9 @@ def _summary_row(
     ss_tol_kpi_slope_per_s = _mapping_scalar(diag, "ss_tol_kpi_slope_per_s")
     ss_tol_mv_rate_per_s = _mapping_scalar(diag, "ss_tol_mv_rate_per_s")
     ss_tol_temp_rate_F_per_s = _mapping_scalar(diag, "ss_tol_temp_rate_F_per_s")
+    ss_tol_global_inventory_rate_frac_feed = _mapping_scalar(
+        diag, "ss_tol_global_inventory_rate_frac_feed"
+    )
     ss_tol_sp_error = _mapping_scalar(diag, "ss_tol_sp_error")
     ss_require_sp = _mapping_scalar(diag, "ss_require_sp")
     ss_rel_state_rate_component_name = ""
@@ -10722,6 +10927,11 @@ def _summary_row(
         "ss_max_temp_rate_F_per_s": (
             float(ss_max_temp_rate_F_per_s) if np.isfinite(ss_max_temp_rate_F_per_s) else np.nan
         ),
+        "ss_global_inventory_rate_frac_feed": (
+            float(ss_global_inventory_rate_frac_feed)
+            if np.isfinite(ss_global_inventory_rate_frac_feed)
+            else np.nan
+        ),
         "ss_max_sp_error": float(ss_max_sp_error) if np.isfinite(ss_max_sp_error) else np.nan,
         "ss_window_samples": float(ss_window_samples) if np.isfinite(ss_window_samples) else np.nan,
         "ss_window_sec": float(ss_window_sec) if np.isfinite(ss_window_sec) else np.nan,
@@ -10735,6 +10945,11 @@ def _summary_row(
         "ss_tol_mv_rate_per_s": float(ss_tol_mv_rate_per_s) if np.isfinite(ss_tol_mv_rate_per_s) else np.nan,
         "ss_tol_temp_rate_F_per_s": (
             float(ss_tol_temp_rate_F_per_s) if np.isfinite(ss_tol_temp_rate_F_per_s) else np.nan
+        ),
+        "ss_tol_global_inventory_rate_frac_feed": (
+            float(ss_tol_global_inventory_rate_frac_feed)
+            if np.isfinite(ss_tol_global_inventory_rate_frac_feed)
+            else np.nan
         ),
         "ss_tol_sp_error": float(ss_tol_sp_error) if np.isfinite(ss_tol_sp_error) else np.nan,
         "ss_require_sp": float(ss_require_sp) if np.isfinite(ss_require_sp) else np.nan,
@@ -11197,6 +11412,23 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             startup_seeded_condenser_duty_packet = bool(
                 checkpoint_memory["startup_seeded_condenser_duty_packet"]
             )
+        checkpoint_controller_state = checkpoint_memory.get("controller_state")
+        if isinstance(checkpoint_controller_state, dict):
+            existing_controller_state = getattr(col, "controller_state", None)
+            merged_controller_state = (
+                dict(existing_controller_state) if isinstance(existing_controller_state, dict) else {}
+            )
+            merged_controller_state.update(checkpoint_controller_state)
+            merged_controller_state, rebased_integrals = _rebase_selected_controller_integrals(
+                merged_controller_state,
+                getattr(cfg, "rebase_controller_integrals", ()),
+            )
+            object.__setattr__(col, "controller_state", merged_controller_state)
+            if rebased_integrals:
+                _emit_progress(
+                    "[Init] Rebased checkpoint controller integral(s): "
+                    + ", ".join(rebased_integrals)
+                )
         _emit_progress(
             "[Init] Loaded native checkpoint  "
             f"path={native_checkpoint_info.get('path', '')}  "
@@ -11680,7 +11912,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     base_feed_component_flows: Optional[Dict[str, float]] = None
     if feed_step_enabled:
         try:
-            base_feed_stream = (getattr(col, "streams", {}) or {}).get("Feed")
+            base_feed_stream = _primary_feed_stream(col)
         except Exception:
             base_feed_stream = None
         if base_feed_stream is not None:
@@ -11767,6 +11999,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             except Exception:
                 top_level_scale_lbmol_per_frac = None
             top_level_sp_frac = cfg.top_level_sp_frac
+            if top_level_sp_frac is None:
+                top_level_sp_frac = _get_controller_restart_value(col, "top_level_sp_frac")
             if top_level_sp_frac is None:
                 top_level_sp_frac = _spec_float(
                     getattr(col, "specs_raw", None) or {},
@@ -11860,6 +12094,8 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             except Exception:
                 bottom_level_scale_lbmol_per_frac = None
             bottom_level_sp_frac = cfg.bottom_level_sp_frac
+            if bottom_level_sp_frac is None:
+                bottom_level_sp_frac = _get_controller_restart_value(col, "bottom_level_sp_frac")
             if bottom_level_sp_frac is None:
                 bottom_level_sp_frac = _spec_float(
                     getattr(col, "specs_raw", None) or {},
@@ -12423,6 +12659,53 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     restart_bottoms_cmd_lbmolph = _get_controller_restart_value(col, "bottoms_cmd_lbmolph")
     restart_reflux_cmd_lbmolph = _get_controller_restart_value(col, "reflux_cmd_lbmolph")
     restart_boilup_cmd_lbmolph = _get_controller_restart_value(col, "boilup_cmd_lbmolph")
+    if explicit_runtime_restart and level_control_enabled:
+        try:
+            level_u0 = layout.unpack(np.asarray(y, dtype=float))
+        except Exception:
+            level_u0 = {}
+        top_restart_pv = (
+            last_valid_top_level_pv
+            if top_level_pv_mode == "true-level"
+            else float(np.sum(np.asarray(level_u0.get("top_L", []), dtype=float)))
+        )
+        bottom_restart_pv = (
+            last_valid_bottom_level_pv
+            if bottom_level_pv_mode == "true-level"
+            else float(np.sum(np.asarray(level_u0.get("bottom_L", []), dtype=float)))
+        )
+        if (
+            top_level_ctrl is not None
+            and top_level_sp is not None
+            and top_restart_pv is not None
+            and restart_distillate_cmd_lbmolph is not None
+            and not _controller_integral_rebase_is_requested(
+                getattr(cfg, "rebase_controller_integrals", ()),
+                "top-level",
+            )
+        ):
+            _pi_backcalculate_integral(
+                top_level_ctrl,
+                pv=float(top_restart_pv),
+                sp=float(top_level_sp),
+                output=float(restart_distillate_cmd_lbmolph),
+            )
+        if (
+            bot_level_ctrl is not None
+            and bot_level_sp is not None
+            and bottom_restart_pv is not None
+            and restart_bottoms_cmd_lbmolph is not None
+            and not _controller_integral_rebase_is_requested(
+                getattr(cfg, "rebase_controller_integrals", ()),
+                "bottom-level",
+            )
+        ):
+            _pi_backcalculate_integral(
+                bot_level_ctrl,
+                pv=float(bottom_restart_pv),
+                sp=float(bot_level_sp),
+                output=float(restart_bottoms_cmd_lbmolph),
+            )
 
     tag = _timestamp_tag()
     run_name = _clean_optional_text(getattr(cfg, "run_name", None))
@@ -12470,6 +12753,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         "ss_max_kpi_slope_per_s": np.nan,
         "ss_max_mv_rate_per_s": np.nan,
         "ss_max_temp_rate_F_per_s": np.nan,
+        "ss_global_inventory_rate_frac_feed": np.nan,
         "ss_max_sp_error": np.nan,
     }
 
@@ -12506,6 +12790,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
     ss_tol_kpi = _tol_or_none(getattr(cfg, "steady_state_kpi_slope_tol_per_s", None))
     ss_tol_mv = _tol_or_none(getattr(cfg, "steady_state_mv_rate_tol_per_s", None))
     ss_tol_temp = _tol_or_none(getattr(cfg, "steady_state_temp_rate_tol_F_per_s", None))
+    ss_tol_global_inventory = _tol_or_none(
+        getattr(cfg, "steady_state_global_inventory_rate_tol_frac_feed", None)
+    )
     ss_tol_sp = _tol_or_none(getattr(cfg, "steady_state_sp_error_tol", None))
     ss_require_sp = bool(getattr(cfg, "steady_state_require_sp", False))
 
@@ -12521,6 +12808,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
             f"tol_kpi={float(ss_tol_kpi) if ss_tol_kpi is not None else float('nan'):.3g}/s  "
             f"tol_mv={float(ss_tol_mv) if ss_tol_mv is not None else float('nan'):.3g}/s  "
             f"tol_T={float(ss_tol_temp) if ss_tol_temp is not None else float('nan'):.3g}F/s  "
+            f"tol_global_inventory={float(ss_tol_global_inventory) if ss_tol_global_inventory is not None else float('nan'):.3g}*F  "
             f"tol_sp={float(ss_tol_sp) if ss_tol_sp is not None else float('nan'):.3g}  "
             f"require_sp={'on' if ss_require_sp else 'off'}"
         )
@@ -12689,6 +12977,7 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     "ss_max_kpi_slope_per_s": np.nan,
                     "ss_max_mv_rate_per_s": np.nan,
                     "ss_max_temp_rate_F_per_s": np.nan,
+                    "ss_global_inventory_rate_frac_feed": np.nan,
                     "ss_max_sp_error": np.nan,
                 }
             step_col = col
@@ -13426,6 +13715,10 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     compute_thermo_diag=base_inputs.compute_thermo_diag,
                     equilibrium_relaxation=runtime_equilibrium_relaxation,
                     equilibrium_relaxation_mode=base_inputs.equilibrium_relaxation_mode,
+                    equilibrium_transport_balanced_phase_transfer=(
+                        base_inputs.equilibrium_transport_balanced_phase_transfer
+                    ),
+                    equilibrium_step_dt_sec=base_inputs.equilibrium_step_dt_sec,
                     equilibrium_tau_ramp_initial_sec=base_inputs.equilibrium_tau_ramp_initial_sec,
                     equilibrium_tau_ramp_final_sec=base_inputs.equilibrium_tau_ramp_final_sec,
                     equilibrium_tau_ramp_decay_sec=base_inputs.equilibrium_tau_ramp_decay_sec,
@@ -13506,6 +13799,18 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     top_drum_psv_setpoint_psia=base_inputs.top_drum_psv_setpoint_psia,
                     top_drum_psv_gain_lbmolps_per_psi=base_inputs.top_drum_psv_gain_lbmolps_per_psi,
                     top_drum_psv_max_vent_lbmolps=base_inputs.top_drum_psv_max_vent_lbmolps,
+                    enable_top_drum_resident_condensation=(
+                        base_inputs.enable_top_drum_resident_condensation
+                    ),
+                    top_drum_resident_condensation_target_psia=(
+                        base_inputs.top_drum_resident_condensation_target_psia
+                    ),
+                    top_drum_resident_condensation_tau_sec=(
+                        base_inputs.top_drum_resident_condensation_tau_sec
+                    ),
+                    top_drum_resident_condensation_max_frac_per_step=(
+                        base_inputs.top_drum_resident_condensation_max_frac_per_step
+                    ),
                     vapor_flow_model=str(vapor_flow_model_step),
                     vapor_flow_homotopy_beta=(
                         float(seq_vapor_beta_state)
@@ -13609,6 +13914,10 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     compute_thermo_diag=False,
                     equilibrium_relaxation=runtime_equilibrium_relaxation,
                     equilibrium_relaxation_mode=base_inputs.equilibrium_relaxation_mode,
+                    equilibrium_transport_balanced_phase_transfer=(
+                        base_inputs.equilibrium_transport_balanced_phase_transfer
+                    ),
+                    equilibrium_step_dt_sec=base_inputs.equilibrium_step_dt_sec,
                     equilibrium_tau_ramp_initial_sec=base_inputs.equilibrium_tau_ramp_initial_sec,
                     equilibrium_tau_ramp_final_sec=base_inputs.equilibrium_tau_ramp_final_sec,
                     equilibrium_tau_ramp_decay_sec=base_inputs.equilibrium_tau_ramp_decay_sec,
@@ -13686,6 +13995,18 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     top_drum_psv_setpoint_psia=base_inputs.top_drum_psv_setpoint_psia,
                     top_drum_psv_gain_lbmolps_per_psi=base_inputs.top_drum_psv_gain_lbmolps_per_psi,
                     top_drum_psv_max_vent_lbmolps=base_inputs.top_drum_psv_max_vent_lbmolps,
+                    enable_top_drum_resident_condensation=(
+                        base_inputs.enable_top_drum_resident_condensation
+                    ),
+                    top_drum_resident_condensation_target_psia=(
+                        base_inputs.top_drum_resident_condensation_target_psia
+                    ),
+                    top_drum_resident_condensation_tau_sec=(
+                        base_inputs.top_drum_resident_condensation_tau_sec
+                    ),
+                    top_drum_resident_condensation_max_frac_per_step=(
+                        base_inputs.top_drum_resident_condensation_max_frac_per_step
+                    ),
                     # Do not run energy-based V closure without live thermo refresh.
                     # Pressure-conductance closure does not require fresh thermo.
                     vapor_flow_model=(
@@ -14522,6 +14843,10 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 if np.isfinite(xB_now) and step_bottoms_comp_sp is not None and np.isfinite(float(step_bottoms_comp_sp)):
                     sp_errs.append(abs(float(xB_now) - float(step_bottoms_comp_sp)))
                 max_sp_err = float(np.max(sp_errs)) if sp_errs else np.nan
+                global_inventory_rate_frac_feed = _global_inventory_rate_frac_feed(
+                    _mapping_scalar(diag, "dM_total_dt_lbmolph"),
+                    getattr(feed_tag, "flow_lbmolph", np.nan),
+                )
 
                 ss_active_criteria = 0
                 ss_pass = True
@@ -14544,6 +14869,11 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
 
                 _apply_criterion(float(max_rel_state_rate), ss_tol_rel, require_metric=True)
                 _apply_criterion(float(max_temp_rate), ss_tol_temp, require_metric=True)
+                _apply_criterion(
+                    float(global_inventory_rate_frac_feed),
+                    ss_tol_global_inventory,
+                    require_metric=False,
+                )
                 _apply_criterion(float(max_kpi_slope), ss_tol_kpi, require_metric=False)
                 _apply_criterion(float(max_mv_rate), ss_tol_mv, require_metric=False)
                 if ss_require_sp:
@@ -14577,6 +14907,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 diag["ss_max_kpi_slope_per_s"] = np.array([float(max_kpi_slope)], dtype=float)
                 diag["ss_max_mv_rate_per_s"] = np.array([float(max_mv_rate)], dtype=float)
                 diag["ss_max_temp_rate_F_per_s"] = np.array([float(max_temp_rate)], dtype=float)
+                diag["ss_global_inventory_rate_frac_feed"] = np.array(
+                    [float(global_inventory_rate_frac_feed)], dtype=float
+                )
                 diag["ss_max_sp_error"] = np.array([float(max_sp_err)], dtype=float)
                 diag["ss_window_samples"] = np.array([float(len(ss_hist))], dtype=float)
                 diag["ss_window_sec"] = np.array([float(ss_window_sec)], dtype=float)
@@ -14595,6 +14928,14 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                 )
                 diag["ss_tol_temp_rate_F_per_s"] = np.array(
                     [float(ss_tol_temp) if ss_tol_temp is not None else np.nan],
+                    dtype=float,
+                )
+                diag["ss_tol_global_inventory_rate_frac_feed"] = np.array(
+                    [
+                        float(ss_tol_global_inventory)
+                        if ss_tol_global_inventory is not None
+                        else np.nan
+                    ],
                     dtype=float,
                 )
                 diag["ss_tol_sp_error"] = np.array(
@@ -14617,6 +14958,9 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
                     "ss_max_kpi_slope_per_s": float(max_kpi_slope),
                     "ss_max_mv_rate_per_s": float(max_mv_rate),
                     "ss_max_temp_rate_F_per_s": float(max_temp_rate),
+                    "ss_global_inventory_rate_frac_feed": float(
+                        global_inventory_rate_frac_feed
+                    ),
                     "ss_max_sp_error": float(max_sp_err),
                 }
                 if np.isfinite(float(max_rel_state_rate)):
@@ -15068,10 +15412,14 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         smv = float(steady_state_status_last.get("ss_max_mv_rate_per_s", np.nan))
         ssp = float(steady_state_status_last.get("ss_max_sp_error", np.nan))
         stemp = float(steady_state_status_last.get("ss_max_temp_rate_F_per_s", np.nan))
+        sinv = float(
+            steady_state_status_last.get("ss_global_inventory_rate_frac_feed", np.nan)
+        )
         print(
             "[SteadyState] "
             f"{verdict}  score={sscore:.3g}  rel={srel:.3g}/s  "
-            f"kpi={skpi:.3g}/s  mv={smv:.3g}/s  dT={stemp:.3g}F/s  sp={ssp:.3g}"
+            f"kpi={skpi:.3g}/s  mv={smv:.3g}/s  dT={stemp:.3g}F/s  "
+            f"inventory/F={sinv:.3g}  sp={ssp:.3g}"
         )
 
     controller_state_final: Dict[str, float] = {}
@@ -15079,6 +15427,14 @@ def run_smoke_simulation(cfg: RunnerConfig) -> Dict[str, Any]:
         controller_state_final["top_level_integ"] = float(top_level_ctrl.integ)
     if bot_level_ctrl is not None and np.isfinite(float(bot_level_ctrl.integ)):
         controller_state_final["bottom_level_integ"] = float(bot_level_ctrl.integ)
+    if top_level_sp is not None and np.isfinite(float(top_level_sp)):
+        controller_state_final[
+            "top_level_sp_frac" if top_level_pv_mode == "true-level" else "top_level_sp_lbmol"
+        ] = float(top_level_sp)
+    if bot_level_sp is not None and np.isfinite(float(bot_level_sp)):
+        controller_state_final[
+            "bottom_level_sp_frac" if bottom_level_pv_mode == "true-level" else "bottom_level_sp_lbmol"
+        ] = float(bot_level_sp)
     if top_pressure_ctrl is not None and np.isfinite(float(top_pressure_ctrl.integ)):
         controller_state_final["top_pressure_integ"] = float(top_pressure_ctrl.integ)
     if dist_comp_ctrl is not None and np.isfinite(float(dist_comp_ctrl.integ)):
@@ -15752,6 +16108,41 @@ def load_native_checkpoint_initial_state(
             if value is not None:
                 memory[memory_key] = value
 
+    controller_doc = (
+        metadata.get("controller_state_final")
+        if isinstance(metadata.get("controller_state_final"), dict)
+        else {}
+    )
+    controller_state: Dict[str, float] = {}
+    for key, raw_value in controller_doc.items():
+        value = _as_float(raw_value)
+        if value is not None:
+            controller_state[str(key)] = float(value)
+    for prefix, state_prefix in (("Top", "top"), ("Bottom", "bottom")):
+        sp_key = f"{prefix}_level_ctrl_sp"
+        pv_key = f"{prefix}_level_ctrl_pv"
+        if sp_key not in diag_memory:
+            continue
+        try:
+            sp_value = _as_float(np.asarray(diag_memory[sp_key], dtype=float).reshape((-1,))[0])
+        except Exception:
+            sp_value = None
+        if sp_value is None:
+            continue
+        try:
+            pv_value = _as_float(np.asarray(diag_memory.get(pv_key), dtype=float).reshape((-1,))[0])
+        except Exception:
+            pv_value = None
+        uses_fraction = (
+            0.0 <= float(sp_value) <= 1.0
+            and pv_value is not None
+            and 0.0 <= float(pv_value) <= 1.0
+        )
+        suffix = "sp_frac" if uses_fraction else "sp_lbmol"
+        controller_state.setdefault(f"{state_prefix}_level_{suffix}", float(sp_value))
+    if controller_state:
+        memory["controller_state"] = controller_state
+
     info = {
         "enabled": True,
         "loaded": True,
@@ -16110,12 +16501,24 @@ def main(argv: Optional[List[str]] = None) -> int:
         "--equilibrium-relaxation-mode",
         "--eq-mode",
         dest="equilibrium_relaxation_mode",
-        choices=["auto", "phase-holdup", "composition-only"],
+        choices=["auto", "phase-holdup", "composition-only", "composition-exponential", "phase-exponential"],
         default="auto",
         help=(
             "Equilibrium-relaxation transfer target: "
             "phase-holdup=legacy flash phase split, "
-            "composition-only=relax vapor composition at fixed MV."
+            "composition-only=legacy transport-limited vapor composition relaxation, "
+            "composition-exponential=bounded exponential composition update at fixed phase totals, "
+            "phase-exponential=experimental bounded exponential update toward the full TP-flash phase split."
+        ),
+    )
+    p.add_argument(
+        "--enable-transport-balanced-phase-transfer",
+        dest="equilibrium_transport_balanced_phase_transfer",
+        action="store_true",
+        default=False,
+        help=(
+            "Experimental composition-exponential closure that adds conservative "
+            "phase change to cancel each active tray's total vapor material residual."
         ),
     )
     p.add_argument(
@@ -16823,6 +17226,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="Tolerance on max tray temperature rate [F/s].",
     )
     p.add_argument(
+        "--steady-state-global-inventory-rate-tol-frac-feed",
+        dest="steady_state_global_inventory_rate_tol_frac_feed",
+        type=float,
+        default=0.01,
+        help=(
+            "Tolerance on absolute whole-column inventory rate divided by "
+            "feed rate; nonpositive disables this criterion."
+        ),
+    )
+    p.add_argument(
         "--steady-state-sp-error-tol",
         dest="steady_state_sp_error_tol",
         type=float,
@@ -17052,6 +17465,27 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     p.set_defaults(enable_coupled_total_condenser_partial_condense=True)
     p.add_argument("--top-pressure-sp", dest="top_pressure_sp_psia", type=float, default=None)
+    p.add_argument(
+        "--enable-top-drum-resident-condensation",
+        dest="enable_top_drum_resident_condensation",
+        action="store_true",
+        help=(
+            "Allow excess specified condenser duty to condense resident top-drum vapor "
+            "toward the pressure setpoint without consuming vapor below that target."
+        ),
+    )
+    p.add_argument(
+        "--top-drum-resident-condensation-tau-sec",
+        dest="top_drum_resident_condensation_tau_sec",
+        type=float,
+        default=30.0,
+    )
+    p.add_argument(
+        "--top-drum-resident-condensation-max-frac-per-step",
+        dest="top_drum_resident_condensation_max_frac_per_step",
+        type=float,
+        default=0.10,
+    )
     p.add_argument("--top-pressure-kc", dest="top_pressure_kc", type=float, default=None)
     p.add_argument("--top-pressure-ti", dest="top_pressure_ti_sec", type=float, default=None)
     p.add_argument("--top-pressure-pv-filter-tau-sec", dest="top_pressure_pv_filter_tau_sec", type=float, default=None)
@@ -17139,12 +17573,37 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--no-write-logs", dest="write_logs", action="store_false")
     p.add_argument("--no-logs", dest="write_logs", action="store_false")
     p.add_argument(
+        "--no-word-report",
+        dest="generate_word_report",
+        action="store_false",
+        help="Skip the human-readable Microsoft Word report generated after a completed logged run.",
+    )
+    p.add_argument(
         "--init-from-checkpoint",
         dest="init_checkpoint_path",
         default=None,
         help=(
             "Load an exact native .npz checkpoint state before startup. The Excel file still defines "
             "the case/layout; incompatible checkpoint layouts are rejected."
+        ),
+    )
+    p.add_argument(
+        "--rebase-controller-integral",
+        dest="rebase_controller_integrals",
+        action="append",
+        choices=[
+            "top-level",
+            "bottom-level",
+            "top-pressure",
+            "distillate-composition",
+            "bottoms-composition",
+            "all",
+        ],
+        default=[],
+        help=(
+            "On native checkpoint load, zero the selected saved PI integral before controller "
+            "construction. Repeat for multiple controllers. Physical state and other controller "
+            "memory remain unchanged; default checkpoint restoration is unchanged when omitted."
         ),
     )
     p.add_argument(
@@ -17215,6 +17674,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         include_vapor_states=bool(args.include_vapor_states),
         enable_equilibrium_relaxation=bool(args.enable_equilibrium_relaxation),
         equilibrium_relaxation_mode=str(args.equilibrium_relaxation_mode),
+        equilibrium_transport_balanced_phase_transfer=bool(
+            args.equilibrium_transport_balanced_phase_transfer
+        ),
         equilibrium_tau_sec=args.equilibrium_tau_sec,
         equilibrium_tau_ramp_initial_sec=args.equilibrium_tau_ramp_initial_sec,
         equilibrium_tau_ramp_final_sec=args.equilibrium_tau_ramp_final_sec,
@@ -17349,6 +17811,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         top_psv_setpoint_psia=args.top_psv_setpoint_psia,
         top_psv_gain_lbmolps_per_psi=args.top_psv_gain_lbmolps_per_psi,
         top_psv_max_vent_lbmolps=args.top_psv_max_vent_lbmolps,
+        enable_top_drum_resident_condensation=bool(
+            args.enable_top_drum_resident_condensation
+        ),
+        top_drum_resident_condensation_tau_sec=float(
+            args.top_drum_resident_condensation_tau_sec
+        ),
+        top_drum_resident_condensation_max_frac_per_step=float(
+            args.top_drum_resident_condensation_max_frac_per_step
+        ),
         enable_distillate_composition_control=bool(args.enable_distillate_composition_control),
         distillate_composition_component=str(args.distillate_composition_component),
         distillate_composition_sp_molfrac=args.distillate_composition_sp_molfrac,
@@ -17374,7 +17845,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         run_name=args.run_name,
         run_description=args.run_description,
         write_logs=bool(args.write_logs),
+        generate_word_report=bool(args.generate_word_report),
         init_checkpoint_path=args.init_checkpoint_path,
+        rebase_controller_integrals=tuple(args.rebase_controller_integrals or ()),
         use_excel_vapor_holdup=bool(args.use_excel_vapor_holdup),
         fast_startup=bool(args.fast_startup),
         enable_startup_seed_cache=bool(args.enable_startup_seed_cache),
@@ -17409,6 +17882,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         steady_state_kpi_slope_tol_per_s=args.steady_state_kpi_slope_tol_per_s,
         steady_state_mv_rate_tol_per_s=args.steady_state_mv_rate_tol_per_s,
         steady_state_temp_rate_tol_F_per_s=args.steady_state_temp_rate_tol_F_per_s,
+        steady_state_global_inventory_rate_tol_frac_feed=(
+            args.steady_state_global_inventory_rate_tol_frac_feed
+        ),
         steady_state_sp_error_tol=args.steady_state_sp_error_tol,
         steady_state_require_sp=bool(args.steady_state_require_sp),
         steady_state_rate_denom_floor_lbmol=float(args.steady_state_rate_denom_floor_lbmol),
@@ -17421,6 +17897,44 @@ def main(argv: Optional[List[str]] = None) -> int:
         fallback_n = 0
     if fallback_n > 0:
         print(f"[Info] Integrator fallback count (to explicit-euler): {fallback_n}")
+
+    if out.get("run_metadata_json"):
+        try:
+            metadata_path = Path(str(out["run_metadata_json"]))
+            metadata_doc = _read_json_if_exists(metadata_path)
+            metadata_doc["simulation_parameters"] = json.loads(
+                json.dumps(dict(cfg.__dict__), default=_checkpoint_json_default)
+            )
+            metadata_doc["launch_command"] = subprocess.list2cmdline(
+                [sys.executable, "-m", module_name, *raw_argv]
+            )
+            _write_json_atomic(metadata_path, metadata_doc)
+        except Exception as exc:
+            print(f"[Warn] Failed to enrich run metadata: {exc}")
+
+    if bool(cfg.generate_word_report) and out.get("run_metadata_json") and out.get("summary_csv"):
+        try:
+            from dynamic_distillation.run_report_v1 import generate_run_report
+
+            report_path = generate_run_report(out["run_metadata_json"])
+            out["word_report"] = str(report_path)
+            metadata_path = Path(str(out["run_metadata_json"]))
+            metadata_doc = _read_json_if_exists(metadata_path)
+            metadata_doc["word_report"] = str(report_path)
+            metadata_doc["word_report_error"] = ""
+            _write_json_atomic(metadata_path, metadata_doc)
+            print(f"[Output] Wrote Word run report: {report_path}")
+        except Exception as exc:
+            out["word_report_error"] = str(exc)
+            try:
+                metadata_path = Path(str(out["run_metadata_json"]))
+                metadata_doc = _read_json_if_exists(metadata_path)
+                metadata_doc["word_report"] = ""
+                metadata_doc["word_report_error"] = str(exc)
+                _write_json_atomic(metadata_path, metadata_doc)
+            except Exception:
+                pass
+            print(f"[Warn] Failed to write Word run report: {exc}")
 
     # Auto-register exact CLI command and refresh experiment ledger after each
     # run that produces log files.
@@ -17444,6 +17958,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(f"Wrote: {out['profile_csv']}")
     if out.get("summary_csv"):
         print(f"Wrote: {out['summary_csv']}")
+    if out.get("word_report"):
+        print(f"Wrote: {out['word_report']}")
     return 0
 
 

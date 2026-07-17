@@ -131,7 +131,31 @@ def F_to_K(T_F: float) -> float:
 # 2. DWSIM Thermodynamics integration (pythonnet + DTL)
 # ---------------------------------------------------------------------------
 
-DWSIM_DTL_PATH_DEFAULT = r"C:\\Users\\Thoma\\DWSIM\\DTL"
+def _default_dwsim_dtl_path() -> str:
+    candidates = []
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data:
+        candidates.append(os.path.join(local_app_data, "DWSIM"))
+    program_files = os.environ.get("ProgramFiles")
+    if program_files:
+        candidates.append(os.path.join(program_files, "DWSIM"))
+    candidates.extend(
+        [
+            os.path.join(os.path.expanduser("~"), "DWSIM", "DTL"),
+            r"C:\Users\Thoma\DWSIM\DTL",
+        ]
+    )
+    dll_names = (
+        "DWSIM.Thermodynamics.StandaloneLibrary.dll",
+        "DWSIM.Thermodynamics.dll",
+    )
+    for candidate in candidates:
+        if any(os.path.isfile(os.path.join(candidate, name)) for name in dll_names):
+            return candidate
+    return candidates[0] if candidates else r"C:\DWSIM"
+
+
+DWSIM_DTL_PATH_DEFAULT = _default_dwsim_dtl_path()
 
 # Default component IDs as known by DWSIM's compound database.
 # NOTE: these must match DWSIM internal IDs exactly.

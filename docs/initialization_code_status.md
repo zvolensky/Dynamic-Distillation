@@ -1,14 +1,16 @@
 # Initialization Code Status
 
-Updated: 2026-07-08
+Updated: 2026-07-12
 
 This note classifies the current initialization-related code after the ChemSep steady-state startup work showed that raw steady profiles are not model-consistent dynamic initial conditions.
 
-Current model-state note: `docs/dynamic_model_current_state_2026-07-08.md`.
+Current model-state note: `docs/dynamic_model_current_state_2026-07-12.md`.
 
 ## Position
 
 ChemSep and other steady-state exports are seed data, not accepted dynamic initial states.
+
+DD-060 adds a stronger prerequisite: initialization acceptance is meaningful only after the runtime model has unique physical ownership. The current C3/C4 model permits hydraulic pressure and explicit vapor holdup to imply materially different pressures, while its accepted composition-only equilibrium mode suppresses net phase-total transfer. Residual least-squares and projection tools therefore remain diagnostics; they cannot manufacture a rigorous steady state for an internally inconsistent equation set. DD-058 is the preferred operational checkpoint, not a rigorous golden seed.
 
 Do not claim that a full-topology dynamic case is initialized only because a run starts, a steady-state flag turns on, or a diagnostic path suppresses derivatives. A valid initialized state must pass the active model's residual gates with the same topology, thermo, boundary states, vapor states, energy states, and feed treatment that the later dynamic run will use.
 
@@ -27,7 +29,7 @@ These tools and paths remain part of the intended workflow.
 | `tools/audit_vapor_rhs_material_terms.py` | Supported diagnostic | Read-only profile audit for live RHS vapor material terms. Ranks explicit vapor component derivatives and decomposes them into transport, feed, terminal adjustment, holdup relaxation, and equilibrium transfer terms. |
 | `tools/audit_time_resolved_vapor_drift.py` | Supported diagnostic | Read-only profile audit for tracking vapor RHS material terms, K-state mismatch, vapor target mismatch, and boundary diagnostics across logged times. Use caller-provided stage/time filters for focused reviews; do not hard-code interior stage assumptions. |
 | `tools/audit_vapor_transport_equilibrium_conflict.py` | Supported diagnostic | Read-only profile audit comparing pre-equilibrium vapor transport RHS against the equilibrium transfer needed to cancel it. Helps distinguish under-cancellation from over-correction/fighting behavior. |
-| `tools/audit_k_state_drift.py` | Supported diagnostic/gate | Read-only profile audit for time-resolved `K_state` versus `K_thermo` drift. Use it with absolute K-delta and trend limits because the rate-based dynamic gate can pass while K-level consistency worsens. |
+| `tools/audit_k_state_drift.py` | Supported diagnostic/gate | Read-only profile audit for time-resolved normalized vapor-target consistency. Physical acceptance uses interior `y` versus `y_target`; raw `y/x` versus thermo `K` is retained only as context because normalization makes those quantities incomparable unless `sum(K*x)=1`. Terminal states are excluded by default. |
 | `tools/score_dynamic_one_step_initialization.py` | Supported diagnostic scorer | Scores completed one-step launch runs using summary metrics plus vapor RHS, cancellation coverage, and vapor-composition drift. This is the objective surface future initializer optimizers should target. |
 | `tools/rank_dynamic_one_step_initialization_candidates.py` | Supported diagnostic ranker | Scores and ranks completed one-step candidate run directories. Unscorable older runs without RHS material diagnostics are retained in the report instead of aborting the ranking. |
 | `tools/initialize_column_model_consistent_seed.py` | Supported workflow, pending accepted seed | Repeatable initializer orchestration: audits the input, runs named coupled reconciliation candidates, audits each candidate, selects the best workbook by explicit criteria, and writes a summary. It now also writes a requirements-aligned `initializer_<case>_<timestamp>.log` execution log with run metadata, commands, milestone metrics, artifact paths, explicit `clean_usable_assessment`, accepted-artifact selection, restart command, and final decision status. `--enable-dynamic-gate` adds baseline/candidate dynamic smoke runs plus `tools/evaluate_initialization_dynamic_gate.py` comparison before the final decision; when a candidate is clean/usable and its smoke run produced a native checkpoint, that checkpoint is reported as the preferred accepted artifact. `--enable-checkpoint-reload-gate` reloads that checkpoint through `--init-from-checkpoint` and gates the reload trajectory against the accepted candidate smoke. Current named candidates include coupled tray/top-boundary reconciliation and bottom-boundary-balanced continuation. |
@@ -51,6 +53,7 @@ These are useful research tools, but their outputs are not accepted golden seeds
 | `tools/optimize_column_profile_coefficients.py` | Experimental diagnostic | Smooth profile corrections are better behaved than local windows but have not exposed the missing closure alone. |
 | `--init-top-liquid-condensate-blend` | Experimental diagnostic | Useful for testing whether reflux-drum liquid mismatch explains startup failure. A full blend reduced the targeted top-liquid residual but still failed the dynamic gate. |
 | `--dynamic-vflow-nominal-hi-ratio` | Experimental diagnostic | Useful for probing vapor-flow limiter sensitivity. The first narrow ceiling probe slightly reduced a local vapor-flow mismatch but worsened dynamic score, peak score, and temperature behavior. |
+| `--equilibrium-relaxation-mode phase-exponential` | Experimental diagnostic only | Combines the full fixed-T/P flash phase target with a bounded exponential update. DD-060 failed in one `0.2 s` step because the phase target was not coupled to latent-energy conservation. Do not use it as a production hydraulic recipe. |
 | `--runtime-mode total-reflux` | Experimental startup recipe | Mechanically viable and useful for probes, but not an accepted shortcut to a golden seed for the current C3/C4 case. |
 | `--enable-startup-vapor-homotopy` | Experimental startup transition | Useful infrastructure for later vapor-closure transitions; current evidence shows the C3/C4 failure can occur before vapor beta activates. |
 | `--startup-total-reflux-washout-sec` | Experimental diagnostic | Helps test reflux-drum washout behavior; short and 300 s washout probes did not produce an accepted seed. |
@@ -78,7 +81,7 @@ The current accepted-seed direction is checkpoint-oriented: use residual audits,
 
 2026-07-08 1800 s gate result: the cheap longer gate showed the 900 s envelope was not safely damped. The same linear-steady/equilibrium-guard recipe failed the 1800 s run, rebuilding after about 920 s and jumping from score `~6.09` at 1200 s to `~538` at 1240 s. Focused audits at 1240 s show stage 12/13 vapor transport and energy residuals activate together; `V_calc - V_used` remains zero, so this is not vapor-flow lag. The active next initializer/model task is to diagnose that 1200-1240 s feed-adjacent coupling transition.
 
-2026-07-08 K-level gate addendum: `tools/audit_k_state_drift.py` was added because the 900 s rate-based dynamic gate can pass while K consistency worsens. On `logs/c3c4_stage2_liq_eq_vap_linearsteady_900s_eqcompguard_m1_20260708`, the new audit fails: final max `|K_state - K_thermo| ~= 1.647`, final max `|ln(K_state/K_thermo)| ~= 1.932`, and regrowth from the run minimum is `~0.745`. The final worst row is generic interior stage 5, n-pentane. Future accepted seeds must pass this level-consistency gate in addition to rate-based dynamic smoke checks.
+2026-07-12 correction to the 2026-07-08 K-level addendum: direct `y/x` versus raw thermo `K` is not a valid general equilibrium gate because the normalized target obeys `y_i/x_i = K_i/sum(K*x)`. Historical raw-K results remain useful context but must not decide acceptance. Future accepted seeds must pass normalized interior `y-y_target` consistency in addition to rate-based dynamic smoke checks.
 
 2026-07-08 equilibrium-transfer guard addendum: comparing existing 300 s runs confirms the tradeoff. The explicit `--equilibrium-component-transfer-max-cancel-multiplier 1.0` run is dynamically calmer (`final score ~= 2.26`, `peak score ~= 22.68`) but fails K drift (`final |K_state-K_thermo| ~= 1.39`, positive trend `~0.50`). The default/sign-aware `1.5` run improves K consistency (`final |K_state-K_thermo| ~= 0.875`, positive trend `0`) but worsens the dynamic wave (`final score ~= 3.00`, `peak score ~= 50.03`) and still narrowly fails the log-ratio K gate. Interpretation: the guard is probably causing or exposing the K drift, but simply loosening it is not an accepted fix.
 

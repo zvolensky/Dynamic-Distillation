@@ -917,9 +917,17 @@ class ColumnInputs:
     equilibrium_tau_ramp_final_sec: Optional[float] = None
     equilibrium_tau_ramp_decay_sec: Optional[float] = None
     # Equilibrium transfer target:
-    #   "phase-holdup"     = relax vapor holdup toward flash phase split (legacy)
-    #   "composition-only" = relax only vapor composition at fixed MV_tot
+    #   "phase-holdup"      = relax vapor holdup toward flash phase split (legacy)
+    #   "composition-only"  = relax only vapor composition at fixed MV_tot
+    #   "phase-exponential" = bounded exponential update toward the full flash split
     equilibrium_relaxation_mode: str = "phase-holdup"
+    # Explicit integration step used by the exponential-split composition
+    # treatment. When omitted, the column simulation setting is used.
+    equilibrium_step_dt_sec: Optional[float] = None
+    # Experimental near-steady closure for composition-exponential mode.
+    # Add the conservative phase-change rate needed to cancel each active
+    # tray's pre-equilibrium total vapor material residual.
+    equilibrium_transport_balanced_phase_transfer: bool = False
     # Smoothly back off phase-holdup relaxation on near-empty vapor trays.
     # When current and flash-target vapor holdups are both small relative to
     # this guard, the target blends toward current tray vapor inventory
@@ -1018,6 +1026,13 @@ class ColumnInputs:
     top_drum_psv_setpoint_psia: Optional[float] = None
     top_drum_psv_gain_lbmolps_per_psi: Optional[float] = None
     top_drum_psv_max_vent_lbmolps: Optional[float] = None
+    # Optional pressure-targeted condensation of vapor already resident in the
+    # top accumulator. The rate is limited by excess condenser duty and cannot
+    # reduce resident vapor below the inventory corresponding to the target.
+    enable_top_drum_resident_condensation: bool = False
+    top_drum_resident_condensation_target_psia: Optional[float] = None
+    top_drum_resident_condensation_tau_sec: float = 30.0
+    top_drum_resident_condensation_max_frac_per_step: float = 0.10
     # Enforce forward pressure driving force on stage-2 -> top-drum vapor slip.
     # If enabled, uncondensed slip to top vapor is smoothly reduced as
     # (P_stage2 - P_top_drum - condenser_dp) approaches/below zero.
@@ -1394,6 +1409,70 @@ def _limit_equilibrium_component_transfer_by_transport(
         scale[i] = fac
 
     return adjusted, scale, limit
+
+
+def _limit_equilibrium_transfer_by_available_inventory(
+    transfer_lbmolps: np.ndarray,
+    *,
+    tray_L_lbmol: np.ndarray,
+    tray_V_lbmol: np.ndarray,
+    pre_equilibrium_dLdt_lbmolps: np.ndarray,
+    pre_equilibrium_dVdt_lbmolps: np.ndarray,
+    dt_sec: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Keep an equilibrium split step from withdrawing unavailable components."""
+    transfer = np.asarray(transfer_lbmolps, dtype=float)
+    tray_L = np.asarray(tray_L_lbmol, dtype=float)
+    tray_V = np.asarray(tray_V_lbmol, dtype=float)
+    dLdt = np.asarray(pre_equilibrium_dLdt_lbmolps, dtype=float)
+    dVdt = np.asarray(pre_equilibrium_dVdt_lbmolps, dtype=float)
+    if not (transfer.shape == tray_L.shape == tray_V.shape == dLdt.shape == dVdt.shape):
+        raise ValueError("Equilibrium transfer and phase inventory arrays must have matching shapes")
+
+    dt = float(dt_sec)
+    if (not np.isfinite(dt)) or dt <= 0.0:
+        raise ValueError("dt_sec must be positive and finite")
+
+    liquid_available = np.maximum(tray_L + dt * dLdt, 0.0)
+    vapor_available = np.maximum(tray_V + dt * dVdt, 0.0)
+    adjusted = transfer.copy()
+    scale = np.ones(transfer.shape[0], dtype=float)
+    for i in range(transfer.shape[0]):
+        bounds = [1.0]
+        for k in range(transfer.shape[1]):
+            rate = float(transfer[i, k])
+            if rate > 0.0:
+                bounds.append(float(liquid_available[i, k]) / max(dt * rate, 1.0e-300))
+            elif rate < 0.0:
+                bounds.append(float(vapor_available[i, k]) / max(-dt * rate, 1.0e-300))
+        fac = float(np.clip(min(bounds), 0.0, 1.0))
+        adjusted[i, :] *= fac
+        scale[i] = fac
+    return adjusted, scale
+
+
+def _transport_balanced_phase_transfer(
+    pre_equilibrium_dVdt_lbmolps: np.ndarray,
+    *,
+    vaporization_composition: np.ndarray,
+    current_vapor_composition: np.ndarray,
+    active_trays: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return phase transfer that cancels active-tray total vapor residuals."""
+    pre = np.asarray(pre_equilibrium_dVdt_lbmolps, dtype=float)
+    y_vap = np.asarray(vaporization_composition, dtype=float)
+    y_cond = np.asarray(current_vapor_composition, dtype=float)
+    active = np.asarray(active_trays, dtype=bool).reshape((-1,))
+    if pre.ndim != 2 or y_vap.shape != pre.shape or y_cond.shape != pre.shape:
+        raise ValueError("transport-balanced phase transfer arrays must have matching 2D shapes")
+    if active.size != pre.shape[0]:
+        raise ValueError("active_trays must provide one flag per tray")
+
+    required = -np.sum(pre, axis=1)
+    required = np.where(active, required, 0.0)
+    source_composition = np.where(required.reshape((-1, 1)) >= 0.0, y_vap, y_cond)
+    transfer = required.reshape((-1, 1)) * source_composition
+    return transfer, required
 
 
 def _stabilize_low_holdup_temperature_rate(
@@ -3729,6 +3808,11 @@ def column_rhs(
     Q_cond_mass_used_BTUph = None
     Q_cond_total_req_BTUph = None
     T_cond_mass_bubble_F = None
+    top_resident_condensation_target_mv_lbmol = np.nan
+    top_resident_condensation_excess_mv_lbmol = np.nan
+    top_resident_condensation_capacity_lbmolps = 0.0
+    top_resident_condensation_lbmolps = 0.0
+    top_resident_condensation_active = False
     condenser_mass_mode = _normalize_condenser_duty_mode(getattr(inputs, "condenser_duty_mode", None))
     if layout.include_top and top_V is not None and N > 0:
         if "tray_T_f" in u:
@@ -3761,6 +3845,61 @@ def column_rhs(
             top_V=np.asarray(top_V, dtype=float).reshape((Nc,)),
             epsilon_lbmol=float(layout.epsilon_lbmol),
         )
+        if (
+            bool(getattr(inputs, "enable_top_drum_resident_condensation", False))
+            and str(condenser_mass_mode).strip().lower() == "specified"
+            and Q_cond_mass_used_BTUph is not None
+            and np.isfinite(float(Q_cond_mass_used_BTUph))
+            and Q_cond_total_req_BTUph is not None
+            and np.isfinite(float(Q_cond_total_req_BTUph))
+            and float(Q_cond_total_req_BTUph) < -1.0e-12
+            and float(V_in[0]) > float(layout.epsilon_lbmol)
+        ):
+            latent_BTU_per_lbmol = (-float(Q_cond_total_req_BTUph)) / max(
+                float(V_in[0]) * 3600.0,
+                1.0e-12,
+            )
+            if np.isfinite(latent_BTU_per_lbmol) and latent_BTU_per_lbmol > 1.0e-12:
+                total_capacity = max(-float(Q_cond_mass_used_BTUph), 0.0) / latent_BTU_per_lbmol / 3600.0
+                top_resident_condensation_capacity_lbmolps = max(
+                    float(total_capacity) - float(V_condensed_in_lbmolps),
+                    0.0,
+                )
+                dt_resident = getattr(inputs, "equilibrium_step_dt_sec", None)
+                if dt_resident is None:
+                    dt_resident = getattr(getattr(col, "sim", None), "dt_sec", None)
+                resident_rate, resident_target_mv, resident_excess_mv = (
+                    _pressure_targeted_resident_condensation_rate_lbmolps(
+                        top_vapor_lbmol=float(np.sum(np.asarray(top_V, dtype=float).reshape((Nc,)))),
+                        pressure_psia=P_top_drum_psia,
+                        target_pressure_psia=getattr(
+                            inputs,
+                            "top_drum_resident_condensation_target_psia",
+                            None,
+                        ),
+                        remaining_duty_capacity_lbmolps=float(
+                            top_resident_condensation_capacity_lbmolps
+                        ),
+                        tau_sec=float(
+                            getattr(inputs, "top_drum_resident_condensation_tau_sec", 30.0)
+                        ),
+                        dt_sec=float(dt_resident),
+                        max_frac_per_step=float(
+                            getattr(
+                                inputs,
+                                "top_drum_resident_condensation_max_frac_per_step",
+                                0.10,
+                            )
+                        ),
+                    )
+                )
+                V_condensed_top_lbmolps = float(V_condensed_top_lbmolps) + float(resident_rate)
+                top_resident_condensation_lbmolps = float(resident_rate)
+                top_resident_condensation_target_mv_lbmol = float(resident_target_mv)
+                top_resident_condensation_excess_mv_lbmol = float(resident_excess_mv)
+                top_resident_condensation_active = bool(
+                    float(resident_rate) > float(layout.epsilon_lbmol)
+                )
         if (
             bool(getattr(inputs, "enforce_top_drum_pressure_gate", True))
             and N > 1
@@ -4542,6 +4681,21 @@ def column_rhs(
     diag["V_condensed_in_lbmolph"] = np.array([float(V_condensed_in_lbmolps) * 3600.0], dtype=float)
     diag["V_to_top_drum_lbmolph"] = np.array([float(V_to_top_drum_lbmolps) * 3600.0], dtype=float)
     diag["V_condensed_top_lbmolph"] = np.array([float(V_condensed_top_lbmolps) * 3600.0], dtype=float)
+    diag["top_resident_condensation_active"] = np.array(
+        [1.0 if top_resident_condensation_active else 0.0], dtype=float
+    )
+    diag["top_resident_condensation_lbmolph"] = np.array(
+        [float(top_resident_condensation_lbmolps) * 3600.0], dtype=float
+    )
+    diag["top_resident_condensation_capacity_lbmolph"] = np.array(
+        [float(top_resident_condensation_capacity_lbmolps) * 3600.0], dtype=float
+    )
+    diag["top_resident_condensation_target_mv_lbmol"] = np.array(
+        [float(top_resident_condensation_target_mv_lbmol)], dtype=float
+    )
+    diag["top_resident_condensation_excess_mv_lbmol"] = np.array(
+        [float(top_resident_condensation_excess_mv_lbmol)], dtype=float
+    )
     diag["dP_stage2_to_top_drum_psia"] = np.array([float(dP_stage2_to_top_drum_psia)], dtype=float)
     diag["V_to_top_drum_pressure_gate_scale"] = np.array([float(V_to_top_drum_pressure_gate_scale)], dtype=float)
     diag["V_to_top_drum_blocked_lbmolph"] = np.array([float(V_to_top_drum_blocked_lbmolps) * 3600.0], dtype=float)
@@ -5041,7 +5195,30 @@ def column_rhs(
         _trace_stage_thermo(inputs, "post_flash equilibrium split construction complete")
 
         mode_raw = str(getattr(inputs, "equilibrium_relaxation_mode", "phase-holdup") or "phase-holdup").strip().lower()
-        comp_only_mode = mode_raw in ("composition-only", "composition", "comp-only", "y-only")
+        exponential_split_mode = mode_raw in (
+            "composition-exponential",
+            "composition-exp",
+            "exponential-split",
+            "phase-exponential",
+            "phase-exp",
+            "phase-split-exponential",
+        )
+        comp_only_mode = mode_raw in (
+            "composition-only",
+            "composition",
+            "comp-only",
+            "y-only",
+            "composition-exponential",
+            "composition-exp",
+            "exponential-split",
+        )
+        transport_balance_enabled = bool(
+            getattr(inputs, "equilibrium_transport_balanced_phase_transfer", False)
+        )
+        if transport_balance_enabled and not (exponential_split_mode and comp_only_mode):
+            raise ValueError(
+                "transport-balanced phase transfer requires composition-exponential equilibrium mode"
+            )
 
         Mtot_col = Mtot.reshape((N, 1))
         phase_guard_lbmol = float(getattr(inputs, "equilibrium_phase_holdup_guard_lbmol", 0.0) or 0.0)
@@ -5143,7 +5320,52 @@ def column_rhs(
                 MV_target_eff = MV_eq.copy()
                 V_target = MV_eq * y_eq
         _trace_stage_thermo(inputs, "post_flash target construction complete")
-        transfer = (V_target - tray_V) / float(tau)  # (N,Nc) lbmol/s
+        continuous_transfer = (V_target - tray_V) / float(tau)  # (N,Nc) lbmol/s
+        transfer = continuous_transfer.copy()
+        exponential_alpha = np.nan
+        exponential_dt_sec = np.nan
+        exponential_target = V_target.copy()
+        if exponential_split_mode:
+            dt_raw = getattr(inputs, "equilibrium_step_dt_sec", None)
+            if dt_raw is None:
+                dt_raw = getattr(getattr(col, "sim", None), "dt_sec", None)
+            try:
+                exponential_dt_sec = float(dt_raw)
+            except Exception:
+                exponential_dt_sec = np.nan
+            if (not np.isfinite(exponential_dt_sec)) or exponential_dt_sec <= 0.0:
+                raise ValueError("exponential equilibrium mode requires a positive integration dt")
+
+            exponential_alpha = float(-np.expm1(-float(exponential_dt_sec) / float(tau)))
+            vapor_after_transport = tray_V + float(exponential_dt_sec) * d_tray_V
+            if comp_only_mode:
+                vapor_total_after_transport = np.maximum(
+                    np.sum(vapor_after_transport, axis=1).reshape((N, 1)),
+                    0.0,
+                )
+                exponential_target = vapor_total_after_transport * y_target
+            transfer = (
+                float(exponential_alpha)
+                / float(exponential_dt_sec)
+                * (exponential_target - vapor_after_transport)
+            )
+        transport_balance_required = np.zeros(N, dtype=float)
+        transport_balance_raw = np.zeros((N, Nc), dtype=float)
+        pre_transport_balance_vapor_rate = np.sum(d_tray_V, axis=1).reshape((N,))
+        if transport_balance_enabled:
+            active_transport_balance = np.ones(N, dtype=bool)
+            active_transport_balance[0] = False
+            if reboiler_no_holdup and N > 0:
+                active_transport_balance[-1] = False
+            transport_balance_raw, transport_balance_required = (
+                _transport_balanced_phase_transfer(
+                    d_tray_V,
+                    vaporization_composition=y_target,
+                    current_vapor_composition=y_tray,
+                    active_trays=active_transport_balance,
+                )
+            )
+            transfer += transport_balance_raw
         liquid_transport_rate = np.sum(d_tray_L, axis=1).reshape((N,))
         liquid_feed_rate = np.sum(d_tray_L_feed, axis=1).reshape((N,))
 
@@ -5156,6 +5378,7 @@ def column_rhs(
         phase_rate_limit = np.full(N, np.nan, dtype=float)
         component_transfer_scale = np.ones(N, dtype=float)
         component_transfer_limit = np.full(N, np.nan, dtype=float)
+        component_inventory_scale = np.ones(N, dtype=float)
         phase_rate_liq_guard = float(getattr(inputs, "equilibrium_phase_rate_liquid_guard_lbmol", 0.0) or 0.0)
         phase_rate_vap_guard = float(getattr(inputs, "equilibrium_phase_rate_vapor_guard_lbmol", 0.0) or 0.0)
         phase_rate_frac = float(getattr(inputs, "equilibrium_phase_rate_max_frac_per_tau", 0.0) or 0.0)
@@ -5179,7 +5402,17 @@ def column_rhs(
         component_cancel_floor = float(
             getattr(inputs, "equilibrium_component_transfer_floor_lbmolps", 0.0) or 0.0
         )
-        if np.isfinite(component_cancel_mult) and component_cancel_mult > 0.0:
+        if exponential_split_mode:
+            transfer, component_inventory_scale = _limit_equilibrium_transfer_by_available_inventory(
+                transfer,
+                tray_L_lbmol=tray_L,
+                tray_V_lbmol=tray_V,
+                pre_equilibrium_dLdt_lbmolps=d_tray_L,
+                pre_equilibrium_dVdt_lbmolps=d_tray_V,
+                dt_sec=float(exponential_dt_sec),
+            )
+            component_transfer_scale = component_inventory_scale.copy()
+        elif np.isfinite(component_cancel_mult) and component_cancel_mult > 0.0:
             transfer, component_transfer_scale, component_transfer_limit = (
                 _limit_equilibrium_component_transfer_by_transport(
                     transfer,
@@ -5213,13 +5446,38 @@ def column_rhs(
             np.asarray(MV, dtype=float).reshape((N,)) / np.maximum(np.asarray(Mtot, dtype=float).reshape((N,)), 1.0e-12)
         )
         diag["eq_transfer_lbmolps_tray"] = transfer
+        diag["eq_transfer_continuous_raw_lbmolps_tray"] = continuous_transfer
+        diag["eq_exponential_target_vapor_lbmol_tray"] = exponential_target
+        diag["eq_exponential_split_active"] = np.array([1.0 if exponential_split_mode else 0.0], dtype=float)
+        diag["eq_exponential_alpha"] = np.array([float(exponential_alpha)], dtype=float)
+        diag["eq_exponential_dt_sec"] = np.array([float(exponential_dt_sec)], dtype=float)
         diag["eq_phase_change_lbmolps_tray"] = np.sum(transfer, axis=1).reshape((N,))
+        diag["eq_transport_balance_active"] = np.array(
+            [1.0 if transport_balance_enabled else 0.0], dtype=float
+        )
+        diag["eq_transport_balance_pre_vapor_rate_lbmolps_tray"] = np.asarray(
+            pre_transport_balance_vapor_rate, dtype=float
+        ).reshape((N,))
+        diag["eq_transport_balance_required_lbmolps_tray"] = np.asarray(
+            transport_balance_required, dtype=float
+        ).reshape((N,))
+        diag["eq_transport_balance_raw_lbmolps_tray"] = np.asarray(
+            transport_balance_raw, dtype=float
+        ).reshape((N, Nc))
+        diag["eq_transport_balance_applied_lbmolps_tray"] = np.sum(
+            transfer, axis=1
+        ).reshape((N,))
+        diag["eq_transport_balance_residual_lbmolps_tray"] = (
+            np.asarray(pre_transport_balance_vapor_rate, dtype=float).reshape((N,))
+            + np.sum(transfer, axis=1).reshape((N,))
+        )
         diag["eq_relaxation_mode_comp_only"] = np.array([1.0 if comp_only_mode else 0.0], dtype=float)
         diag["eq_phase_holdup_guard_weight_tray"] = np.asarray(phase_weight, dtype=float).reshape((N,))
         diag["eq_phase_rate_guard_scale_tray"] = np.asarray(phase_rate_scale, dtype=float).reshape((N,))
         diag["eq_phase_rate_guard_limit_lbmolps_tray"] = np.asarray(phase_rate_limit, dtype=float).reshape((N,))
         diag["eq_component_transfer_guard_scale_tray"] = np.asarray(component_transfer_scale, dtype=float).reshape((N,))
         diag["eq_component_transfer_guard_limit_lbmolps_tray"] = np.asarray(component_transfer_limit, dtype=float).reshape((N,))
+        diag["eq_component_inventory_guard_scale_tray"] = np.asarray(component_inventory_scale, dtype=float).reshape((N,))
         if 'phase_weight_cap' in locals():
             diag["eq_phase_holdup_guard_cap_tray"] = np.asarray(phase_weight_cap, dtype=float).reshape((N,))
         if 'energy_damping' in locals():
@@ -6329,6 +6587,29 @@ def _safe_comp_from_holdup(holdup: Optional[np.ndarray], fallback: np.ndarray, e
     return h / tot
 
 
+def _primary_feed_stream(col: ColumnSpec) -> Optional[Any]:
+    """Return the model's single feed stream, accepting numbered feed tags."""
+    streams = getattr(col, "streams", {}) or {}
+    if "Feed" in streams:
+        return streams.get("Feed")
+
+    candidates = []
+    for order, (name, stream) in enumerate(streams.items()):
+        normalized = "".join(ch for ch in str(name).lower() if ch.isalnum())
+        if normalized == "feed":
+            rank = (0, 0, order)
+        elif normalized.startswith("feed") and normalized[4:].isdigit():
+            rank = (1, int(normalized[4:]), order)
+        else:
+            continue
+        candidates.append((rank, stream))
+
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: item[0])
+    return candidates[0][1]
+
+
 def _feed_component_rates_lbmolps(
     col: ColumnSpec,
     Nc: int,
@@ -6342,7 +6623,7 @@ def _feed_component_rates_lbmolps(
     trace_hook: Optional[Any] = None,
     trace_label: Optional[str] = None,
 ) -> Tuple[Optional[int], np.ndarray, np.ndarray]:
-    s = col.streams.get("Feed")
+    s = _primary_feed_stream(col)
     if s is None or s.stage_1based is None or s.total_molar_flow_lbmolph is None:
         return None, np.zeros(Nc), np.zeros(Nc)
 
@@ -6541,7 +6822,7 @@ def _feed_enthalpy_rate_btu_per_s(
     else:
         y_feed = z_feed.copy()
 
-    sF = col.streams.get("Feed")
+    sF = _primary_feed_stream(col)
     T_feed = float(T_stage_F)
     if sF is not None and getattr(sF, "temperature_f", None) is not None:
         try:
@@ -7501,6 +7782,51 @@ def _condenser_mass_split_from_duty(
         V_cond_top = min(float(rem_capacity), float(MV_top))
     V_to_top = max(float(V_in0) - float(V_cond_in), 0.0)
     return float(V_cond_in), float(V_to_top), float(V_cond_top), float(Q_used_BTUph), Q_total_req, T_cond_bubble_F, mode
+
+
+def _pressure_targeted_resident_condensation_rate_lbmolps(
+    *,
+    top_vapor_lbmol: float,
+    pressure_psia: Optional[float],
+    target_pressure_psia: Optional[float],
+    remaining_duty_capacity_lbmolps: float,
+    tau_sec: float,
+    dt_sec: float,
+    max_frac_per_step: float,
+) -> tuple[float, float, float]:
+    """Return bounded resident-vapor condensation rate, target inventory, and excess inventory."""
+    mv = max(float(top_vapor_lbmol), 0.0)
+    capacity = max(float(remaining_duty_capacity_lbmolps), 0.0)
+    try:
+        pressure = float(pressure_psia)
+        target_pressure = float(target_pressure_psia)
+        tau = float(tau_sec)
+        dt = float(dt_sec)
+        max_frac = float(max_frac_per_step)
+    except Exception:
+        return 0.0, np.nan, np.nan
+    if (
+        mv <= 0.0
+        or capacity <= 0.0
+        or (not np.isfinite(pressure))
+        or (not np.isfinite(target_pressure))
+        or pressure <= target_pressure
+        or target_pressure <= 0.0
+        or (not np.isfinite(tau))
+        or tau <= 0.0
+        or (not np.isfinite(dt))
+        or dt <= 0.0
+    ):
+        return 0.0, np.nan, np.nan
+
+    target_mv = mv * float(target_pressure) / float(pressure)
+    target_mv = float(np.clip(target_mv, 0.0, mv))
+    excess_mv = max(mv - target_mv, 0.0)
+    desired_rate = excess_mv / tau
+    if np.isfinite(max_frac) and max_frac > 0.0:
+        desired_rate = min(desired_rate, max_frac * mv / dt)
+    rate = min(desired_rate, capacity, mv / dt)
+    return max(float(rate), 0.0), float(target_mv), float(excess_mv)
 
 
 def _pressure_diagnostic_psia(

@@ -30,6 +30,16 @@ import numpy as np
 import dynamic_distillation.pr_flash_backend_v1 as backend
 
 
+def test_default_dwsim_path_discovers_local_app_install(monkeypatch, tmp_path):
+    install = tmp_path / "DWSIM"
+    install.mkdir()
+    (install / "DWSIM.Thermodynamics.dll").write_bytes(b"test")
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+    monkeypatch.delenv("ProgramFiles", raising=False)
+
+    assert backend._default_dwsim_dtl_path() == str(install)
+
+
 class _DummyArray:
     def __class_getitem__(cls, _):
         # Mimic System.Array[float](seq) by returning a callable.

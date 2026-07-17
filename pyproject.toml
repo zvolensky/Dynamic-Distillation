@@ -11,6 +11,8 @@ dependencies = [
   "numpy",
   "pandas",
   "openpyxl",
+  "matplotlib",
+  "python-docx",
   "scipy",
   "pytest"
 ]

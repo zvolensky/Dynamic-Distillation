@@ -2,8 +2,8 @@
 
 ## 1. Document Control
 - Title: Dynamic Distillation Requirements Specification
-- Version: 1.5
-- Date: 2026-07-12
+- Version: 1.6
+- Date: 2026-07-17
 - Basis: Current implementation and tests in this repository.
 
 ## 2. Scope
@@ -29,6 +29,7 @@ This specification captures the as-built behavior of the current codebase plus e
 - `UR-013` Users shall be able to run source-topology validation cases that intentionally exclude standard boundary and vapor dynamic states when the validation source uses algebraic equivalents.
 - `UR-014` Users shall be able to distinguish external steady-state seed data from accepted dynamic initial conditions, and shall have documented criteria for making a seeded column dynamic-ready.
 - `UR-015` Users shall be able to distinguish a numerically quiet operational checkpoint from a rigorously physical dynamic solution whose tray flows, phase split, energy, pressure, and vapor inventory are mutually consistent.
+- `UR-016` Users shall be able to distinguish local thermodynamic closure, global pressure/flow closure, and terminal-equipment closure, including an explicit result when a state is locally valid but outside the global algebraic constraint manifold.
 
 ## 4. Functional Requirements
 
@@ -46,12 +47,13 @@ This specification captures the as-built behavior of the current codebase plus e
 
 This system implements an explicit-vapor, rigorous-energy column model that produces a **stiff, Index-1+ DAE (Differential-Algebraic Equation)** with coupled pressure, holdup, composition, temperature, and hydraulic states. Unlike simplified textbook treatments that assume Constant Molar Overflow and implicit hydraulics, this model's equations directly couple differential states (like vapor moles in fixed shell volumes) to algebraic constraints (like vapor flow rates and pressure drops).
 
-From the published literature on DAE initialization (Pantelides 1988; Barton, Biegler), a steady-state profile from an external tool (ChemSep, Aspen Plus, DWSIM) satisfies only the static mass and energy balances at $t=0$. It **does not** satisfy the dynamic hydraulic equations, vapor-pipe resistances, weir crest heights, or thermal sub-cooling profiles that the dynamic RHS requires. When the integrator evaluates the right-hand side at $t=0$, it computes large, non-zero derivatives, causing computational impulse shocks.
+From the published literature on DAE initialization (Pantelides 1988; Barton, Biegler), a steady-state profile from an external tool (ChemSep, Aspen Plus, DWSIM) satisfies that source model's static equations. It does **not** automatically satisfy this model's topology, dynamic hydraulic equations, vapor-flow resistance, weir geometry, terminal inventories, pressure/volume constraints, or energy basis. When an incompatible state is launched directly, the first RHS evaluation can produce large derivatives or fail to lie on the algebraic constraint manifold.
 
-The Consistent Initialization Solver must therefore:
-1. Hold specified independent variables fixed (feed rate, geometry).
-2. Vary targeted initial states to drive all time derivatives simultaneously to zero at $t=0$.
-3. Verify block-level and global conservation/closure simultaneously.
+Two separate initialization problems shall be recognized:
+1. **DAE-consistent initialization**: hold specified independent variables and conserved differential states as required, then solve the algebraic equations so the state lies on the model's constraint manifold. Differential derivatives need not be zero.
+2. **Steady-state initialization**: after algebraic consistency is established, solve the differential balances so all required inventory and energy derivatives approach zero while satisfying the same algebraic equations.
+
+An initializer shall not report steady-state success merely because the algebraic block closes, and it shall not launch a dynamic smoke test from a state that fails algebraic consistency.
 
 Initialization is not a trivial "switch to dynamics" operation; it is a distinct mathematical problem requiring structured root-finding, conservation audits, and acceptance gating. See `docs/dynamic_column_initialization_strategy.md` for mathematical foundation and workflow.
 
@@ -60,8 +62,9 @@ Requirements in this section define how external seeds are loaded, how initializ
 
 - `FR-006` The runner shall construct deterministic state layout and initial state vector from `ColumnSpec`.
 - `FR-007` The runner shall initialize tray vapor holdup to match startup pressure profile assumptions.
-- `FR-007a` When `--use-excel-vapor-holdup` is enabled, the runner shall preserve explicit tray vapor holdup from the Excel `Initial Conditions` sheet through startup pressure initialization and thermo conditioning.
+- `FR-007a` In legacy explicit-phase restart mode, when `--use-excel-vapor-holdup` is enabled, the runner shall preserve explicit tray vapor holdup from the Excel `Initial Conditions` sheet through startup pressure initialization and thermo conditioning.
 - `FR-007b` The runner shall support disabling dynamic tray vapor states for validation sources whose vapor composition is algebraic and whose equations do not include vapor holdup ODEs.
+- `FR-007c` In rigorous conserved-state mode, imported or checkpoint liquid/vapor phase inventories shall be initial guesses only. The algebraic closure shall determine phase allocation, temperature, pressure, equilibrium compositions, and interstage flows while preserving the selected total component inventories and total internal energies.
 - `FR-008` The runner shall support optional startup thermo-consistent conditioning iterations.
 - `FR-009` The runner shall perform top-drum startup steadying pass for top-holdup residual reduction when top states are active.
 - `FR-009a` When explicit runtime restart state is present, the runner shall skip vapor reseeding and startup conditioning/steadying steps that would overwrite the restart state.
@@ -69,9 +72,12 @@ Requirements in this section define how external seeds are loaded, how initializ
 - `FR-009c` Accepted dynamic initialization shall require block-level derivative/conservation checks in addition to any aggregate steady-state detector flag.
 - `FR-009d` Initializer acceptance shall be conditional on a model-physics closure gate. An initializer shall not be expected to create a rigorous zero-residual state when the active runtime equations assign competing owners to pressure, phase totals, energy, or interstage flow.
 - `FR-009e` Runtime steady-state acceptance shall include a whole-column inventory-rate criterion in addition to local state-rate criteria. A run with material `F-D-B` drift shall not pass solely because the drift is distributed across many tray states.
+- `FR-009f` Initializer output shall distinguish at least: local thermodynamic closure failure; local thermodynamic closure success with global hydraulic failure; terminal-equipment mapping failure; algebraically consistent but dynamically non-steady; and fully accepted steady initialization.
+- `FR-009g` A dynamic smoke test shall not be used to rescue or accept a candidate that fails the applicable local, global hydraulic, or terminal algebraic-closure prerequisite.
 
 ### 4.3 Thermodynamics Services
 - `FR-010` The system shall support thermo providers for TP flash, phase enthalpy, and optional Z-factor diagnostics.
+- `FR-010a` Rigorous equilibrium acceptance shall use either a direct phase-fugacity residual or a documented backend-certified equivalent. TP-flash phase-fraction consistency shall not be labeled as a fugacity residual when phase fugacity coefficients are unavailable.
 - `FR-011` The system shall support tabular thermo from JSON surrogate tables.
 - `FR-012` The system shall support process-pool tabular thermo mode for parallel batched stage flashes.
 - `FR-013` The RHS shall use provider batch flash when available and fall back to scalar flash otherwise.
@@ -93,6 +99,11 @@ Requirements in this section define how external seeds are loaded, how initializ
 - `FR-019b` A rigorously accepted hydraulic run shall have one thermodynamically consistent pressure owner. Hydraulic pressure, explicit vapor holdup, vapor volume, temperature, composition, and compressibility shall agree within an explicit closure tolerance.
 - `FR-019c` In a rigorously accepted hydraulic run, internal liquid outflow shall be determined by active hydraulics from current state and geometry. Imported liquid-flow profiles may initialize or validate the model but shall not retain blended runtime ownership.
 - `FR-019d` Vapor traffic and pressure closure shall be solved consistently with phase inventory and energy. Nominal-profile caps may be used as diagnosed startup safeguards but shall not determine the accepted operating profile.
+- `FR-019e` The rigorous equilibrium-stage formulation shall use total component inventory and total internal energy as differential tray states. Temperature, pressure, phase split, phase compositions, and interstage liquid/vapor traffic shall be algebraic variables or outputs of the coupled closure.
+- `FR-019f` The algebraic closure shall report local UV/component/energy/volume residuals separately from global pressure-drop and vapor-flow residuals. Passing local UV closure shall not imply passing global hydraulic closure.
+- `FR-019g` Total condenser, reflux drum, partial reboiler, and bottoms sump representations shall have explicit conserved-state and volume mappings appropriate to their topology. A rigorous full-column closure shall not omit material or energy stored in terminal vapor or virtual terminal stages.
+- `FR-019h` A rigorously accepted algebraic solution shall converge to materially the same state from pressure and flow guesses perturbed by at least `+/-10%`, unless a documented case-specific robustness range is stricter. Multiple materially different solutions or traversal-order dependence shall fail acceptance.
+- `FR-019i` If frozen per-stage conserved totals and energies imply no physical global pressure/flow solution, the solver shall report the state as outside the algebraic constraint manifold. A subsequent steady-state solve may redistribute tray conserved states only while enforcing whole-column component and energy conservation and the specified operating degrees of freedom.
 - `FR-020` The model shall support optional top-drum PSV venting with linear gain and max-vent clamp.
 - `FR-020a` In the standard explicit-sump configuration, the reboiler liquid feed shall be drawn from the bottom sump rather than directly from the bottom tray.
 - `FR-020b` The runner shall support disabling separate top and bottom boundary states for validation sources whose stage set already includes the total condenser and reboiler.
@@ -103,7 +114,10 @@ Requirements in this section define how external seeds are loaded, how initializ
 - `FR-023` The pressure loop shall support optional PV filtering, optional MV slew limiting, and residual-based gain attenuation.
 - `FR-024` The runner shall support distillate composition PI control with reflux feasibility limiting.
 - `FR-025` The runner shall support bottoms composition PI control with selectable MV (`boilup` or `reboiler-duty`).
-- `FR-026` The runner shall clamp non-physical states (e.g., nonnegative holdup enforcement, temperature clipping to provider bounds).
+- `FR-025a` Before a controlled rigorous solve, the system shall audit controller degrees of freedom. Each active controller shall have one available manipulated variable, and no manipulated variable shall have duplicate active ownership unless a documented selector or cascade structure resolves that ownership.
+- `FR-026` The runner may use diagnosed clamps, projections, slew limits, and bound enforcement to protect startup or rejected nonlinear-solver trials.
+- `FR-026a` A rigorously accepted algebraic or steady solution shall contain no negative phase amounts and shall not depend on an accepted state projection, binding imported-profile ceiling, previous-step limiter, or other safeguard that replaces the governing closure.
+- `FR-026b` Solver reports shall distinguish rejected/attempted projections from projections present in an accepted iterate.
 - `FR-031` The runner shall apply deterministic runtime-mode presets for pressure model, vapor-flow model, and liquid-hydraulic override according to selected `--runtime-mode`.
 
 ### 4.6 Logging and Ledger
@@ -117,6 +131,7 @@ Requirements in this section define how external seeds are loaded, how initializ
 - `FR-035` A completed run shall be able to generate a human-readable Word report containing provenance, parameters, wall and simulation time, starting and ending conditions, controller and duty trends, and final stage profiles.
 - `FR-036` A completed run shall be able to serialize and reload a native checkpoint containing the packed dynamic state and required runtime/controller memory. Reusable checkpoint artifacts shall pass a reload gate.
 - `FR-037` Rigorous model acceptance shall include a physical-closure gate covering at least liquid-flow ownership, net phase/energy consistency, pressure versus vapor-holdup consistency, and non-binding diagnostic profile limits.
+- `FR-037a` Unless superseded by a documented case requirement, rigorous local closure targets shall be: component reconstruction relative residual `<1e-8`; energy relative residual `<1e-7`; volume relative residual `<1e-7`; and phase-equilibrium fugacity residual or certified equivalent `<1e-6`. Global targets shall include scaled pressure-drop and vapor-flow residuals `<1e-5`, local-thermo versus global solved-pressure mismatch `<0.1 psi`, zero binding profile/previous-step flow limiters, zero accepted projections, complete terminal mapping, and the robustness requirement in `FR-019h`.
 
 ## 5. Traceability Matrix
 
@@ -134,7 +149,7 @@ Requirements in this section define how external seeds are loaded, how initializ
 | `UR-012`, `FR-002a`, `FR-009a`, `FR-034` | `src/dynamic_distillation/excel_case_loader_v1.py`, `src/dynamic_distillation/column_spec_builder_v1.py`, `src/dynamic_distillation/state_vector_layout_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_excel_case_loader_v1.py`, `tests/test_column_spec_builder_v1.py`, `tests/test_state_vector_layout_v1.py`, `tests/test_dynamic_run_scaffold_v1.py` |
 | `UR-011` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py` | `tests/test_dynamic_run_scaffold_v1.py` |
 | `UR-014`, `FR-009b`, `FR-009c` | `docs/dynamic_column_initialization_strategy.md`, `docs/validation_readiness_gate_2026-05-26.md`, `docs/issue_log.md` (`DD-032`) | Planned; current support is documented policy plus residual/audit tooling under development. |
-| `UR-015`, `FR-009d`, `FR-019a`..`FR-019d`, `FR-037` | `docs/dynamic_model_current_state_2026-07-12.md`, `docs/dd_060_physics_owned_tray_flow_probe_20260712.md`, `docs/gates_explained.md`, `src/dynamic_distillation/uv_flash_stage_v1.py` | Open architecture requirement; DD-060 is diagnostic evidence, not a passing implementation. |
+| `UR-015`, `UR-016`, `FR-007c`, `FR-009d`..`FR-009g`, `FR-019a`..`FR-019i`, `FR-025a`, `FR-026a`, `FR-026b`, `FR-037`, `FR-037a` | `docs/dynamic_model_current_state_2026-07-12.md`, `docs/dd_060_physics_owned_tray_flow_probe_20260712.md`, `docs/dd_065_frozen_checkpoint_uv_hydraulic_closure_20260717.md`, `docs/gates_explained.md`, `src/dynamic_distillation/uv_flash_stage_v1.py`, `src/dynamic_distillation/frozen_checkpoint_closure_v1.py`, `tools/audit_frozen_checkpoint_closure.py` | `tests/test_uv_flash_stage_v1.py`, `tests/test_frozen_checkpoint_closure_v1.py`; full production architecture remains open. |
 | `FR-014f` | `src/dynamic_distillation/thermo_backend_factory_v1.py`, `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `docs/issue_log.md` (`DD-059`) | Partial; Clapeyron fail-fast exists, DWSIM systematic-failure fail-fast remains open. |
 | `FR-035` | `src/dynamic_distillation/run_report_v1.py`, `docs/run_reports.md` | `tests/test_run_report_v1.py` |
 | `FR-036` | `src/dynamic_distillation/dynamic_run_scaffold_v1.py`, `tools/evaluate_initialization_dynamic_gate.py` | `tests/test_dynamic_run_scaffold_v1.py`, checkpoint reload-gate tests where available. |
@@ -143,5 +158,5 @@ Requirements in this section define how external seeds are loaded, how initializ
 
 ## 6. Notes and Limits
 - This document is implementation-derived and intentionally reflects current behavior, not a future roadmap.
-- `FR-019a` through `FR-019d` and `FR-037` are open acceptance requirements identified by DD-060. The current DD-058 checkpoint does not satisfy them and is classified as an operational baseline rather than a rigorous physical validation.
+- Open architecture requirements `FR-019a` through `FR-019i`, `FR-037`, and `FR-037a` were identified and refined by DD-060 and DD-065. DD-065 demonstrates passing interior local UV closure but failing global hydraulic closure; it is diagnostic evidence, not a passing production implementation.
 - `N/A` in tests indicates behavior exists in implementation without a dedicated direct unit/integration assertion at present.

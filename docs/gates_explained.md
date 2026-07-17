@@ -251,19 +251,64 @@ Current status:
 
 - DD-058: operational dynamic gates pass; rigorous physical-closure gate fails.
 - DD-060 `phase-exponential`: experimental diagnostic; physical-closure and dynamic gates fail.
-- UV/DAE architecture: proposed path for satisfying the gate, not yet an accepted implementation.
+- DD-065: all active interior trays pass local UV closure, but the global pressure/vapor-flow solve fails and terminal mapping is incomplete.
+- UV/DAE architecture: local conserved-state viability is demonstrated; global and terminal closure remain unaccepted.
+
+### 9.1 Local Thermodynamic Closure Gate
+
+For each conserved tray state, solve temperature, pressure, phase split, and
+equilibrium compositions from total component inventory, total internal
+energy, and fixed volume.
+
+Default rigorous targets are:
+
+- component reconstruction relative residual `<1e-8`;
+- energy relative residual `<1e-7`;
+- volume relative residual `<1e-7`;
+- fugacity residual or documented backend-certified equivalent `<1e-6`;
+- no negative phase amounts;
+- no accepted projection.
+
+A TP-flash beta consistency residual may be reported when fugacity coefficients
+are unavailable, but it must not be labeled as a fugacity residual.
+
+### 9.2 Global Hydraulic Closure Gate
+
+After local closure, solve the pressure-drop and vapor-flow network without
+imported profile ownership or previous-step limits determining the answer.
+
+Default rigorous targets are:
+
+- scaled pressure-drop and vapor-flow residuals `<1e-5`;
+- local-thermo versus global solved-pressure mismatch `<0.1 psi`;
+- zero binding profile/previous-step flow limiters;
+- zero accepted projections;
+- materially identical convergence from at least `+/-10%` pressure and flow guesses.
+
+DD-065 demonstrates why this gate is separate: local UV closure passed, but
+the implied pressure profile ran in the wrong overall direction and the global
+network could not close.
+
+### 9.3 Terminal-Equipment Closure Gate
+
+The condenser, reflux drum, reboiler, and sump must preserve every component,
+energy, and volume inventory required by their selected topology. Omitted
+resident vapor or virtual terminal-stage inventory is a gate failure, not a
+small reporting discrepancy.
 
 ## Where Gates Are Used In The Workflow
 
 ### During Initializer Development
 
 1. Build a candidate seed.
-2. Run a residual audit.
-3. If residual gate fails, diagnose and revise the candidate.
-4. If residual gate passes or improves, run a short dynamic smoke test.
-5. Apply dynamic gate.
-6. If dynamic gate fails, reject the candidate or inspect the model coupling defect.
-7. If both pass, serialize the accepted seed and verify restart/reload behavior.
+2. Run local thermodynamic closure.
+3. Run global hydraulic and terminal-equipment closure.
+4. Stop if any algebraic gate fails.
+5. Evaluate and solve steady component/energy residuals.
+6. Run a short dynamic smoke test.
+7. Apply dynamic gate.
+8. If the dynamic gate fails, reject the candidate or inspect the model coupling defect.
+9. If all applicable gates pass, serialize the accepted seed and verify restart/reload behavior.
 
 Related docs:
 
@@ -336,6 +381,11 @@ For this project, a run should not be called clean, usable, or validated unless 
 
 For an initializer candidate, that means at minimum:
 
+- local thermodynamic closure passes,
+- global hydraulic closure passes,
+- terminal-equipment mapping is complete,
+- no accepted projection or binding imported-profile/previous-step limiter owns the result,
+- initial-guess robustness passes,
 - residual gate passes or is clearly acceptable,
 - dynamic smoke gate passes,
 - dynamic score is stable or improving over the final window,

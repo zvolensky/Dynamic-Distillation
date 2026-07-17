@@ -1,6 +1,6 @@
 # Initializer Requirements and Acceptance Criteria
 
-Updated: 2026-07-12
+Updated: 2026-07-17
 
 Current model-state authority: `docs/dynamic_model_current_state_2026-07-12.md`.
 
@@ -34,16 +34,19 @@ This document captures the user and functional requirements for the dynamic colu
    - The initializer must accept a case definition, Excel workbook, or steady-state profile and associated column/specification data.
 
 2. State construction.
-   - The initializer must construct an initial state vector containing tray liquid composition, tray vapor composition, tray temperature, tray pressure, tray liquid/vapor holdup, and top/bottom boundary states.
+   - Legacy restart mode may construct the existing packed state containing liquid/vapor phase inventories, temperature, energy, and boundary states.
+   - Rigorous conserved-state mode must construct total component inventories and total internal energies as differential states. Imported phase inventories, temperature, pressure, phase split, compositions, and flows are algebraic initial guesses rather than independently fixed truth.
 
 3. Residual evaluation at $t=0$.
    - The system must evaluate the dynamic model RHS at $t=0$ and compute residuals for tray liquid rates, tray vapor rates, boundary rates, pressure/vapor-flow closure, energy/temperature rates, and feed-stage terms.
+   - For rigorous conserved-state mode, the system must first evaluate local thermodynamic closure, global pressure/flow closure, and terminal-equipment closure separately.
 
 4. Residual-based solve.
    - The initializer must be able to solve for a better initial state by minimizing or driving the residual vector toward zero.
 
 5. Physical constraints.
    - The solve must enforce bounds and physical plausibility, including nonnegative holdups, bounded pressures, bounded compositions, and nonnegative flow terms where appropriate.
+   - Rejected solver trials may encounter bounds, but an accepted rigorous state must not contain negative phase quantities or depend on accepted clipping, projection, profile-flow ceilings, or previous-step flow limiters.
 
 6. Relaxation/homotopy support.
    - The initializer may use relaxation or homotopy terms as stabilization aids, but these must not be the sole criterion for acceptance.
@@ -57,6 +60,7 @@ This document captures the user and functional requirements for the dynamic colu
 9. Dynamic acceptance gate.
    - A candidate should only be accepted if it performs better than the baseline in a short dynamic smoke test or equivalent acceptance metrics.
    - A rigorous or golden candidate must also pass the physical-closure prerequisite: pressure and vapor holdup describe the same state, phase-total changes conserve energy, and imported flow profiles do not retain runtime ownership. DD-058 is an accepted operational checkpoint only and does not yet meet this stronger criterion.
+   - The dynamic smoke gate must not run as an acceptance step when local thermodynamic, global hydraulic, or terminal algebraic closure has failed.
 
 10. Serialization.
     - The accepted state must be serialized to a restartable artifact. A native checkpoint or structured state file is preferred for accepted dynamic seeds because it can preserve packed state, thermo/hydraulic memory, controller state, and boundary state without Excel round-tripping.
@@ -87,6 +91,20 @@ This document captures the user and functional requirements for the dynamic colu
       - Failure-mode capture: which milestone failed, residual threshold exceeded, bound violation type
       - Smoke test trajectory excerpt (first, max, final state-rate and pressure values)
     - **Closure**: log ends with final status summary and output artifact locations (checkpoint, workbook, residual audit report).
+
+12. Algebraic-closure classification.
+    - The initializer must distinguish `local_uv_failed`, `local_uv_passed_global_hydraulics_failed`, `terminal_mapping_failed`, `algebraically_consistent_not_steady`, and `steady_initialization_accepted`, or equivalent stable reason codes.
+
+13. Initial-guess robustness.
+    - A rigorous global closure candidate must be checked from pressure and flow guesses perturbed by at least `+/-10%`.
+    - Materially different converged states, traversal-order dependence, or convergence that requires imported profile caps must reject the candidate.
+
+14. Terminal-equipment closure.
+    - Conserved-state mapping must cover the total condenser/reflux drum and partial reboiler/bottoms sump without omitting resident vapor, liquid, component inventory, or energy required by the selected topology.
+
+15. Controller degree-of-freedom audit.
+    - Before a controlled steady-state solve, each active controlled variable must have one available manipulated variable.
+    - Duplicate manipulated-variable ownership must be rejected unless an explicit selector, override, or cascade structure resolves it.
 
 ## Inputs
 
@@ -127,11 +145,38 @@ This document captures the user and functional requirements for the dynamic colu
 
 ## Acceptance Criteria
 
-A candidate initialization is considered successful if:
-- the $t=0$ residuals are materially reduced,
-- the state remains physically plausible,
-- the short dynamic run is stable or improved relative to baseline,
-- and the coupling diagnostics do not reveal a new structural inconsistency.
+Acceptance is hierarchical:
+
+1. **Local thermodynamic closure**
+   - component reconstruction relative residual `<1e-8`;
+   - energy relative residual `<1e-7`;
+   - volume relative residual `<1e-7`;
+   - phase-fugacity residual or documented backend-certified equivalent `<1e-6`;
+   - no negative phase amounts;
+   - no accepted state projection.
+
+2. **Global hydraulic closure**
+   - scaled pressure-drop and vapor-flow residuals `<1e-5`;
+   - local-thermo versus global solved-pressure mismatch `<0.1 psi`;
+   - no binding imported-profile or previous-step flow limiters;
+   - materially identical convergence from at least `+/-10%` pressure and flow guesses.
+
+3. **Terminal-equipment closure**
+   - the condenser, reflux drum, reboiler, and sump mappings preserve all required component inventory, energy, and volume;
+   - no terminal vapor or virtual-stage inventory required by the topology is omitted.
+
+4. **Steady-state residual closure**
+   - after algebraic consistency passes, required differential component and energy derivatives are driven to their specified steady-state tolerances;
+   - whole-column inventory and energy rates pass their gates.
+
+5. **Dynamic and restart acceptance**
+   - the short dynamic run is stable and meets the applicable dynamic gates;
+   - the serialized artifact reproduces the accepted trajectory through the reload gate.
+
+A candidate that passes local UV closure but fails global hydraulic closure is
+not a usable initializer. It must be reported as outside the global algebraic
+constraint manifold or as a pressure/flow closure failure. A dynamic smoke
+test must not be used to override that result.
 
 The implementation should make this verdict explicit. The initializer summary and execution log should contain a `clean_usable_assessment` object rather than requiring the user to infer usability from separate residual, dynamic-gate, and diagnostic fields. If the dynamic gate is enabled, a seed is clean/usable only when both the residual gate and dynamic gate pass. If the dynamic gate is not enabled, the assessment may report residual-gate usability, but it must also flag that dynamic-gate evidence is still required for final acceptance.
 
@@ -141,11 +186,21 @@ For production acceptance, the initializer should be able to run an optional che
 
 The dynamic gate should also reject candidates that hide a slow internal liquid inventory depletion. A run can look acceptable by rate metrics until a nearly empty internal liquid inventory produces a large explicit composition step. The profile-level audit for this failure mode is `tools/audit_liquid_inventory_depletion.py`; by default it evaluates internal stages and leaves top/bottom terminal equipment to boundary-specific checks.
 
+DD-065 is the current acceptance example. All active interior trays passed
+local component/energy/volume UV closure, but the global pressure/vapor-flow
+solve failed with a reversed locally implied pressure profile, large hydraulic
+residuals, binding flow limiters, and incomplete terminal mapping. The correct
+classification is `local_uv_passed_global_hydraulics_failed`, not an accepted
+seed and not a reason to launch a longer dynamic settling run.
+
 ## Current Implementation Direction
 
 The current recommended direction is:
+- use the local UV gate before attempting the global pressure/flow solve,
+- require the global and terminal algebraic gates before minimizing steady-state derivatives or launching a dynamic gate,
 - use residual audits and bounded least-squares as targeted diagnostic/solve steps, not as the sole acceptance mechanism,
-- optimize the smallest justified state subset first, then verify with the dynamic gate,
+- distinguish rejected trial projections from accepted projected states and reject the latter for rigorous acceptance,
+- allow conserved tray totals and energies to redistribute only in a formal steady-state solve that preserves whole-column components and energy,
 - use relaxation/homotopy only as startup or solve stabilizers, not as proof of a steady initial condition,
 - prefer native checkpoint-style serialization for accepted seeds,
 - treat Excel-only checkpoint-guided exports as diagnostic bridges until they pass reload tests with startup/re-entry conditioning disabled,

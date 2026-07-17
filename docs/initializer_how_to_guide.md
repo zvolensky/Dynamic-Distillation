@@ -30,6 +30,14 @@ globally conservative redistribution solve corrects that global and terminal
 incompatibility, initializer optimization is diagnostic and operational
 checkpoints are not rigorous golden seeds.
 
+DD-067 demonstrates that conservative movement can repair the ordering at the
+local UV level: fixed component inventories and redistributed internal energy
+produced an ordered 20-node profile with exact whole-column conservation.
+However, that pressure-isotonic construction moved `9.32%` of the checkpoint
+energy inventory on an L1 basis and excluded hydraulics. It is an existence
+proof, not an accepted seed. The next solve must minimize scaled `Delta N` and
+`Delta U` directly before adding the hydraulic network.
+
 ## Recommended Workflow
 
 1. Load the seed.

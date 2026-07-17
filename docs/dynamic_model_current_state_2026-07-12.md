@@ -1,6 +1,7 @@
 # Dynamic Model Current State
 
 Date: 2026-07-12
+Updated: 2026-07-17
 
 Status: Authoritative current-state summary. This supersedes `docs/dynamic_model_current_state_2026-07-08.md` for current decisions while retaining that document as historical evidence.
 
@@ -19,15 +20,29 @@ pressure disagreed with the attempted global solution by as much as
 limiters were active. The local UV pressure implied by frozen checkpoint
 totals also ran in the wrong overall direction, from `321.89 psia` at stage 2
 to `205.16 psia` at stage 19, while the checkpoint hydraulic profile rose from
-about `225.11` to `232.18 psia`. The current terminal sandbox mapping also
-omits virtual terminal-stage vapor inventory and represents the top vessel as
-liquid-only.
+about `225.11` to `232.18 psia`.
+
+DD-066 subsequently completed terminal conserved-inventory ownership for the
+total-condenser placeholder, reflux drum, partial reboiler, and bottoms sump.
+Whole-column terminal bookkeeping closes to numerical precision. Independent
+top and bottom terminal UV closure still produces reversed pressure ordering:
+`P_top=213.564 psia` and `P_bottom=199.616 psia`.
+
+DD-067 then held every node component inventory and fixed volume constant,
+redistributed only internal energy, and recovered an ordered 20-node local UV
+profile while preserving whole-column energy to `1.84e-9` relative error.
+This proves conservative local-state feasibility, but the pressure-isotonic
+construction moved `9.32%` of energy inventory on an L1 basis, changed one
+pressure by `93.66 psi`, and did not include hydraulics. It is therefore an
+existence proof, not a usable initializer.
 
 This sharpens, rather than reverses, the architecture conclusion below:
 conserved-state local thermo is viable, but the global pressure/vapor-flow
-network and terminal conserved-state mapping require redesign before a
-production implicit residual is attempted. See
-`docs/dd_065_frozen_checkpoint_uv_hydraulic_closure_20260717.md`.
+network requires a least-movement conservative redistribution solve followed
+by uncapped hydraulic closure before a production implicit residual is
+attempted. See `docs/dd_065_frozen_checkpoint_uv_hydraulic_closure_20260717.md`,
+`docs/dd_066_terminal_conserved_inventory_mapping_20260717.md`, and
+`docs/dd_067_conservative_energy_redistribution_probe_20260717.md`.
 
 ## Executive assessment
 
@@ -119,6 +134,9 @@ Use these descriptions consistently:
 
 - `docs/dd_055_dd057_composition_settling_baseline_20260712.md`
 - `docs/dd_060_physics_owned_tray_flow_probe_20260712.md`
+- `docs/dd_065_frozen_checkpoint_uv_hydraulic_closure_20260717.md`
+- `docs/dd_066_terminal_conserved_inventory_mapping_20260717.md`
+- `docs/dd_067_conservative_energy_redistribution_probe_20260717.md`
 - `docs/gates_explained.md`
 - `docs/issue_log.md`
 - `docs/model_architecture.md`

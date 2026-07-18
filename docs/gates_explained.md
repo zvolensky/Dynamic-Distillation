@@ -257,7 +257,8 @@ Current status:
 - DD-068: normalized L2 component-and-energy redistribution finds one local basin from two independent starts, but three of five starts fail, energy movement is `1.356` times DD-067, maximum pressure movement remains `79.159 psi`, and terminal assemblies absorb `80.3%` of absolute energy movement; the robustness and movement gates therefore stop the workflow before hydraulics.
 - DD-069: `U=H-PV`, phase aggregation, mapped-U provenance, and empty-placeholder invariance pass, but sump fixed-volume reconstruction misses by `51.47%`, representative interior controls miss volume by `17%` to `38%`, stored-H mismatch reaches `233%`, and normalized energy-movement cost varies by a factor of `4134.77`; correct these bases before repeating redistribution.
 - DD-070: canonical live-property energy, neutral whole-column scaling, and a liquid-only sump reduce the best energy movement to `159,739 BTU` and maximum pressure correction to `23.335 psi`, but only one of five starts converges and the checkpoint enthalpy mismatch is state-dependent; the bounded retry fails and checkpoint repair is retired.
-- DD-071 registry: separate reboiler and sump states produce `291` unknowns and `290` residuals because their connecting liquid outlet has no owner. A combined conserved bottom control volume produces a square, structurally full-rank `281 x 281` registry with no empty rows, unused columns, or missing owners. This passes the structural gate only; numerical residual and Jacobian gates remain pending.
+- DD-071 registry: separate reboiler and sump states produce `291` unknowns and `290` residuals because their connecting liquid outlet has no owner. A combined conserved bottom control volume produces a square, structurally full-rank `281 x 281` registry with no empty rows, unused columns, or missing owners.
+- DD-072 numerical gate: all `281` direct residuals evaluate with live DWSIM PR at the ChemSep, bounded-perturbation, and checkpoint guesses. Component and energy equations telescope near machine precision. ChemSep and perturbed Jacobians retain rank `281` at `h` and `h/2`, and an uncolored reference finds zero numerical dependencies outside the registry graph. The condition estimate remains high (`1.3e8` at ChemSep and up to `2.4e9` at the perturbation), so this authorizes bounded staged continuation only.
 - UV/DAE architecture: local conserved-state viability and terminal bookkeeping are demonstrated; global hydraulic and terminal-equation closure remain unaccepted.
 
 ### 9.1 Local Thermodynamic Closure Gate
@@ -365,6 +366,23 @@ because their connecting liquid flow lacks an equation. Combining their
 explicit phase inventories inside one conserved bottom control volume removes
 that internal transfer and passes the structural gate without adding a tuning
 relation.
+
+### 9.8 Numerical Residual And Jacobian Gate
+
+Before any nonlinear solve:
+
+- evaluate every registered residual directly with live properties;
+- reject invalid reduced compositions without clipping or renormalization;
+- require component and energy balances to telescope independently;
+- publish physical variable and residual scales;
+- require full numerical rank at the primary and bounded-perturbation guesses;
+- repeat rank at two finite-difference step sizes;
+- verify colored derivatives against an optional uncolored reference;
+- reject zero unknown columns or dependencies outside the registry graph.
+
+DD-072 passes this gate for the direct `281 x 281` C3/C4 system. The result
+authorizes bounded continuation design, not a claim that a steady-state seed
+has been solved or dynamically accepted.
 
 ## Where Gates Are Used In The Workflow
 

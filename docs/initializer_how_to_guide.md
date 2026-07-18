@@ -66,9 +66,13 @@ DD-071 begins the direct formulation. A separate partial-reboiler and sump
 model is one equation short because the connecting liquid flow has no physical
 owner. The selected direct registry therefore uses one conserved bottom
 control volume containing reboiler vapor and sump liquid. That registry is
-square and structurally full rank. Do not launch a nonlinear solve until live
-residual evaluation, global telescoping, scaling, and numerical Jacobian rank
-also pass.
+square and structurally full rank.
+
+DD-072 completes the next gate. All direct residuals evaluate with live DWSIM
+PR at the ChemSep, perturbed ChemSep, and checkpoint guesses; conservation
+telescopes and the ChemSep-related Jacobians have rank `281` at two step
+sizes. Conditioning remains high, so proceed only with staged bounded
+continuation. Do not launch an unrestricted monolithic solve.
 
 ## Recommended Workflow
 
@@ -92,6 +96,7 @@ also pass.
    - For conserved-state redistribution, require multi-start reproducibility and reject terminal-dominated movement before adding hydraulics.
    - Canonicalize energy from one live property basis; do not conserve an incompatible serialized phase-enthalpy total.
    - Stop checkpoint repair after its documented bounded retry fails. Move to the direct steady-state formulation rather than tuning another projection.
+   - Require DD-072 residual, telescoping, scaling, and Jacobian-rank gates before attempting direct continuation.
    - Stop before dynamic integration if any required algebraic gate fails.
 
 5. Evaluate steady-state residuals only after algebraic closure.

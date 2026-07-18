@@ -205,6 +205,14 @@ Checkpoint repair is therefore retired. The correct classification remains
 `local_uv_passed_global_hydraulics_failed`, not an accepted seed and not a
 reason to launch hydraulics or a longer dynamic settling run.
 
+DD-071 and DD-072 establish the replacement path's solver readiness. The
+combined-bottom direct system is square at `281 x 281`; every residual
+evaluates with live DWSIM PR; component and energy balances telescope; and the
+ChemSep and bounded-perturbation Jacobians retain rank `281` at two
+finite-difference step sizes. The condition estimate is high and the ChemSep
+guess still has material Francis-hydraulic residuals. This authorizes bounded
+staged continuation, not initializer acceptance.
+
 ## Current Implementation Direction
 
 The current recommended direction is:

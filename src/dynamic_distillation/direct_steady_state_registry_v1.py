@@ -338,7 +338,7 @@ def build_direct_steady_state_registry(
     feed_terms = tuple(f"F[{node}]" for node in tray_nodes)
     for node_index, node in enumerate(all_nodes):
         for component in components:
-            dependencies: list[str] = [n_name(node, component)]
+            dependencies: list[str] = []
             if node == drum:
                 dependencies.extend(
                     (
@@ -398,39 +398,50 @@ def build_direct_steady_state_registry(
             )
 
         energy_dependencies = [
-            f"U[{node}]",
-            f"T[{node}]",
-            f"P[{node}]",
+            *phase_dependencies(node if node != sump else reboiler),
         ]
         if node == drum:
             energy_dependencies.extend(
-                ("V_out[tray_" + stages[0] + "]", reflux_flow, "D", "Q_C")
+                (
+                    "V_out[tray_" + stages[0] + "]",
+                    *phase_dependencies(tray_nodes[0]),
+                    reflux_flow,
+                    "D",
+                    "Q_C",
+                )
             )
         elif node in tray_nodes:
             tray_index = tray_nodes.index(node)
             energy_dependencies.extend((f"L_out[{node}]", f"V_out[{node}]"))
-            energy_dependencies.append(
-                reflux_flow
-                if tray_index == 0
-                else f"L_out[{tray_nodes[tray_index - 1]}]"
-            )
-            energy_dependencies.append(
-                f"V_out[{reboiler}]"
+            if tray_index == 0:
+                energy_dependencies.extend(
+                    (reflux_flow, *phase_dependencies(drum))
+                )
+            else:
+                above = tray_nodes[tray_index - 1]
+                energy_dependencies.extend(
+                    (f"L_out[{above}]", *phase_dependencies(above))
+                )
+            below = (
+                reboiler
                 if tray_index == len(tray_nodes) - 1
-                else f"V_out[{tray_nodes[tray_index + 1]}]"
+                else tray_nodes[tray_index + 1]
+            )
+            energy_dependencies.extend(
+                (f"V_out[{below}]", *phase_dependencies(below))
             )
             energy_dependencies.append(feed_terms[tray_index])
         elif node == reboiler:
             energy_dependencies.extend(
                 (
                     f"L_out[{tray_nodes[-1]}]",
-                    reboiler_liquid_flow,
+                    *phase_dependencies(tray_nodes[-1]),
                     f"V_out[{reboiler}]",
                     "Q_R",
                 )
             )
         else:
-            energy_dependencies.extend((reboiler_liquid_flow, "B"))
+            energy_dependencies.extend(("B",))
         add_residual(
             f"energy_balance[{node}]",
             "steady_energy_balance",
@@ -488,14 +499,14 @@ def build_direct_steady_state_registry(
         "operating_specification",
         drum,
         "psia",
-        (f"P[{drum}]", "Q_C"),
+        (f"P[{drum}]",),
     )
     add_residual(
         "spec_bottoms_propane",
         "operating_specification",
         sump,
         "mole_fraction",
-        (x_name(sump, independent[0]), "Q_R"),
+        (x_name(sump, independent[0]),),
     )
     add_residual(
         "spec_drum_level",
@@ -507,7 +518,6 @@ def build_direct_steady_state_registry(
             f"P[{drum}]",
             f"NL[{drum}]",
             *(x_name(drum, comp) for comp in independent),
-            "D",
         ),
     )
     add_residual(
@@ -520,7 +530,6 @@ def build_direct_steady_state_registry(
             f"P[{sump}]",
             f"NL[{sump}]",
             *(x_name(sump, comp) for comp in independent),
-            "B",
         ),
     )
 
@@ -532,6 +541,10 @@ def build_direct_steady_state_registry(
         deliberate_eliminations=(
             "empty total-condenser placeholder",
             f"last liquid and vapor mole fractions reconstructed as 1-sum(first {len(independent)})",
+            (
+                "feed phase split eliminated from conserved total balances; "
+                "external feed component and enthalpy rates enter unchanged"
+            ),
             "controller dynamic states replaced by four steady operating specifications",
         ),
     )

@@ -2,7 +2,7 @@
   "classification": "dd071_registry_structure_passed_combined_bottom",
   "decision_code": "authorize_numeric_residual_evaluator",
   "decision": "The combined bottom control-volume registry is square and structurally full rank. Implement numerical residual evaluation next; a nonlinear solve remains unauthorized.",
-  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_preserved_mv18_20260524.xlsx",
   "component_names": [
     "n-Propane",
     "n-Butane",
@@ -45,6 +45,7 @@
   "deliberate_eliminations": [
     "empty total-condenser placeholder",
     "last liquid and vapor mole fractions reconstructed as 1-sum(first 2)",
+    "feed phase split eliminated from conserved total balances; external feed component and enthalpy rates enter unchanged",
     "controller dynamic states replaced by four steady operating specifications",
     "partial-reboiler vapor and liquid-only sump combined into one conserved bottom control volume",
     "internal reboiler-to-sump liquid transfer eliminated because it crosses no boundary of the combined control volume"

@@ -78,8 +78,14 @@ reboiler-to-sump liquid flow (`291` unknowns versus `290` residuals). The
 DD-070-compatible combined bottom control volume removes that internal
 transfer without inventing an equation and produces a square, structurally
 full-rank `281 x 281` registry. Numerical residual, telescoping, and Jacobian
-evaluation are the next bounded work; a nonlinear solve remains unauthorized.
-See `docs/dd_071_direct_steady_state_registry_20260718.md`.
+evaluation were the next bounded work. DD-072 now evaluates all `281`
+residuals directly with live DWSIM PR, closes component and energy telescoping
+near machine precision, and finds numerical rank `281` at ChemSep and a
+bounded perturbation for both finite-difference step sizes. The uncolored
+reference finds no missing registered dependencies. Condition estimates remain
+high, so only a staged bounded continuation is authorized next. See
+`docs/dd_071_direct_steady_state_registry_20260718.md` and
+`docs/dd_072_direct_steady_state_numerical_audit_20260718.md`.
 
 ## Executive assessment
 

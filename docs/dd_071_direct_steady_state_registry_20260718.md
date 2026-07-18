@@ -12,7 +12,8 @@ does not evaluate a nonlinear residual or attempt a steady-state solve.
 ## Reduced Composition Basis
 
 The registry uses the first `Nc-1` liquid and vapor mole fractions as
-independent unknowns and reconstructs the final fraction by normalization.
+independent unknowns and reconstructs the final fraction as
+`1-sum(first Nc-1)`.
 This removes explicit composition-normalization rows and their expected
 redundancy.
 
@@ -89,13 +90,15 @@ The four steady control pairs remain:
 Classification: `dd071_registry_structure_passed_combined_bottom`.
 
 The equation-count, ownership, empty-row/column, and structural-rank gates
-pass for the combined bottom control volume. This authorizes the next DD-071
-slice: numerical residual evaluation using live DWSIM properties at the
-ChemSep, checkpoint, and perturbed guesses.
+pass for the combined bottom control volume. DD-072 subsequently completed
+the authorized numerical residual evaluation using live DWSIM properties at
+the ChemSep, checkpoint, and perturbed guesses.
 
-It does not authorize a nonlinear solve. Numerical residual finiteness,
-scaling, telescoping conservation, and numerical Jacobian rank remain
-unverified.
+DD-072 found finite residuals, passing telescoping conservation, and full
+numerical rank at both finite-difference step sizes. See
+`docs/dd_072_direct_steady_state_numerical_audit_20260718.md`. DD-071 itself
+remains a structural result and does not authorize an unrestricted nonlinear
+solve.
 
 ## Evidence
 

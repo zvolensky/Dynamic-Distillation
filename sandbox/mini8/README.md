@@ -43,6 +43,27 @@ Current scope:
 
 Historical Huang notes and seed files remain only as archived project history.
 
+## Equilibrium-DAE v2 reuse policy
+
+DD-078 authorizes selective reuse of this sandbox for the new `core_v2`
+architecture.
+
+Reusable inputs and patterns:
+- the compact workbook and existing Excel-loading path;
+- component, stream, terminal, pressure, temperature, and geometry data;
+- UV state-building and terminal liquid-node patterns;
+- simultaneous-layout and Jacobian-conditioning audit patterns.
+
+Not reusable as v2 governing physics or acceptance evidence:
+- the sampled 20-stage profile as an independently known solution;
+- historical mini8 trajectories;
+- profile-owned flow closures;
+- clipping, explicit-Euler advancement, anchor regularization, or legacy
+  equation ownership.
+
+Mini8 may seed later Gate B and Gate C studies. The accepted answer must still
+come from the new equations and an independent reference or conservation gate.
+
 Reference comparison:
 - Example against the existing mini8 parity baseline:
   - `python -m dynamic_distillation.uv_flash_sandbox_v1 --thermo table --thermo-table cache\thermo_table.json --n-steps 20 --dt 0.2 --liquid-flow-mode francis --vapor-flow-mode conductance --compare-ref-profile logs\column_profile_20260228_100313.csv`

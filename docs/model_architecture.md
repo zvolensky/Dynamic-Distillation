@@ -35,9 +35,17 @@ rectifying/stripping vapor rates for the first feasibility layer. See
 stopped at rank `49/51` because fixed product flows left the drum and bottom
 liquid amounts unowned. Specifying those terminal amounts and solving `D/B`
 produced a `53 x 53`, full-rank registry with exact symbolic conservation and
-clean pressure, vapor-flow, and Francis ownership. The next authorized work is
-the property-free Gate A source-equation residual comparison. See
+clean pressure, vapor-flow, and Francis ownership. See
 `docs/dd_077_core_v2_structural_registry_20260718.md`.
+
+2026-07-18 source-equation result: DD-078's property-free v2 assembly matches
+the accepted independent Skogestad translation within `5.6e-16`, preserves
+global material balances to roundoff, and evaluates the tabulated steady
+profile at `3.7e-8 /min`, inside the declared `1e-7 /min` gate. The repository's
+mini8 assets are reserved for later property/energy and reduced-column gates
+as compact data and audit scaffolding, not as independent solution truth. The
+next authorized increment is the bounded Gate A dynamic-integration
+comparison. See `docs/dd_078_core_v2_source_equation_gate_20260718.md`.
 
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
@@ -380,7 +388,8 @@ equilibrium-DAE v2 contract in
 `docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
 
 DD-077 completed the new-namespace control-volume/equation registry,
-structural audit, and ownership/conservation checks. The next increment is
-limited to a property-free reproduction of the accepted source-equation
-residual. It does not include live DWSIM, a nonlinear solve, pressure dynamics,
-vapor holdup, controllers, or production integration.
+structural audit, and ownership/conservation checks. DD-078 completed the
+property-free source-equation residual comparison. The next increment is
+limited to reproducing the accepted Skogestad feed-disturbance integration
+with the v2 source assembly. It does not include live DWSIM, a nonlinear solve,
+pressure dynamics, vapor holdup, controllers, or production integration.

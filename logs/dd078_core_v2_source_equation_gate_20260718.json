@@ -1,0 +1,36 @@
+{
+  "schema_id": "dd078-core-v2-source-equation-gate-v1",
+  "classification": "dd078_source_equation_residual_gate_passed",
+  "decision": "authorize_gate_a_dynamic_integration_increment",
+  "authorization": "The property-free residual assembly is accepted. A separately bounded Gate A dynamic-integration comparison may proceed next; live properties and the five-volume solve remain unauthorized.",
+  "source_workbook": "validation_skogestad_column_a_relative_volatility.xlsx",
+  "stage_count": 41,
+  "parity_tolerance": 1e-12,
+  "profile_residual_tolerance_per_min": 1e-07,
+  "nominal_profile": {
+    "max_abs_parity_error": 2.220446049250313e-16,
+    "max_abs_state_rate_per_min": 3.683125449072122e-08,
+    "global_total_balance_error_kmol_min": 0.0,
+    "global_light_balance_error_kmol_min": 3.469446951953614e-16
+  },
+  "feed_step": {
+    "max_abs_parity_error": 2.220446049250313e-16,
+    "max_abs_state_rate_per_min": 0.010000000000000009,
+    "global_total_balance_error_kmol_min": 0.0,
+    "global_light_balance_error_kmol_min": 3.469446951953614e-16
+  },
+  "perturbed_state": {
+    "max_abs_parity_error": 5.56629395354058e-16,
+    "max_abs_state_rate_per_min": 0.18214521657262428,
+    "global_total_balance_error_kmol_min": 0.0,
+    "global_light_balance_error_kmol_min": 5.117434254131581e-17
+  },
+  "residual_parity_pass": true,
+  "material_conservation_pass": true,
+  "published_profile_residual_pass": true,
+  "nonlinear_solve_attempted": false,
+  "dynamic_integration_attempted": false,
+  "live_property_evaluation_attempted": false,
+  "mini8_reuse_authorized_for_later_gates": true,
+  "mini8_historical_trajectory_is_acceptance_reference": false
+}

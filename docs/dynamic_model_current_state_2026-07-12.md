@@ -239,6 +239,20 @@ and Francis ownership of every tray liquid-flow unknown. No live properties,
 nonlinear solve, or integration were attempted. See
 `docs/dd_077_core_v2_structural_registry_20260718.md`.
 
+DD-078 implements the first numerical v2 equation assembly. The property-free
+binary source equations match the accepted independent Skogestad translation
+within `5.6e-16` for nominal, feed-step, and perturbed states. Global material
+balances close to roundoff, and the published steady profile evaluates at
+`3.7e-8 /min`, inside the declared `1e-7 /min` tabulation gate. This passes the
+residual portion of Gate A; dynamic integration has not yet been attempted.
+
+The repository's existing `sandbox/mini8` case will be leveraged in later
+gates for its compact workbook, C3/C4 data, geometry, UV state-building
+patterns, and conditioning-audit patterns. Its profile was sampled from the
+old 20-stage model, so neither that profile nor its historical trajectories
+are independent acceptance references for v2. See
+`docs/dd_078_core_v2_source_equation_gate_20260718.md`.
+
 ## Acceptance language
 
 Use these descriptions consistently:
@@ -253,6 +267,8 @@ Use these descriptions consistently:
   implementation but does not yet establish numerical or dynamic validity.
 - **V2 structural gate**: DD-077 passes topology, ownership, equation-count,
   structural-rank, and symbolic-conservation checks only.
+- **V2 source-equation residual gate**: DD-078 passes independent residual
+  parity and material conservation; Gate A dynamics remain pending.
 
 ## Supporting documents
 
@@ -264,6 +280,7 @@ Use these descriptions consistently:
 - `docs/dd_075_reduced_column_feasibility_20260718.md`
 - `docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`
 - `docs/dd_077_core_v2_structural_registry_20260718.md`
+- `docs/dd_078_core_v2_source_equation_gate_20260718.md`
 - `docs/gates_explained.md`
 - `docs/issue_log.md`
 - `docs/model_architecture.md`

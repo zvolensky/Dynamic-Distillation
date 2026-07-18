@@ -16,6 +16,11 @@ Current validation snapshot from 2026-05-24:
 - The Skogestad source-topology correction is also structural rather than rigorous-thermo: use `--disable-boundary-states --disable-vapor-states --no-equilibrium` because the source stage set already includes total condenser/reboiler states and uses algebraic vapor composition with no vapor-holdup ODE. For dynamic source-response checks, product streams must be total-flow draws with composition taken from the current terminal stage, matching `D*xD` and `B*xB` in `colamod.m`; fixed distillate/bottoms component rates are not source-equivalent.
 - Rigorous thermo cases are now a second validation tier. Water-methanol with Clapeyron PR remains unsuitable as a correctness baseline because PR is a poor polar-system model for that mixture. Hydrocarbon Clapeyron PR improves with preserved vapor holdup but still shows slower top/interior vapor-state transients.
 
+Equilibrium-DAE v2 update from 2026-07-18:
+- `DD-077` established a full-rank `53 x 53` five-volume structural registry with exact symbolic component/energy telescoping and one owner per prescribed pressure, section vapor rate, Francis liquid flow, and terminal inventory specification.
+- `DD-078` passes the property-free source-equation residual gate. The new v2 assembly matches the accepted independent Skogestad translation within `5.6e-16`, closes global material balances to roundoff, and evaluates the published tabulated steady profile at `3.7e-8 /min`, within the `1e-7 /min` gate.
+- `sandbox/mini8` is approved as compact workbook, geometry, UV-property, and conditioning-audit scaffolding for later Gates B/C. Its sampled legacy profile and historical trajectories are not independent v2 acceptance references, and its legacy flow ownership, clipping, explicit update, and regularization mechanisms are not authorized for import into `core_v2`.
+
 Validation readiness gate from 2026-05-26:
 - Rigorous dynamic validation should not be claimed while known model defects or unresolved topology/phase-holdup mismatches materially affect the behavior under comparison.
 - New note: `docs/validation_readiness_gate_2026-05-26.md`.

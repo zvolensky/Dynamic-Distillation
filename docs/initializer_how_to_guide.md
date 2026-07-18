@@ -74,6 +74,15 @@ telescopes and the ChemSep-related Jacobians have rank `281` at two step
 sizes. Conditioning remains high, so proceed only with staged bounded
 continuation. Do not launch an unrestricted monolithic solve.
 
+DD-073 implements that bounded continuation with five square systems and
+smooth transformed coordinates. The implementation gates pass, but the live
+solve stops in Stage 1. Holding ChemSep-derived component inventories and
+internal energies fixed while reconciling temperature, pressure, phase
+amounts, and compositions to DWSIM leaves a repeatable local residual floor.
+Do not lower tolerances or tune the lambda path further. Redesign the release
+ordering so conserved states can move consistently with phase-state
+reconciliation before repeating the continuation.
+
 ## Recommended Workflow
 
 1. Load the seed.
@@ -97,6 +106,8 @@ continuation. Do not launch an unrestricted monolithic solve.
    - Canonicalize energy from one live property basis; do not conserve an incompatible serialized phase-enthalpy total.
    - Stop checkpoint repair after its documented bounded retry fails. Move to the direct steady-state formulation rather than tuning another projection.
    - Require DD-072 residual, telescoping, scaling, and Jacobian-rank gates before attempting direct continuation.
+   - Require every DD-073 continuation stage to reach its exact physical endpoint. Full rank and a small but nonzero residual floor do not pass.
+   - If local phase reconciliation fails while unreleased `N/U` are fixed, revise the square release ordering; do not project `N/U` or relax the closure gates.
    - Stop before dynamic integration if any required algebraic gate fails.
 
 5. Evaluate steady-state residuals only after algebraic closure.

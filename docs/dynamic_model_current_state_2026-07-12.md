@@ -87,6 +87,20 @@ high, so only a staged bounded continuation is authorized next. See
 `docs/dd_071_direct_steady_state_registry_20260718.md` and
 `docs/dd_072_direct_steady_state_numerical_audit_20260718.md`.
 
+DD-073 implemented the approved five square continuation stages, smooth
+physical-domain coordinates, adaptive trust-region lambda schedule, accepted
+state retention, and rank/condition gates. The implementation tests pass, but
+two live DWSIM PR paths stop in Stage 1. The paths remain rank `160/160`,
+conservative, and safeguard-free; separate Stage 1 endpoint solves with
+sparse and dense linear algebra retain full rank but leave a scaled residual
+floor near `2.1e-4`. The failure is distributed across local component and
+energy reconstruction. The current Stage 1 holds ChemSep-derived conserved
+`N/U` fixed while changing phase states to the DWSIM basis, so full rank does
+not establish endpoint feasibility. Do not tune the lambda path or lower
+tolerances. Revise the release ordering so conserved and phase states move
+together before another direct solve. See
+`docs/dd_073_direct_steady_state_continuation_20260718.md`.
+
 ## Executive assessment
 
 The repository now contains a credible, numerically stable, controlled C3/C4 operating checkpoint and a strong supporting platform for thermo integration, controls, diagnostics, continuation, reporting, and model investigation.

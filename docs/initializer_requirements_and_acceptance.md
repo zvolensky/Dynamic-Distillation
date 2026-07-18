@@ -213,6 +213,14 @@ finite-difference step sizes. The condition estimate is high and the ChemSep
 guess still has material Francis-hydraulic residuals. This authorizes bounded
 staged continuation, not initializer acceptance.
 
+DD-073 implements the bounded five-stage continuation but does not pass its
+first physical endpoint. Both live paths remain full rank and conservative,
+yet Stage 1 leaves local component and energy reconstruction residuals when
+ChemSep-derived `N/U` remain fixed. Sparse and dense endpoint diagnostics
+confirm a nonzero residual floor. The next design must couple the release of
+conserved states with phase-state reconciliation. No Stage 2-5 result,
+serialized seed, or dynamic acceptance is available.
+
 ## Current Implementation Direction
 
 The current recommended direction is:
@@ -226,6 +234,7 @@ The current recommended direction is:
 - audit H/U/PV, phase-volume reconstruction, placeholder invariance, and physical movement cost before interpreting a redistribution objective,
 - build conserved energy from one canonical live-property basis and record any mapping replacement separately from optimizer movement,
 - retire checkpoint projection when its predefined corrected retry fails and formulate the direct operating-specification steady-state system,
+- require continuation stages to prove endpoint feasibility, not merely full rank, and redesign release ordering when fixed unreleased conserved states block local closure,
 - use relaxation/homotopy only as startup or solve stabilizers, not as proof of a steady initial condition,
 - prefer native checkpoint-style serialization for accepted seeds,
 - treat Excel-only checkpoint-guided exports as diagnostic bridges until they pass reload tests with startup/re-entry conditioning disabled,

@@ -259,6 +259,7 @@ Current status:
 - DD-070: canonical live-property energy, neutral whole-column scaling, and a liquid-only sump reduce the best energy movement to `159,739 BTU` and maximum pressure correction to `23.335 psi`, but only one of five starts converges and the checkpoint enthalpy mismatch is state-dependent; the bounded retry fails and checkpoint repair is retired.
 - DD-071 registry: separate reboiler and sump states produce `291` unknowns and `290` residuals because their connecting liquid outlet has no owner. A combined conserved bottom control volume produces a square, structurally full-rank `281 x 281` registry with no empty rows, unused columns, or missing owners.
 - DD-072 numerical gate: all `281` direct residuals evaluate with live DWSIM PR at the ChemSep, bounded-perturbation, and checkpoint guesses. Component and energy equations telescope near machine precision. ChemSep and perturbed Jacobians retain rank `281` at `h` and `h/2`, and an uncolored reference finds zero numerical dependencies outside the registry graph. The condition estimate remains high (`1.3e8` at ChemSep and up to `2.4e9` at the perturbation), so this authorizes bounded staged continuation only.
+- DD-073 continuation gate: the approved `160/240/258/277/281` transformed continuation is implemented, but two live DWSIM PR paths stop in Stage 1 while retaining full rank and exact conservation. Direct Stage 1 endpoint diagnostics also leave an approximately `2.1e-4` scaled residual floor. Holding ChemSep-derived conserved `N/U` fixed while reconciling phase states is therefore not an accepted first stage. Release ordering must change before another full continuation.
 - UV/DAE architecture: local conserved-state viability and terminal bookkeeping are demonstrated; global hydraulic and terminal-equation closure remain unaccepted.
 
 ### 9.1 Local Thermodynamic Closure Gate
@@ -383,6 +384,27 @@ Before any nonlinear solve:
 DD-072 passes this gate for the direct `281 x 281` C3/C4 system. The result
 authorizes bounded continuation design, not a claim that a steady-state seed
 has been solved or dynamically accepted.
+
+### 9.9 Staged Continuation Gate
+
+Each continuation stage must:
+
+- contain equal active unknown and residual counts;
+- replace only newly activated physical equations with smooth anchors;
+- recover the exact direct physical residual at `lambda=1`;
+- preserve valid composition, positive-variable, property, and conservation
+  domains without clipping or projection;
+- retain full numerical rank and condition estimate below the declared limit;
+- meet its homotopy residual before accepting a point;
+- stop at the declared minimum step and retry limit.
+
+A full-rank stage can still fail because its fixed unreleased state does not
+admit the requested physical endpoint. DD-073 demonstrates this distinction.
+The five-stage implementation remains full rank and conservative, but Stage 1
+cannot reconcile local DWSIM phase states exactly while ChemSep-derived
+component inventory and internal energy remain fixed. The gate therefore
+requires release-order redesign instead of tolerance relaxation or further
+anchor tuning.
 
 ## Where Gates Are Used In The Workflow
 

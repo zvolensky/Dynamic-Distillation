@@ -459,6 +459,26 @@ volume equality, clipping, projection, phase relaxation, or legacy governing
 equation is used. Passing Gate B authorizes only the five-volume,
 prescribed-pressure Gate C model.
 
+### Gate C: Five-Volume Prescribed-Pressure Francis Column
+
+Gate C asks whether the individually validated volume closures can be
+assembled into one conservative column with a liquid reflux drum, three
+interior hydraulic trays, a combined reboiler/sump, an inventory-free total
+condenser, prescribed pressure, and prescribed section vapor rates.
+
+DD-081 is the pre-solve portion of this gate. It reconstructs `NL/x` directly
+from conserved inventories, evaluates all phase properties live with DWSIM
+PR, checks exact inter-volume telescoping, and audits the scaled Jacobian at
+two finite-difference steps for five declared states. The resulting direct
+system is `38 x 38`; DD-077's `53 x 53` count retained 15 `NL/x`
+reconstruction coordinates and identity rows that DD-081 eliminates exactly.
+
+DD-081 passes with rank `38/38` in every numerical audit, worst condition
+`1.19e6`, component telescoping below `4.0e-16`, and no zero row, zero column,
+unregistered coupling, clipping, projection, fallback, or geometry
+adjustment. The canonical residual is `0.511`, so the result does not claim a
+steady solution. It authorizes one bounded DD-082 steady solve only.
+
 ## Where Gates Are Used In The Workflow
 
 ### During Initializer Development

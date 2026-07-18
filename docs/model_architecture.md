@@ -66,6 +66,18 @@ with worst normalized method disagreement `3.75e-9`, component conservation
 one five-volume prescribed-pressure Francis column. See
 `docs/dd_080_core_v2_gate_b_one_volume_20260718.md`.
 
+2026-07-18 Gate C pre-solve result: DD-081 assembles the five-volume live
+DWSIM PR residual without taking a nonlinear step. Direct `NL/x`
+reconstruction eliminates 15 identity coordinates from DD-077's structural
+ledger, producing a `38 x 38` numerical system because the liquid-only reflux
+drum has no equilibrium-vapor outlet. The canonical state and four predefined
+perturbations are structurally and numerically rank `38/38` at both Jacobian
+steps, with worst condition `1.19e6`, machine-precision component/energy
+telescoping, and no unregistered coupling or safeguard. The canonical scaled
+residual is still `0.511`, so no steady root has been established. One bounded
+DD-082 solve is authorized. See
+`docs/dd_081_core_v2_gate_c_five_volume_20260718.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the
@@ -406,14 +418,12 @@ solve is retired by DD-075. The selected future architecture is the isolated
 equilibrium-DAE v2 contract in
 `docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
 
-DD-077 completed the new-namespace control-volume/equation registry,
-structural audit, and ownership/conservation checks. DD-078 completed the
-property-free source-equation residual comparison. DD-079 completes Gate A
-with independent dynamic-response, conservation, physical-domain, exact-event,
-and integrator-refinement checks. DD-080 completes Gate B with a full-rank,
-guess-independent one-volume live DWSIM energy/fugacity closure, physical
-geometry, and conservative BDF/Radau local dynamics. The next increment is
-limited to Gate C: one five-volume prescribed-pressure model with
-Francis-only tray liquid-flow ownership and prescribed section vapor rates.
-It does not authorize energy-determined vapor traffic, pressure dynamics,
-vapor holdup, controllers, or production integration.
+DD-077 completed the new-namespace control-volume/equation registry and
+ownership checks. DD-078 completed the property-free source-equation residual
+comparison. DD-079 completed Gate A dynamics. DD-080 completed one-volume
+Gate B. DD-081 now passes the live five-volume residual, conservation,
+Francis, sparsity, and Jacobian gate without a nonlinear solve. DD-082 is
+limited to one bounded five-volume steady solve under the frozen equations,
+scales, tolerances, and starts. It does not authorize energy-determined vapor
+traffic, pressure dynamics, vapor holdup, controllers, or production
+integration.

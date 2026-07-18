@@ -272,8 +272,19 @@ state and four bounded perturbations converge from three guesses with full
 `3/3` rank and condition below `3`. Live-density geometry is physical. Four
 short BDF/Radau dynamics pass with worst normalized method disagreement
 `3.75e-9`, component conservation `4.60e-16`, and energy conservation
-`2.01e-16`. Gate C is authorized but not yet implemented. See
+`2.01e-16`. Gate C pre-solve assembly is authorized. See
 `docs/dd_080_core_v2_gate_b_one_volume_20260718.md`.
+
+DD-081 completes the Gate C pre-solve audit. Exact direct reconstruction
+reduces the DD-077 `53 x 53` ownership ledger to a `38 x 38` live numerical
+system by eliminating 15 `NL/x` identity coordinates and rows. The liquid-only
+reflux drum has no equilibrium-vapor coordinates. The canonical state and
+four fixed perturbations are rank `38/38` at both Jacobian steps, with worst
+condition `1.19e6`, component telescoping below `4.0e-16`, energy telescoping
+at reported zero, and no clipping, fallback, geometry adjustment, or
+unregistered coupling. The canonical residual remains `0.511`; this is
+pre-solve readiness, not a steady-state result. One bounded DD-082 solve is
+authorized. See `docs/dd_081_core_v2_gate_c_five_volume_20260718.md`.
 
 ## Acceptance language
 
@@ -297,7 +308,11 @@ Use these descriptions consistently:
 - **V2 Gate B one-volume closure**: DD-080 passes canonical live DWSIM
   energy/fugacity reconstruction, predefined perturbations, root consistency,
   numerical rank, geometry, local dynamics, and energy/component
-  conservation. Five-volume Gate C is authorized but remains unproven.
+  conservation.
+- **V2 Gate C pre-solve audit**: DD-081 passes live five-volume residual
+  assembly, direct-reconstruction mapping, exact conservation, Francis
+  ownership, structural/numerical rank, and sparsity checks. A physical
+  five-volume root remains unproven until DD-082.
 
 ## Supporting documents
 
@@ -311,6 +326,8 @@ Use these descriptions consistently:
 - `docs/dd_077_core_v2_structural_registry_20260718.md`
 - `docs/dd_078_core_v2_source_equation_gate_20260718.md`
 - `docs/dd_079_core_v2_gate_a_dynamics_20260718.md`
+- `docs/dd_080_core_v2_gate_b_one_volume_20260718.md`
+- `docs/dd_081_core_v2_gate_c_five_volume_20260718.md`
 - `docs/gates_explained.md`
 - `docs/issue_log.md`
 - `docs/model_architecture.md`

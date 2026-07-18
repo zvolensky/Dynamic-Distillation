@@ -121,6 +121,18 @@ five-volume energy-owned steady architecture is retired. No DD-086 tuning,
 dynamic DAE contract, or integration is authorized. See
 `docs/dd_085_energy_owned_vapor_steady_root_20260718.md`.
 
+2026-07-18 condenser-boundary successor: DD-086 confirms the DD-085 drum
+state is stable vapor, not liquid. At `166.131 F`, `218.44 psia`, and the
+reported drum composition, live DWSIM PR gives Rachford-Rice vapor fraction
+essentially `1.0`, even though the phase-specific liquid enthalpy closes the
+fixed-duty energy target to `4.73e-11 BTU/lbmol`. The successor does not
+retune that duty. It promotes `Q_C` to an unknown and adds an incipient-vapor
+composition plus full bubble-fugacity equations, yielding a saturated-liquid
+total-condenser registry of `40 x 40`, structural rank `40`, and nullity zero.
+One frozen live numerical audit may be designed next; no root solve or
+integration is authorized. See
+`docs/dd_086_condenser_phase_stability_architecture_20260718.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

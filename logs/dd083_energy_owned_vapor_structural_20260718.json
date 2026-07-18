@@ -1,0 +1,53 @@
+{
+  "schema_id": "dd083-core-v2-energy-owned-vapor-registry-v1",
+  "classification": "dd083_structural_gate_passed",
+  "authorization": "The structural ledger is admissible for an independent live-property numerical audit. No nonlinear solve or dynamic integration is authorized by DD-083.",
+  "component_names": [
+    "Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "vapor_links": [
+    {
+      "source": "combined_reboiler_sump",
+      "destination": "stripping_tray",
+      "unknown": "V[combined_reboiler_sump->stripping_tray]"
+    },
+    {
+      "source": "stripping_tray",
+      "destination": "feed_tray",
+      "unknown": "V[stripping_tray->feed_tray]"
+    },
+    {
+      "source": "feed_tray",
+      "destination": "rectifying_tray",
+      "unknown": "V[feed_tray->rectifying_tray]"
+    },
+    {
+      "source": "rectifying_tray",
+      "destination": "reflux_drum",
+      "unknown": "V[rectifying_tray->reflux_drum]"
+    }
+  ],
+  "pressure_mode": "prescribed",
+  "liquid_flow_mode": "francis-only",
+  "vapor_flow_mode": "energy-owned-simultaneous-mesh",
+  "live_property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "dynamic_integration_attempted": false,
+  "audit": {
+    "unknown_count": 37,
+    "residual_count": 37,
+    "structural_rank": 37,
+    "structural_nullity": 0,
+    "unmatched_unknowns": [],
+    "unmatched_residuals": [],
+    "unregistered_dependencies": [],
+    "imported_profile_dependencies": [],
+    "full_fugacity_row_count": 12,
+    "vapor_unknown_count": 4,
+    "component_conservation_passed": true,
+    "energy_conservation_passed": true,
+    "pass_gate": true
+  }
+}

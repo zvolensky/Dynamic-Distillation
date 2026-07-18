@@ -89,6 +89,17 @@ prescribed-pressure, prescribed-vapor five-volume operating specification is
 retired. No wider-bound or alternate-solver DD-083 is authorized. See
 `docs/dd_082_core_v2_gate_c_steady_solve_20260718.md`.
 
+2026-07-18 post-Gate-C structural decision: DD-083 does not retune the failed
+prescribed-vapor campaign. It replaces the two prescribed section rates with
+four independent vapor-link unknowns and closes the steady MESH ledger with
+all component fugacity equalities at the four equilibrium outlets. For three
+components the resulting system is `37 x 37`, structurally rank `37`, with
+exact symbolic component/energy telescoping and no profile, cap, relaxation,
+controller, or previous-step flow owner. This is a structural result only.
+One frozen live-property numerical audit may be designed next; no nonlinear
+solve or dynamic integration is authorized. See
+`docs/dd_083_energy_owned_vapor_flow_architecture_20260718.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

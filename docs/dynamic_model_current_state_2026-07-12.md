@@ -72,6 +72,15 @@ projection or add hydraulics to the DD-070 candidate. See
 `docs/dd_069_terminal_energy_volume_basis_audit_20260717.md`, and
 `docs/dd_070_canonical_checkpoint_repair_20260717.md`.
 
+DD-071 has now registered that direct system structurally. Treating the
+partial reboiler and sump as separate conserved nodes leaves one unowned
+reboiler-to-sump liquid flow (`291` unknowns versus `290` residuals). The
+DD-070-compatible combined bottom control volume removes that internal
+transfer without inventing an equation and produces a square, structurally
+full-rank `281 x 281` registry. Numerical residual, telescoping, and Jacobian
+evaluation are the next bounded work; a nonlinear solve remains unauthorized.
+See `docs/dd_071_direct_steady_state_registry_20260718.md`.
+
 ## Executive assessment
 
 The repository now contains a credible, numerically stable, controlled C3/C4 operating checkpoint and a strong supporting platform for thermo integration, controls, diagnostics, continuation, reporting, and model investigation.

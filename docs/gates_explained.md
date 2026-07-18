@@ -257,6 +257,7 @@ Current status:
 - DD-068: normalized L2 component-and-energy redistribution finds one local basin from two independent starts, but three of five starts fail, energy movement is `1.356` times DD-067, maximum pressure movement remains `79.159 psi`, and terminal assemblies absorb `80.3%` of absolute energy movement; the robustness and movement gates therefore stop the workflow before hydraulics.
 - DD-069: `U=H-PV`, phase aggregation, mapped-U provenance, and empty-placeholder invariance pass, but sump fixed-volume reconstruction misses by `51.47%`, representative interior controls miss volume by `17%` to `38%`, stored-H mismatch reaches `233%`, and normalized energy-movement cost varies by a factor of `4134.77`; correct these bases before repeating redistribution.
 - DD-070: canonical live-property energy, neutral whole-column scaling, and a liquid-only sump reduce the best energy movement to `159,739 BTU` and maximum pressure correction to `23.335 psi`, but only one of five starts converges and the checkpoint enthalpy mismatch is state-dependent; the bounded retry fails and checkpoint repair is retired.
+- DD-071 registry: separate reboiler and sump states produce `291` unknowns and `290` residuals because their connecting liquid outlet has no owner. A combined conserved bottom control volume produces a square, structurally full-rank `281 x 281` registry with no empty rows, unused columns, or missing owners. This passes the structural gate only; numerical residual and Jacobian gates remain pending.
 - UV/DAE architecture: local conserved-state viability and terminal bookkeeping are demonstrated; global hydraulic and terminal-equation closure remain unaccepted.
 
 ### 9.1 Local Thermodynamic Closure Gate
@@ -347,6 +348,23 @@ DD-070 demonstrates this gate. Corrected mapping and neutral scaling improved
 the magnitude of the candidate, but did not produce a reproducible solve.
 Checkpoint repair is therefore retired and the workflow advances to a direct
 steady-state conserved formulation.
+
+### 9.7 Registry And Structural-Rank Gate
+
+Before numerical residual evaluation or solver tuning:
+
+- register every unknown and residual deterministically;
+- document deliberate eliminations;
+- require equal unknown and residual counts;
+- require one closure owner for every unknown;
+- reject structurally empty rows and unused columns;
+- require full structural rank.
+
+DD-071 demonstrates both outcomes. Separate reboiler and sump states fail
+because their connecting liquid flow lacks an equation. Combining their
+explicit phase inventories inside one conserved bottom control volume removes
+that internal transfer and passes the structural gate without adding a tuning
+relation.
 
 ## Where Gates Are Used In The Workflow
 

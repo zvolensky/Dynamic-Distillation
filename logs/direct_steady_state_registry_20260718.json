@@ -1,0 +1,109 @@
+{
+  "classification": "dd071_registry_structure_passed_combined_bottom",
+  "decision_code": "authorize_numeric_residual_evaluator",
+  "decision": "The combined bottom control-volume registry is square and structurally full rank. Implement numerical residual evaluation next; a nonlinear solve remains unauthorized.",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx",
+  "component_names": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "active_stage_ids": [
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19"
+  ],
+  "topology": {
+    "total_condenser_placeholder": "eliminated",
+    "reflux_drum": "separate_two_phase_conserved_node",
+    "active_trays": "generic_two_phase_conserved_nodes",
+    "partial_reboiler": "separate_two_phase_conserved_node",
+    "bottoms_sump": "separate_liquid_only_conserved_node"
+  },
+  "selected_bottom_topology": "combined_reboiler_vapor_and_sump_liquid_control_volume",
+  "operating_pairs": {
+    "drum_level": "D",
+    "sump_level": "B",
+    "top_pressure": "Q_C",
+    "bottoms_propane": "Q_R"
+  },
+  "deliberate_eliminations": [
+    "empty total-condenser placeholder",
+    "last liquid and vapor mole fractions reconstructed as 1-sum(first 2)",
+    "controller dynamic states replaced by four steady operating specifications",
+    "partial-reboiler vapor and liquid-only sump combined into one conserved bottom control volume",
+    "internal reboiler-to-sump liquid transfer eliminated because it crosses no boundary of the combined control volume"
+  ],
+  "proposed_separate_topology_audit": {
+    "unknown_count": 291,
+    "residual_count": 290,
+    "equation_count_difference": 1,
+    "square": false,
+    "structural_rank": 290,
+    "structural_nullity": 1,
+    "missing_closure_owners": [
+      "L_out[partial_reboiler_to_bottoms_sump]"
+    ],
+    "pass_gate": false
+  },
+  "selected_topology_audit": {
+    "unknown_count": 281,
+    "residual_count": 281,
+    "equation_count_difference": 0,
+    "square": true,
+    "structural_rank": 281,
+    "structural_nullity": 0,
+    "structurally_empty_rows": [],
+    "structurally_empty_columns": [],
+    "unmatched_unknowns": [],
+    "unmatched_residuals": [],
+    "missing_closure_owners": [],
+    "duplicate_unknown_names": [],
+    "duplicate_residual_names": [],
+    "unknown_counts_by_block": {
+      "conserved_component": 60,
+      "conserved_energy": 20,
+      "local_thermo": 40,
+      "phase_amount": 40,
+      "liquid_composition": 40,
+      "vapor_composition": 40,
+      "liquid_flow": 18,
+      "vapor_flow": 19,
+      "manipulated_variable": 4
+    },
+    "residual_counts_by_block": {
+      "local_component_closure": 60,
+      "local_energy_closure": 20,
+      "local_volume_closure": 20,
+      "local_equilibrium": 60,
+      "steady_component_balance": 60,
+      "steady_energy_balance": 20,
+      "liquid_hydraulics": 18,
+      "vapor_pressure_drop": 19,
+      "operating_specification": 4
+    },
+    "pass_gate": true
+  },
+  "numeric_evaluations": {
+    "status": "not_run_structural_registry_slice_only",
+    "chemsep_guess": null,
+    "checkpoint_guess": null,
+    "perturbed_guess": null
+  },
+  "nonlinear_solve_attempted": false
+}

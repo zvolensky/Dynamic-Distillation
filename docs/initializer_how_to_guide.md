@@ -62,6 +62,14 @@ state-dependent. Checkpoint repair is retired. The next initializer must solve
 the conserved steady state directly from operating specifications; the
 checkpoint and imported profiles are initial guesses, not conserved targets.
 
+DD-071 begins the direct formulation. A separate partial-reboiler and sump
+model is one equation short because the connecting liquid flow has no physical
+owner. The selected direct registry therefore uses one conserved bottom
+control volume containing reboiler vapor and sump liquid. That registry is
+square and structurally full rank. Do not launch a nonlinear solve until live
+residual evaluation, global telescoping, scaling, and numerical Jacobian rank
+also pass.
+
 ## Recommended Workflow
 
 1. Load the seed.

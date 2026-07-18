@@ -415,6 +415,29 @@ recover rank only after liquid hydraulics are added, but creating a new
 hydraulics-first release sequence would violate the predefined hard stop.
 Manual staged continuation is retired.
 
+### 9.10 V2 Source-Equation Dynamic Gate
+
+Before v2 may add energy or live property closure, its property-free source
+assembly must reproduce an independent implementation dynamically, not only
+pointwise.
+
+The gate requires:
+
+- nominal published-profile drift, without snapping to the source profile;
+- an exactly scheduled `+1%` feed step;
+- one deterministic bounded state perturbation;
+- normalized full-trajectory parity `<1e-9`;
+- a second-integrator or tighter-tolerance comparison `<1e-7`;
+- differential and solver-integrated total/component conservation `<1e-10`;
+- positive holdup and valid compositions without clipping or projection;
+- product component withdrawal from current terminal compositions.
+
+DD-079 passes this gate for three `500 min` trajectories. BDF/Radau
+agreement is at most `1.60e-9`, and solver-integrated conservation is below
+`2.77e-12`. Saved-grid trapezoidal quadrature is reported separately from the
+differential and solver closure. Passing DD-079 completes Gate A and
+authorizes only the one-volume Gate B energy/property study.
+
 ## Where Gates Are Used In The Workflow
 
 ### During Initializer Development

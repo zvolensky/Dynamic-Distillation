@@ -253,6 +253,17 @@ old 20-stage model, so neither that profile nor its historical trajectories
 are independent acceptance references for v2. See
 `docs/dd_078_core_v2_source_equation_gate_20260718.md`.
 
+DD-079 completes Gate A. Nominal profile drift, the immediate `+1%` feed
+step, and the deterministic bounded state perturbation all complete `500 min`
+with v2/reference normalized trajectory error at or below `3.85e-11`.
+BDF/Radau agreement is at or below `1.60e-9`; total and light-component
+solver-integrated conservation close below `2.77e-12`; every composition and
+holdup remains physical; and no safeguard is activated. Product component
+withdrawal follows the live terminal compositions. Gate B is now authorized
+for one mini8 inventory volume with prescribed pressure and live DWSIM
+property/energy closure. See
+`docs/dd_079_core_v2_gate_a_dynamics_20260718.md`.
+
 ## Acceptance language
 
 Use these descriptions consistently:
@@ -268,7 +279,10 @@ Use these descriptions consistently:
 - **V2 structural gate**: DD-077 passes topology, ownership, equation-count,
   structural-rank, and symbolic-conservation checks only.
 - **V2 source-equation residual gate**: DD-078 passes independent residual
-  parity and material conservation; Gate A dynamics remain pending.
+  parity and material conservation.
+- **V2 Gate A dynamics**: DD-079 passes independent trajectory parity,
+  integrated conservation, exact event scheduling, physical-domain, and
+  integrator-refinement checks. One-volume Gate B is authorized.
 
 ## Supporting documents
 
@@ -281,6 +295,7 @@ Use these descriptions consistently:
 - `docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`
 - `docs/dd_077_core_v2_structural_registry_20260718.md`
 - `docs/dd_078_core_v2_source_equation_gate_20260718.md`
+- `docs/dd_079_core_v2_gate_a_dynamics_20260718.md`
 - `docs/gates_explained.md`
 - `docs/issue_log.md`
 - `docs/model_architecture.md`

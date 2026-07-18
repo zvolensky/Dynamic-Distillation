@@ -47,6 +47,15 @@ as compact data and audit scaffolding, not as independent solution truth. The
 next authorized increment is the bounded Gate A dynamic-integration
 comparison. See `docs/dd_078_core_v2_source_equation_gate_20260718.md`.
 
+2026-07-18 Gate A completion: DD-079 integrates nominal drift, the accepted
+`+1%` feed step, and a bounded perturbed state for `500 min`. V2/reference
+trajectory error is at most `3.85e-11` normalized, BDF/Radau agreement is at
+most `1.60e-9`, and solver-integrated material closure is below `2.77e-12`.
+All states remain physical without clipping or safeguards. Gate B is now
+authorized on one representative mini8 inventory volume with prescribed
+pressure and live DWSIM properties. See
+`docs/dd_079_core_v2_gate_a_dynamics_20260718.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the
@@ -389,7 +398,10 @@ equilibrium-DAE v2 contract in
 
 DD-077 completed the new-namespace control-volume/equation registry,
 structural audit, and ownership/conservation checks. DD-078 completed the
-property-free source-equation residual comparison. The next increment is
-limited to reproducing the accepted Skogestad feed-disturbance integration
-with the v2 source assembly. It does not include live DWSIM, a nonlinear solve,
-pressure dynamics, vapor holdup, controllers, or production integration.
+property-free source-equation residual comparison. DD-079 completes Gate A
+with independent dynamic-response, conservation, physical-domain, exact-event,
+and integrator-refinement checks. The next increment is limited to Gate B:
+one representative mini8 inventory volume with prescribed pressure, conserved
+component/internal-energy states, and live DWSIM property closure. It does not
+authorize the five-volume solve, pressure dynamics, vapor holdup, controllers,
+or production integration.

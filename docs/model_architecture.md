@@ -27,9 +27,17 @@ review confirms that the v1 runtime is best described as a sequential hybrid,
 not a completed DAE. V2 will be a separately derived equilibrium-stage DAE
 with one owner per quantity. Its first layer deliberately uses prescribed
 pressure, negligible vapor holdup, conserved component/internal-energy
-states, algebraic equilibrium, Francis-only liquid flow, and one simplified
-vapor-traffic law. See
+states, algebraic equilibrium, Francis-only tray liquid flow, and prescribed
+rectifying/stripping vapor rates for the first feasibility layer. See
 `docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
+
+2026-07-18 first implementation result: DD-077's initial structural registry
+stopped at rank `49/51` because fixed product flows left the drum and bottom
+liquid amounts unowned. Specifying those terminal amounts and solving `D/B`
+produced a `53 x 53`, full-rank registry with exact symbolic conservation and
+clean pressure, vapor-flow, and Francis ownership. The next authorized work is
+the property-free Gate A source-equation residual comparison. See
+`docs/dd_077_core_v2_structural_registry_20260718.md`.
 
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
@@ -371,8 +379,8 @@ solve is retired by DD-075. The selected future architecture is the isolated
 equilibrium-DAE v2 contract in
 `docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
 
-The first authorized implementation increment is limited to a new-namespace
-control-volume/equation registry, structural audit, and reproduction of the
-accepted source-equation validation. It does not include live DWSIM, Francis
-hydraulics, pressure dynamics, vapor holdup, controllers, or production
-integration.
+DD-077 completed the new-namespace control-volume/equation registry,
+structural audit, and ownership/conservation checks. The next increment is
+limited to a property-free reproduction of the accepted source-equation
+residual. It does not include live DWSIM, a nonlinear solve, pressure dynamics,
+vapor holdup, controllers, or production integration.

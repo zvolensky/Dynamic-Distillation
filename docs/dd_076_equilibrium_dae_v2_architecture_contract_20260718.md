@@ -17,8 +17,8 @@ meaning:
 The selected v2 modeling family is an **equilibrium-stage DAE**. A rate-based
 nonequilibrium model is explicitly out of scope.
 
-No v2 model code is authorized until this control-volume, ownership, equation,
-degree-of-freedom, and gate contract has been reviewed.
+This contract has now been reviewed. DD-077 is the first authorized structural
+implementation and must remain within the gates below.
 
 ## Relationship To Existing Work
 
@@ -46,7 +46,8 @@ The first v2 physical layer deliberately uses:
 - total tray internal energy as a differential state;
 - algebraic equilibrium vapor composition;
 - Francis hydraulics as the sole owner of internal liquid flow;
-- one explicit simplified vapor-traffic law;
+- prescribed rectifying and stripping vapor rates for the first feasibility
+  layer;
 - algebraic total-condenser transfer;
 - explicit reflux-drum liquid inventory;
 - one combined partial-reboiler/sump control volume;
@@ -124,7 +125,7 @@ No unmodeled reboiler-to-sump internal stream crosses the combined boundary.
 | Vapor composition | phase equilibrium | algebraic | separate vapor state |
 | Pressure | prescribed ordered profile | parameter | EOS inversion, hydraulics |
 | Liquid flow | Francis weir law | algebraic | imported flow profile/blend |
-| Vapor flow | one declared simplified traffic law | algebraic/parameter | energy solve plus nominal cap |
+| Vapor flow | prescribed section rates in the first feasibility layer | parameter | energy solve plus nominal cap |
 | Reflux/distillate composition | reflux-drum liquid composition | algebraic | fixed component draw |
 | Bottoms composition | bottom liquid composition | algebraic | fixed component draw |
 | Condenser transfer | total-condenser balance | algebraic | dry tray inventory |
@@ -167,8 +168,8 @@ For internal trays:
 L[j]           Francis liquid outflow
 ```
 
-The first layer treats `P[j]` as prescribed data and vapor traffic as the
-output of one declared simplified traffic law.
+The first layer treats `P[j]`, `V_rectifying`, and `V_stripping` as prescribed
+data.
 
 ## Governing Equations
 
@@ -243,17 +244,19 @@ L[i] = C_F * C_hyd[i] * l_weir[i]
 An imported liquid profile may initialize `NL` or calibrate documented
 geometry parameters. It is never blended into `L[i]` at runtime.
 
-### Simplified vapor traffic
+### Prescribed section vapor traffic
 
-The first layer uses one declared constant-molar traffic law:
+The first reduced feasibility layer uses:
 
 ```text
-V[i] = V_boilup + sum(vapor feed entering on or below i)
+V[i] = V_rectifying  for vapor links above the feed
+V[i] = V_stripping   for vapor links below the feed
 ```
 
-This is an explicit modeling approximation. Vapor flow is not simultaneously
-computed from an energy closure, pressure conductance, previous-step value,
-and profile cap.
+These are declared operating parameters, not imported profile values. Vapor
+flow is not simultaneously computed from an energy closure, pressure
+conductance, previous-step value, and profile cap. Replacing the prescribed
+rates with energy-determined boilup and condensation requires its own gate.
 
 ### Total condenser and reflux drum
 
@@ -289,8 +292,12 @@ dU_B/dt =
 ## Operating Degrees Of Freedom
 
 The dynamic open-loop benchmark may hold a known steady operating point's
-`R`, `D`, `B`, `V_boilup`, `Q_C`, and `Q_R` fixed for residual and disturbance
-verification.
+`R`, `D`, `B`, section vapor rates, `Q_C`, and `Q_R` fixed for residual and
+disturbance verification.
+
+For the first reduced steady solve, terminal liquid amounts are specified and
+`D` and `B` are algebraic unknowns that close the terminal inventory balances.
+This removes the two free terminal inventory modes found by DD-077.
 
 A steady-state solve must not fix all six blindly. Before solving, it must
 publish:
@@ -389,8 +396,8 @@ reference:
 - combined reboiler/sump.
 
 Use the equations in this document, prescribed pressure, negligible vapor
-holdup, simplified vapor traffic, and Francis hydraulics as the sole liquid
-flow owner. Geometry or hydraulic coefficients must be documented parameters
+holdup, prescribed section vapor rates, and Francis hydraulics as the sole
+tray liquid-flow owner. Geometry or hydraulic coefficients must be documented parameters
 fitted independently of the acceptance run. Require:
 
 - physical residual `<1e-7`;
@@ -402,19 +409,28 @@ fitted independently of the acceptance run. Require:
 
 One failed case stops the architecture. No tray-count ladder follows.
 
-### Gate D: production tray count
+### Gate D: energy-determined vapor traffic
 
-Scale the unchanged Gate C equations directly to the production tray count.
+Replace the prescribed section vapor rates with one simultaneous terminal
+energy formulation in which reboiler duty determines boilup and condenser duty
+determines condensation. Publish the new operating degrees of freedom,
+ownership table, equation count, and rank before a live solve.
+
+Failure stops v2. Do not retain prescribed rates as caps or secondary owners.
+
+### Gate E: production tray count
+
+Scale the Gate D equations directly to the production tray count.
 No new physical owner or case-specific tray equation is permitted.
 
-### Gate E: pressure layer
+### Gate F: pressure layer
 
-Only after Gate D passes may prescribed pressure be replaced by one
+Only after Gate E passes may prescribed pressure be replaced by one
 simultaneous algebraic pressure-drop network.
 
-### Gate F: vapor-inventory layer
+### Gate G: vapor-inventory layer
 
-Explicit vapor holdup may be considered only after Gate E passes. Adding it
+Explicit vapor holdup may be considered only after Gate F passes. Adding it
 requires a new ownership table, index/rank audit, and pressure-volume-energy
 derivation. It is not an optional switch on the first-layer equations.
 
@@ -436,11 +452,12 @@ solver settings. Revisit equations, ownership, or the selected modeling level.
 
 ## First Authorized Implementation
 
-After review of this contract, the first authorized code is only:
+DD-077 completed the first authorized structural code:
 
 1. a v2 control-volume and equation registry in a new namespace;
 2. a structural-rank audit;
-3. a source-equation Gate A residual comparison.
+3. ownership and symbolic conservation audits.
 
-No DWSIM, Francis, pressure, vapor-holdup, controller, initializer, or dynamic
-production integration code belongs in that first increment.
+The next authorized code is a property-free source-equation Gate A residual
+comparison. No live DWSIM, nonlinear solve, controller, initializer, or dynamic
+production integration belongs in that increment.

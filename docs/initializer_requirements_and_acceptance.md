@@ -248,9 +248,14 @@ control-volume diagram, one-owner table, complete differential/algebraic
 classification, equations, degrees of freedom, exclusions, and phased gates
 before implementation. The first layer uses prescribed pressure, negligible
 vapor holdup, conserved component/internal-energy states, algebraic
-equilibrium, Francis-only liquid flow, and one simplified vapor-traffic law.
+equilibrium, Francis-only tray liquid flow, and prescribed section vapor
+rates.
 No v2 initializer is authorized until the natural model first proves a known
 steady state and clean short dynamics.
+
+DD-077 passes only the new core's structural registry gate. It does not
+provide a numerical residual, steady root, DAE-consistent state, or dynamic
+seed. Initializer implementation remains unauthorized.
 
 ## Current Implementation Direction
 

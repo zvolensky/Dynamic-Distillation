@@ -1,0 +1,100 @@
+{
+  "schema_id": "dd077-core-v2-reduced-structural-registry-v1",
+  "classification": "dd077_structural_gate_passed",
+  "decision": "authorize_source_equation_residual_evaluator",
+  "authorization": "Implement the property-free Gate A source-equation residual comparison next. Live DWSIM, nonlinear solves, and dynamic integration remain unauthorized.",
+  "component_names": [
+    "Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "component_count": 3,
+  "inventory_volume_count": 5,
+  "control_volume_roles": [
+    "reflux_drum",
+    "rectifying_tray",
+    "feed_tray",
+    "stripping_tray",
+    "combined_reboiler_sump"
+  ],
+  "vapor_flow_mode": "prescribed-section-rates",
+  "pressure_parameters": [
+    "P[reflux_drum]",
+    "P[rectifying_tray]",
+    "P[feed_tray]",
+    "P[stripping_tray]",
+    "P[combined_reboiler_sump]"
+  ],
+  "vapor_flow_parameters": [
+    "V_rectifying",
+    "V_stripping"
+  ],
+  "terminal_product_unknowns": [
+    "D",
+    "B"
+  ],
+  "terminal_level_parameters": [
+    "NL_target[reflux_drum]",
+    "NL_target[combined_reboiler_sump]"
+  ],
+  "nonlinear_solve_attempted": false,
+  "dynamic_integration_attempted": false,
+  "live_property_evaluation_attempted": false,
+  "structure": {
+    "unknown_count": 53,
+    "residual_count": 53,
+    "square": true,
+    "structural_rank": 53,
+    "structural_nullity": 0,
+    "unmatched_unknowns": [],
+    "unmatched_residuals": [],
+    "empty_unknown_columns": [],
+    "empty_residual_rows": [],
+    "duplicate_unknown_names": [],
+    "duplicate_residual_names": [],
+    "missing_closure_residuals": [],
+    "unknown_counts_by_block": {
+      "component_inventory": 15,
+      "internal_energy": 5,
+      "liquid_amount": 5,
+      "liquid_composition": 10,
+      "temperature": 5,
+      "vapor_composition": 8,
+      "liquid_flow": 3,
+      "terminal_product_flow": 2
+    },
+    "residual_counts_by_block": {
+      "component_reconstruction": 15,
+      "energy_reconstruction": 5,
+      "component_balance": 15,
+      "energy_balance": 5,
+      "terminal_level_specification": 2,
+      "phase_equilibrium": 8,
+      "francis_hydraulics": 3
+    },
+    "pass_gate": true
+  },
+  "ownership": {
+    "prescribed_pressure_is_parameter_only": true,
+    "prescribed_pressure_is_used": true,
+    "prescribed_vapor_is_parameter_only": true,
+    "prescribed_vapor_is_used": true,
+    "francis_tray_liquid_flows": [
+      "L[rectifying_tray]",
+      "L[feed_tray]",
+      "L[stripping_tray]"
+    ],
+    "non_francis_tray_liquid_flows": [],
+    "duplicate_flow_owners": [],
+    "imported_profile_dependencies": [],
+    "unregistered_dependencies": [],
+    "pass_gate": true
+  },
+  "conservation": {
+    "component_internal_telescoping": true,
+    "energy_internal_telescoping": true,
+    "component_failures": [],
+    "energy_failures": [],
+    "pass_gate": true
+  }
+}

@@ -124,12 +124,15 @@ Before claiming rigorous dynamic validation for a case involving real components
 4. Implement the DD-076 equilibrium-DAE v2 gates in order, beginning with
    source-equation assembly and one-volume energy/property closure.
 5. Require one independently reproduced five-volume steady reference with
-   Francis as the sole liquid-flow owner before production tray count.
-6. Add hydraulic pressure only after the prescribed-pressure,
+   prescribed section vapor rates and Francis as the sole tray liquid-flow
+   owner.
+6. Replace prescribed vapor rates with energy-determined boilup and
+   condensation under a separate gate before production tray count.
+7. Add hydraulic pressure only after the prescribed-pressure,
    negligible-vapor-holdup model passes steady and dynamic gates.
-7. Add explicit vapor inventory only as a separately derived final layer with
+8. Add explicit vapor inventory only as a separately derived final layer with
    a new ownership and index audit.
-8. Continue searching for validation sources whose topology, thermo, feed,
+9. Continue searching for validation sources whose topology, thermo, feed,
    pressure, energy, and dynamic outputs are sufficiently specified to avoid
    fitting the model around missing assumptions.
 

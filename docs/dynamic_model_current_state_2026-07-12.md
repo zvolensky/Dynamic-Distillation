@@ -219,17 +219,25 @@ That redesign must remain isolated. The accepted DD-058 implementation and
 defaults remain frozen as the operational development baseline, and the
 validated source-topology model remains the correctness anchor.
 
-DD-076 now defines that redesign before implementation. The selected family is
+DD-076 defines that redesign before implementation. The selected family is
 an equilibrium-stage DAE, not a rate-based model. Its first layer prescribes
 pressure, neglects tray vapor holdup, stores total component inventory and
 internal energy, solves temperature and equilibrium compositions
-algebraically, gives Francis hydraulics sole ownership of liquid flow, and
-uses one declared simplified vapor-traffic law. The contract defines the
+algebraically, gives Francis hydraulics sole ownership of tray liquid flow,
+and uses prescribed section vapor rates. The contract defines the
 total condenser, reflux drum, interior trays, combined reboiler/sump,
 governing equations, operating degrees of freedom, explicit exclusions,
-phased gates, and stop rules. No v2 model code is authorized until that
-contract is reviewed. See
+phased gates, and stop rules. See
 `docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
+
+DD-077 implements the first isolated structural registry. Its initial
+`51 x 51` form exposed two free terminal inventory modes. The corrected steady
+specification fixes drum and bottom liquid amounts and solves `D/B`, yielding a
+`53 x 53` registry with full structural rank, exact symbolic component and
+energy telescoping, prescribed pressure and section vapor rates as parameters,
+and Francis ownership of every tray liquid-flow unknown. No live properties,
+nonlinear solve, or integration were attempted. See
+`docs/dd_077_core_v2_structural_registry_20260718.md`.
 
 ## Acceptance language
 
@@ -241,8 +249,10 @@ Use these descriptions consistently:
   steady-state and manual continuation work is preserved as diagnostic
   evidence but is not authorized for additional solver development.
 - **Selected replacement architecture**: DD-076 equilibrium-DAE v2 has an
-  architecture and equation-count contract but is not yet implemented or
-  validated.
+  architecture and equation-count contract; DD-077 begins its isolated
+  implementation but does not yet establish numerical or dynamic validity.
+- **V2 structural gate**: DD-077 passes topology, ownership, equation-count,
+  structural-rank, and symbolic-conservation checks only.
 
 ## Supporting documents
 
@@ -253,6 +263,7 @@ Use these descriptions consistently:
 - `docs/dd_067_conservative_energy_redistribution_probe_20260717.md`
 - `docs/dd_075_reduced_column_feasibility_20260718.md`
 - `docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`
+- `docs/dd_077_core_v2_structural_registry_20260718.md`
 - `docs/gates_explained.md`
 - `docs/issue_log.md`
 - `docs/model_architecture.md`

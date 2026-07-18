@@ -1,6 +1,6 @@
 # Initializer Requirements and Acceptance Criteria
 
-Updated: 2026-07-17
+Updated: 2026-07-18
 
 Current model-state authority: `docs/dynamic_model_current_state_2026-07-12.md`.
 
@@ -229,6 +229,19 @@ manual staged continuation is retired. The complete `281 x 281` system
 remains full rank; the next effort must use a materially different
 full-system, pseudo-transient, DAE, reduced-model, or feasibility architecture.
 
+DD-075 performs the one authorized reduced-column feasibility study with the
+same direct conserved equations, live DWSIM PR, Francis hydraulics, vapor
+pressure drop, terminal specifications, and no profile forcing. The
+five-volume system is `71 x 71`, structurally full rank, and numerically full
+rank at two seeds and two finite-difference steps. Nevertheless, both fixed
+trust-region attempts stop at a scaled residual floor near `0.035`, and both
+fixed pseudo-transient attempts stop near `0.465`. None reaches `1e-7`; one
+trust-region endpoint loses numerical rank. All remain conservative,
+positive, ordered, safeguard-free, and unsaturated. Per the declared hard
+stop, the present direct conserved formulation is retired as a production
+initializer architecture. Full-system pseudo-transient work, reduced
+tray-count variants, and solver tuning on this formulation are not authorized.
+
 ## Current Implementation Direction
 
 The current recommended direction is:
@@ -244,6 +257,7 @@ The current recommended direction is:
 - retire checkpoint projection when its predefined corrected retry fails and formulate the direct operating-specification steady-state system,
 - require continuation stages to prove endpoint feasibility, not merely full rank, and redesign release ordering when fixed unreleased conserved states block local closure,
 - retire manual staged continuation when the final merged release-order endpoint is structurally singular; do not create another first-stage variation,
+- require one fixed five-volume feasibility study before authorizing full-system pseudo-transient work; retire the present direct conserved formulation when that reduced system fails both fixed trust-region and pseudo-transient methods without a physical root,
 - use relaxation/homotopy only as startup or solve stabilizers, not as proof of a steady initial condition,
 - prefer native checkpoint-style serialization for accepted seeds,
 - treat Excel-only checkpoint-guided exports as diagnostic bridges until they pass reload tests with startup/re-entry conditioning disabled,

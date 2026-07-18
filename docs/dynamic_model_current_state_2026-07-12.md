@@ -114,6 +114,27 @@ pseudo-transient or DAE/nonlinear methods with stronger derivatives, or
 validate a reduced column before returning to the full case. See
 `docs/dd_074_merged_continuation_structural_audit_20260718.md`.
 
+DD-075 then performed the one authorized reduced-column feasibility study
+before any full-system pseudo-transient investment. The deterministic
+five-volume case retained the same direct conserved equations, live DWSIM PR,
+Francis hydraulics, vapor pressure drop, feed/products, and terminal
+specifications. It is square and structurally full rank at `71 x 71`; all
+four initial numerical Jacobians are also rank `71`, with condition estimates
+between `2.45e7` and `2.92e7`. The numerical gate therefore authorized two
+fixed trust-region and two fixed pseudo-transient attempts from the ChemSep
+and smooth perturbed seeds.
+
+None reached the required scaled physical residual below `1e-7`.
+Trust-region stopped near `0.035`, dominated by steady component balances,
+and one endpoint lost numerical rank. Pseudo-transient stopped near `0.465`,
+with liquid hydraulics, component balances, and vapor pressure drop still
+open. All endpoints remained positive, pressure ordered, conservative,
+safeguard-free, and unsaturated. This is not a proof that no mathematical
+root exists, but it is the predefined stop result: the present direct
+conserved formulation is retired as a production initializer architecture,
+and a `281`-variable pseudo-transient program is not authorized. See
+`docs/dd_075_reduced_column_feasibility_20260718.md`.
+
 ## Executive assessment
 
 The repository now contains a credible, numerically stable, controlled C3/C4 operating checkpoint and a strong supporting platform for thermo integration, controls, diagnostics, continuation, reporting, and model investigation.
@@ -180,17 +201,23 @@ Least-squares residual solvers, profile projections, homotopies, and boundary re
 
 DD-058's native checkpoint is the preferred operational restart artifact. It is not a rigorous golden steady-state seed.
 
-## Required next architecture
+## Architecture decision after DD-075
 
-The defensible physics path is an isolated model-core experiment with:
+The DD-060 through DD-075 conserved direct formulation is no longer the
+recommended implementation path. Do not continue it through another reduced
+topology, tray-count ladder, release order, solver sweep, or full-column
+pseudo-transient campaign.
 
-1. conserved tray component totals and total internal energy as differential states;
-2. a coupled UV/volume algebraic solve for temperature, pressure, phase fraction, and equilibrium compositions;
-3. Francis hydraulics determining liquid outflow from the solved liquid inventory and geometry;
-4. vapor traffic and pressure solved in the same closure so pressure and vapor holdup have one owner;
-5. imported tray flows used only as initial guesses and independent validation comparisons.
+A future rigorous model should restart from a simpler equilibrium-stage
+foundation with a known independently reproduced steady solution. Conserved
+energy, terminal volumes, pressure ownership, vapor pressure drop, and Francis
+hydraulics should be introduced in separately solvable increments, each with
+its own structural, numerical, conservation, and dynamic gate before the next
+physical block is added.
 
-This work must remain on an isolated branch or sandbox until it passes single-stage, small-column, and full-column gates. The accepted DD-058 implementation and defaults should remain frozen during that investigation.
+That redesign must remain isolated. The accepted DD-058 implementation and
+defaults remain frozen as the operational development baseline, and the
+validated source-topology model remains the correctness anchor.
 
 ## Acceptance language
 
@@ -198,7 +225,9 @@ Use these descriptions consistently:
 
 - **Accepted operational baseline**: DD-058 is bounded, controlled, restartable, and dynamically quiet under its current recipe.
 - **Not yet physically validated**: tray liquid traffic and pressure/vapor-holdup ownership are not yet rigorous.
-- **Experimental diagnostic**: DD-060 `phase-exponential`, least-squares initializer variants, and UV/DAE prototypes.
+- **Retired initializer architecture**: DD-060 through DD-075 conserved direct
+  steady-state and manual continuation work is preserved as diagnostic
+  evidence but is not authorized for additional solver development.
 
 ## Supporting documents
 

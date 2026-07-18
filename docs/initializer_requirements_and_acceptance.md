@@ -195,7 +195,11 @@ alone can recover an ordered local UV profile under exact whole-column
 conservation. DD-068 minimizes normalized component-and-energy movement and
 finds a repeatable local basin from two starts, but three of five starts fail,
 energy movement is larger than DD-067, and terminal assemblies absorb `80.3%`
-of absolute energy movement. The correct classification remains
+of absolute energy movement. DD-069 shows that the `PV` conversion and phase
+aggregation are correct, but the checkpoint's phase volumes and stored
+enthalpies are inconsistent with the mapped conserved basis and the DD-068
+objective makes equal physical energy movement much cheaper at terminal
+nodes. The correct classification remains
 `local_uv_passed_global_hydraulics_failed`, not an accepted seed and not a
 reason to launch hydraulics or a longer dynamic settling run.
 
@@ -209,6 +213,7 @@ The current recommended direction is:
 - allow conserved tray totals and energies to redistribute only in a formal steady-state solve that preserves whole-column components and energy,
 - minimize and report scaled conserved-state movement from the reference seed instead of treating any conservative feasible point as acceptable,
 - require multi-start convergence and report terminal-versus-interior movement before calling a least-movement basin robust,
+- audit H/U/PV, phase-volume reconstruction, placeholder invariance, and physical movement cost before interpreting a redistribution objective,
 - use relaxation/homotopy only as startup or solve stabilizers, not as proof of a steady initial condition,
 - prefer native checkpoint-style serialization for accepted seeds,
 - treat Excel-only checkpoint-guided exports as diagnostic bridges until they pass reload tests with startup/re-entry conditioning disabled,

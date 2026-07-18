@@ -255,6 +255,7 @@ Current status:
 - DD-066: terminal checkpoint inventories are fully accounted, but independent terminal UV closure implies `P_bottom-P_top=-13.95 psi`; frozen terminal states cannot be coupled unchanged into a physical upward-vapor-flow network.
 - DD-067: energy-only conservative redistribution can produce ordered local UV pressure with exact whole-column conservation, but the pressure-isotonic construction moves `9.32%` of energy inventory on an L1 basis and excludes hydraulics; feasibility therefore passes while initializer acceptance remains blocked.
 - DD-068: normalized L2 component-and-energy redistribution finds one local basin from two independent starts, but three of five starts fail, energy movement is `1.356` times DD-067, maximum pressure movement remains `79.159 psi`, and terminal assemblies absorb `80.3%` of absolute energy movement; the robustness and movement gates therefore stop the workflow before hydraulics.
+- DD-069: `U=H-PV`, phase aggregation, mapped-U provenance, and empty-placeholder invariance pass, but sump fixed-volume reconstruction misses by `51.47%`, representative interior controls miss volume by `17%` to `38%`, stored-H mismatch reaches `233%`, and normalized energy-movement cost varies by a factor of `4134.77`; correct these bases before repeating redistribution.
 - UV/DAE architecture: local conserved-state viability and terminal bookkeeping are demonstrated; global hydraulic and terminal-equation closure remain unaccepted.
 
 ### 9.1 Local Thermodynamic Closure Gate
@@ -316,6 +317,23 @@ Before a redistributed conserved state is passed to the hydraulic network:
 DD-068 demonstrates this stop gate. Local feasibility and a stationary
 objective are not enough when only two of five starts converge and the
 terminal assemblies carry most of the energy correction.
+
+### 9.5 Energy, Volume, And Scaling Basis Gate
+
+Before interpreting a conservative redistribution:
+
+- reconstruct `H`, `PV`, and `U=H-PV` with explicit units and provenance;
+- verify fixed control volume equals reconstructed liquid plus vapor volume;
+- compare checkpoint stored phase enthalpy with live property reconstruction;
+- verify combined and phase-summed internal energy agree;
+- prove an eliminated zero-inventory placeholder changes no conserved total
+  or physical volume;
+- report the normalized objective cost of the same physical energy move at
+  terminal and interior nodes.
+
+DD-069 demonstrates why this gate is needed. The algebraic `PV` conversion is
+correct, but the checkpoint phase states and DD-068 scaling are not neutral
+inputs to a physical least-movement interpretation.
 
 ## Where Gates Are Used In The Workflow
 

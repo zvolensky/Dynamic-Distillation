@@ -47,6 +47,15 @@ hydraulics to this state. Audit terminal energy ownership, fixed volumes,
 vapor spaces, and `U=H-PV` conversion first. The controller degree-of-freedom
 audit already passed in DD-065 and is not an open item.
 
+DD-069 completed that basis audit. The `PV` conversion, phase aggregation,
+mapped-U provenance, and empty placeholder pass. The sump and representative
+interior phase volumes do not reproduce their mapped fixed volumes, stored
+checkpoint enthalpy does not reproduce live DWSIM TP enthalpy, and DD-068's
+node-local energy scaling makes equal terminal movement hundreds to thousands
+of times cheaper than interior movement. Correct those inputs before one
+bounded redistribution repeat. If the corrected repeat still fails, stop
+checkpoint repair and formulate the direct conserved steady-state solve.
+
 ## Recommended Workflow
 
 1. Load the seed.

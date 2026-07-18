@@ -45,16 +45,27 @@ energy movement in the terminal assemblies. Its top terminal was about
 `60 psi` below the first interior tray. This is a reproducible local basin,
 not a robust global least-movement solution.
 
+DD-069 then falsified several possible explanations. The `U=H-PV` conversion,
+phase aggregation, mapped-energy provenance, and eliminated condenser
+placeholder are correct. The checkpoint phase states do not fill the mapped
+control volumes or reproduce live DWSIM enthalpy: the sump volume mismatch is
+`51.47%`, representative interior volume mismatches are `17%` to `38%`, and
+stored-H mismatch reaches `233%`. DD-068 also prices the same `1000 BTU`
+terminal move at only `0.000418` to `0.002956` times the median interior cost.
+Its terminal concentration is therefore partly an objective-scaling artifact.
+
 This sharpens, rather than reverses, the architecture conclusion below:
 conserved-state local thermo is viable, but the current checkpoint mapping
-must not proceed to hydraulics. Audit terminal energy ownership, fixed
-stage/terminal volumes and vapor spaces, and the `U=H-PV` conversion first.
-If those bases are confirmed, replace checkpoint repair with a full
-steady-state conserved-state solve from operating specifications. See
+must not proceed to hydraulics. Neutralize redistribution energy scaling,
+resolve sump vapor-space ownership, and reconcile stored phase enthalpy with
+the live property basis before one bounded repeat. If corrected redistribution
+still fails, replace checkpoint repair with a full steady-state conserved-state
+solve from operating specifications. See
 `docs/dd_065_frozen_checkpoint_uv_hydraulic_closure_20260717.md`,
 `docs/dd_066_terminal_conserved_inventory_mapping_20260717.md`,
-`docs/dd_067_conservative_energy_redistribution_probe_20260717.md`, and
-`docs/dd_068_least_movement_redistribution_20260717.md`.
+`docs/dd_067_conservative_energy_redistribution_probe_20260717.md`,
+`docs/dd_068_least_movement_redistribution_20260717.md`, and
+`docs/dd_069_terminal_energy_volume_basis_audit_20260717.md`.
 
 ## Executive assessment
 

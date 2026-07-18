@@ -286,6 +286,17 @@ unregistered coupling. The canonical residual remains `0.511`; this is
 pre-solve readiness, not a steady-state result. One bounded DD-082 solve is
 authorized. See `docs/dd_081_core_v2_gate_c_five_volume_20260718.md`.
 
+DD-082 executes the frozen three-start Gate C campaign. Canonical,
+deterministic-perturbation, and independent smooth-profile starts converge to
+the same endpoint within `2.12e-9`, retain rank `38/38`, and improve condition
+to about `1.92e4`. However, each stops at scaled residual `9.16e-3`, with
+`N[reflux_drum,n-Pentane]` active at its upper bound. The dominant unresolved
+balances are reflux-drum n-pentane (`76.33 lbmol/h`) and rectifying n-pentane
+(`30.43 lbmol/h`). Gate C fails under its predeclared hard stop. No DD-083
+solver, wider-bound, geometry, continuation, or alternate operating-point
+variant is authorized. See
+`docs/dd_082_core_v2_gate_c_steady_solve_20260718.md`.
+
 ## Acceptance language
 
 Use these descriptions consistently:
@@ -311,8 +322,11 @@ Use these descriptions consistently:
   conservation.
 - **V2 Gate C pre-solve audit**: DD-081 passes live five-volume residual
   assembly, direct-reconstruction mapping, exact conservation, Francis
-  ownership, structural/numerical rank, and sparsity checks. A physical
-  five-volume root remains unproven until DD-082.
+  ownership, structural/numerical rank, and sparsity checks.
+- **V2 Gate C steady-root decision**: DD-082 fails at a reproducible common
+  residual floor with an active reflux-drum n-pentane inventory bound. The
+  current prescribed-pressure/prescribed-vapor five-volume operating
+  specification is retired.
 
 ## Supporting documents
 
@@ -328,6 +342,8 @@ Use these descriptions consistently:
 - `docs/dd_079_core_v2_gate_a_dynamics_20260718.md`
 - `docs/dd_080_core_v2_gate_b_one_volume_20260718.md`
 - `docs/dd_081_core_v2_gate_c_five_volume_20260718.md`
+- `docs/dd_082_gate_c_steady_solve_contract_20260718.md`
+- `docs/dd_082_core_v2_gate_c_steady_solve_20260718.md`
 - `docs/gates_explained.md`
 - `docs/issue_log.md`
 - `docs/model_architecture.md`

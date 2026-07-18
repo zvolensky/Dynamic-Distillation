@@ -479,6 +479,14 @@ unregistered coupling, clipping, projection, fallback, or geometry
 adjustment. The canonical residual is `0.511`, so the result does not claim a
 steady solution. It authorizes one bounded DD-082 steady solve only.
 
+DD-082 performs that one fixed campaign from canonical, deterministic
+perturbation, and independent smooth-profile starts. All three reach the same
+endpoint, but the endpoint retains scaled residual `9.16e-3` and activates the
+upper transformed bound on reflux-drum n-pentane inventory. The remaining
+floor is concentrated in n-pentane component balances. Therefore Gate C
+fails. The result is not permission to widen bounds or try another solver;
+those would be a new campaign prohibited by the hard stop.
+
 ## Where Gates Are Used In The Workflow
 
 ### During Initializer Development

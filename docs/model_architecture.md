@@ -78,6 +78,17 @@ residual is still `0.511`, so no steady root has been established. One bounded
 DD-082 solve is authorized. See
 `docs/dd_081_core_v2_gate_c_five_volume_20260718.md`.
 
+2026-07-18 Gate C stop result: DD-082 executes the precommitted three-start
+bounded campaign. All starts converge to the same full-rank endpoint within
+`2.12e-9`, but retain the same scaled residual floor of `9.16e-3`.
+`N[reflux_drum,n-Pentane]` is active at its upper `50x` reference bound, and
+the remaining floor is dominated by reflux-drum and rectifying n-pentane
+component balances. Condition improves to about `1.92e4`; conservation and
+physicality otherwise pass. Under the frozen hard stop, Gate C fails and this
+prescribed-pressure, prescribed-vapor five-volume operating specification is
+retired. No wider-bound or alternate-solver DD-083 is authorized. See
+`docs/dd_082_core_v2_gate_c_steady_solve_20260718.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the
@@ -418,12 +429,10 @@ solve is retired by DD-075. The selected future architecture is the isolated
 equilibrium-DAE v2 contract in
 `docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
 
-DD-077 completed the new-namespace control-volume/equation registry and
-ownership checks. DD-078 completed the property-free source-equation residual
-comparison. DD-079 completed Gate A dynamics. DD-080 completed one-volume
-Gate B. DD-081 now passes the live five-volume residual, conservation,
-Francis, sparsity, and Jacobian gate without a nonlinear solve. DD-082 is
-limited to one bounded five-volume steady solve under the frozen equations,
-scales, tolerances, and starts. It does not authorize energy-determined vapor
-traffic, pressure dynamics, vapor holdup, controllers, or production
-integration.
+DD-077 through DD-081 completed the bounded structural, source-equation,
+one-volume, and five-volume pre-solve gates. DD-082 then failed the required
+common physical-root gate at a reproducible component-balance floor with one
+active transformed-coordinate bound. The current Gate C operating
+specification is retired. Energy-determined vapor traffic, pressure dynamics,
+vapor holdup, controllers, production integration, and another solver variant
+remain unauthorized.

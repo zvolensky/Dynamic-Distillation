@@ -1,0 +1,1368 @@
+{
+  "schema_id": "dd082-core-v2-five-volume-steady-root-campaign-v1",
+  "classification": "dd082_five_volume_steady_root_failed",
+  "decision": "stop_gate_c_and_retire_this_operating_specification",
+  "accepted": false,
+  "authorization": "DD-082 fails the Gate C hard stop. Do not add DD-083 solver tuning, continuation, geometry changes, or another operating-specification variant. The prescribed-pressure, prescribed-vapor five-volume case has not demonstrated a common physical steady root.",
+  "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\sandbox\\mini8\\input\\distillation_column_template_8stage.xlsx",
+  "property_package": "pr",
+  "component_names": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "settings": {
+    "residual_tolerance": 1e-08,
+    "root_agreement_tolerance": 1e-07,
+    "condition_limit": 100000000.0,
+    "component_conservation_tolerance": 1e-12,
+    "energy_conservation_tolerance": 1e-10,
+    "jacobian_step": 1e-05,
+    "jacobian_check_steps": [
+      1e-05,
+      5e-06
+    ],
+    "ftol": 1e-12,
+    "xtol": 1e-12,
+    "gtol": 1e-12,
+    "max_nfev": 300,
+    "inventory_ratio_bounds": [
+      0.02,
+      50.0
+    ],
+    "energy_coordinate_bounds": [
+      -5.0,
+      5.0
+    ],
+    "temperature_bounds_F": [
+      80.0,
+      300.0
+    ],
+    "vapor_logit_delta_bounds": [
+      -8.0,
+      8.0
+    ],
+    "flow_ratio_bounds": [
+      0.05,
+      20.0
+    ],
+    "bound_activity_tolerance": 1e-06,
+    "smooth_seed_over_weir_head_ft": 0.35
+  },
+  "fixed_residual_scales": [
+    8222788.559720814,
+    178559.92026658627,
+    256558.69859176135,
+    286003.48376304616,
+    3029807.2031457922,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    8333.47,
+    54706000.0,
+    54706000.0,
+    54706000.0,
+    54706000.0,
+    54706000.0,
+    5477.054710665924,
+    16109.48302591823,
+    17591.82032077673,
+    1388.9,
+    794.0
+  ],
+  "coordinate_bounds": {
+    "lower": [
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -3.912023005428146,
+      -5.0,
+      -5.0,
+      -5.0,
+      -5.0,
+      -5.0,
+      -0.37932000000000005,
+      -0.76578,
+      -0.99654,
+      -1.16124,
+      -1.40712,
+      -8.0,
+      -8.0,
+      -8.0,
+      -8.0,
+      -8.0,
+      -8.0,
+      -8.0,
+      -8.0,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991
+    ],
+    "upper": [
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      3.912023005428146,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      1.8206799999999999,
+      1.43422,
+      1.20346,
+      1.0387600000000001,
+      0.7928800000000001,
+      8.0,
+      8.0,
+      8.0,
+      8.0,
+      8.0,
+      8.0,
+      8.0,
+      8.0,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991
+    ]
+  },
+  "start_names": [
+    "canonical_mini8_derived",
+    "bounded_deterministic_perturbation",
+    "independent_smooth_profile"
+  ],
+  "smooth_seed_metadata": {
+    "construction": "terminal ALR-composition interpolation, linear terminal temperature interpolation, live-density tray inventories at a fixed positive over-weir head, live DWSIM internal energy and equilibrium closure, and live Francis flows",
+    "used_mini8_internal_profile": false,
+    "fractions": [
+      0.0,
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "temperature_F": [
+      117.932,
+      143.627,
+      169.322,
+      195.017,
+      220.712
+    ],
+    "liquid_moles_lbmol": [
+      1388.9,
+      48.10509721646253,
+      44.04391349237662,
+      49.76987874714915,
+      794.0
+    ],
+    "liquid_mole_fraction": [
+      [
+        0.9056677282091149,
+        0.09432647169262584,
+        5.800098259390511e-06
+      ],
+      [
+        0.7295986978372013,
+        0.2702739557100159,
+        0.00012734645278274416
+      ],
+      [
+        0.4306014995672501,
+        0.5673501008261473,
+        0.0020483996066025245
+      ],
+      [
+        0.17194062238076807,
+        0.805767123554546,
+        0.02229225406468588
+      ],
+      [
+        0.04716609528339047,
+        0.7861699213830079,
+        0.16666398333360166
+      ]
+    ],
+    "vapor_mole_fraction": [
+      [
+        0.8601496069629,
+        0.13981546568744815,
+        3.4927349651716224e-05
+      ],
+      [
+        0.6224971911474207,
+        0.3767590628784203,
+        0.0007437459741590894
+      ],
+      [
+        0.3027316408113976,
+        0.6865406104926217,
+        0.010727748695980832
+      ],
+      [
+        0.09504902222699597,
+        0.8077353416864199,
+        0.09721563608658418
+      ]
+    ],
+    "hydraulic_liquid_flow_lbmolph": [
+      12504.988626783928,
+      11449.278125826979,
+      10690.697706588344
+    ],
+    "distillate_lbmolph": 2380.990005508899,
+    "bottoms_lbmolph": 4761.9839944911,
+    "local_closures": {
+      "rectifying_tray": {
+        "temperature_F": 143.62699999999995,
+        "residual_max": 9.71445146547012e-16,
+        "converged": true
+      },
+      "feed_tray": {
+        "temperature_F": 169.32200000000228,
+        "residual_max": 1.7317920704099493e-14,
+        "converged": true
+      },
+      "stripping_tray": {
+        "temperature_F": 195.017,
+        "residual_max": 3.382710778154774e-16,
+        "converged": true
+      },
+      "combined_reboiler_sump": {
+        "temperature_F": 220.712,
+        "residual_max": 9.115763699441004e-13,
+        "converged": true
+      }
+    }
+  },
+  "operating_parameters": {
+    "reflux_lbmolph": 5952.48,
+    "rectifying_vapor_lbmolph": 8333.47,
+    "stripping_vapor_lbmolph": 8036.48,
+    "feed_component_lbmolph": [
+      2380.99,
+      3968.32,
+      793.664
+    ],
+    "feed_total_lbmolph": 7142.973999999999,
+    "feed_temperature_F": 174.999,
+    "feed_pressure_psia": 232.06,
+    "feed_specific_enthalpy_BTU_lbmol": -5132.515936130543,
+    "feed_enthalpy_BTUph": -36661427.88636613,
+    "condenser_duty_BTUph": -49640000.0,
+    "reboiler_duty_BTUph": 54706000.0,
+    "terminal_liquid_targets_lbmol": [
+      1388.9,
+      794.0
+    ],
+    "initial_distillate_lbmolph": 2380.99,
+    "initial_bottoms_lbmolph": 4761.98,
+    "parameter_source": "mini8 workbook supplies the declared Gate C operating point; its profiles are seed and comparison data, not residual forcing"
+  },
+  "source_profile": {
+    "source_stage_1based": [
+      1,
+      3,
+      5,
+      6,
+      8
+    ],
+    "role": [
+      "reflux_drum",
+      "rectifying_tray",
+      "feed_tray",
+      "stripping_tray",
+      "combined_reboiler_sump"
+    ],
+    "temperature_F": [
+      117.932,
+      156.578,
+      179.654,
+      196.124,
+      220.712
+    ],
+    "pressure_psia": [
+      218.44,
+      222.377,
+      226.896,
+      229.478,
+      232.06
+    ],
+    "liquid_moles_lbmol": [
+      1388.9,
+      32.51477868945729,
+      51.06214131827053,
+      62.53531141217334,
+      794.0
+    ],
+    "source_liquid_flow_lbmolph": [
+      5952.48,
+      5258.48,
+      12372.2,
+      12584.8,
+      0.0
+    ],
+    "source_vapor_flow_lbmolph": [
+      0.0,
+      7710.72,
+      7457.64,
+      7744.25,
+      8036.48
+    ],
+    "liquid_mole_fraction": [
+      [
+        0.9056677282091148,
+        0.09432647169262584,
+        5.800098259390512e-06
+      ],
+      [
+        0.4705840235292012,
+        0.5287740264387013,
+        0.0006419500320975016
+      ],
+      [
+        0.3099600619920124,
+        0.6059141211828242,
+        0.08412581682516336
+      ],
+      [
+        0.1857739628452074,
+        0.7244838551032289,
+        0.08974218205156358
+      ],
+      [
+        0.04716609528339047,
+        0.7861699213830079,
+        0.16666398333360166
+      ]
+    ],
+    "equilibrium_vapor_mole_fraction": [
+      [
+        0.6672584372789329,
+        0.33252602306097306,
+        0.0002155396600939844
+      ],
+      [
+        0.5058239549847355,
+        0.4598119408025804,
+        0.03436410421268411
+      ],
+      [
+        0.3318579443200669,
+        0.6252489483941627,
+        0.0428931072857704
+      ],
+      [
+        0.09504902222699597,
+        0.8077353416864199,
+        0.09721563608658418
+      ]
+    ]
+  },
+  "attempts": [
+    {
+      "start_name": "canonical_mini8_derived",
+      "accepted": false,
+      "failure_reason": "scaled residual remained above tolerance",
+      "solver_success": true,
+      "solver_status": 2,
+      "solver_message": "`ftol` termination condition is satisfied.",
+      "iterations": 23,
+      "function_evaluations": 24,
+      "jacobian_evaluations": 23,
+      "optimality": 1.6852187318392386e-09,
+      "cost": 4.941851228059752e-05,
+      "wall_clock_sec": 8.020528300025035,
+      "active_bounds": [
+        "N[reflux_drum,n-Pentane]"
+      ],
+      "movement_by_block": {
+        "component_inventory": {
+          "coordinate_max_abs": 3.9120230054281455,
+          "coordinate_rms": 1.472078951136212
+        },
+        "internal_energy": {
+          "coordinate_max_abs": 0.19440181357739325,
+          "coordinate_rms": 0.15394953534588632
+        },
+        "temperature": {
+          "coordinate_max_abs": 0.4422177503951355,
+          "coordinate_rms": 0.23665175638004457
+        },
+        "vapor_composition": {
+          "coordinate_max_abs": 3.849360945938187,
+          "coordinate_rms": 1.9817444337890309
+        },
+        "liquid_flow": {
+          "coordinate_max_abs": 0.32102232266044645,
+          "coordinate_rms": 0.23340531174636228
+        },
+        "product_flow": {
+          "coordinate_max_abs": 0.03316965844274815,
+          "coordinate_rms": 0.02413045369057665
+        }
+      },
+      "normalized_physical_movement_max": 0.98,
+      "property_call_counters": {
+        "uncategorized": {
+          "rhoL_cache_hits": 3814,
+          "fugacity_requests": 7632,
+          "wall_sec": 3.245123800530564,
+          "rhoL_cache_misses": 956,
+          "rhoL_requests": 956
+        }
+      },
+      "initial_coordinates": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "final_coordinates": [
+        -0.27692006011645637,
+        1.199785666968074,
+        3.9120230054281455,
+        0.03838586469340058,
+        -0.10524649339516999,
+        3.715749193835496,
+        -0.02292777448168022,
+        -0.16197593599791357,
+        -0.16936836370479208,
+        0.19152938422871665,
+        -0.268271016936083,
+        -0.06982938356267361,
+        1.2859709398809815,
+        -0.13479699937704717,
+        -0.1579298544314345,
+        0.19440181357739325,
+        0.15373813671062175,
+        0.12159706136664598,
+        0.10364640579327496,
+        -0.17761304737481998,
+        0.4422177503951355,
+        0.19534281940586812,
+        -0.0017721711572158995,
+        -0.07222415085364743,
+        -0.20269544783662746,
+        -3.7611226306842567,
+        -3.849360945938187,
+        0.14301517167454267,
+        0.005532856423086961,
+        0.29210066066003243,
+        -0.18357282246258802,
+        1.5206505999411244,
+        0.05459757902642084,
+        0.07857916313025108,
+        -0.23281774444765002,
+        -0.32102232266044645,
+        -0.03316965844274815,
+        -0.008020682602968105
+      ],
+      "final_state_available": true,
+      "scaled_residual_inf_norm": 0.009159988953902269,
+      "raw_residual_inf_norm": 5763.542860431597,
+      "scaled_block_maxima": {
+        "energy_reconstruction": 4.219600377774474e-12,
+        "phase_equilibrium": 4.123187402631234e-05,
+        "component_balance": 0.009159988953902269,
+        "energy_balance": 0.00010535485797593676,
+        "francis_hydraulics": 3.3757409354221824e-10,
+        "terminal_level_specification": 1.8178771122837291e-06
+      },
+      "raw_block_maxima": {
+        "energy_reconstruction": 1.0825751814991236e-06,
+        "phase_equilibrium": 4.123187402631234e-05,
+        "component_balance": 76.33449314767593,
+        "energy_balance": 5763.542860431597,
+        "francis_hydraulics": 3.826264219242148e-06,
+        "terminal_level_specification": 0.0025248495212508715
+      },
+      "component_telescoping_error_lbmolph": [
+        1.7053025658242404e-12,
+        4.547473508864641e-13,
+        4.263256414560601e-14
+      ],
+      "component_telescoping_relative_error": 4.2972909589555286e-16,
+      "energy_telescoping_error_BTUph": 1.862645149230957e-09,
+      "energy_telescoping_relative_error": 3.4048278968137995e-17,
+      "temperature_F": [
+        162.15377503951356,
+        176.11228194058683,
+        179.4767828842784,
+        188.90158491463527,
+        200.44245521633724
+      ],
+      "liquid_moles_lbmol": [
+        1388.8974751504788,
+        32.232783843453305,
+        45.407509057292344,
+        53.94880221335893,
+        793.9999999999989
+      ],
+      "liquid_mole_fraction": [
+        [
+          0.6866016269747217,
+          0.31310836758511446,
+          0.0002900054401637775
+        ],
+        [
+          0.4932770776280445,
+          0.4801148396227003,
+          0.02660808274925532
+        ],
+        [
+          0.3406588516718542,
+          0.5794782819928173,
+          0.07986286633532856
+        ],
+        [
+          0.2608005543252149,
+          0.6421900901968007,
+          0.09700935547798438
+        ],
+        [
+          0.17065538899655894,
+          0.6870286226862475,
+          0.14231598831719347
+        ]
+      ],
+      "vapor_mole_fraction": [
+        [
+          0.6802042996421072,
+          0.3103484092750576,
+          0.00944729108283531
+        ],
+        [
+          0.5402037545173294,
+          0.4279870611500608,
+          0.03180918433260984
+        ],
+        [
+          0.4410323568703716,
+          0.5164030939226445,
+          0.04256454920698399
+        ],
+        [
+          0.3139513221572897,
+          0.6158642731735372,
+          0.07018440466917314
+        ]
+      ],
+      "internal_energy_BTU": [
+        -6624263.551047646,
+        -151108.45083360412,
+        -225361.9147749521,
+        -256360.25062665116,
+        -3567940.4934546966
+      ],
+      "hydraulic_liquid_flow_lbmolph": [
+        5924.798381767987,
+        12763.51055530615,
+        12761.230620134778
+      ],
+      "francis_flow_lbmolph": [
+        5924.798379919075,
+        12763.510551479885,
+        12761.230620134822
+      ],
+      "liquid_height_ft": [
+        0.36828000104704717,
+        0.525282652507698,
+        0.559477044413871
+      ],
+      "tray_spacing_ft": [
+        1.5,
+        1.5,
+        1.5
+      ],
+      "over_weir_head_ft": [
+        0.23025916771371382,
+        0.38726181917436464,
+        0.39437287774720436
+      ],
+      "residence_time_sec": [
+        19.585142710258037,
+        12.807372383790963,
+        15.219197407314072
+      ],
+      "distillate_lbmolph": 2303.3088260562117,
+      "bottoms_lbmolph": 4723.938433462334,
+      "source_comparison": {
+        "temperature_difference_F": [
+          44.22177503951356,
+          19.534281940586823,
+          -0.17721711572158938,
+          -7.22241508536473,
+          -20.269544783662752
+        ],
+        "liquid_moles_difference_lbmol": [
+          -0.0025248495212508715,
+          -0.2819948460039825,
+          -5.6546322609781825,
+          -8.586509198814412,
+          -1.1368683772161603e-12
+        ],
+        "hydraulic_flow_difference_lbmolph": [
+          666.3183817679874,
+          391.3105553061487,
+          176.43062013477902
+        ]
+      },
+      "jacobians": [
+        {
+          "step": 1e-05,
+          "rank": 38,
+          "nullity": 0,
+          "condition": 19219.17645482136,
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "colored_uncolored_max_abs": 0.0,
+          "colored_uncolored_relative": 0.0
+        },
+        {
+          "step": 5e-06,
+          "rank": 38,
+          "nullity": 0,
+          "condition": 19219.173646206415,
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "colored_uncolored_max_abs": 0.0,
+          "colored_uncolored_relative": 0.0
+        }
+      ],
+      "clipping_or_projection_used": false,
+      "property_fallback_used": false
+    },
+    {
+      "start_name": "bounded_deterministic_perturbation",
+      "accepted": false,
+      "failure_reason": "scaled residual remained above tolerance",
+      "solver_success": true,
+      "solver_status": 2,
+      "solver_message": "`ftol` termination condition is satisfied.",
+      "iterations": 29,
+      "function_evaluations": 30,
+      "jacobian_evaluations": 29,
+      "optimality": 1.5684515086781124e-09,
+      "cost": 4.941851228059738e-05,
+      "wall_clock_sec": 9.850000700040255,
+      "active_bounds": [
+        "N[reflux_drum,n-Pentane]"
+      ],
+      "movement_by_block": {
+        "component_inventory": {
+          "coordinate_max_abs": 3.911599645403966,
+          "coordinate_rms": 1.4719848833452938
+        },
+        "internal_energy": {
+          "coordinate_max_abs": 0.19332120896635346,
+          "coordinate_rms": 0.15446677100888034
+        },
+        "temperature": {
+          "coordinate_max_abs": 0.44053480842716763,
+          "coordinate_rms": 0.23530337405219218
+        },
+        "vapor_composition": {
+          "coordinate_max_abs": 3.8485286522368507,
+          "coordinate_rms": 1.9816856253688537
+        },
+        "liquid_flow": {
+          "coordinate_max_abs": 0.32252232266104836,
+          "coordinate_rms": 0.23354120513042873
+        },
+        "product_flow": {
+          "coordinate_max_abs": 0.032169658440745555,
+          "coordinate_rms": 0.023624771309459107
+        }
+      },
+      "normalized_physical_movement_max": 0.9799915310069264,
+      "property_call_counters": {
+        "uncategorized": {
+          "rhoL_cache_misses": 1217,
+          "rhoL_requests": 1217,
+          "wall_sec": 3.9965772022260353,
+          "fugacity_requests": 9168,
+          "rhoL_cache_hits": 4513
+        }
+      },
+      "initial_coordinates": [
+        0.0025244129544236896,
+        0.0027278922804770452,
+        0.00042336002417960164,
+        -0.0022704074859237846,
+        -0.0028767728239894154,
+        -0.0008382464945967776,
+        0.0019709597961563674,
+        0.0029680747398701454,
+        0.0012363554557252698,
+        -0.0016320633326681094,
+        -0.0029999706196521107,
+        -0.0016097187540013048,
+        0.0012605011104799228,
+        0.002971822067084611,
+        0.0019508635204713504,
+        0.0010806046117362795,
+        -0.0008322936730942849,
+        -0.001979984993200891,
+        -0.0013072872417272238,
+        0.0005673243709264525,
+        0.0016829419696157931,
+        0.0018185948536513636,
+        0.0002822400161197344,
+        -0.0015136049906158565,
+        -0.001917848549326277,
+        0.0010806046117362795,
+        -0.0008322936730942849,
+        -0.001979984993200891,
+        -0.0013072872417272238,
+        0.0005673243709264525,
+        0.001920340573300732,
+        0.0015078045086866093,
+        -0.00029100006761722706,
+        0.002,
+        -0.001,
+        0.0015,
+        -0.001,
+        0.001
+      ],
+      "final_coordinates": [
+        -0.2769200601180955,
+        1.1997856669716755,
+        3.9120230054281455,
+        0.038385864691566414,
+        -0.10524649339261702,
+        3.7157491938095113,
+        -0.022927774483301352,
+        -0.16197593599647717,
+        -0.16936836371115044,
+        0.19152938422659394,
+        -0.2682710169344758,
+        -0.06982938356950431,
+        1.285970939878822,
+        -0.13479699937511233,
+        -0.15792985443818383,
+        0.19440181357808975,
+        0.15373813671102277,
+        0.12159706136681656,
+        0.10364640579340896,
+        -0.17761304737474654,
+        0.4422177503967834,
+        0.19534281940610515,
+        -0.001772171157206351,
+        -0.07222415085368362,
+        -0.20269544783674026,
+        -3.761122630660503,
+        -3.849360945909945,
+        0.1430151716790618,
+        0.005532856430734497,
+        0.29210066066449686,
+        -0.18357282245433656,
+        1.5206505999453928,
+        0.05459757903484486,
+        0.07857916312929081,
+        -0.23281774444821748,
+        -0.32102232266104835,
+        -0.033169658440745556,
+        -0.008020682604673122
+      ],
+      "final_state_available": true,
+      "scaled_residual_inf_norm": 0.009159988953666659,
+      "raw_residual_inf_norm": 5763.542850950733,
+      "scaled_block_maxima": {
+        "energy_reconstruction": 4.203492002001052e-12,
+        "phase_equilibrium": 4.123187404228568e-05,
+        "component_balance": 0.009159988953666659,
+        "energy_balance": 0.00010535485780263102,
+        "francis_hydraulics": 3.1431221794879917e-10,
+        "terminal_level_specification": 1.8178771099918208e-06
+      },
+      "raw_block_maxima": {
+        "energy_reconstruction": 1.0784424375742674e-06,
+        "phase_equilibrium": 4.123187404228568e-05,
+        "component_balance": 76.33449314571249,
+        "energy_balance": 5763.542850950733,
+        "francis_hydraulics": 3.810695488937199e-06,
+        "terminal_level_specification": 0.00252484951806764
+      },
+      "component_telescoping_error_lbmolph": [
+        4.547473508864641e-13,
+        -4.547473508864641e-13,
+        -1.1368683772161603e-13
+      ],
+      "component_telescoping_relative_error": 1.1459442557214742e-16,
+      "energy_telescoping_error_BTUph": -1.862645149230957e-09,
+      "energy_telescoping_relative_error": 3.4048278968137995e-17,
+      "temperature_F": [
+        162.15377503967835,
+        176.11228194061053,
+        179.47678288427937,
+        188.90158491463163,
+        200.44245521632595
+      ],
+      "liquid_moles_lbmol": [
+        1388.897475150482,
+        32.23278384344137,
+        45.40750905728201,
+        53.948802213349,
+        793.9999999999991
+      ],
+      "liquid_mole_fraction": [
+        [
+          0.6866016269735947,
+          0.31310836758624144,
+          0.00029000544016377687
+        ],
+        [
+          0.4932770776273224,
+          0.48011483962410384,
+          0.026608082748573774
+        ],
+        [
+          0.34065885167137955,
+          0.5794782819937815,
+          0.07986286633483893
+        ],
+        [
+          0.2608005543247093,
+          0.642190090197951,
+          0.09700935547733962
+        ],
+        [
+          0.17065538899619034,
+          0.6870286226875767,
+          0.14231598831623288
+        ]
+      ],
+      "vapor_mole_fraction": [
+        [
+          0.6802042996413125,
+          0.3103484092760877,
+          0.00944729108259986
+        ],
+        [
+          0.5402037545166837,
+          0.4279870611508882,
+          0.031809184332428075
+        ],
+        [
+          0.44103235686959286,
+          0.5164030939236883,
+          0.04256454920671881
+        ],
+        [
+          0.3139513221565803,
+          0.6158642731747048,
+          0.07018440466871498
+        ]
+      ],
+      "internal_energy_BTU": [
+        -6624263.55104192,
+        -151108.4508335325,
+        -225361.91477490836,
+        -256360.25062661283,
+        -3567940.493454474
+      ],
+      "hydraulic_liquid_flow_lbmolph": [
+        5924.798381762297,
+        12763.510555298906,
+        12761.230620127097
+      ],
+      "francis_flow_lbmolph": [
+        5924.798380040792,
+        12763.51055148821,
+        12761.230620127122
+      ],
+      "liquid_height_ft": [
+        0.36828000105255215,
+        0.5252826525081447,
+        0.559477044413663
+      ],
+      "tray_spacing_ft": [
+        1.5,
+        1.5,
+        1.5
+      ],
+      "over_weir_head_ft": [
+        0.2302591677192188,
+        0.3872618191748113,
+        0.3943728777469963
+      ],
+      "residence_time_sec": [
+        19.585142710269594,
+        12.807372383795316,
+        15.21919740732043
+      ],
+      "distillate_lbmolph": 2303.3088260608242,
+      "bottoms_lbmolph": 4723.938433454279,
+      "source_comparison": {
+        "temperature_difference_F": [
+          44.22177503967835,
+          19.534281940610526,
+          -0.17721711572062304,
+          -7.222415085368368,
+          -20.269544783674036
+        ],
+        "liquid_moles_difference_lbmol": [
+          -0.00252484951806764,
+          -0.2819948460159196,
+          -5.654632260988514,
+          -8.586509198824345,
+          -9.094947017729282e-13
+        ],
+        "hydraulic_flow_difference_lbmolph": [
+          666.3183817622976,
+          391.31055529890546,
+          176.43062012709743
+        ]
+      },
+      "jacobians": [
+        {
+          "step": 1e-05,
+          "rank": 38,
+          "nullity": 0,
+          "condition": 19219.175757743673,
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "colored_uncolored_max_abs": 0.0,
+          "colored_uncolored_relative": 0.0
+        },
+        {
+          "step": 5e-06,
+          "rank": 38,
+          "nullity": 0,
+          "condition": 19219.173634461218,
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "colored_uncolored_max_abs": 0.0,
+          "colored_uncolored_relative": 0.0
+        }
+      ],
+      "clipping_or_projection_used": false,
+      "property_fallback_used": false
+    },
+    {
+      "start_name": "independent_smooth_profile",
+      "accepted": false,
+      "failure_reason": "scaled residual remained above tolerance",
+      "solver_success": true,
+      "solver_status": 2,
+      "solver_message": "`ftol` termination condition is satisfied.",
+      "iterations": 33,
+      "function_evaluations": 36,
+      "jacobian_evaluations": 33,
+      "optimality": 1.3938797182937232e-09,
+      "cost": 4.9418512280597276e-05,
+      "wall_clock_sec": 10.72311850002734,
+      "active_bounds": [
+        "N[reflux_drum,n-Pentane]"
+      ],
+      "movement_by_block": {
+        "component_inventory": {
+          "coordinate_max_abs": 4.9416548859460745,
+          "coordinate_rms": 1.9992830866962144
+        },
+        "internal_energy": {
+          "coordinate_max_abs": 0.6110002301294815,
+          "coordinate_rms": 0.3012136815683997
+        },
+        "temperature": {
+          "coordinate_max_abs": 0.4422177504688359,
+          "coordinate_rms": 0.2669168894561889
+        },
+        "vapor_composition": {
+          "coordinate_max_abs": 5.83492628151591,
+          "coordinate_rms": 3.38294146690612
+        },
+        "liquid_flow": {
+          "coordinate_max_abs": 0.7469809968579176,
+          "coordinate_rms": 0.4476348071132421
+        },
+        "product_flow": {
+          "coordinate_max_abs": 0.03316966061802577,
+          "coordinate_rms": 0.024130594622584517
+        }
+      },
+      "normalized_physical_movement_max": 0.9928572318804221,
+      "property_call_counters": {
+        "uncategorized": {
+          "rhoL_cache_misses": 1300,
+          "rhoL_requests": 1300,
+          "wall_sec": 4.350792600365821,
+          "fugacity_requests": 10208,
+          "rhoL_cache_hits": 5080
+        }
+      },
+      "initial_coordinates": [
+        2.2204460492503128e-16,
+        0.0,
+        0.0,
+        0.8302135552798384,
+        -0.27943164618609156,
+        -1.2259056942317026,
+        0.18088343243724453,
+        -0.21361786495353918,
+        -3.8631108671203744,
+        -0.3057029058690586,
+        -0.12198612834544229,
+        -1.6210230719383374,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.4572620934191961,
+        0.12879712079058594,
+        0.20822569633405802,
+        0.0,
+        0.0,
+        -0.12950999999999993,
+        -0.10331999999999994,
+        -0.011069999999999993,
+        0.0,
+        2.0738036528626242,
+        0.9534800792562317,
+        4.040618694830307,
+        3.633856583500639,
+        1.2940171634310342,
+        1.4793929144995994,
+        0.0,
+        0.0,
+        0.8255601599173042,
+        -0.34148142418092686,
+        -0.49806004938318355,
+        2.313701005883936e-09,
+        8.388295257409817e-07
+      ],
+      "final_coordinates": [
+        -0.27692006020249177,
+        1.1997856671567482,
+        3.9120230054281455,
+        0.038385864617629065,
+        -0.10524649323570177,
+        3.715749191714372,
+        -0.022927774549643672,
+        -0.16197593590362303,
+        -0.1693683642457228,
+        0.19152938414609458,
+        -0.26827101682133236,
+        -0.06982938418571857,
+        1.2859709398107513,
+        -0.13479699922926233,
+        -0.15792985506062662,
+        0.1944018136049075,
+        0.15373813671028533,
+        0.12159706136277955,
+        0.10364640578470606,
+        -0.17761304738453268,
+        0.4422177504688359,
+        0.1953428193804732,
+        -0.0017721711826933694,
+        -0.07222415088577809,
+        -0.20269544787095597,
+        -3.7611226286532866,
+        -3.8493609436738923,
+        0.1430151721397083,
+        0.005532857049810759,
+        0.29210066118974537,
+        -0.18357282173735776,
+        1.5206506004805909,
+        0.05459757978319993,
+        0.07857916305938664,
+        -0.2328177444894412,
+        -0.3210223227061101,
+        -0.033169658304324764,
+        -0.008020682732123259
+      ],
+      "final_state_available": true,
+      "scaled_residual_inf_norm": 0.009159988934201172,
+      "raw_residual_inf_norm": 5763.542354013771,
+      "scaled_block_maxima": {
+        "energy_reconstruction": 3.953018102650942e-12,
+        "phase_equilibrium": 4.1231875346825486e-05,
+        "component_balance": 0.009159988934201172,
+        "energy_balance": 0.00010535484871885664,
+        "francis_hydraulics": 2.8250579389883605e-10,
+        "terminal_level_specification": 1.8178771088458665e-06
+      },
+      "raw_block_maxima": {
+        "energy_reconstruction": 2.8507784008979797e-06,
+        "phase_equilibrium": 4.1231875346825486e-05,
+        "component_balance": 76.33449298349744,
+        "energy_balance": 5763.542354013771,
+        "francis_hydraulics": 3.5828070394927636e-06,
+        "terminal_level_specification": 0.0025248495164760243
+      },
+      "component_telescoping_error_lbmolph": [
+        3.410605131648481e-13,
+        -1.8189894035458565e-12,
+        -9.947598300641403e-14
+      ],
+      "component_telescoping_relative_error": 4.583777022885897e-16,
+      "energy_telescoping_error_BTUph": 1.30385160446167e-08,
+      "energy_telescoping_relative_error": 2.3833795277696593e-16,
+      "temperature_F": [
+        162.1537750468836,
+        176.11228193804732,
+        179.47678288173066,
+        188.9015849114222,
+        200.4424552129044
+      ],
+      "liquid_moles_lbmol": [
+        1388.8974751504836,
+        32.23278384289722,
+        45.407509056760475,
+        53.94880221291129,
+        794.0000000000013
+      ],
+      "liquid_mole_fraction": [
+        [
+          0.6866016269156473,
+          0.31310836764418887,
+          0.00029000544016377655
+        ],
+        [
+          0.4932770775991783,
+          0.4801148397075463,
+          0.02660808269327533
+        ],
+        [
+          0.3406588516526921,
+          0.5794782820542441,
+          0.07986286629306373
+        ],
+        [
+          0.26080055430583093,
+          0.6421900902758209,
+          0.09700935541834814
+        ],
+        [
+          0.17065538898457322,
+          0.6870286227877779,
+          0.14231598822764893
+        ]
+      ],
+      "vapor_mole_fraction": [
+        [
+          0.6802042996059036,
+          0.31034840933095104,
+          0.009447291063145308
+        ],
+        [
+          0.5402037544879702,
+          0.42798706119594526,
+          0.031809184316084524
+        ],
+        [
+          0.44103235683578623,
+          0.5164030939831146,
+          0.042564549181099136
+        ],
+        [
+          0.31395132212715887,
+          0.615864273248266,
+          0.0701844046245752
+        ]
+      ],
+      "internal_energy_BTU": [
+        -6624263.550821403,
+        -151108.4508336642,
+        -225361.91477594408,
+        -256360.25062910188,
+        -3567940.4934841245
+      ],
+      "hydraulic_liquid_flow_lbmolph": [
+        5924.798381348129,
+        12763.510554772747,
+        12761.230619552054
+      ],
+      "francis_flow_lbmolph": [
+        5924.798379800829,
+        12763.51055118994,
+        12761.230619906792
+      ],
+      "liquid_height_ft": [
+        0.36828000104633496,
+        0.5252826525021114,
+        0.5594770444091236
+      ],
+      "tray_spacing_ft": [
+        1.5,
+        1.5,
+        1.5
+      ],
+      "over_weir_head_ft": [
+        0.23025916771300162,
+        0.387261819168778,
+        0.39437287774245694
+      ],
+      "residence_time_sec": [
+        19.58514271130804,
+        12.807372384176182,
+        15.219197407882753
+      ],
+      "distillate_lbmolph": 2303.3088263750433,
+      "bottoms_lbmolph": 4723.938432852213,
+      "source_comparison": {
+        "temperature_difference_F": [
+          44.22177504688359,
+          19.534281938047314,
+          -0.17721711826933984,
+          -7.2224150885778045,
+          -20.269544787095583
+        ],
+        "liquid_moles_difference_lbmol": [
+          -0.0025248495164760243,
+          -0.28199484656006746,
+          -5.654632261510052,
+          -8.586509199262053,
+          1.2505552149377763e-12
+        ],
+        "hydraulic_flow_difference_lbmolph": [
+          666.3183813481292,
+          391.3105547727464,
+          176.43061955205485
+        ]
+      },
+      "jacobians": [
+        {
+          "step": 1e-05,
+          "rank": 38,
+          "nullity": 0,
+          "condition": 19219.175741334406,
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "colored_uncolored_max_abs": 0.0,
+          "colored_uncolored_relative": 0.0
+        },
+        {
+          "step": 5e-06,
+          "rank": 38,
+          "nullity": 0,
+          "condition": 19219.173621166698,
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "colored_uncolored_max_abs": 0.0,
+          "colored_uncolored_relative": 0.0
+        }
+      ],
+      "clipping_or_projection_used": false,
+      "property_fallback_used": false
+    }
+  ],
+  "pairwise_root_agreement": {
+    "canonical_mini8_derived vs bounded_deterministic_perturbation": 2.5984564547709586e-11,
+    "canonical_mini8_derived vs independent_smooth_profile": 2.1211237373398255e-09,
+    "bounded_deterministic_perturbation vs independent_smooth_profile": 2.0951391728465573e-09
+  },
+  "maximum_root_disagreement": 2.1211237373398255e-09,
+  "reconciliation": {
+    "movement_rms_by_family": {
+      "component_inventory": 1.9992830866962144,
+      "internal_energy": 0.3012136815683997,
+      "temperature": 0.2669168894561889,
+      "vapor_composition": 3.38294146690612,
+      "liquid_flow": 0.4476348071132421,
+      "product_flow": 0.024130594622584517
+    },
+    "dominant_movement_family": "vapor_composition",
+    "interpretation": "Movement classification uses the largest transformed-coordinate RMS across the three fixed starts. It is a diagnostic, not a weighted solver objective."
+  },
+  "dd058_qualitative_reference": {
+    "dynamic_score": 0.0848,
+    "top_pressure_psia": 221.871,
+    "condenser_duty_MMBTUph": -49.163,
+    "distillate_lbmolph": 2254.42,
+    "distillate_n_butane_mole_fraction": 0.063691,
+    "interpretation": "DD-058 remains a controlled v1 operational checkpoint, not equation truth for v2. DD-082 uses no DD-058 value in its residual, bounds, scales, seed construction, or acceptance."
+  },
+  "five_volume_nonlinear_campaign_count": 1,
+  "predeclared_start_count": 3,
+  "continuation_attempted": false,
+  "alternate_solver_attempted": false,
+  "regularization_used": false,
+  "geometry_or_francis_parameter_changed": false,
+  "wall_clock_sec": 31.84688330005156
+}

@@ -110,17 +110,16 @@ One bounded steady-root campaign may be drafted and precommitted next; no
 solve or dynamic integration is yet authorized. See
 `docs/dd_084_energy_owned_vapor_numerical_audit_20260718.md`.
 
-2026-07-18 energy-owned root contract: DD-085 freezes one three-start bounded
-trust-region campaign for the unchanged DD-084 residual. It uses one
-uncolored central-difference Jacobian rule, fixed unit coordinate scaling,
-physical-space bounds converted once, exact canonical and deterministic
-DD-084 starts, and one independently constructed smooth physical start. The
-exact 37-element vectors and scales are checksummed in
-`logs/dd085_energy_owned_steady_root_contract_20260718.json`. The lower
-temperature bound is `110 F`, corrected before precommit because the exact
-canonical reflux-drum seed is `117.932 F`. No nonlinear solve or dynamic
-integration has been attempted under this contract. See
-`docs/dd_085_energy_owned_vapor_steady_root_contract_20260718.md`.
+2026-07-18 energy-owned root result: DD-085 executed once from precommit
+`eaa7cc3`. All three starts reach the same interior algebraic root within
+`1.56e-12`, with scaled residual at most `2.55e-13`, rank `37/37`, condition
+about `751.5`, and roundoff conservation. The root fails only physical
+temperature ordering: the reflux drum is `166.131 F`, `3.233 F` hotter than
+the rectifying equilibrium stage supplying the inventory-free total
+condenser while duty removes heat. Under the frozen hard stop, the
+five-volume energy-owned steady architecture is retired. No DD-086 tuning,
+dynamic DAE contract, or integration is authorized. See
+`docs/dd_085_energy_owned_vapor_steady_root_20260718.md`.
 
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 

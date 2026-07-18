@@ -100,6 +100,16 @@ One frozen live-property numerical audit may be designed next; no nonlinear
 solve or dynamic integration is authorized. See
 `docs/dd_083_energy_owned_vapor_flow_architecture_20260718.md`.
 
+2026-07-18 energy-owned numerical result: DD-084 evaluates the frozen
+`37 x 37` residual with live DWSIM PR at the role-mapped seed and one
+deterministic perturbation. Every Jacobian is rank `37/37` at `h` and `h/2`,
+with worst condition `1.78e6`, no zero row/column, no off-registry coupling,
+and component/energy telescoping near machine precision. The canonical
+scaled residual is `0.398`, led by Francis mismatch, so no root is claimed.
+One bounded steady-root campaign may be drafted and precommitted next; no
+solve or dynamic integration is yet authorized. See
+`docs/dd_084_energy_owned_vapor_numerical_audit_20260718.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

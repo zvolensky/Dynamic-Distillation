@@ -83,6 +83,13 @@ Do not lower tolerances or tune the lambda path further. Redesign the release
 ordering so conserved states can move consistently with phase-state
 reconciliation before repeating the continuation.
 
+DD-074 performs that final release-order audit by merging local and conserved
+states. The proposed first stage is square at `240 x 240` but has physical
+structural rank `239`. Endpoint identity, conservation, dependency paths, and
+identity anchors pass, so the nullity is not a bookkeeping or homotopy-anchor
+artifact. No live solve was run. Manual staged continuation is retired; do
+not create a hydraulics-first or other release-order variant.
+
 ## Recommended Workflow
 
 1. Load the seed.
@@ -108,6 +115,7 @@ reconciliation before repeating the continuation.
    - Require DD-072 residual, telescoping, scaling, and Jacobian-rank gates before attempting direct continuation.
    - Require every DD-073 continuation stage to reach its exact physical endpoint. Full rank and a small but nonzero residual floor do not pass.
    - If local phase reconciliation fails while unreleased `N/U` are fixed, revise the square release ordering; do not project `N/U` or relax the closure gates.
+   - Require full physical structural rank for every revised continuation endpoint. DD-074 fails this final gate, so pivot to a full-system or reduced-model architecture rather than revising release order again.
    - Stop before dynamic integration if any required algebraic gate fails.
 
 5. Evaluate steady-state residuals only after algebraic closure.

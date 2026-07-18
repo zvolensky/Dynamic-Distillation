@@ -221,6 +221,14 @@ confirm a nonzero residual floor. The next design must couple the release of
 conserved states with phase-state reconciliation. No Stage 2-5 result,
 serialized seed, or dynamic acceptance is available.
 
+DD-074 audits that final merged design before a live solve. Counts, variable
+identity anchors, DD-072 endpoint identity, conservation, and dependency
+paths pass, but the merged `240 x 240` physical block has structural rank
+`239`. Per the predefined hard stop, no live DWSIM solve is authorized and
+manual staged continuation is retired. The complete `281 x 281` system
+remains full rank; the next effort must use a materially different
+full-system, pseudo-transient, DAE, reduced-model, or feasibility architecture.
+
 ## Current Implementation Direction
 
 The current recommended direction is:
@@ -235,6 +243,7 @@ The current recommended direction is:
 - build conserved energy from one canonical live-property basis and record any mapping replacement separately from optimizer movement,
 - retire checkpoint projection when its predefined corrected retry fails and formulate the direct operating-specification steady-state system,
 - require continuation stages to prove endpoint feasibility, not merely full rank, and redesign release ordering when fixed unreleased conserved states block local closure,
+- retire manual staged continuation when the final merged release-order endpoint is structurally singular; do not create another first-stage variation,
 - use relaxation/homotopy only as startup or solve stabilizers, not as proof of a steady initial condition,
 - prefer native checkpoint-style serialization for accepted seeds,
 - treat Excel-only checkpoint-guided exports as diagnostic bridges until they pass reload tests with startup/re-entry conditioning disabled,

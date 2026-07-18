@@ -113,6 +113,11 @@ Defensible options are:
 Either option requires a new structural and endpoint-identity audit before a
 live solve. The final `281 x 281` DD-072 target equations remain unchanged.
 
+DD-074 subsequently audited the merged `240 x 240` option. It is square but
+has physical structural rank `239`, so the predefined gate blocked a live
+solve. Manual staged continuation is now retired; do not create another
+release-order variant.
+
 ## Evidence
 
 - `src/dynamic_distillation/direct_steady_state_continuation_v1.py`

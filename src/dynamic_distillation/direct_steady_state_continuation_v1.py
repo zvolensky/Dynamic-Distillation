@@ -8,8 +8,13 @@ from typing import Callable, Sequence
 import numpy as np
 from scipy.optimize import least_squares
 from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import structural_rank
 
-from dynamic_distillation.direct_steady_state_registry_v1 import structural_pattern
+from dynamic_distillation.direct_steady_state_registry_v1 import (
+    DirectSteadyStateRegistry,
+    audit_registry_structure,
+    structural_pattern,
+)
 from dynamic_distillation.direct_steady_state_residual_v1 import (
     DirectResidualEvaluation,
     DirectSteadyStateProblem,
@@ -58,6 +63,49 @@ _STAGE_BLOCKS = (
         frozenset({"operating_specification"}),
     ),
 )
+
+_MERGED_STAGE_BLOCKS = (
+    (
+        "merged_local_conserved",
+        frozenset(
+            {
+                "local_thermo",
+                "phase_amount",
+                "liquid_composition",
+                "vapor_composition",
+                "conserved_component",
+                "conserved_energy",
+            }
+        ),
+        frozenset(
+            {
+                "local_component_closure",
+                "local_energy_closure",
+                "local_volume_closure",
+                "local_equilibrium",
+                "steady_component_balance",
+                "steady_energy_balance",
+            }
+        ),
+    ),
+    (
+        "liquid_hydraulics",
+        frozenset({"liquid_flow"}),
+        frozenset({"liquid_hydraulics"}),
+    ),
+    (
+        "vapor_pressure_drop",
+        frozenset({"vapor_flow"}),
+        frozenset({"vapor_pressure_drop"}),
+    ),
+    (
+        "operating_specifications",
+        frozenset({"manipulated_variable"}),
+        frozenset({"operating_specification"}),
+    ),
+)
+
+DD074_STATE_SCHEMA = "dd074-merged-continuation-v1"
 
 
 @dataclass(frozen=True)
@@ -130,6 +178,33 @@ class DirectContinuationResult:
     final_gate_failures: tuple[str, ...]
     physical_final_matches_direct_evaluator: bool
     reason: str
+
+
+@dataclass(frozen=True)
+class ContinuationStageStructure:
+    number: int
+    name: str
+    unknown_count: int
+    residual_count: int
+    physical_structural_rank: int
+    physical_structural_nullity: int
+    empty_residuals: tuple[str, ...]
+    unused_unknowns: tuple[str, ...]
+    unmatched_residuals: tuple[str, ...]
+    unmatched_unknowns: tuple[str, ...]
+    variable_identity_anchors: bool
+    pass_gate: bool
+
+
+@dataclass(frozen=True)
+class MergedContinuationStructureAudit:
+    expected_sizes: tuple[int, ...]
+    actual_sizes: tuple[int, ...]
+    stages: tuple[ContinuationStageStructure, ...]
+    conserved_dependency_paths_pass: bool
+    failed_conserved_dependency_paths: tuple[str, ...]
+    pass_gate: bool
+    decision: str
 
 
 def build_continuation_stages(problem: DirectSteadyStateProblem) -> tuple[ContinuationStage, ...]:
@@ -294,6 +369,241 @@ def build_continuation_stages(problem: DirectSteadyStateProblem) -> tuple[Contin
             )
         )
     return tuple(stages)
+
+
+def build_merged_continuation_stages(
+    problem: DirectSteadyStateProblem,
+) -> tuple[ContinuationStage, ...]:
+    """Build the DD-074 four-stage proposal with variable-order identity anchors."""
+    registry = problem.registry
+    active_unknown_blocks: set[str] = set()
+    active_residual_blocks: set[str] = set()
+    stages: list[ContinuationStage] = []
+    for stage_number, (name, new_unknown_blocks, new_residual_blocks) in enumerate(
+        _MERGED_STAGE_BLOCKS, start=1
+    ):
+        active_unknown_blocks.update(new_unknown_blocks)
+        active_residual_blocks.update(new_residual_blocks)
+        unknown_indices = tuple(
+            index
+            for index, entry in enumerate(registry.unknowns)
+            if entry.block in active_unknown_blocks
+        )
+        residual_indices = tuple(
+            index
+            for index, entry in enumerate(registry.residuals)
+            if entry.block in active_residual_blocks
+        )
+        new_unknown_indices = tuple(
+            index
+            for index, entry in enumerate(registry.unknowns)
+            if entry.block in new_unknown_blocks
+        )
+        new_residual_indices = tuple(
+            index
+            for index, entry in enumerate(registry.residuals)
+            if entry.block in new_residual_blocks
+        )
+        if len(unknown_indices) != len(residual_indices):
+            raise ValueError(
+                f"DD-074 stage {stage_number} is not square: "
+                f"{len(unknown_indices)} unknowns, {len(residual_indices)} residuals"
+            )
+        if len(new_unknown_indices) != len(new_residual_indices):
+            raise ValueError(f"DD-074 stage {stage_number} release is not square")
+        anchors = tuple(zip(new_residual_indices, new_unknown_indices))
+        stages.append(
+            ContinuationStage(
+                number=stage_number,
+                name=name,
+                unknown_indices=unknown_indices,
+                residual_indices=residual_indices,
+                new_unknown_indices=new_unknown_indices,
+                new_residual_indices=new_residual_indices,
+                anchor_unknown_by_residual=anchors,
+                anchor_sign_by_residual=tuple(
+                    (residual_index, 1.0)
+                    for residual_index in new_residual_indices
+                ),
+            )
+        )
+    return tuple(stages)
+
+
+def _has_dependency_path(
+    problem: DirectSteadyStateProblem,
+    *,
+    unknown_name: str,
+    residual_name: str,
+    allowed_unknowns: set[str],
+    allowed_residuals: set[str],
+) -> bool:
+    registry = problem.registry
+    adjacency: dict[str, set[str]] = {}
+    for residual in registry.residuals:
+        if residual.name not in allowed_residuals:
+            continue
+        residual_key = f"r:{residual.name}"
+        for dependency in residual.dependencies:
+            if dependency not in allowed_unknowns:
+                continue
+            unknown_key = f"u:{dependency}"
+            adjacency.setdefault(residual_key, set()).add(unknown_key)
+            adjacency.setdefault(unknown_key, set()).add(residual_key)
+    start = f"u:{unknown_name}"
+    target = f"r:{residual_name}"
+    pending = [start]
+    visited = {start}
+    while pending:
+        current = pending.pop()
+        if current == target:
+            return True
+        for neighbor in adjacency.get(current, ()):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                pending.append(neighbor)
+    return False
+
+
+def audit_merged_continuation_structure(
+    problem: DirectSteadyStateProblem,
+) -> MergedContinuationStructureAudit:
+    """Apply the structural-only DD-074 authorization gate."""
+    registry = problem.registry
+    stages = build_merged_continuation_stages(problem)
+    full_pattern = structural_pattern(registry)
+    stage_results: list[ContinuationStageStructure] = []
+    for stage in stages:
+        physical = full_pattern[list(stage.residual_indices), :][
+            :, list(stage.unknown_indices)
+        ].tocsr()
+        row_counts = np.asarray(physical.getnnz(axis=1), dtype=int)
+        column_counts = np.asarray(physical.getnnz(axis=0), dtype=int)
+        rank = int(structural_rank(physical))
+        subregistry = DirectSteadyStateRegistry(
+            component_names=registry.component_names,
+            active_stage_ids=registry.active_stage_ids,
+            unknowns=tuple(registry.unknowns[index] for index in stage.unknown_indices),
+            residuals=tuple(
+                registry.residuals[index] for index in stage.residual_indices
+            ),
+            deliberate_eliminations=registry.deliberate_eliminations,
+        )
+        matching = audit_registry_structure(subregistry)
+        identity_anchors = bool(
+            len(stage.anchor_unknown_by_residual)
+            == len(stage.new_unknown_indices)
+            and all(sign == 1.0 for _, sign in stage.anchor_sign_by_residual)
+            and tuple(
+                residual for residual, _ in stage.anchor_unknown_by_residual
+            )
+            == stage.new_residual_indices
+            and tuple(
+                unknown for _, unknown in stage.anchor_unknown_by_residual
+            )
+            == stage.new_unknown_indices
+        )
+        empty_rows = tuple(
+            registry.residuals[stage.residual_indices[index]].name
+            for index in np.flatnonzero(row_counts == 0)
+        )
+        unused_columns = tuple(
+            registry.unknowns[stage.unknown_indices[index]].name
+            for index in np.flatnonzero(column_counts == 0)
+        )
+        passed = bool(
+            stage.size == len(stage.residual_indices)
+            and rank == stage.size
+            and not empty_rows
+            and not unused_columns
+            and identity_anchors
+        )
+        stage_results.append(
+            ContinuationStageStructure(
+                number=stage.number,
+                name=stage.name,
+                unknown_count=stage.size,
+                residual_count=len(stage.residual_indices),
+                physical_structural_rank=rank,
+                physical_structural_nullity=stage.size - rank,
+                empty_residuals=empty_rows,
+                unused_unknowns=unused_columns,
+                unmatched_residuals=matching.unmatched_residuals,
+                unmatched_unknowns=matching.unmatched_unknowns,
+                variable_identity_anchors=identity_anchors,
+                pass_gate=passed,
+            )
+        )
+
+    first = stages[0]
+    allowed_unknowns = {
+        registry.unknowns[index].name for index in first.unknown_indices
+    }
+    allowed_residuals = {
+        registry.residuals[index].name for index in first.residual_indices
+    }
+    failed_paths: list[str] = []
+    for unknown in registry.unknowns:
+        if unknown.name not in allowed_unknowns:
+            continue
+        if unknown.block == "conserved_component":
+            suffix = unknown.name[len("N[") :]
+            target = f"component_balance[{suffix}"
+        elif unknown.block == "conserved_energy":
+            suffix = unknown.name[len("U[") :]
+            target = f"energy_balance[{suffix}"
+        else:
+            continue
+        if not _has_dependency_path(
+            problem,
+            unknown_name=unknown.name,
+            residual_name=target,
+            allowed_unknowns=allowed_unknowns,
+            allowed_residuals=allowed_residuals,
+        ):
+            failed_paths.append(f"{unknown.name} -> {target}")
+
+    expected = (240, 258, 277, 281)
+    actual = tuple(stage.size for stage in stages)
+    passed = bool(
+        actual == expected
+        and all(stage.pass_gate for stage in stage_results)
+        and not failed_paths
+    )
+    decision = (
+        "DD-074 structural gates pass; one bounded merged-stage live attempt is authorized."
+        if passed
+        else (
+            "DD-074 structural gates fail. Do not run the merged-stage live solve; "
+            "retire manual staged continuation under the predefined hard stop."
+        )
+    )
+    return MergedContinuationStructureAudit(
+        expected_sizes=expected,
+        actual_sizes=actual,
+        stages=tuple(stage_results),
+        conserved_dependency_paths_pass=not failed_paths,
+        failed_conserved_dependency_paths=tuple(failed_paths),
+        pass_gate=passed,
+        decision=decision,
+    )
+
+
+def validate_continuation_state_schema(
+    archive: object,
+    *,
+    expected_schema: str = DD074_STATE_SCHEMA,
+) -> None:
+    """Reject restart artifacts that do not explicitly declare the DD-074 schema."""
+    try:
+        schema_value = archive["schema_id"]  # type: ignore[index]
+    except Exception as exc:
+        raise ValueError("continuation state archive has no schema_id") from exc
+    schema = str(np.asarray(schema_value).item())
+    if schema != expected_schema:
+        raise ValueError(
+            f"continuation state schema {schema!r} does not match {expected_schema!r}"
+        )
 
 
 class SmoothPhysicalCoordinates:

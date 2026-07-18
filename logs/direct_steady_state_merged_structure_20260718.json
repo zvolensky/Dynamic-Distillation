@@ -1,0 +1,118 @@
+{
+  "classification": "dd074_structural_gate_failed_manual_continuation_retired",
+  "pass_gate": false,
+  "decision": "DD-074 fails before a live solve. The merged 240 x 240 physical block has structural rank 239 and nullity 1. Under the predefined hard stop, retire manual staged continuation and pivot architectures.",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_preserved_mv18_20260524.xlsx",
+  "state_schema": "dd074-merged-continuation-v1",
+  "structure": {
+    "expected_sizes": [
+      240,
+      258,
+      277,
+      281
+    ],
+    "actual_sizes": [
+      240,
+      258,
+      277,
+      281
+    ],
+    "stages": [
+      {
+        "number": 1,
+        "name": "merged_local_conserved",
+        "unknown_count": 240,
+        "residual_count": 240,
+        "physical_structural_rank": 239,
+        "physical_structural_nullity": 1,
+        "empty_residuals": [],
+        "unused_unknowns": [],
+        "unmatched_residuals": [
+          "component_balance[partial_reboiler,n-Pentane]"
+        ],
+        "unmatched_unknowns": [
+          "NV[partial_reboiler]"
+        ],
+        "variable_identity_anchors": true,
+        "pass_gate": false
+      },
+      {
+        "number": 2,
+        "name": "liquid_hydraulics",
+        "unknown_count": 258,
+        "residual_count": 258,
+        "physical_structural_rank": 258,
+        "physical_structural_nullity": 0,
+        "empty_residuals": [],
+        "unused_unknowns": [],
+        "unmatched_residuals": [],
+        "unmatched_unknowns": [],
+        "variable_identity_anchors": true,
+        "pass_gate": true
+      },
+      {
+        "number": 3,
+        "name": "vapor_pressure_drop",
+        "unknown_count": 277,
+        "residual_count": 277,
+        "physical_structural_rank": 277,
+        "physical_structural_nullity": 0,
+        "empty_residuals": [],
+        "unused_unknowns": [],
+        "unmatched_residuals": [],
+        "unmatched_unknowns": [],
+        "variable_identity_anchors": true,
+        "pass_gate": true
+      },
+      {
+        "number": 4,
+        "name": "operating_specifications",
+        "unknown_count": 281,
+        "residual_count": 281,
+        "physical_structural_rank": 281,
+        "physical_structural_nullity": 0,
+        "empty_residuals": [],
+        "unused_unknowns": [],
+        "unmatched_residuals": [],
+        "unmatched_unknowns": [],
+        "variable_identity_anchors": true,
+        "pass_gate": true
+      }
+    ],
+    "conserved_dependency_paths_pass": true,
+    "failed_conserved_dependency_paths": [],
+    "pass_gate": false,
+    "decision": "DD-074 structural gates fail. Do not run the merged-stage live solve; retire manual staged continuation under the predefined hard stop."
+  },
+  "merged_unknown_counts": {
+    "conserved_component": 60,
+    "conserved_energy": 20,
+    "liquid_composition": 40,
+    "local_thermo": 40,
+    "phase_amount": 40,
+    "vapor_composition": 40
+  },
+  "merged_residual_counts": {
+    "local_component_closure": 60,
+    "local_energy_closure": 20,
+    "local_equilibrium": 60,
+    "local_volume_closure": 20,
+    "steady_component_balance": 60,
+    "steady_energy_balance": 20
+  },
+  "endpoint_checks": {
+    "lambda_zero_identity_max_error": 0.0,
+    "merged_lambda_one_max_error": 0.0,
+    "final_lambda_one_max_error": 0.0,
+    "component_conservation_pass": true,
+    "component_relative_error": [
+      1.9099086971657343e-16,
+      1.0743227397388822e-16,
+      1.6841591403218605e-16
+    ],
+    "energy_conservation_pass": true,
+    "energy_relative_error": 2.7238623174510396e-16
+  },
+  "live_solve_authorized": false,
+  "live_solve_attempted": false
+}

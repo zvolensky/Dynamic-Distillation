@@ -260,6 +260,7 @@ Current status:
 - DD-071 registry: separate reboiler and sump states produce `291` unknowns and `290` residuals because their connecting liquid outlet has no owner. A combined conserved bottom control volume produces a square, structurally full-rank `281 x 281` registry with no empty rows, unused columns, or missing owners.
 - DD-072 numerical gate: all `281` direct residuals evaluate with live DWSIM PR at the ChemSep, bounded-perturbation, and checkpoint guesses. Component and energy equations telescope near machine precision. ChemSep and perturbed Jacobians retain rank `281` at `h` and `h/2`, and an uncolored reference finds zero numerical dependencies outside the registry graph. The condition estimate remains high (`1.3e8` at ChemSep and up to `2.4e9` at the perturbation), so this authorizes bounded staged continuation only.
 - DD-073 continuation gate: the approved `160/240/258/277/281` transformed continuation is implemented, but two live DWSIM PR paths stop in Stage 1 while retaining full rank and exact conservation. Direct Stage 1 endpoint diagnostics also leave an approximately `2.1e-4` scaled residual floor. Holding ChemSep-derived conserved `N/U` fixed while reconciling phase states is therefore not an accepted first stage. Release ordering must change before another full continuation.
+- DD-074 merged-stage gate: the final release-order redesign produces the exact `240/258/277/281` counts, identity anchors, exact DD-072 endpoints, and machine-precision conservation. The merged `240 x 240` physical block has structural rank `239`, however, so the gate blocks a live solve and retires manual staged continuation.
 - UV/DAE architecture: local conserved-state viability and terminal bookkeeping are demonstrated; global hydraulic and terminal-equation closure remain unaccepted.
 
 ### 9.1 Local Thermodynamic Closure Gate
@@ -405,6 +406,14 @@ cannot reconcile local DWSIM phase states exactly while ChemSep-derived
 component inventory and internal energy remain fixed. The gate therefore
 requires release-order redesign instead of tolerance relaxation or further
 anchor tuning.
+
+DD-074 applies the final redesign and demonstrates the complementary stop:
+a stage can be square, conservative, and endpoint-exact while its physical
+dependency graph is still structurally singular. The merged `240 x 240`
+block has rank `239`; the live solve is therefore prohibited. Later stages
+recover rank only after liquid hydraulics are added, but creating a new
+hydraulics-first release sequence would violate the predefined hard stop.
+Manual staged continuation is retired.
 
 ## Where Gates Are Used In The Workflow
 

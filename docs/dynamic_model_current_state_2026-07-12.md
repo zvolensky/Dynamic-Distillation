@@ -101,6 +101,19 @@ tolerances. Revise the release ordering so conserved and phase states move
 together before another direct solve. See
 `docs/dd_073_direct_steady_state_continuation_20260718.md`.
 
+DD-074 completed that final release-order audit without a live solve. The
+merged local/conserved stage has the required `240` unknowns and `240`
+physical residuals, exact variable-coordinate anchors, exact DD-072
+lambda-one identity, and machine-precision conservation. Its physical
+structural rank is only `239`, with one unmatched bottom vapor inventory and
+bottom heavy-component balance. The later `258/277/281` systems recover full
+rank, but promoting hydraulics into another first-stage variant is prohibited
+by the DD-074 hard stop. Manual staged continuation is retired. The next
+architecture must address the complete physical system at once, use
+pseudo-transient or DAE/nonlinear methods with stronger derivatives, or
+validate a reduced column before returning to the full case. See
+`docs/dd_074_merged_continuation_structural_audit_20260718.md`.
+
 ## Executive assessment
 
 The repository now contains a credible, numerically stable, controlled C3/C4 operating checkpoint and a strong supporting platform for thermo integration, controls, diagnostics, continuation, reporting, and model investigation.

@@ -7,10 +7,13 @@ from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_c
 from dynamic_distillation.direct_steady_state_continuation_v1 import (
     AdaptiveLambdaController,
     SmoothPhysicalCoordinates,
+    audit_merged_continuation_structure,
     build_continuation_stages,
+    build_merged_continuation_stages,
     evaluate_stage_homotopy,
     finite_difference_stage_jacobian,
     stage_structural_pattern,
+    validate_continuation_state_schema,
 )
 from dynamic_distillation.direct_steady_state_registry_v1 import (
     build_direct_steady_state_registry,
@@ -232,3 +235,135 @@ def test_dd073_adaptive_controller_growth_reduction_and_stop():
     assert controller.consecutive_reductions <= (
         controller.maximum_consecutive_reductions
     )
+
+
+def test_dd074_merged_stage_counts_and_structural_hard_stop(
+    continuation_problem,
+):
+    audit = audit_merged_continuation_structure(continuation_problem)
+
+    assert audit.actual_sizes == (240, 258, 277, 281)
+    assert [
+        stage.physical_structural_rank for stage in audit.stages
+    ] == [239, 258, 277, 281]
+    assert audit.stages[0].physical_structural_nullity == 1
+    assert audit.stages[0].empty_residuals == ()
+    assert audit.stages[0].unused_unknowns == ()
+    assert audit.stages[0].unmatched_unknowns == (
+        "NV[partial_reboiler]",
+    )
+    assert audit.stages[0].unmatched_residuals == (
+        "component_balance[partial_reboiler,n-Pentane]",
+    )
+    assert audit.conserved_dependency_paths_pass
+    assert audit.pass_gate is False
+    assert "Do not run" in audit.decision
+
+
+def test_dd074_merged_stage_uses_variable_order_identity_anchors(
+    continuation_problem,
+):
+    guess, evaluation, coordinates = _coordinates(continuation_problem)
+    stage = build_merged_continuation_stages(continuation_problem)[0]
+    encoded = coordinates.encode(guess, stage.unknown_indices)
+    trial = encoded + np.linspace(-1.0e-4, 1.0e-4, stage.size)
+
+    at_zero = evaluate_stage_homotopy(
+        continuation_problem,
+        stage,
+        coordinates,
+        trial,
+        0.0,
+        evaluation.residual_scales,
+    )
+    assert np.array_equal(at_zero.vector, trial)
+    assert all(sign == 1.0 for _, sign in stage.anchor_sign_by_residual)
+    assert tuple(
+        unknown for _, unknown in stage.anchor_unknown_by_residual
+    ) == stage.new_unknown_indices
+
+
+def test_dd074_anchor_jacobian_is_identity_in_solver_coordinates(
+    continuation_problem,
+):
+    guess, evaluation, coordinates = _coordinates(continuation_problem)
+    stage = build_merged_continuation_stages(continuation_problem)[0]
+    encoded = coordinates.encode(guess, stage.unknown_indices)
+    pattern = stage_structural_pattern(continuation_problem, stage)
+
+    def residual(value):
+        return evaluate_stage_homotopy(
+            continuation_problem,
+            stage,
+            coordinates,
+            value,
+            0.0,
+            evaluation.residual_scales,
+        ).vector
+
+    jacobian = finite_difference_stage_jacobian(
+        residual, encoded, pattern, mode="colored"
+    ).toarray()
+    assert np.allclose(
+        jacobian, np.eye(stage.size), rtol=0.0, atol=1.0e-12
+    )
+
+
+def test_dd074_merged_and_final_physical_endpoint_identity(
+    continuation_problem,
+):
+    guess, evaluation, coordinates = _coordinates(continuation_problem)
+    stages = build_merged_continuation_stages(continuation_problem)
+    for stage in (stages[0], stages[-1]):
+        encoded = coordinates.encode(guess, stage.unknown_indices)
+        endpoint = evaluate_stage_homotopy(
+            continuation_problem,
+            stage,
+            coordinates,
+            encoded,
+            1.0,
+            evaluation.residual_scales,
+        )
+        expected = (
+            evaluation.raw[list(stage.residual_indices)]
+            / evaluation.residual_scales[list(stage.residual_indices)]
+        )
+        assert np.array_equal(endpoint.vector, expected)
+        assert np.array_equal(endpoint.physical.raw, evaluation.raw)
+
+
+def test_dd074_merged_colored_and_uncolored_jacobians_match(
+    continuation_problem,
+):
+    guess, evaluation, coordinates = _coordinates(continuation_problem)
+    stage = build_merged_continuation_stages(continuation_problem)[0]
+    encoded = coordinates.encode(guess, stage.unknown_indices)
+    pattern = stage_structural_pattern(continuation_problem, stage)
+
+    def residual(value):
+        return evaluate_stage_homotopy(
+            continuation_problem,
+            stage,
+            coordinates,
+            value,
+            0.25,
+            evaluation.residual_scales,
+        ).vector
+
+    colored = finite_difference_stage_jacobian(
+        residual, encoded, pattern, mode="colored"
+    ).toarray()
+    uncolored = finite_difference_stage_jacobian(
+        residual, encoded, pattern, mode="uncolored"
+    ).toarray()
+    assert np.allclose(colored, uncolored, rtol=0.0, atol=0.0)
+
+
+def test_dd074_rejects_dd073_restart_without_explicit_schema():
+    dd073_style_archive = {
+        "initial_vector": np.ones(281),
+        "accepted_vectors": np.empty((0, 281)),
+    }
+
+    with pytest.raises(ValueError, match="has no schema_id"):
+        validate_continuation_state_schema(dd073_style_archive)

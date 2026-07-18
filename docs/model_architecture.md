@@ -21,9 +21,22 @@ See `docs/dynamic_column_initialization_strategy.md` for the mathematical founda
 See `docs/initialization_code_status.md` for the current support status of initialization, reconciliation, and startup-homotopy tooling.
 See `docs/dynamic_model_current_state_2026-07-12.md` for the latest C3/C4 model-state summary and external-review framing.
 
+2026-07-18 architecture decision: DD-075 retires the current direct conserved
+steady-state formulation as a production initializer path. The external
+review confirms that the v1 runtime is best described as a sequential hybrid,
+not a completed DAE. V2 will be a separately derived equilibrium-stage DAE
+with one owner per quantity. Its first layer deliberately uses prescribed
+pressure, negligible vapor holdup, conserved component/internal-energy
+states, algebraic equilibrium, Francis-only liquid flow, and one simplified
+vapor-traffic law. See
+`docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
-2026-07-08 status note: the current best C3/C4 behavior is a bounded 900 s linear-steady/equilibrium-guard checkpoint run. It is a regression baseline, not proof that the full dynamic model is validated. The remaining issues are runtime coupling issues across pressure, vapor transport, energy closure, equilibrium targets, and boundary ownership. A broader implicit simultaneous solve may be the long-term architecture, but it should be introduced incrementally by promoting one closure family at a time and checking against the existing residual audits and dynamic gate.
+Historical 2026-07-08 status note, superseded by DD-075/DD-076: the
+bounded C3/C4 checkpoint was treated as a regression baseline while a broader
+implicit solve remained under consideration. DD-075 subsequently retired that
+full-system path, and DD-076 replaces it with a clean derivation-first model.
 
 2026-07-08 sequencing note: before committing engineering time to an implicit simultaneous solve, run the longer baseline gate and a focused vapor-material audit on the localized no-energy/checkpoint residual family. Recent history shows several apparent architecture problems were actually concrete consistency bugs in the current explicit path.
 
@@ -31,7 +44,14 @@ See `docs/dynamic_model_current_state_2026-07-12.md` for the latest C3/C4 model-
 
 2026-07-12 equilibrium-gate correction: raw `K_state=y/x` cannot generally be compared directly with raw thermo `K` because vapor targets are normalized by `sum(K*x)`. Model-health claims require the rate gate plus normalized interior `y-y_target` consistency. `tools/audit_k_state_drift.py` retains raw-K context but no longer treats it as the physical acceptance metric.
 
-2026-07-12 tray-flow ownership finding: DD-058's section-wise liquid-flow plateaus are a structural consequence of profile-blended liquid hydraulics plus composition-only equilibrium transfer at fixed phase totals. DD-060 proved that directly applying a full fixed-T/P flash phase target is not an energy-conserving remedy. The existing stage UV solver converges on representative C3/C4 states, but the live state also permits hydraulic pressure and vapor-holdup pressure to disagree. A rigorous next architecture must give conserved component totals/internal energy differential ownership and solve phase split, temperature, pressure, and vapor traffic as a coupled UV/volume algebraic block. See `docs/dd_060_physics_owned_tray_flow_probe_20260712.md`.
+2026-07-12 tray-flow ownership finding: DD-058's section-wise liquid-flow
+plateaus are a structural consequence of profile-blended liquid hydraulics
+plus composition-only equilibrium transfer at fixed phase totals. DD-060
+proved that directly applying a full fixed-T/P flash phase target is not an
+energy-conserving remedy. DD-076 retains conserved component/energy ownership
+but no longer attempts to add phase split, hydraulic pressure, and vapor
+inventory simultaneously. Those layers now have separate authorization gates.
+See `docs/dd_060_physics_owned_tray_flow_probe_20260712.md`.
 
 2026-07-08 equilibrium-transfer guard tradeoff: the component-transfer guard is now a central coupling issue. Multiplier `1.0` suppresses the dynamic vapor wave better but leaves persistent K drift; multiplier `1.5` improves K consistency but worsens the rate-based wave. This argues for a root-cause review of the guarded equilibrium-transfer formulation and its transport inputs before promoting either setting as the runtime default.
 
@@ -346,5 +366,13 @@ Duplicate command identity:
 
 ## 12) Future Architecture Options
 
-Larger refactor option:
-- move to a broader implicit simultaneous solve (DAE/NL system across pressure, vapor flow, energy, and phase terms).
+The former option to broaden the existing runtime into one large implicit
+solve is retired by DD-075. The selected future architecture is the isolated
+equilibrium-DAE v2 contract in
+`docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
+
+The first authorized implementation increment is limited to a new-namespace
+control-volume/equation registry, structural audit, and reproduction of the
+accepted source-equation validation. It does not include live DWSIM, Francis
+hydraulics, pressure dynamics, vapor holdup, controllers, or production
+integration.

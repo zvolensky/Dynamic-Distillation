@@ -119,13 +119,19 @@ Before claiming rigorous dynamic validation for a case involving real components
    - accepted source-topology material parity,
    - useful full-topology material-reconciliation diagnostic,
    - not full rigorous dynamic validation.
-3. Use the C3/C4 case as the near-term development diagnostic for full-topology phase-holdup behavior because it shows the same class of issue with less severe source mismatch.
-4. Write or implement a feed-stage phase/energy reconciliation design before attempting another full rigorous validation claim.
-5. Resolve total-condenser energy ownership (`DD-033`) so condenser duty is not deposited into a zero-holdup tray state.
-6. Review the energy/vapor-flow closure equations and topology before running more broad residual-solver variants; then use the residual audit and dynamic gate to evaluate any proposed fix.
-7. Use the current 900 s C3/C4 baseline as a regression target while pressure/vapor-flow/energy/equilibrium coupling is repaired.
-8. Add the liquid-inventory depletion audit to C3/C4 regression evidence before treating any long-horizon run as healthy.
-9. Continue searching for a validation source whose topology, feed treatment, thermo, and dynamic outputs are sufficiently specified to avoid retrofitting the model around missing assumptions.
+3. Preserve C3/C4 DD-058 as an operational regression checkpoint, not the
+   foundation for another initializer or solver variant.
+4. Implement the DD-076 equilibrium-DAE v2 gates in order, beginning with
+   source-equation assembly and one-volume energy/property closure.
+5. Require one independently reproduced five-volume steady reference with
+   Francis as the sole liquid-flow owner before production tray count.
+6. Add hydraulic pressure only after the prescribed-pressure,
+   negligible-vapor-holdup model passes steady and dynamic gates.
+7. Add explicit vapor inventory only as a separately derived final layer with
+   a new ownership and index audit.
+8. Continue searching for validation sources whose topology, thermo, feed,
+   pressure, energy, and dynamic outputs are sufficiently specified to avoid
+   fitting the model around missing assumptions.
 
 ## Bottom Line
 

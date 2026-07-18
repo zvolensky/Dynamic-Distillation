@@ -242,6 +242,16 @@ stop, the present direct conserved formulation is retired as a production
 initializer architecture. Full-system pseudo-transient work, reduced
 tray-count variants, and solver tuning on this formulation are not authorized.
 
+DD-076 starts a replacement architecture at the derivation level. It selects
+an equilibrium-stage DAE rather than a rate-based model and requires a
+control-volume diagram, one-owner table, complete differential/algebraic
+classification, equations, degrees of freedom, exclusions, and phased gates
+before implementation. The first layer uses prescribed pressure, negligible
+vapor holdup, conserved component/internal-energy states, algebraic
+equilibrium, Francis-only liquid flow, and one simplified vapor-traffic law.
+No v2 initializer is authorized until the natural model first proves a known
+steady state and clean short dynamics.
+
 ## Current Implementation Direction
 
 The current recommended direction is:
@@ -258,6 +268,7 @@ The current recommended direction is:
 - require continuation stages to prove endpoint feasibility, not merely full rank, and redesign release ordering when fixed unreleased conserved states block local closure,
 - retire manual staged continuation when the final merged release-order endpoint is structurally singular; do not create another first-stage variation,
 - require one fixed five-volume feasibility study before authorizing full-system pseudo-transient work; retire the present direct conserved formulation when that reduced system fails both fixed trust-region and pseudo-transient methods without a physical root,
+- derive and validate the replacement equilibrium-DAE model before writing another initializer; initialization is downstream of a natural-model steady-state proof,
 - use relaxation/homotopy only as startup or solve stabilizers, not as proof of a steady initial condition,
 - prefer native checkpoint-style serialization for accepted seeds,
 - treat Excel-only checkpoint-guided exports as diagnostic bridges until they pass reload tests with startup/re-entry conditioning disabled,

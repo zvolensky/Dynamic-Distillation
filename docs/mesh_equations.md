@@ -1,6 +1,11 @@
 **MESH Equations (Current Model)**
 This document reflects the equations in `src/dynamic_distillation/column_rhs_v1.py`.
 
+Architecture status (2026-07-18): these are the preserved v1 sequential-hybrid
+equations. They are not the governing specification for equilibrium-DAE v2.
+The v2 ownership and equation contract is
+`docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
+
 **State And Notation**
 ```
 i = stage index (1..N), 1 = condenser, N = reboiler tray

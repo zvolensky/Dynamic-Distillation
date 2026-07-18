@@ -219,6 +219,18 @@ That redesign must remain isolated. The accepted DD-058 implementation and
 defaults remain frozen as the operational development baseline, and the
 validated source-topology model remains the correctness anchor.
 
+DD-076 now defines that redesign before implementation. The selected family is
+an equilibrium-stage DAE, not a rate-based model. Its first layer prescribes
+pressure, neglects tray vapor holdup, stores total component inventory and
+internal energy, solves temperature and equilibrium compositions
+algebraically, gives Francis hydraulics sole ownership of liquid flow, and
+uses one declared simplified vapor-traffic law. The contract defines the
+total condenser, reflux drum, interior trays, combined reboiler/sump,
+governing equations, operating degrees of freedom, explicit exclusions,
+phased gates, and stop rules. No v2 model code is authorized until that
+contract is reviewed. See
+`docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
+
 ## Acceptance language
 
 Use these descriptions consistently:
@@ -228,6 +240,9 @@ Use these descriptions consistently:
 - **Retired initializer architecture**: DD-060 through DD-075 conserved direct
   steady-state and manual continuation work is preserved as diagnostic
   evidence but is not authorized for additional solver development.
+- **Selected replacement architecture**: DD-076 equilibrium-DAE v2 has an
+  architecture and equation-count contract but is not yet implemented or
+  validated.
 
 ## Supporting documents
 
@@ -236,6 +251,8 @@ Use these descriptions consistently:
 - `docs/dd_065_frozen_checkpoint_uv_hydraulic_closure_20260717.md`
 - `docs/dd_066_terminal_conserved_inventory_mapping_20260717.md`
 - `docs/dd_067_conservative_energy_redistribution_probe_20260717.md`
+- `docs/dd_075_reduced_column_feasibility_20260718.md`
+- `docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`
 - `docs/gates_explained.md`
 - `docs/issue_log.md`
 - `docs/model_architecture.md`

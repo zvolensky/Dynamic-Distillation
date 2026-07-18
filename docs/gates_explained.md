@@ -256,6 +256,7 @@ Current status:
 - DD-067: energy-only conservative redistribution can produce ordered local UV pressure with exact whole-column conservation, but the pressure-isotonic construction moves `9.32%` of energy inventory on an L1 basis and excludes hydraulics; feasibility therefore passes while initializer acceptance remains blocked.
 - DD-068: normalized L2 component-and-energy redistribution finds one local basin from two independent starts, but three of five starts fail, energy movement is `1.356` times DD-067, maximum pressure movement remains `79.159 psi`, and terminal assemblies absorb `80.3%` of absolute energy movement; the robustness and movement gates therefore stop the workflow before hydraulics.
 - DD-069: `U=H-PV`, phase aggregation, mapped-U provenance, and empty-placeholder invariance pass, but sump fixed-volume reconstruction misses by `51.47%`, representative interior controls miss volume by `17%` to `38%`, stored-H mismatch reaches `233%`, and normalized energy-movement cost varies by a factor of `4134.77`; correct these bases before repeating redistribution.
+- DD-070: canonical live-property energy, neutral whole-column scaling, and a liquid-only sump reduce the best energy movement to `159,739 BTU` and maximum pressure correction to `23.335 psi`, but only one of five starts converges and the checkpoint enthalpy mismatch is state-dependent; the bounded retry fails and checkpoint repair is retired.
 - UV/DAE architecture: local conserved-state viability and terminal bookkeeping are demonstrated; global hydraulic and terminal-equation closure remain unaccepted.
 
 ### 9.1 Local Thermodynamic Closure Gate
@@ -334,6 +335,18 @@ Before interpreting a conservative redistribution:
 DD-069 demonstrates why this gate is needed. The algebraic `PV` conversion is
 correct, but the checkpoint phase states and DD-068 scaling are not neutral
 inputs to a physical least-movement interpretation.
+
+### 9.6 Bounded Repair Retirement Gate
+
+A checkpoint-repair branch must define its retry count and pass criteria
+before execution. Canonical mapping replacement is reported separately from
+optimizer movement. A failed bounded retry may not be converted into an
+unlimited tuning campaign.
+
+DD-070 demonstrates this gate. Corrected mapping and neutral scaling improved
+the magnitude of the candidate, but did not produce a reproducible solve.
+Checkpoint repair is therefore retired and the workflow advances to a direct
+steady-state conserved formulation.
 
 ## Where Gates Are Used In The Workflow
 

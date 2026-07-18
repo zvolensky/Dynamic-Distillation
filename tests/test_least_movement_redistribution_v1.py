@@ -93,6 +93,33 @@ def test_random_start_is_globally_conservative_and_positive():
     assert np.all(n0 + delta_n > 0.0)
 
 
+def test_column_common_scales_price_equal_physical_moves_equally():
+    provider = _FakeUvProvider()
+    targets = _targets(provider)
+    scales = build_movement_scales(
+        targets,
+        scale_mode="column-common",
+    )
+    assert np.allclose(
+        scales.component_lbmol,
+        np.tile(
+            np.sum(
+                np.vstack(
+                    [
+                        node.total_component_inventory_lbmol
+                        for node in targets
+                    ]
+                ),
+                axis=0,
+            ),
+            (len(targets), 1),
+        ),
+    )
+    assert np.all(scales.energy_BTU == scales.energy_BTU[0])
+    equal_move_cost = np.square(1000.0 / scales.energy_BTU)
+    assert np.all(equal_move_cost == equal_move_cost[0])
+
+
 def test_least_movement_solver_orders_pressure_with_exact_conservation():
     provider = _FakeUvProvider()
     targets = _targets(provider)

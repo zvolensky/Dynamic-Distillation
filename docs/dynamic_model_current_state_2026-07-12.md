@@ -54,18 +54,23 @@ stored-H mismatch reaches `233%`. DD-068 also prices the same `1000 BTU`
 terminal move at only `0.000418` to `0.002956` times the median interior cost.
 Its terminal concentration is therefore partly an objective-scaling artifact.
 
-This sharpens, rather than reverses, the architecture conclusion below:
-conserved-state local thermo is viable, but the current checkpoint mapping
-must not proceed to hydraulics. Neutralize redistribution energy scaling,
-resolve sump vapor-space ownership, and reconcile stored phase enthalpy with
-the live property basis before one bounded repeat. If corrected redistribution
-still fails, replace checkpoint repair with a full steady-state conserved-state
-solve from operating specifications. See
+DD-070 performed that one bounded repeat. It rebuilt internal energy from live
+DWSIM phase properties, selected a liquid-only sump topology, and used common
+whole-column movement scales. The best candidate improved to `159,739 BTU`
+of energy movement and `23.335 psi` maximum pressure correction, but only one
+of five starts converged. The checkpoint enthalpy mismatch is state-dependent,
+not a constant reference offset. Checkpoint repair is therefore retired.
+
+The architecture conclusion is now decisive: conserved-state local thermo is
+viable, but production initialization must use a direct steady-state
+conserved-state solve from operating specifications. Do not retune checkpoint
+projection or add hydraulics to the DD-070 candidate. See
 `docs/dd_065_frozen_checkpoint_uv_hydraulic_closure_20260717.md`,
 `docs/dd_066_terminal_conserved_inventory_mapping_20260717.md`,
 `docs/dd_067_conservative_energy_redistribution_probe_20260717.md`,
 `docs/dd_068_least_movement_redistribution_20260717.md`, and
-`docs/dd_069_terminal_energy_volume_basis_audit_20260717.md`.
+`docs/dd_069_terminal_energy_volume_basis_audit_20260717.md`, and
+`docs/dd_070_canonical_checkpoint_repair_20260717.md`.
 
 ## Executive assessment
 

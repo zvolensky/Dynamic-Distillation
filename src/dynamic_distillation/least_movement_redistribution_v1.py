@@ -155,6 +155,7 @@ class _MovementLayout:
 def build_movement_scales(
     targets: Sequence[ConservativeNodeTarget],
     *,
+    scale_mode: str = "local-relative",
     component_fraction_floor: float = 1.0e-3,
     component_absolute_floor_lbmol: float = 1.0e-6,
     energy_per_mole_scale_BTU_lbmol: float = 1000.0,
@@ -168,23 +169,45 @@ def build_movement_scales(
         ]
     )
     total_node = np.sum(n0, axis=1)
-    component_scale = np.maximum(
-        n0,
-        float(component_fraction_floor) * total_node[:, None],
-    )
-    component_scale = np.maximum(
-        component_scale,
-        float(component_absolute_floor_lbmol),
-    )
     u0 = np.asarray(
         [node.total_internal_energy_BTU for node in nodes],
         dtype=float,
     )
-    energy_scale = np.maximum(
-        np.abs(u0),
-        total_node * float(energy_per_mole_scale_BTU_lbmol),
-    )
-    energy_scale = np.maximum(energy_scale, float(energy_absolute_floor_BTU))
+    mode = str(scale_mode).strip().lower()
+    if mode == "local-relative":
+        component_scale = np.maximum(
+            n0,
+            float(component_fraction_floor) * total_node[:, None],
+        )
+        component_scale = np.maximum(
+            component_scale,
+            float(component_absolute_floor_lbmol),
+        )
+        energy_scale = np.maximum(
+            np.abs(u0),
+            total_node * float(energy_per_mole_scale_BTU_lbmol),
+        )
+        energy_scale = np.maximum(
+            energy_scale,
+            float(energy_absolute_floor_BTU),
+        )
+    elif mode == "column-common":
+        component_column = np.maximum(
+            np.sum(n0, axis=0),
+            float(component_absolute_floor_lbmol),
+        )
+        component_scale = np.tile(component_column, (n0.shape[0], 1))
+        energy_column = max(
+            abs(float(np.sum(u0))),
+            float(np.sum(total_node))
+            * float(energy_per_mole_scale_BTU_lbmol),
+            float(energy_absolute_floor_BTU),
+        )
+        energy_scale = np.full(n0.shape[0], energy_column, dtype=float)
+    else:
+        raise ValueError(
+            "scale_mode must be 'local-relative' or 'column-common'"
+        )
     return MovementScales(
         component_lbmol=np.asarray(component_scale, dtype=float),
         energy_BTU=np.asarray(energy_scale, dtype=float),
@@ -351,21 +374,54 @@ def build_energy_only_pressure_profile_start(
         error = float("inf")
         shift = 0.5 * (left + right)
         for _ in range(30):
-            candidate = (
+            secant_candidate = (
                 left * f_right - right * f_left
             ) / (f_right - f_left)
-            candidate = float(
+            secant_candidate = float(
                 np.clip(
-                    candidate,
+                    secant_candidate,
                     left + 0.05 * (right - left),
                     right - 0.05 * (right - left),
                 )
             )
-            try:
-                error, candidate_rows = evaluate(candidate)
-            except (RuntimeError, ValueError):
-                candidate = 0.5 * (left + right)
-                error, candidate_rows = evaluate(candidate)
+            trial_shifts = [secant_candidate]
+            trial_shifts.extend(
+                left + fraction * (right - left)
+                for fraction in (
+                    0.5,
+                    0.25,
+                    0.75,
+                    0.125,
+                    0.375,
+                    0.625,
+                    0.875,
+                    0.05,
+                    0.95,
+                )
+            )
+            feasible = []
+            for trial_shift in trial_shifts:
+                try:
+                    trial_error, trial_rows = evaluate(float(trial_shift))
+                except (RuntimeError, ValueError):
+                    continue
+                feasible.append(
+                    (
+                        abs(float(trial_error)),
+                        float(trial_shift),
+                        float(trial_error),
+                        trial_rows,
+                    )
+                )
+            if not feasible:
+                raise RuntimeError(
+                    "linear pressure start has no feasible closure inside "
+                    "the global-energy bracket"
+                )
+            _absolute_error, candidate, error, candidate_rows = min(
+                feasible,
+                key=lambda item: item[0],
+            )
             shift = candidate
             rows = candidate_rows
             if abs(error) / max(abs(total_u), 1.0) < 1.0e-8:
@@ -776,6 +832,7 @@ def solve_least_movement_redistribution(
     *,
     provider: Any,
     targets: Sequence[ConservativeNodeTarget],
+    movement_scales: Optional[MovementScales] = None,
     initial_normalized_movement: Optional[Sequence[float]] = None,
     minimum_pressure_increment_psi: float = 0.01,
     maximum_outer_iterations: int = 8,
@@ -797,7 +854,26 @@ def solve_least_movement_redistribution(
         dtype=float,
     )
     layout = _MovementLayout(n0.shape[0], n0.shape[1])
-    scales = build_movement_scales(nodes)
+    scales = (
+        build_movement_scales(nodes)
+        if movement_scales is None
+        else movement_scales
+    )
+    component_scale = np.asarray(scales.component_lbmol, dtype=float)
+    energy_scale = np.asarray(scales.energy_BTU, dtype=float)
+    if component_scale.shape != n0.shape:
+        raise ValueError(
+            "movement component scales do not match target shape"
+        )
+    if energy_scale.shape != u0.shape:
+        raise ValueError("movement energy scales do not match target shape")
+    if (
+        np.any(~np.isfinite(component_scale))
+        or np.any(component_scale <= 0.0)
+        or np.any(~np.isfinite(energy_scale))
+        or np.any(energy_scale <= 0.0)
+    ):
+        raise ValueError("movement scales must be finite and positive")
     q = (
         np.zeros(layout.size, dtype=float)
         if initial_normalized_movement is None

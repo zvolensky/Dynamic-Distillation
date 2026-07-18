@@ -186,7 +186,7 @@ For production acceptance, the initializer should be able to run an optional che
 
 The dynamic gate should also reject candidates that hide a slow internal liquid inventory depletion. A run can look acceptable by rate metrics until a nearly empty internal liquid inventory produces a large explicit composition step. The profile-level audit for this failure mode is `tools/audit_liquid_inventory_depletion.py`; by default it evaluates internal stages and leaves top/bottom terminal equipment to boundary-specific checks.
 
-DD-065 through DD-068 are the current acceptance example. All active interior
+DD-065 through DD-070 are the current acceptance example. All active interior
 trays passed local component/energy/volume UV closure, and terminal inventory
 bookkeeping closes numerically. The frozen global pressure/vapor-flow solve
 still fails with a reversed locally implied pressure profile, large hydraulic
@@ -199,7 +199,9 @@ of absolute energy movement. DD-069 shows that the `PV` conversion and phase
 aggregation are correct, but the checkpoint's phase volumes and stored
 enthalpies are inconsistent with the mapped conserved basis and the DD-068
 objective makes equal physical energy movement much cheaper at terminal
-nodes. The correct classification remains
+nodes. DD-070 corrects those bases and reduces movement, but only one of five
+starts converges and the serialized enthalpy mismatch is state-dependent.
+Checkpoint repair is therefore retired. The correct classification remains
 `local_uv_passed_global_hydraulics_failed`, not an accepted seed and not a
 reason to launch hydraulics or a longer dynamic settling run.
 
@@ -214,6 +216,8 @@ The current recommended direction is:
 - minimize and report scaled conserved-state movement from the reference seed instead of treating any conservative feasible point as acceptable,
 - require multi-start convergence and report terminal-versus-interior movement before calling a least-movement basin robust,
 - audit H/U/PV, phase-volume reconstruction, placeholder invariance, and physical movement cost before interpreting a redistribution objective,
+- build conserved energy from one canonical live-property basis and record any mapping replacement separately from optimizer movement,
+- retire checkpoint projection when its predefined corrected retry fails and formulate the direct operating-specification steady-state system,
 - use relaxation/homotopy only as startup or solve stabilizers, not as proof of a steady initial condition,
 - prefer native checkpoint-style serialization for accepted seeds,
 - treat Excel-only checkpoint-guided exports as diagnostic bridges until they pass reload tests with startup/re-entry conditioning disabled,

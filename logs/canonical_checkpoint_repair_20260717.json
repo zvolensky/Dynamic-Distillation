@@ -1,0 +1,4390 @@
+{
+  "classification": "dd070_checkpoint_repair_retired",
+  "checkpoint_repair_decision": "retire_checkpoint_repair",
+  "decision": "Retire checkpoint repair. The one permitted corrected attempt failed: at_least_4_of_5_starts_converged; objective_basin_reproduced; movement_pattern_reproduced; enthalpy_reconciliation_not_state_dependent. Formulate the direct conserved steady-state solve from operating specifications. Do not retune this optimizer or add hydraulics to the rejected state.",
+  "one_shot_policy": {
+    "permitted_corrected_retries": 1,
+    "corrected_retries_executed": 1,
+    "further_optimizer_retuning_permitted": false
+  },
+  "thermo_mode": "dwsim",
+  "sump_topology": "liquid_only_sump_occupied_volume",
+  "movement_scale_mode": "column-common",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx",
+  "checkpoint_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260717_111627.npz",
+  "checkpoint_run_id": "20260717_111627",
+  "checkpoint_time_s": 2400.000000000008,
+  "component_names": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "canonical_mapping": {
+    "stored_total_internal_energy_BTU": -16038840.921680124,
+    "canonical_total_internal_energy_BTU": -17246038.17949812,
+    "total_mapping_energy_change_BTU": -1207197.2578179967,
+    "enthalpy_offset_BTU_per_lbmol": [
+      -2601.015711906111,
+      -2445.8024065093095,
+      -2266.63658542301,
+      -2084.8176446191897,
+      -1935.1511505378332,
+      -1829.358150154758,
+      -1759.3193151210387,
+      -1714.7818426844021,
+      -1685.6350964849562,
+      -1655.6566314704944,
+      -680.8111789696384,
+      -594.9187790146467,
+      -495.48521838956236,
+      -375.1854869522932,
+      -246.0006554350103,
+      -97.2539887503315,
+      72.04942258366641,
+      276.44585621316105,
+      -17.36395982956281
+    ],
+    "enthalpy_offset_relative_spread": 1.7379579276432544,
+    "enthalpy_offset_classification": "state_dependent_checkpoint_enthalpy_mismatch",
+    "targets": [
+      {
+        "node_id": "top_terminal",
+        "source_node_ids": [
+          "reflux_drum"
+        ],
+        "topology": "explicit_reflux_drum_vapor_owner",
+        "stored_internal_energy_BTU": -8591502.449106509,
+        "canonical_internal_energy_BTU": -8591502.449106509,
+        "mapping_energy_change_BTU": 0.0,
+        "prior_volume_mismatch_relative_max": 0.0017039458393381822,
+        "canonical_volume_mismatch_relative": 0.0017039458393381822,
+        "canonical_fixed_volume_ft3": 4330.14226723964,
+        "occupied_phase_volume_ft3": 4322.763939339635
+      },
+      {
+        "node_id": "tray_2",
+        "source_node_ids": [
+          "tray_2"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -133611.3952245551,
+        "canonical_internal_energy_BTU": -350512.16807515896,
+        "mapping_energy_change_BTU": -216900.77285060385,
+        "prior_volume_mismatch_relative_max": 0.17043434061216348,
+        "canonical_volume_mismatch_relative": 0.17043434061216348,
+        "canonical_fixed_volume_ft3": 908.7403902633711,
+        "occupied_phase_volume_ft3": 753.8598210611933
+      },
+      {
+        "node_id": "tray_3",
+        "source_node_ids": [
+          "tray_3"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -175380.56478003302,
+        "canonical_internal_energy_BTU": -303958.2820885515,
+        "mapping_energy_change_BTU": -128577.71730851848,
+        "prior_volume_mismatch_relative_max": 0.4732903967422142,
+        "canonical_volume_mismatch_relative": 0.4732903967422142,
+        "canonical_fixed_volume_ft3": 311.8358713677653,
+        "occupied_phase_volume_ft3": 164.2469480896616
+      },
+      {
+        "node_id": "tray_4",
+        "source_node_ids": [
+          "tray_4"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -175724.182485253,
+        "canonical_internal_energy_BTU": -294716.94463951484,
+        "mapping_energy_change_BTU": -118992.76215426184,
+        "prior_volume_mismatch_relative_max": 0.46158937334406774,
+        "canonical_volume_mismatch_relative": 0.46158937334406774,
+        "canonical_fixed_volume_ft3": 312.2865190214337,
+        "occupied_phase_volume_ft3": 168.13838040252983
+      },
+      {
+        "node_id": "tray_5",
+        "source_node_ids": [
+          "tray_5"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -174650.35489486015,
+        "canonical_internal_energy_BTU": -283345.3137147762,
+        "mapping_energy_change_BTU": -108694.95881991604,
+        "prior_volume_mismatch_relative_max": 0.44843961495249096,
+        "canonical_volume_mismatch_relative": 0.44843961495249096,
+        "canonical_fixed_volume_ft3": 312.476773047595,
+        "occupied_phase_volume_ft3": 172.34980926053458
+      },
+      {
+        "node_id": "tray_6",
+        "source_node_ids": [
+          "tray_6"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -173158.44368078603,
+        "canonical_internal_energy_BTU": -272827.51202128356,
+        "mapping_energy_change_BTU": -99669.06834049753,
+        "prior_volume_mismatch_relative_max": 0.4434290333119819,
+        "canonical_volume_mismatch_relative": 0.4434290333119819,
+        "canonical_fixed_volume_ft3": 312.6888249311682,
+        "occupied_phase_volume_ft3": 174.03352156448074
+      },
+      {
+        "node_id": "tray_7",
+        "source_node_ids": [
+          "tray_7"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -172212.00981186386,
+        "canonical_internal_energy_BTU": -265554.3556590388,
+        "mapping_energy_change_BTU": -93342.34584717496,
+        "prior_volume_mismatch_relative_max": 0.44138069398177576,
+        "canonical_volume_mismatch_relative": 0.44138069398177576,
+        "canonical_fixed_volume_ft3": 312.7405809963452,
+        "occupied_phase_volume_ft3": 174.7029263199146
+      },
+      {
+        "node_id": "tray_8",
+        "source_node_ids": [
+          "tray_8"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -171662.9829499882,
+        "canonical_internal_energy_BTU": -260911.31497467658,
+        "mapping_energy_change_BTU": -89248.3320246884,
+        "prior_volume_mismatch_relative_max": 0.43959935764200947,
+        "canonical_volume_mismatch_relative": 0.43959935764200947,
+        "canonical_fixed_volume_ft3": 312.7648122916828,
+        "occupied_phase_volume_ft3": 175.27360171523537
+      },
+      {
+        "node_id": "tray_9",
+        "source_node_ids": [
+          "tray_9"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -171460.61172161135,
+        "canonical_internal_energy_BTU": -258097.22695603178,
+        "mapping_energy_change_BTU": -86636.61523442043,
+        "prior_volume_mismatch_relative_max": 0.4397546654375739,
+        "canonical_volume_mismatch_relative": 0.4397546654375739,
+        "canonical_fixed_volume_ft3": 312.77068796674234,
+        "occupied_phase_volume_ft3": 175.22831872124775
+      },
+      {
+        "node_id": "tray_10",
+        "source_node_ids": [
+          "tray_10"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -171731.94651207194,
+        "canonical_internal_energy_BTU": -256730.89119330284,
+        "mapping_energy_change_BTU": -84998.9446812309,
+        "prior_volume_mismatch_relative_max": 0.44139099155409955,
+        "canonical_volume_mismatch_relative": 0.44139099155409955,
+        "canonical_fixed_volume_ft3": 312.73117672284167,
+        "occupied_phase_volume_ft3": 174.69445253926625
+      },
+      {
+        "node_id": "tray_11",
+        "source_node_ids": [
+          "tray_11"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -172962.16976718296,
+        "canonical_internal_energy_BTU": -256452.2775306484,
+        "mapping_energy_change_BTU": -83490.10776346544,
+        "prior_volume_mismatch_relative_max": 0.44697263131654574,
+        "canonical_volume_mismatch_relative": 0.44697263131654574,
+        "canonical_fixed_volume_ft3": 312.5546582496765,
+        "occupied_phase_volume_ft3": 172.85128022157488
+      },
+      {
+        "node_id": "tray_12",
+        "source_node_ids": [
+          "tray_12"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -289111.5267568405,
+        "canonical_internal_energy_BTU": -331134.46696188615,
+        "mapping_energy_change_BTU": -42022.94020504563,
+        "prior_volume_mismatch_relative_max": 0.38191055267295393,
+        "canonical_volume_mismatch_relative": 0.38191055267295393,
+        "canonical_fixed_volume_ft3": 354.1553998222846,
+        "occupied_phase_volume_ft3": 218.89971534404492
+      },
+      {
+        "node_id": "tray_13",
+        "source_node_ids": [
+          "tray_13"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -288250.6717366982,
+        "canonical_internal_energy_BTU": -323340.0447037205,
+        "mapping_energy_change_BTU": -35089.3729670223,
+        "prior_volume_mismatch_relative_max": 0.4061066759805242,
+        "canonical_volume_mismatch_relative": 0.4061066759805242,
+        "canonical_fixed_volume_ft3": 354.3075775907098,
+        "occupied_phase_volume_ft3": 210.420904980635
+      },
+      {
+        "node_id": "tray_14",
+        "source_node_ids": [
+          "tray_14"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -285785.5123726717,
+        "canonical_internal_energy_BTU": -313606.65509256476,
+        "mapping_energy_change_BTU": -27821.142719893076,
+        "prior_volume_mismatch_relative_max": 0.40881040351485065,
+        "canonical_volume_mismatch_relative": 0.40881040351485065,
+        "canonical_fixed_volume_ft3": 354.7343957104894,
+        "occupied_phase_volume_ft3": 209.71528425948753
+      },
+      {
+        "node_id": "tray_15",
+        "source_node_ids": [
+          "tray_15"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -281894.3280448605,
+        "canonical_internal_energy_BTU": -301167.6062390772,
+        "mapping_energy_change_BTU": -19273.27819421672,
+        "prior_volume_mismatch_relative_max": 0.4057353450350351,
+        "canonical_volume_mismatch_relative": 0.4057353450350351,
+        "canonical_fixed_volume_ft3": 359.0149278085671,
+        "occupied_phase_volume_ft3": 213.34988220142992
+      },
+      {
+        "node_id": "tray_16",
+        "source_node_ids": [
+          "tray_16"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -324183.0980784492,
+        "canonical_internal_energy_BTU": -337381.9471252693,
+        "mapping_energy_change_BTU": -13198.849046820076,
+        "prior_volume_mismatch_relative_max": 0.355899092679031,
+        "canonical_volume_mismatch_relative": 0.355899092679031,
+        "canonical_fixed_volume_ft3": 420.38260230653856,
+        "occupied_phase_volume_ft3": 270.76881556759156
+      },
+      {
+        "node_id": "tray_17",
+        "source_node_ids": [
+          "tray_17"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -317138.6569813684,
+        "canonical_internal_energy_BTU": -318117.5087625791,
+        "mapping_energy_change_BTU": -978.8517812107457,
+        "prior_volume_mismatch_relative_max": 0.3626119977746426,
+        "canonical_volume_mismatch_relative": 0.3626119977746426,
+        "canonical_fixed_volume_ft3": 426.09309700001165,
+        "occupied_phase_volume_ft3": 271.58662785885286
+      },
+      {
+        "node_id": "tray_18",
+        "source_node_ids": [
+          "tray_18"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -367922.53098122985,
+        "canonical_internal_energy_BTU": -356099.63650691684,
+        "mapping_energy_change_BTU": 11822.894474313012,
+        "prior_volume_mismatch_relative_max": 0.31812733929347875,
+        "canonical_volume_mismatch_relative": 0.31812733929347875,
+        "canonical_fixed_volume_ft3": 391.20062239809295,
+        "occupied_phase_volume_ft3": 266.74900926463476
+      },
+      {
+        "node_id": "tray_19",
+        "source_node_ids": [
+          "tray_19"
+        ],
+        "topology": "fixed_stage_shell_volume",
+        "stored_internal_energy_BTU": -371336.50464053475,
+        "canonical_internal_energy_BTU": -341370.02888977557,
+        "mapping_energy_change_BTU": 29966.475750759186,
+        "prior_volume_mismatch_relative_max": 0.2856078437685916,
+        "canonical_volume_mismatch_relative": 0.2856078437685916,
+        "canonical_fixed_volume_ft3": 390.06353262705454,
+        "occupied_phase_volume_ft3": 278.6583281406818
+      },
+      {
+        "node_id": "bottom_terminal",
+        "source_node_ids": [
+          "reboiler_stage",
+          "bottoms_sump"
+        ],
+        "topology": "explicit_reboiler_plus_liquid_only_sump",
+        "stored_internal_energy_BTU": -3229160.9811527566,
+        "canonical_internal_energy_BTU": -3229211.5492568375,
+        "mapping_energy_change_BTU": -50.568104080855846,
+        "prior_volume_mismatch_relative_max": 0.5147197554965305,
+        "canonical_volume_mismatch_relative": 0.00219094779264834,
+        "canonical_fixed_volume_ft3": 1802.8692256238664,
+        "occupied_phase_volume_ft3": 1798.9192332735522
+      }
+    ]
+  },
+  "movement_scales": {
+    "component_scale_lbmol": [
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ],
+      [
+        1856.5410375938698,
+        1456.3330229553603,
+        198.25802997864798
+      ]
+    ],
+    "energy_scale_BTU": [
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812,
+      17246038.17949812
+    ],
+    "equal_1000_BTU_cost_ratio": 1.0,
+    "neutrality_pass": true
+  },
+  "starts": [
+    {
+      "name": "checkpoint",
+      "result": {
+        "classification": "least_movement_local_manifold_unresolved",
+        "converged": false,
+        "objective": 5.2735517836033835e-05,
+        "component_objective": 2.3390758221309013e-05,
+        "energy_objective": 2.934475961472482e-05,
+        "component_conservation_error_lbmol": [
+          -6.483702463810914e-14,
+          -3.907985046680551e-14,
+          -4.593547764386585e-15
+        ],
+        "component_conservation_relative_max": 3.4923561249224946e-17,
+        "energy_conservation_error_BTU": -1.1641532182693481e-10,
+        "energy_conservation_relative": 6.7502646471772235e-18,
+        "maximum_pressure_order_violation_psi": 0.03765549519639876,
+        "pressure_ordering_pass": false,
+        "all_local_closures_pass": false,
+        "active_bound_count": 0,
+        "first_order_optimality_norm": 7.4721045323356e-15,
+        "constraint_violation_norm": 0.03765549519639876,
+        "total_uv_solves": 1020,
+        "optimizer_termination_reason": "pressure-order violation did not improve",
+        "diagnostics": {
+          "material_move_L1_lbmol": 16.11913711338955,
+          "material_move_L1_by_component_lbmol": {
+            "n-Propane": 10.45941932718133,
+            "n-Butane": 5.545538971659932,
+            "n-Pentane": 0.11417881454829006
+          },
+          "energy_move_L1_BTU": 134207.2747650207,
+          "terminal_component_abs_fraction": 0.42239088850869677,
+          "terminal_energy_abs_fraction": 0.41032369785120926,
+          "maximum_pressure_change_psi": 25.33681975576954,
+          "pressure_rms_change_psi": 21.21460237604442,
+          "maximum_scaled_component_change": 0.003328934285579287,
+          "maximum_scaled_energy_change": 0.004501604551055276
+        },
+        "normalized_component_change": [
+          [
+            -0.003328934285579287,
+            -0.0022814062472165594,
+            -0.0003379992336994801
+          ],
+          [
+            0.0002461168848044533,
+            0.00045525935784771583,
+            8.43705595379089e-05
+          ],
+          [
+            0.0005101496583386324,
+            0.0005846158916279504,
+            0.00010216853048661129
+          ],
+          [
+            0.00045055814913179566,
+            0.00046105140497348023,
+            7.862940301293172e-05
+          ],
+          [
+            0.0003876012369563247,
+            0.0003543527924714717,
+            5.8406651836549156e-05
+          ],
+          [
+            0.0003501991738523477,
+            0.0002856640364855207,
+            4.504661598508651e-05
+          ],
+          [
+            0.00033331212383728255,
+            0.00024512654746975315,
+            3.68813936834588e-05
+          ],
+          [
+            0.0003307052750373757,
+            0.00022214281095986734,
+            3.1985089309626e-05
+          ],
+          [
+            0.0003496671893179205,
+            0.00021515439984998863,
+            2.97050232351274e-05
+          ],
+          [
+            0.0002779311645438672,
+            0.0002505198577010564,
+            3.3845291094766685e-05
+          ],
+          [
+            0.0003886163476998816,
+            0.0002460255677773616,
+            3.194894485156274e-05
+          ],
+          [
+            0.0002721415175505797,
+            0.00010951394012451252,
+            1.3193496136635258e-05
+          ],
+          [
+            0.0003526901814788501,
+            0.00012930800093271093,
+            1.4384759681924562e-05
+          ],
+          [
+            0.00037676060383476026,
+            0.00011975018937399531,
+            1.0484809748533903e-05
+          ],
+          [
+            0.00038078118024650084,
+            9.924102676184022e-05,
+            4.859595343629143e-06
+          ],
+          [
+            0.0002887341814864612,
+            -1.7720666295818506e-05,
+            -4.908545924515864e-06
+          ],
+          [
+            0.00033785583144423705,
+            3.0152514078198656e-05,
+            -1.038037635510737e-05
+          ],
+          [
+            -0.0002476718675354943,
+            -0.0002689680225515152,
+            -4.743984294666875e-05
+          ],
+          [
+            -0.0005405927353407254,
+            -0.0004091412565716973,
+            -6.426789240607162e-05
+          ],
+          [
+            -0.0015166218111057634,
+            -0.0008306421457998331,
+            -0.0001109142726125084
+          ]
+        ],
+        "normalized_energy_change": [
+          -0.004501604551055276,
+          0.0006247605562944526,
+          0.0009555768073296815,
+          0.0008064155629745689,
+          0.0006572099901215077,
+          0.0005577259248862165,
+          0.0004996311003614964,
+          0.0004693519531487299,
+          0.00047006900107121467,
+          0.0005672208959057914,
+          0.0005759756353857603,
+          0.0002801618025201515,
+          0.00034321086955422234,
+          0.0003371719434089027,
+          0.00030465471526547696,
+          0.00016310789331776298,
+          0.0001696744981266295,
+          -0.0005316037139297502,
+          -0.0008641037519972492,
+          -0.00188460713269029
+        ],
+        "nodes": [
+          {
+            "node_id": "top_terminal",
+            "position_1based": 1,
+            "component_inventory_lbmol": {
+              "n-Propane": 1395.8263131929896,
+              "n-Butane": 110.80382459550664,
+              "n-Pentane": 0.06911566913344122
+            },
+            "component_change_lbmol": {
+              "n-Propane": -6.180303112631236,
+              "n-Butane": -3.322487256598137,
+              "n-Pentane": -0.06701106220755157
+            },
+            "internal_energy_BTU": -8669137.293063011,
+            "internal_energy_change_BTU": -77634.84395650215,
+            "T_F": 112.07612776787846,
+            "P_psia": 206.66751125687048,
+            "beta_vapor": 0.062488638672859274,
+            "component_relative_residual": 1.3997537807336865e-11,
+            "energy_relative_residual": 2.799428803622121e-13,
+            "volume_relative_residual": 1.4699205587486197e-11,
+            "equilibrium_beta_residual": 6.637669580644712e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_2",
+            "position_1based": 2,
+            "component_inventory_lbmol": {
+              "n-Propane": 72.53110395699035,
+              "n-Butane": 14.441373686946255,
+              "n-Pentane": 0.03549491038463467
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.4569260966842279,
+              "n-Butane": 0.6630092368430809,
+              "n-Pentane": 0.016727140922182047
+            },
+            "internal_energy_BTU": -339737.5236682604,
+            "internal_energy_change_BTU": 10774.644406898587,
+            "T_F": 122.03166992533686,
+            "P_psia": 206.67760981011483,
+            "beta_vapor": 0.4094567654400777,
+            "component_relative_residual": 1.7742694143902072e-12,
+            "energy_relative_residual": 1.6304735031035585e-15,
+            "volume_relative_residual": 1.0204710307930127e-15,
+            "equilibrium_beta_residual": 8.327782907713299e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_3",
+            "position_1based": 3,
+            "component_inventory_lbmol": {
+              "n-Propane": 39.272957999928096,
+              "n-Butane": 17.5762009168669,
+              "n-Pentane": 0.05796427781703217
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.94711377602016,
+              "n-Butane": 0.8513954287222774,
+              "n-Pentane": 0.020255731580088997
+            },
+            "internal_energy_BTU": -287478.3679859009,
+            "internal_energy_change_BTU": 16479.914102650597,
+            "T_F": 132.07323380310163,
+            "P_psia": 206.6876898595351,
+            "beta_vapor": 0.17311922444649389,
+            "component_relative_residual": 4.957469079529418e-12,
+            "energy_relative_residual": 2.520517225756904e-15,
+            "volume_relative_residual": 2.593347764744455e-15,
+            "equilibrium_beta_residual": 1.3795353748236039e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_4",
+            "position_1based": 4,
+            "component_inventory_lbmol": {
+              "n-Propane": 33.51890667880962,
+              "n-Butane": 23.066362909602688,
+              "n-Pentane": 0.09312713685078113
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.8364796936855186,
+              "n-Butane": 0.671444386342845,
+              "n-Pentane": 0.015588910539741013
+            },
+            "internal_energy_BTU": -280809.471051914,
+            "internal_energy_change_BTU": 13907.473587600864,
+            "T_F": 141.10076737082284,
+            "P_psia": 206.69767180430745,
+            "beta_vapor": 0.16963723200162012,
+            "component_relative_residual": 1.6092657388969245e-12,
+            "energy_relative_residual": 9.178590261487464e-16,
+            "volume_relative_residual": 3.385196097605616e-15,
+            "equilibrium_beta_residual": 1.3790635300381382e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_5",
+            "position_1based": 5,
+            "component_inventory_lbmol": {
+              "n-Propane": 28.742214557907467,
+              "n-Butane": 27.29975571273784,
+              "n-Pentane": 0.15470759990530852
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.7195976026315627,
+              "n-Butane": 0.5160556734526516,
+              "n-Pentane": 0.011579587730763008
+            },
+            "internal_energy_BTU": -272011.0451331931,
+            "internal_energy_change_BTU": 11334.268581583106,
+            "T_F": 148.84751873982907,
+            "P_psia": 206.70766111432505,
+            "beta_vapor": 0.16811080979738044,
+            "component_relative_residual": 8.175919678323478e-14,
+            "energy_relative_residual": 2.6020242020020617e-12,
+            "volume_relative_residual": 5.923278104389011e-11,
+            "equilibrium_beta_residual": 8.555656183517613e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_6",
+            "position_1based": 6,
+            "component_inventory_lbmol": {
+              "n-Propane": 25.28617373671506,
+              "n-Butane": 30.043990701341393,
+              "n-Pentane": 0.2530999129946407
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6501591375883535,
+              "n-Butane": 0.4160219698045893,
+              "n-Pentane": 0.008930853342407924
+            },
+            "internal_energy_BTU": -263208.94942699996,
+            "internal_energy_change_BTU": 9618.562594283605,
+            "T_F": 154.61462590388305,
+            "P_psia": 206.71765619196535,
+            "beta_vapor": 0.16836185249579821,
+            "component_relative_residual": 2.7553117938110307e-12,
+            "energy_relative_residual": 3.811296964265799e-12,
+            "volume_relative_residual": 8.385667608493754e-11,
+            "equilibrium_beta_residual": 4.581945933779252e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_7",
+            "position_1based": 7,
+            "component_inventory_lbmol": {
+              "n-Propane": 22.99642876567146,
+              "n-Butane": 31.773868187528585,
+              "n-Pentane": 0.4058194408753646
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6188076362314838,
+              "n-Butane": 0.3569858858832369,
+              "n-Pentane": 0.0073120324545494775
+            },
+            "internal_energy_BTU": -256937.6986265398,
+            "internal_energy_change_BTU": 8616.657032499032,
+            "T_F": 158.67864929412477,
+            "P_psia": 206.72765357911453,
+            "beta_vapor": 0.1684407356733372,
+            "component_relative_residual": 2.2433526497557633e-12,
+            "energy_relative_residual": 2.9296432049326287e-15,
+            "volume_relative_residual": 2.0370911386152536e-15,
+            "equilibrium_beta_residual": 7.296024895353526e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_8",
+            "position_1based": 8,
+            "component_inventory_lbmol": {
+              "n-Propane": 21.466588223605378,
+              "n-Butane": 32.85195245203008,
+              "n-Pentane": 0.6410953167580958
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6139679144556567,
+              "n-Butane": 0.3235139114129879,
+              "n-Pentane": 0.006341300795217553
+            },
+            "internal_energy_BTU": -252816.85327105157,
+            "internal_energy_change_BTU": 8094.461703625013,
+            "T_F": 161.62331172820055,
+            "P_psia": 206.73762569573927,
+            "beta_vapor": 0.16814239539825757,
+            "component_relative_residual": 2.7769342457700564e-12,
+            "energy_relative_residual": 3.1634282034424286e-15,
+            "volume_relative_residual": 1.404651823100392e-15,
+            "equilibrium_beta_residual": 1.3697099010556713e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_9",
+            "position_1based": 9,
+            "component_inventory_lbmol": {
+              "n-Propane": 20.330430885795128,
+              "n-Butane": 33.53573963886644,
+              "n-Pentane": 1.0048088752150053
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6491714864688234,
+              "n-Butane": 0.3133364575356836,
+              "n-Pentane": 0.0058892593870664145
+            },
+            "internal_energy_BTU": -249990.39901655907,
+            "internal_energy_change_BTU": 8106.827939472714,
+            "T_F": 164.05932166425853,
+            "P_psia": 206.74764575098843,
+            "beta_vapor": 0.16743668632407047,
+            "component_relative_residual": 2.4394980153653305e-12,
+            "energy_relative_residual": 1.4585556381414307e-11,
+            "volume_relative_residual": 3.047603215610488e-10,
+            "equilibrium_beta_residual": 8.729544864749528e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_10",
+            "position_1based": 10,
+            "component_inventory_lbmol": {
+              "n-Propane": 19.125887987123512,
+              "n-Butane": 34.06760844611433,
+              "n-Pentane": 1.5752697974669325
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5159906126019429,
+              "n-Butane": 0.36484034167612833,
+              "n-Pentane": 0.006710100736502245
+            },
+            "internal_energy_BTU": -246948.57796630243,
+            "internal_energy_change_BTU": 9782.313227000413,
+            "T_F": 166.76143946302318,
+            "P_psia": 206.71999025579203,
+            "beta_vapor": 0.16656954879611258,
+            "component_relative_residual": 3.5649589372628536e-12,
+            "energy_relative_residual": 1.1699157698908736e-14,
+            "volume_relative_residual": 1.9287843818239432e-14,
+            "equilibrium_beta_residual": 8.433198583901458e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_11",
+            "position_1based": 11,
+            "component_inventory_lbmol": {
+              "n-Propane": 18.249465729687245,
+              "n-Butane": 34.364462312684815,
+              "n-Pentane": 2.4661555649052294
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.7214821973846774,
+              "n-Butane": 0.35829515884551455,
+              "n-Pentane": 0.006334134866167407
+            },
+            "internal_energy_BTU": -246518.9797323249,
+            "internal_energy_change_BTU": 9933.297798323503,
+            "T_F": 169.41673850960913,
+            "P_psia": 206.69316540962186,
+            "beta_vapor": 0.16363604276307422,
+            "component_relative_residual": 8.043407935290586e-12,
+            "energy_relative_residual": 1.3196436942873022e-12,
+            "volume_relative_residual": 1.3304169135036722e-14,
+            "equilibrium_beta_residual": 1.705222074654955e-11,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_12",
+            "position_1based": 12,
+            "component_inventory_lbmol": {
+              "n-Propane": 22.398390793266913,
+              "n-Butane": 42.76887365738589,
+              "n-Pentane": 5.639947061135734
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5052418953657245,
+              "n-Butane": 0.1594887674772849,
+              "n-Pentane": 0.002615716552580416
+            },
+            "internal_energy_BTU": -326302.7858191866,
+            "internal_energy_change_BTU": 4831.6811426995555,
+            "T_F": 172.15792824990768,
+            "P_psia": 206.77759269061409,
+            "beta_vapor": 0.13293561996889255,
+            "component_relative_residual": 2.950060799365191e-12,
+            "energy_relative_residual": 1.5788718090313062e-15,
+            "volume_relative_residual": 0.0,
+            "equilibrium_beta_residual": 4.9192594442359905e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_13",
+            "position_1based": 13,
+            "component_inventory_lbmol": {
+              "n-Propane": 20.34955716149007,
+              "n-Butane": 44.05717448050536,
+              "n-Pentane": 5.6867129465276625
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6547837954719142,
+              "n-Butane": 0.1883155118906501,
+              "n-Pentane": 0.0028518941162545275
+            },
+            "internal_energy_BTU": -317421.01694376965,
+            "internal_energy_change_BTU": 5919.027759950841,
+            "T_F": 175.15523000842867,
+            "P_psia": 206.7875976349864,
+            "beta_vapor": 0.1342642254428071,
+            "component_relative_residual": 2.1436161824967394e-12,
+            "energy_relative_residual": 1.6066892380618684e-15,
+            "volume_relative_residual": 0.0,
+            "equilibrium_beta_residual": 4.2788828036322e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_14",
+            "position_1based": 14,
+            "component_inventory_lbmol": {
+              "n-Propane": 18.069860039236136,
+              "n-Butane": 45.63986076726448,
+              "n-Pentane": 5.76436872335446
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6994715223678796,
+              "n-Butane": 0.17439615529050911,
+              "n-Pentane": 0.002078697725445444
+            },
+            "internal_energy_BTU": -307791.77488347923,
+            "internal_energy_change_BTU": 5814.8802090855315,
+            "T_F": 178.77867978587557,
+            "P_psia": 206.79759829221285,
+            "beta_vapor": 0.13532790222914387,
+            "component_relative_residual": 2.3304037763786108e-12,
+            "energy_relative_residual": 1.6667837852551548e-11,
+            "volume_relative_residual": 3.77951379690675e-10,
+            "equilibrium_beta_residual": 4.753419879932608e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_15",
+            "position_1based": 15,
+            "component_inventory_lbmol": {
+              "n-Propane": 15.643794604615875,
+              "n-Butane": 47.26919405363376,
+              "n-Pentane": 5.858504816106033
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.7069358874710563,
+              "n-Butane": 0.14452798450526672,
+              "n-Pentane": 0.0009634537993212788
+            },
+            "internal_energy_BTU": -295913.51938804466,
+            "internal_energy_change_BTU": 5254.086851032567,
+            "T_F": 182.80851888352643,
+            "P_psia": 206.8075986571552,
+            "beta_vapor": 0.13901413295576132,
+            "component_relative_residual": 1.6723505467776575e-12,
+            "energy_relative_residual": 1.6909618479692887e-15,
+            "volume_relative_residual": 2.2117677333782736e-15,
+            "equilibrium_beta_residual": 5.403844038909256e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_16",
+            "position_1based": 16,
+            "component_inventory_lbmol": {
+              "n-Propane": 15.165387057453527,
+              "n-Butane": 57.854045406690844,
+              "n-Pentane": 7.115744564946566
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.536046856885692,
+              "n-Butane": -0.025807191515369254,
+              "n-Pentane": -0.0009731586450545393
+            },
+            "internal_energy_BTU": -334568.9821697336,
+            "internal_energy_change_BTU": 2812.964955535659,
+            "T_F": 187.5597478427796,
+            "P_psia": 206.83121746639608,
+            "beta_vapor": 0.13878496122038636,
+            "component_relative_residual": 0.0003744303859575302,
+            "energy_relative_residual": 0.0002839117585948931,
+            "volume_relative_residual": 4.8976487740675634e-05,
+            "equilibrium_beta_residual": 0.00048071055948090136,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_17",
+            "position_1based": 17,
+            "component_inventory_lbmol": {
+              "n-Propane": 12.0178845467877,
+              "n-Butane": 59.259059635011134,
+              "n-Pentane": 7.430383240775386
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6272432158666241,
+              "n-Butane": 0.043912101977205964,
+              "n-Pentane": -0.0020579929666002528
+            },
+            "internal_energy_BTU": -315191.29588980007,
+            "internal_energy_change_BTU": 2926.212872779055,
+            "T_F": 192.3674161178683,
+            "P_psia": 206.82757787854723,
+            "beta_vapor": 0.14457956426822155,
+            "component_relative_residual": 2.1409618406415646e-12,
+            "energy_relative_residual": 1.738716864201554e-11,
+            "volume_relative_residual": 3.3613508172186846e-10,
+            "equilibrium_beta_residual": 3.3624769635309804e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_18",
+            "position_1based": 18,
+            "component_inventory_lbmol": {
+              "n-Propane": 9.470772365980606,
+              "n-Butane": 70.18524248577059,
+              "n-Pentane": 9.520938657146035
+            },
+            "component_change_lbmol": {
+              "n-Propane": -0.4598129859371589,
+              "n-Butane": -0.3917070133607723,
+              "n-Pentane": -0.009405329805103335
+            },
+            "internal_energy_BTU": -365267.6944537123,
+            "internal_energy_change_BTU": -9168.057946795481,
+            "T_F": 198.09090006955282,
+            "P_psia": 206.83757592905783,
+            "beta_vapor": 0.0997403344618534,
+            "component_relative_residual": 1.6115961001927507e-12,
+            "energy_relative_residual": 3.108633891126088e-15,
+            "volume_relative_residual": 5.871530340402929e-15,
+            "equilibrium_beta_residual": 4.4791670372745784e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_19",
+            "position_1based": 19,
+            "component_inventory_lbmol": {
+              "n-Propane": 7.007362277964037,
+              "n-Butane": 71.6718406991015,
+              "n-Pentane": 10.792885425597746
+            },
+            "component_change_lbmol": {
+              "n-Propane": -1.0036325977851783,
+              "n-Butane": -0.5958459229988193,
+              "n-Pentane": -0.012741625739307594
+            },
+            "internal_energy_BTU": -356272.3951877677,
+            "internal_energy_change_BTU": -14902.366297992121,
+            "T_F": 202.43509874737902,
+            "P_psia": 206.84749699668532,
+            "beta_vapor": 0.09745704592962176,
+            "component_relative_residual": 2.893783427840059e-12,
+            "energy_relative_residual": 2.0556448468118e-15,
+            "volume_relative_residual": 1.0186440340826108e-15,
+            "equilibrium_beta_residual": 7.565920112639901e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "bottom_terminal",
+            "position_1based": 20,
+            "component_inventory_lbmol": {
+              "n-Propane": 39.07155703185237,
+              "n-Butane": 627.8025922097708,
+              "n-Pentane": 133.69188604075188
+            },
+            "component_change_lbmol": {
+              "n-Propane": -2.815670630827789,
+              "n-Butane": -1.2096915871868532,
+              "n-Pentane": -0.021989645184675055
+            },
+            "internal_energy_BTU": -3261713.5558205685,
+            "internal_energy_change_BTU": -32502.006563731004,
+            "T_F": 213.18839130554161,
+            "P_psia": 218.18622159323328,
+            "beta_vapor": 0.01510230105390985,
+            "component_relative_residual": 1.9759638583087996e-12,
+            "energy_relative_residual": 7.257636320822413e-12,
+            "volume_relative_residual": 3.250955881702866e-10,
+            "equilibrium_beta_residual": 9.571336778702033e-13,
+            "active_bound_count": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "dd067",
+      "result": {
+        "classification": "least_movement_local_manifold_unresolved",
+        "converged": false,
+        "objective": 5.275428822091039e-05,
+        "component_objective": 2.3410685043972504e-05,
+        "energy_objective": 2.9343603176937888e-05,
+        "component_conservation_error_lbmol": [
+          1.4210854715202004e-14,
+          4.085620730620576e-14,
+          -8.250344851745695e-15
+        ],
+        "component_conservation_relative_max": 4.1614177507131696e-17,
+        "energy_conservation_error_BTU": 6.111804395914078e-10,
+        "energy_conservation_relative": 3.543888939768042e-17,
+        "maximum_pressure_order_violation_psi": 0.038114226419432955,
+        "pressure_ordering_pass": false,
+        "all_local_closures_pass": false,
+        "active_bound_count": 0,
+        "first_order_optimality_norm": 1.467857953241225e-14,
+        "constraint_violation_norm": 0.038114226419432955,
+        "total_uv_solves": 1020,
+        "optimizer_termination_reason": "pressure-order violation did not improve",
+        "diagnostics": {
+          "material_move_L1_lbmol": 16.122893282105217,
+          "material_move_L1_by_component_lbmol": {
+            "n-Propane": 10.460875478925448,
+            "n-Butane": 5.541708616695167,
+            "n-Pentane": 0.12030918648460115
+          },
+          "energy_move_L1_BTU": 134176.0314241168,
+          "terminal_component_abs_fraction": 0.42287978234340023,
+          "terminal_energy_abs_fraction": 0.41045638857653644,
+          "maximum_pressure_change_psi": 25.334184544320095,
+          "pressure_rms_change_psi": 21.21497287395155,
+          "maximum_scaled_component_change": 0.003327640660707839,
+          "maximum_scaled_energy_change": 0.004498017884735238
+        },
+        "normalized_component_change": [
+          [
+            -0.003327640660707839,
+            -0.002283064589558301,
+            -0.00034439740168006896
+          ],
+          [
+            0.00024638119412424223,
+            0.00045248298266886266,
+            7.778227212147312e-05
+          ],
+          [
+            0.0005103890492364389,
+            0.0005817124487056141,
+            9.555784653504128e-05
+          ],
+          [
+            0.00045085791245273217,
+            0.00045800605311616127,
+            7.198659868429784e-05
+          ],
+          [
+            0.00038796286145733575,
+            0.0003511926034895619,
+            5.173638360822783e-05
+          ],
+          [
+            0.00035061124716043125,
+            0.0002824232674603857,
+            3.835624647480041e-05
+          ],
+          [
+            0.0003337617997486755,
+            0.0002418317192866414,
+            3.0177281733257172e-05
+          ],
+          [
+            0.0003311916119708084,
+            0.00021880070624802616,
+            2.5268680038679674e-05
+          ],
+          [
+            0.000350170278971492,
+            0.00021179140034976952,
+            2.2984006419910084e-05
+          ],
+          [
+            0.00027816596102012646,
+            0.0002471437053769099,
+            2.711733099467101e-05
+          ],
+          [
+            0.00038901178892833865,
+            0.00024268190392412638,
+            2.5226459729390453e-05
+          ],
+          [
+            0.00027277521716926673,
+            0.00010605163933192547,
+            6.4531557243216966e-06
+          ],
+          [
+            0.00035336006941842987,
+            0.00012580821975008194,
+            7.635995708269542e-06
+          ],
+          [
+            0.00037747861585372055,
+            0.00011619910360198562,
+            3.719884158413726e-06
+          ],
+          [
+            0.0003815263237280938,
+            9.566535195828821e-05,
+            -1.91339709588868e-06
+          ],
+          [
+            0.00028224943715649627,
+            4.695729822884137e-05,
+            0.0001228292005251036
+          ],
+          [
+            0.0003387116670423096,
+            2.6499798215161223e-05,
+            -1.7180730885155656e-05
+          ],
+          [
+            -0.00024671148619127815,
+            -0.00027268634676147236,
+            -5.425688175389462e-05
+          ],
+          [
+            -0.0005395516238835848,
+            -0.00041289473136835517,
+            -7.109703178575193e-05
+          ],
+          [
+            -0.001520701264656236,
+            -0.0008366025340242143,
+            -0.00011798589925509764
+          ]
+        ],
+        "normalized_energy_change": [
+          -0.004498017884735238,
+          0.0006267926364123961,
+          0.0009575016285882031,
+          0.0008082847014021199,
+          0.0006590193162672003,
+          0.0005594842855364397,
+          0.0005013507175173572,
+          0.000471041505620848,
+          0.000471733812228373,
+          0.0005690579962566166,
+          0.0005777159919281777,
+          0.0002817418387895795,
+          0.00034474989926910465,
+          0.00033866760040189114,
+          0.000306101269324257,
+          0.00013584624421413103,
+          0.00017101808167044216,
+          -0.0005303667784951062,
+          -0.0008629510716841009,
+          -0.0018887717905126918
+        ],
+        "nodes": [
+          {
+            "node_id": "top_terminal",
+            "position_1based": 1,
+            "component_inventory_lbmol": {
+              "n-Propane": 1395.8287148606507,
+              "n-Butane": 110.801409496791,
+              "n-Pentane": 0.0678471809541372
+            },
+            "component_change_lbmol": {
+              "n-Propane": -6.177901444970075,
+              "n-Butane": -3.3249023553137818,
+              "n-Pentane": -0.06827955038685558
+            },
+            "internal_energy_BTU": -8669075.437278718,
+            "internal_energy_change_BTU": -77572.98817220889,
+            "T_F": 112.07692439486554,
+            "P_psia": 206.67006515024028,
+            "beta_vapor": 0.06248961053583,
+            "component_relative_residual": 7.274302091045534e-13,
+            "energy_relative_residual": 7.283935061795846e-13,
+            "volume_relative_residual": 3.816928894907133e-11,
+            "equilibrium_beta_residual": 2.122644421342912e-11,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_2",
+            "position_1based": 2,
+            "component_inventory_lbmol": {
+              "n-Propane": 72.53159465808916,
+              "n-Butane": 14.437330360089177,
+              "n-Pentane": 0.034188729500518995
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.4574167977830399,
+              "n-Butane": 0.6589659099860032,
+              "n-Pentane": 0.015420960038066374
+            },
+            "internal_energy_BTU": -339702.47833696246,
+            "internal_energy_change_BTU": 10809.689738196495,
+            "T_F": 122.02745046078195,
+            "P_psia": 206.6801241623505,
+            "beta_vapor": 0.40949577880862126,
+            "component_relative_residual": 2.5782093272930006e-12,
+            "energy_relative_residual": 7.221010022469992e-15,
+            "volume_relative_residual": 4.591863199753269e-15,
+            "equilibrium_beta_residual": 9.760692254445757e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_3",
+            "position_1based": 3,
+            "component_inventory_lbmol": {
+              "n-Propane": 39.2734024389539,
+              "n-Butane": 17.571972537058834,
+              "n-Pentane": 0.05665365663998243
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.9475582150459658,
+              "n-Butane": 0.847167048914212,
+              "n-Pentane": 0.018945110403039256
+            },
+            "internal_energy_BTU": -287445.1724449877,
+            "internal_energy_change_BTU": 16513.109643563803,
+            "T_F": 132.0676601948579,
+            "P_psia": 206.6902125563979,
+            "beta_vapor": 0.17314813270086665,
+            "component_relative_residual": 3.0255535722556807e-12,
+            "energy_relative_residual": 5.941373351320796e-15,
+            "volume_relative_residual": 9.724183490566512e-15,
+            "equilibrium_beta_residual": 2.7716717809767033e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_4",
+            "position_1based": 4,
+            "component_inventory_lbmol": {
+              "n-Propane": 33.519463201716505,
+              "n-Butane": 23.061927863126357,
+              "n-Pentane": 0.09181014755105253
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.8370362165924021,
+              "n-Butane": 0.6670093398665138,
+              "n-Pentane": 0.01427192124001242
+            },
+            "internal_energy_BTU": -280777.2358192296,
+            "internal_energy_change_BTU": 13939.708820285217,
+            "T_F": 141.0953888301375,
+            "P_psia": 206.70020189684396,
+            "beta_vapor": 0.16966596342604495,
+            "component_relative_residual": 9.798021975807668e-14,
+            "energy_relative_residual": 3.855097076444395e-15,
+            "volume_relative_residual": 7.898066839533044e-15,
+            "equilibrium_beta_residual": 6.857292511597279e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_5",
+            "position_1based": 5,
+            "component_inventory_lbmol": {
+              "n-Propane": 28.742885928633793,
+              "n-Butane": 27.295153425164706,
+              "n-Pentane": 0.1533851656669324
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.7202689733578893,
+              "n-Butane": 0.5114533858795163,
+              "n-Pentane": 0.010257153492386872
+            },
+            "internal_energy_BTU": -271979.8414254053,
+            "internal_energy_change_BTU": 11365.472289370897,
+            "T_F": 148.8422808983133,
+            "P_psia": 206.71019682432876,
+            "beta_vapor": 0.16813959454987368,
+            "component_relative_residual": 2.2220328275903977e-12,
+            "energy_relative_residual": 3.758058142668914e-16,
+            "volume_relative_residual": 7.506722745345966e-15,
+            "equilibrium_beta_residual": 1.0261513860854166e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_6",
+            "position_1based": 6,
+            "component_inventory_lbmol": {
+              "n-Propane": 25.286938767722013,
+              "n-Butane": 30.039271062390316,
+              "n-Pentane": 0.25177349351570216
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6509241685953064,
+              "n-Butane": 0.41130233085351264,
+              "n-Pentane": 0.007604433863469401
+            },
+            "internal_energy_BTU": -263178.6246720929,
+            "internal_energy_change_BTU": 9648.887349190656,
+            "T_F": 154.60946780390663,
+            "P_psia": 206.7201951752478,
+            "beta_vapor": 0.1683909096218602,
+            "component_relative_residual": 2.2688792775821855e-13,
+            "energy_relative_residual": 6.271557853028061e-12,
+            "volume_relative_residual": 1.3801483950049354e-10,
+            "equilibrium_beta_residual": 4.559130850623205e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_7",
+            "position_1based": 7,
+            "component_inventory_lbmol": {
+              "n-Propane": 22.99726360745458,
+              "n-Butane": 31.769069820440556,
+              "n-Pentane": 0.4044902968473613
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6196424780146046,
+              "n-Butane": 0.3521875187952084,
+              "n-Pentane": 0.005982888426546207
+            },
+            "internal_energy_BTU": -256908.0420434157,
+            "internal_energy_change_BTU": 8646.313615623105,
+            "T_F": 158.67355314084617,
+            "P_psia": 206.73019425298776,
+            "beta_vapor": 0.16846993241342365,
+            "component_relative_residual": 3.288867796133131e-13,
+            "energy_relative_residual": 1.7217653583181365e-11,
+            "volume_relative_residual": 3.697699040266379e-10,
+            "equilibrium_beta_residual": 2.9068691898004317e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_8",
+            "position_1based": 8,
+            "component_inventory_lbmol": {
+              "n-Propane": 21.467491128080393,
+              "n-Butane": 32.84708523457205,
+              "n-Pentane": 0.6397637346875077
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6148708189306724,
+              "n-Butane": 0.31864669395495326,
+              "n-Pentane": 0.005009718724629408
+            },
+            "internal_energy_BTU": -252787.71518461115,
+            "internal_energy_change_BTU": 8123.599790065433,
+            "T_F": 161.6182514129115,
+            "P_psia": 206.74018777450252,
+            "beta_vapor": 0.16817161921093965,
+            "component_relative_residual": 3.130680059825684e-13,
+            "energy_relative_residual": 2.4388317429312732e-11,
+            "volume_relative_residual": 5.153222431939272e-10,
+            "equilibrium_beta_residual": 3.145816940275381e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_9",
+            "position_1based": 9,
+            "component_inventory_lbmol": {
+              "n-Propane": 20.331364892382574,
+              "n-Butane": 33.530841991638084,
+              "n-Pentane": 1.003476379661767
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6501054930562695,
+              "n-Butane": 0.30843881030732945,
+              "n-Pentane": 0.004556763833828081
+            },
+            "internal_energy_BTU": -249961.68761978106,
+            "internal_energy_change_BTU": 8135.539336250717,
+            "T_F": 164.05433740492322,
+            "P_psia": 206.7501864750502,
+            "beta_vapor": 0.16746576471198396,
+            "component_relative_residual": 1.142907125748124e-12,
+            "energy_relative_residual": 3.792984939172397e-15,
+            "volume_relative_residual": 1.2464215537253082e-15,
+            "equilibrium_beta_residual": 2.9341251650549793e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_10",
+            "position_1based": 10,
+            "component_inventory_lbmol": {
+              "n-Propane": 19.126323896417173,
+              "n-Butane": 34.06269164399414,
+              "n-Pentane": 1.5739359253517127
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5164265218956032,
+              "n-Butane": 0.35992353955594325,
+              "n-Pentane": 0.005376228621282397
+            },
+            "internal_energy_BTU": -246916.89526351253,
+            "internal_energy_change_BTU": 9813.995929790311,
+            "T_F": 166.7571126982348,
+            "P_psia": 206.72207224863078,
+            "beta_vapor": 0.16660012753801406,
+            "component_relative_residual": 8.309997848374166e-13,
+            "energy_relative_residual": 8.270277254598628e-15,
+            "volume_relative_residual": 1.508646948304108e-14,
+            "equilibrium_beta_residual": 6.35641539403764e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_11",
+            "position_1based": 11,
+            "component_inventory_lbmol": {
+              "n-Propane": 18.250199882555833,
+              "n-Butane": 34.359592824597684,
+              "n-Pentane": 2.4648227782483465
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.7222163502532659,
+              "n-Butane": 0.3534256707583836,
+              "n-Pentane": 0.005001348209284551
+            },
+            "internal_energy_BTU": -246488.96547694842,
+            "internal_energy_change_BTU": 9963.312053699978,
+            "T_F": 169.41269188697296,
+            "P_psia": 206.69626105033626,
+            "beta_vapor": 0.16366544132003522,
+            "component_relative_residual": 4.587763134430974e-12,
+            "energy_relative_residual": 1.2530190838482433e-12,
+            "volume_relative_residual": 1.2207319664551562e-14,
+            "equilibrium_beta_residual": 1.0487083423882382e-11,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_12",
+            "position_1based": 12,
+            "component_inventory_lbmol": {
+              "n-Propane": 22.399567282614512,
+              "n-Butane": 42.76383139440624,
+              "n-Pentane": 5.638610734524203
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5064183847133243,
+              "n-Butane": 0.15444650449763486,
+              "n-Pentane": 0.0012793899410494802
+            },
+            "internal_energy_BTU": -326275.53645335906,
+            "internal_energy_change_BTU": 4858.93050852709,
+            "T_F": 172.15438440981018,
+            "P_psia": 206.78012540026126,
+            "beta_vapor": 0.1329549072618138,
+            "component_relative_residual": 5.975320403180417e-13,
+            "energy_relative_residual": 1.89758613863298e-11,
+            "volume_relative_residual": 4.569217653529869e-10,
+            "equilibrium_beta_residual": 2.219335826225688e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_13",
+            "position_1based": 13,
+            "component_inventory_lbmol": {
+              "n-Propane": 20.350800835940486,
+              "n-Butane": 44.05207763359598,
+              "n-Pentane": 5.685374949877455
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6560274699223321,
+              "n-Butane": 0.18321866498126838,
+              "n-Pentane": 0.0015138974660473536
+            },
+            "internal_energy_BTU": -317394.47477854736,
+            "internal_energy_change_BTU": 5945.569925173128,
+            "T_F": 175.1516592896384,
+            "P_psia": 206.7901296574457,
+            "beta_vapor": 0.13428374817769,
+            "component_relative_residual": 2.1314732329904967e-12,
+            "energy_relative_residual": 2.3993522235004426e-11,
+            "volume_relative_residual": 5.617250805134042e-10,
+            "equilibrium_beta_residual": 1.1692313783839836e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_14",
+            "position_1based": 14,
+            "component_inventory_lbmol": {
+              "n-Propane": 18.07119305801482,
+              "n-Butane": 45.63468920378735,
+              "n-Pentane": 5.763027522534011
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.7008045411465638,
+              "n-Butane": 0.16922459181338212,
+              "n-Pentane": 0.0007374969049962488
+            },
+            "internal_energy_BTU": -307765.9807258747,
+            "internal_energy_change_BTU": 5840.674366690044,
+            "T_F": 178.7751167797817,
+            "P_psia": 206.80018735613075,
+            "beta_vapor": 0.135347638070214,
+            "component_relative_residual": 1.1105066914026115e-12,
+            "energy_relative_residual": 4.721694452612772e-15,
+            "volume_relative_residual": 1.3914813394277868e-15,
+            "equilibrium_beta_residual": 2.017164213441447e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_15",
+            "position_1based": 15,
+            "component_inventory_lbmol": {
+              "n-Propane": 15.64517799406835,
+              "n-Butane": 47.263986680338,
+              "n-Pentane": 5.857162015967915
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.7083192769235307,
+              "n-Butane": 0.13932061120950578,
+              "n-Pentane": -0.00037934633879732615
+            },
+            "internal_energy_BTU": -295888.57206151827,
+            "internal_energy_change_BTU": 5279.034177558962,
+            "T_F": 182.8049975698571,
+            "P_psia": 206.81013329538803,
+            "beta_vapor": 0.13903423793810882,
+            "component_relative_residual": 1.5072604581487564e-12,
+            "energy_relative_residual": 4.227443415575944e-15,
+            "volume_relative_residual": 3.912833536056042e-15,
+            "equilibrium_beta_residual": 7.343514685231867e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_16",
+            "position_1based": 16,
+            "component_inventory_lbmol": {
+              "n-Propane": 15.153347863486642,
+              "n-Butane": 57.94823806228564,
+              "n-Pentane": 7.14106959891158
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5240076629188071,
+              "n-Butane": 0.06838546407942658,
+              "n-Pentane": 0.02435187531995897
+            },
+            "internal_energy_BTU": -335039.1376110109,
+            "internal_energy_change_BTU": 2342.809514258348,
+            "T_F": 187.59979149046683,
+            "P_psia": 206.79080987961984,
+            "beta_vapor": 0.13843332603768868,
+            "component_relative_residual": 0.0003393720815654988,
+            "energy_relative_residual": 0.00015663969560338406,
+            "volume_relative_residual": 5.060688913418553e-05,
+            "equilibrium_beta_residual": 0.00043546206338287985,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_17",
+            "position_1based": 17,
+            "component_inventory_lbmol": {
+              "n-Propane": 12.019473440696954,
+              "n-Butane": 59.25374006427632,
+              "n-Pentane": 7.429035015883103
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6288321097758782,
+              "n-Butane": 0.03859253124239359,
+              "n-Pentane": -0.003406217858883842
+            },
+            "internal_energy_BTU": -315168.1243967062,
+            "internal_energy_change_BTU": 2949.3843658729456,
+            "T_F": 192.36459658504492,
+            "P_psia": 206.8301129365748,
+            "beta_vapor": 0.1445974064923447,
+            "component_relative_residual": 3.153017518050507e-12,
+            "energy_relative_residual": 7.608338626172273e-15,
+            "volume_relative_residual": 6.562100086601386e-15,
+            "equilibrium_beta_residual": 7.80880915485227e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_18",
+            "position_1based": 18,
+            "component_inventory_lbmol": {
+              "n-Propane": 9.472555353357883,
+              "n-Butane": 70.17982736743357,
+              "n-Pentane": 9.519587124461827
+            },
+            "component_change_lbmol": {
+              "n-Propane": -0.4580299985598817,
+              "n-Butane": -0.39712213169778465,
+              "n-Pentane": -0.010756862489310848
+            },
+            "internal_energy_BTU": -365246.36221798084,
+            "internal_energy_change_BTU": -9146.725711064006,
+            "T_F": 198.08839646678723,
+            "P_psia": 206.84010954821161,
+            "beta_vapor": 0.09975270784929299,
+            "component_relative_residual": 1.6408583481130996e-13,
+            "energy_relative_residual": 4.551939653505664e-15,
+            "volume_relative_residual": 1.194485966719242e-14,
+            "equilibrium_beta_residual": 5.85706483313686e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_19",
+            "position_1based": 19,
+            "component_inventory_lbmol": {
+              "n-Propane": 7.009295144108927,
+              "n-Butane": 71.66637438980429,
+              "n-Pentane": 10.79153149387788
+            },
+            "component_change_lbmol": {
+              "n-Propane": -1.0016997316402882,
+              "n-Butane": -0.6013122322960243,
+              "n-Pentane": -0.014095557459173236
+            },
+            "internal_energy_BTU": -356252.5160190784,
+            "internal_energy_change_BTU": -14882.487129302812,
+            "T_F": 202.4325834381539,
+            "P_psia": 206.85013220813477,
+            "beta_vapor": 0.09746904424625522,
+            "component_relative_residual": 5.720999760528454e-12,
+            "energy_relative_residual": 5.481726022417552e-15,
+            "volume_relative_residual": 0.0,
+            "equilibrium_beta_residual": 8.159112274697122e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "bottom_terminal",
+            "position_1based": 20,
+            "component_inventory_lbmol": {
+              "n-Propane": 39.063983358924965,
+              "n-Butane": 627.79391189957,
+              "n-Pentane": 133.69048403398497
+            },
+            "component_change_lbmol": {
+              "n-Propane": -2.823244303755196,
+              "n-Butane": -1.2183718973875557,
+              "n-Pentane": -0.023391651951584436
+            },
+            "internal_energy_BTU": -3261785.3796683783,
+            "internal_energy_change_BTU": -32573.83041154081,
+            "T_F": 213.18459692452362,
+            "P_psia": 218.1744079690682,
+            "beta_vapor": 0.01510320890536854,
+            "component_relative_residual": 4.948295050700888e-12,
+            "energy_relative_residual": 7.39872608246332e-12,
+            "volume_relative_residual": 3.314715864284097e-10,
+            "equilibrium_beta_residual": 1.4385711372133514e-11,
+            "active_bound_count": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "linear",
+      "result": {
+        "classification": "least_movement_local_manifold_converged",
+        "converged": true,
+        "objective": 6.382785448230609e-05,
+        "component_objective": 1.693124267976667e-05,
+        "energy_objective": 4.689661180253942e-05,
+        "component_conservation_error_lbmol": [
+          3.4638958368304884e-14,
+          2.1316282072803006e-14,
+          2.949029909160572e-15
+        ],
+        "component_conservation_relative_max": 1.8657792996161272e-17,
+        "energy_conservation_error_BTU": 8.731149137020111e-11,
+        "energy_conservation_relative": 5.062698485382918e-18,
+        "maximum_pressure_order_violation_psi": 0.0,
+        "pressure_ordering_pass": true,
+        "all_local_closures_pass": true,
+        "active_bound_count": 0,
+        "first_order_optimality_norm": 1.1085099851926294e-14,
+        "constraint_violation_norm": 3.323315087042639e-10,
+        "total_uv_solves": 1420,
+        "optimizer_termination_reason": "no feasible objective-reducing nonlinear step",
+        "diagnostics": {
+          "material_move_L1_lbmol": 13.639609179001177,
+          "material_move_L1_by_component_lbmol": {
+            "n-Propane": 8.878878457427033,
+            "n-Butane": 4.662095891334527,
+            "n-Pentane": 0.0986348302396157
+          },
+          "energy_move_L1_BTU": 159738.65768396592,
+          "terminal_component_abs_fraction": 0.4261664441384016,
+          "terminal_energy_abs_fraction": 0.4348152307656721,
+          "maximum_pressure_change_psi": 23.334930545696892,
+          "pressure_rms_change_psi": 20.705137970657052,
+          "maximum_scaled_component_change": 0.0028333933603994456,
+          "maximum_scaled_energy_change": 0.0060007160424846665
+        },
+        "normalized_component_change": [
+          [
+            -0.0028333933603994456,
+            -0.0019428199630835258,
+            -0.000288180647681179
+          ],
+          [
+            0.00020764275205910953,
+            0.00039034689300389194,
+            7.329302890580069e-05
+          ],
+          [
+            0.0004320564402338738,
+            0.0004997823680517111,
+            8.70932894928263e-05
+          ],
+          [
+            0.000381658134378046,
+            0.00039263995124646747,
+            6.664655171999124e-05
+          ],
+          [
+            0.00032829412549533024,
+            0.0003002613252656373,
+            4.909676613566876e-05
+          ],
+          [
+            0.0002965300638114669,
+            0.0002405842115976468,
+            3.745751829138569e-05
+          ],
+          [
+            0.0002821376377420631,
+            0.00020504928737709953,
+            3.0277518969639552e-05
+          ],
+          [
+            0.0002798789792292854,
+            0.0001845259412743541,
+            2.5893069298753924e-05
+          ],
+          [
+            0.00029603975955999314,
+            0.00017761003741714894,
+            2.3726257335628385e-05
+          ],
+          [
+            0.00024016413873632786,
+            0.0002077591707140548,
+            2.7120101799830858e-05
+          ],
+          [
+            0.00034167670791350637,
+            0.00021978272210078552,
+            4.961559379188678e-05
+          ],
+          [
+            0.00022960690611498633,
+            8.569694470697446e-05,
+            9.290928078377601e-06
+          ],
+          [
+            0.0002985833485585084,
+            0.0001014611767761208,
+            1.0013108234024333e-05
+          ],
+          [
+            0.0003192478440024086,
+            9.252131165664171e-05,
+            6.4737849527344955e-06
+          ],
+          [
+            0.00032273311904392176,
+            7.443659985166048e-05,
+            1.5098487744980552e-06
+          ],
+          [
+            0.00024036512979482797,
+            1.352585607580074e-05,
+            -8.752948201931113e-06
+          ],
+          [
+            0.000285869263327206,
+            1.527293321184702e-05,
+            -1.152129754319083e-05
+          ],
+          [
+            -0.00021451146407428979,
+            -0.00023613713543870304,
+            -4.2031887721051546e-05
+          ],
+          [
+            -0.0004321060457091027,
+            -0.0003071315179010369,
+            -5.1029350417689334e-05
+          ],
+          [
+            -0.0013024734798180227,
+            -0.0007151681139045769,
+            -9.599123421600485e-05
+          ]
+        ],
+        "normalized_energy_change": [
+          -0.0060007160424846665,
+          0.0006104115592590424,
+          0.0010232472641909063,
+          0.000866113460225898,
+          0.0007110086420532521,
+          0.0006118057130087646,
+          0.000558512356613485,
+          0.0005360102695539505,
+          0.0005482548477540686,
+          0.0006546646984512199,
+          0.0006654404168907978,
+          0.00038411334675207036,
+          0.00047085214788577064,
+          0.0004800030682188763,
+          0.00045986782879264284,
+          0.0003202576117475197,
+          0.000361776096706744,
+          -0.0004111230755625515,
+          -0.0007964038277825752,
+          -0.0020540963822752163
+        ],
+        "nodes": [
+          {
+            "node_id": "top_terminal",
+            "position_1based": 1,
+            "component_inventory_lbmol": {
+              "n-Propane": 1396.7463052563933,
+              "n-Butane": 111.29691898220932,
+              "n-Pentane": 0.07899260385375141
+            },
+            "component_change_lbmol": {
+              "n-Propane": -5.260311049227539,
+              "n-Butane": -2.8293928698954574,
+              "n-Pentane": -0.05713412748724138
+            },
+            "internal_energy_BTU": -8694991.027079526,
+            "internal_energy_change_BTU": -103488.57797301747,
+            "T_F": 111.77842448745433,
+            "P_psia": 205.8506695288065,
+            "beta_vapor": 0.06211072010840511,
+            "component_relative_residual": 2.8779325938048523e-11,
+            "energy_relative_residual": 2.9972376129977722e-15,
+            "volume_relative_residual": 2.6293809669794496e-15,
+            "equilibrium_beta_residual": 2.2493659712630176e-11,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_2",
+            "position_1based": 2,
+            "component_inventory_lbmol": {
+              "n-Propane": 72.45967515066279,
+              "n-Butane": 14.346839520792765,
+              "n-Pentane": 0.03329870098448477
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.3854972903566676,
+              "n-Butane": 0.5684750706895905,
+              "n-Pentane": 0.01453093152203215
+            },
+            "internal_energy_BTU": -339984.98701897054,
+            "internal_energy_change_BTU": 10527.18105618842,
+            "T_F": 121.67962427340203,
+            "P_psia": 205.9878927801523,
+            "beta_vapor": 0.4089076892307515,
+            "component_relative_residual": 1.0977749777826429e-11,
+            "energy_relative_residual": 6.969162155455159e-16,
+            "volume_relative_residual": 3.564745728760916e-15,
+            "equilibrium_beta_residual": 1.0708101072509635e-11,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_3",
+            "position_1based": 3,
+            "component_inventory_lbmol": {
+              "n-Propane": 39.12797473575885,
+              "n-Butane": 17.452655055029158,
+              "n-Pentane": 0.054975490236151
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.8021305118509119,
+              "n-Butane": 0.7278495668845366,
+              "n-Pentane": 0.017266943999207827
+            },
+            "internal_energy_BTU": -286311.32070324814,
+            "internal_energy_change_BTU": 17646.96138530335,
+            "T_F": 131.7928961482513,
+            "P_psia": 206.14073369003646,
+            "beta_vapor": 0.17384345594431871,
+            "component_relative_residual": 4.65686721117574e-12,
+            "energy_relative_residual": 1.0794497990845944e-15,
+            "volume_relative_residual": 4.032772286317211e-15,
+            "equilibrium_beta_residual": 6.860512158368692e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_4",
+            "position_1based": 4,
+            "component_inventory_lbmol": {
+              "n-Propane": 33.39099097392846,
+              "n-Butane": 22.966733050391657,
+              "n-Pentane": 0.09075144035991564
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.7085639888043573,
+              "n-Butane": 0.5718145271318136,
+              "n-Pentane": 0.01321321404887553
+            },
+            "internal_energy_BTU": -279779.91883668175,
+            "internal_energy_change_BTU": 14937.025802833086,
+            "T_F": 140.92857047026476,
+            "P_psia": 206.2897933552719,
+            "beta_vapor": 0.17027919135308295,
+            "component_relative_residual": 2.8418653377740754e-13,
+            "energy_relative_residual": 1.9017930461973924e-12,
+            "volume_relative_residual": 4.462340956899352e-11,
+            "equilibrium_beta_residual": 2.7201019214828648e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_5",
+            "position_1based": 5,
+            "component_inventory_lbmol": {
+              "n-Propane": 28.632108471658977,
+              "n-Butane": 27.22098052278588,
+              "n-Pentane": 0.1528618403069256
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6094915163830734,
+              "n-Butane": 0.4372804835006896,
+              "n-Pentane": 0.009733828132380079
+            },
+            "internal_energy_BTU": -271083.2315279727,
+            "internal_energy_change_BTU": 12262.082186803513,
+            "T_F": 148.76752421580017,
+            "P_psia": 206.43827613751722,
+            "beta_vapor": 0.1686963014817869,
+            "component_relative_residual": 5.804369184498552e-13,
+            "energy_relative_residual": 5.637063782756227e-16,
+            "volume_relative_residual": 1.432712863070065e-15,
+            "equilibrium_beta_residual": 1.8466062012834072e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_6",
+            "position_1based": 6,
+            "component_inventory_lbmol": {
+              "n-Propane": 25.186534831473026,
+              "n-Butane": 29.978339463688137,
+              "n-Pentane": 0.25159531343657204
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5505202323463187,
+              "n-Butane": 0.3503707321513332,
+              "n-Pentane": 0.007426253784339282
+            },
+            "internal_energy_BTU": -262276.2873362993,
+            "internal_energy_change_BTU": 10551.224684984249,
+            "T_F": 154.61531670053935,
+            "P_psia": 206.5869083950725,
+            "beta_vapor": 0.16896673830488274,
+            "component_relative_residual": 1.95324809236102e-12,
+            "energy_relative_residual": 1.4552846811573872e-12,
+            "volume_relative_residual": 3.195287296115173e-11,
+            "equilibrium_beta_residual": 1.4579448759377556e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_7",
+            "position_1based": 7,
+            "component_inventory_lbmol": {
+              "n-Propane": 22.901421232157908,
+              "n-Butane": 31.71550235018608,
+              "n-Pentane": 0.404510169684377
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5238001027179315,
+              "n-Butane": 0.29862004854073376,
+              "n-Pentane": 0.006002761263561862
+            },
+            "internal_energy_BTU": -255922.2302331612,
+            "internal_energy_change_BTU": 9632.125425877632,
+            "T_F": 158.7544077130215,
+            "P_psia": 206.73587302911076,
+            "beta_vapor": 0.16911602445922885,
+            "component_relative_residual": 1.7612437824102207e-10,
+            "energy_relative_residual": 2.1022278915630343e-10,
+            "volume_relative_residual": 6.671490389023478e-11,
+            "equilibrium_beta_residual": 2.399496712435223e-10,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_8",
+            "position_1based": 8,
+            "component_inventory_lbmol": {
+              "n-Propane": 21.372227119648773,
+              "n-Butane": 32.79716976248686,
+              "n-Pentane": 0.6398875248721498
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5196068104990523,
+              "n-Butane": 0.26873122186976417,
+              "n-Pentane": 0.005133508909271556
+            },
+            "internal_energy_BTU": -251667.26140134607,
+            "internal_energy_change_BTU": 9244.053573330515,
+            "T_F": 161.7724407799193,
+            "P_psia": 206.88522122337108,
+            "beta_vapor": 0.1689200183100705,
+            "component_relative_residual": 1.2381752718082184e-12,
+            "energy_relative_residual": 3.919093157857257e-12,
+            "volume_relative_residual": 8.236337589885822e-11,
+            "equilibrium_beta_residual": 7.328110340765193e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_9",
+            "position_1based": 9,
+            "component_inventory_lbmol": {
+              "n-Propane": 20.230869361708855,
+              "n-Butane": 33.48106254402968,
+              "n-Pentane": 1.003623536866067
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5496099623825508,
+              "n-Butane": 0.2586593626989284,
+              "n-Pentane": 0.004703921038128223
+            },
+            "internal_energy_BTU": -248642.0029195702,
+            "internal_energy_change_BTU": 9455.224036461586,
+            "T_F": 164.28619242159786,
+            "P_psia": 207.03518190018553,
+            "beta_vapor": 0.16835420720871236,
+            "component_relative_residual": 4.2369002976011664e-14,
+            "energy_relative_residual": 7.777086584705742e-12,
+            "volume_relative_residual": 1.6139969509990503e-10,
+            "equilibrium_beta_residual": 4.557187960330111e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_10",
+            "position_1based": 10,
+            "component_inventory_lbmol": {
+              "n-Propane": 19.05577195384395,
+              "n-Butane": 34.0053346455709,
+              "n-Pentane": 1.573936474686085
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.44587457932238195,
+              "n-Butane": 0.3025665411326983,
+              "n-Pentane": 0.005376777955654832
+            },
+            "internal_energy_BTU": -245440.51880904348,
+            "internal_energy_change_BTU": 11290.37238425936,
+            "T_F": 167.0849072467439,
+            "P_psia": 207.3016050278161,
+            "beta_vapor": 0.16765703980673638,
+            "component_relative_residual": 3.8215697184368825e-12,
+            "energy_relative_residual": 1.06848862476566e-11,
+            "volume_relative_residual": 2.1863823635806105e-10,
+            "equilibrium_beta_residual": 5.447559070503871e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_11",
+            "position_1based": 11,
+            "component_inventory_lbmol": {
+              "n-Propane": 18.162320362133965,
+              "n-Butane": 34.32624398990969,
+              "n-Pentane": 2.4696581199204624
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6343368298313976,
+              "n-Butane": 0.32007683607039183,
+              "n-Pentane": 0.009836689881400407
+            },
+            "internal_energy_BTU": -244976.06669476855,
+            "internal_energy_change_BTU": 11476.210835879843,
+            "T_F": 169.80970153030944,
+            "P_psia": 207.31199566116072,
+            "beta_vapor": 0.1646611679468769,
+            "component_relative_residual": 2.4497748077659572e-12,
+            "energy_relative_residual": 5.917076603088113e-15,
+            "volume_relative_residual": 1.5617334727318056e-15,
+            "equilibrium_beta_residual": 6.98441304791686e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_12",
+            "position_1based": 12,
+            "component_inventory_lbmol": {
+              "n-Propane": 22.319423541618622,
+              "n-Butane": 42.73418818045175,
+              "n-Pentane": 5.639173345680646
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.4262746437174343,
+              "n-Butane": 0.12480329054314865,
+              "n-Pentane": 0.0018420010974926626
+            },
+            "internal_energy_BTU": -324510.03351854515,
+            "internal_energy_change_BTU": 6624.433443340997,
+            "T_F": 172.55893952965758,
+            "P_psia": 207.48014339611896,
+            "beta_vapor": 0.13372346305315247,
+            "component_relative_residual": 2.3834193284858477e-13,
+            "energy_relative_residual": 1.3923089991632796e-11,
+            "volume_relative_residual": 3.323315087042639e-10,
+            "equilibrium_beta_residual": 2.3506196988876127e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_13",
+            "position_1based": 13,
+            "component_inventory_lbmol": {
+              "n-Propane": 20.24910560575922,
+              "n-Butane": 44.01662023090169,
+              "n-Pentane": 5.685846231523849
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5543322397410648,
+              "n-Butane": 0.14776126228697706,
+              "n-Pentane": 0.0019851791124407825
+            },
+            "internal_energy_BTU": -315219.7105843838,
+            "internal_energy_change_BTU": 8120.33411933668,
+            "T_F": 175.65331129486935,
+            "P_psia": 207.63192093088225,
+            "beta_vapor": 0.1352353341087289,
+            "component_relative_residual": 2.410691820304081e-12,
+            "energy_relative_residual": 2.220122671410076e-15,
+            "volume_relative_residual": 2.2796102839459985e-15,
+            "equilibrium_beta_residual": 4.802380715318577e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_14",
+            "position_1based": 14,
+            "component_inventory_lbmol": {
+              "n-Propane": 17.963085240422096,
+              "n-Butane": 45.60020645346668,
+              "n-Pentane": 5.763573505480249
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5926967235538392,
+              "n-Butane": 0.13474184149271196,
+              "n-Pentane": 0.001283479851234226
+            },
+            "internal_energy_BTU": -305328.5038517858,
+            "internal_energy_change_BTU": 8278.15124077897,
+            "T_F": 179.35981326360536,
+            "P_psia": 207.78314089961773,
+            "beta_vapor": 0.1364202352685737,
+            "component_relative_residual": 2.6244418525714476e-12,
+            "energy_relative_residual": 3.5106158399784036e-15,
+            "volume_relative_residual": 3.4715903684621713e-15,
+            "equilibrium_beta_residual": 2.060601689279906e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_15",
+            "position_1based": 15,
+            "component_inventory_lbmol": {
+              "n-Propane": 15.536025996840527,
+              "n-Butane": 47.23307054760898,
+              "n-Pentane": 5.85784070195031
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5991672796957079,
+              "n-Butane": 0.1084044784804874,
+              "n-Pentane": 0.00029933964359774023
+            },
+            "internal_energy_BTU": -293236.7081061964,
+            "internal_energy_change_BTU": 7930.8981328808,
+            "T_F": 183.467605519264,
+            "P_psia": 207.93443082168218,
+            "beta_vapor": 0.1402298183665741,
+            "component_relative_residual": 1.184355395273717e-13,
+            "energy_relative_residual": 4.0441760798791135e-15,
+            "volume_relative_residual": 4.923572360314718e-15,
+            "equilibrium_beta_residual": 9.415801471845953e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_16",
+            "position_1based": 16,
+            "component_inventory_lbmol": {
+              "n-Propane": 15.07558792803851,
+              "n-Butane": 57.89955074907314,
+              "n-Pentane": 7.114982381324601
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.4462477274706753,
+              "n-Butane": 0.01969815086692961,
+              "n-Pentane": -0.0017353422670201013
+            },
+            "internal_energy_BTU": -331858.77212579665,
+            "internal_energy_change_BTU": 5523.174999472627,
+            "T_F": 188.24284031671021,
+            "P_psia": 208.08187375581832,
+            "beta_vapor": 0.13974367822567188,
+            "component_relative_residual": 3.2071124802736475e-13,
+            "energy_relative_residual": 5.048398832157232e-15,
+            "volume_relative_residual": 8.629877057265955e-15,
+            "equilibrium_beta_residual": 2.4428514766583476e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_17",
+            "position_1based": 17,
+            "component_inventory_lbmol": {
+              "n-Propane": 11.921369349674762,
+              "n-Butane": 59.23739001002773,
+              "n-Pentane": 7.430157043988276
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5307280187536865,
+              "n-Butane": 0.022242476993802995,
+              "n-Pentane": -0.002284189753710919
+            },
+            "internal_energy_BTU": -311878.3043863448,
+            "internal_energy_change_BTU": 6239.204376234324,
+            "T_F": 193.14060465085444,
+            "P_psia": 208.2378345892111,
+            "beta_vapor": 0.1459215966075356,
+            "component_relative_residual": 7.520162366845654e-13,
+            "energy_relative_residual": 6.302444117638822e-15,
+            "volume_relative_residual": 1.1958587325220756e-14,
+            "equilibrium_beta_residual": 5.115269319233562e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_18",
+            "position_1based": 18,
+            "component_inventory_lbmol": {
+              "n-Propane": 9.532336015829502,
+              "n-Butane": 70.23305519084589,
+              "n-Pentane": 9.52201082769528
+            },
+            "component_change_lbmol": {
+              "n-Propane": -0.39824933608826285,
+              "n-Butane": -0.34389430828547063,
+              "n-Pentane": -0.008333159255858646
+            },
+            "internal_energy_BTU": -363189.8807645413,
+            "internal_energy_change_BTU": -7090.244257624436,
+            "T_F": 198.70581342115133,
+            "P_psia": 208.38371800826644,
+            "beta_vapor": 0.10022434382680138,
+            "component_relative_residual": 3.775309504495752e-12,
+            "energy_relative_residual": 8.049318667463493e-15,
+            "volume_relative_residual": 2.594781757616056e-14,
+            "equilibrium_beta_residual": 1.9291512831642876e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_19",
+            "position_1based": 19,
+            "component_inventory_lbmol": {
+              "n-Propane": 7.208772269297854,
+              "n-Butane": 71.82040085019062,
+              "n-Pentane": 10.795510072852151
+            },
+            "component_change_lbmol": {
+              "n-Propane": -0.8022226064513616,
+              "n-Butane": -0.44728577190969077,
+              "n-Pentane": -0.010116978484902006
+            },
+            "internal_energy_BTU": -355104.8397100123,
+            "internal_energy_change_BTU": -13734.810820236744,
+            "T_F": 203.04937221172995,
+            "P_psia": 208.84938620675797,
+            "beta_vapor": 0.0975962689198379,
+            "component_relative_residual": 1.0359861526285878e-12,
+            "energy_relative_residual": 1.1042833234522611e-14,
+            "volume_relative_residual": 1.6219361315835825e-13,
+            "equilibrium_beta_residual": 6.443581779258523e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "bottom_terminal",
+            "position_1based": 20,
+            "component_inventory_lbmol": {
+              "n-Propane": 39.46913219702031,
+              "n-Butane": 627.9707608557137,
+              "n-Pentane": 133.69484465294568
+            },
+            "component_change_lbmol": {
+              "n-Propane": -2.418095465659853,
+              "n-Butane": -1.0415229412438975,
+              "n-Pentane": -0.019031032990881158
+            },
+            "internal_energy_BTU": -3264636.5738899247,
+            "internal_energy_change_BTU": -35425.02463308722,
+            "T_F": 213.15193876608873,
+            "P_psia": 218.270563016569,
+            "beta_vapor": 0.015096578326975753,
+            "component_relative_residual": 4.977425610225081e-13,
+            "energy_relative_residual": 4.913484438351274e-13,
+            "volume_relative_residual": 2.2025133949661287e-11,
+            "equilibrium_beta_residual": 1.947221897613538e-12,
+            "active_bound_count": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "random-small",
+      "result": {
+        "classification": "least_movement_local_manifold_unresolved",
+        "converged": false,
+        "objective": 5.276359846967221e-05,
+        "component_objective": 2.3472977142320608e-05,
+        "energy_objective": 2.9290621327351605e-05,
+        "component_conservation_error_lbmol": [
+          -1.056932319443149e-13,
+          8.881784197001252e-15,
+          1.0949574580365606e-14
+        ],
+        "component_conservation_relative_max": 5.693018888572285e-17,
+        "energy_conservation_error_BTU": -2.3283064365386963e-10,
+        "energy_conservation_relative": 1.3500529294354447e-17,
+        "maximum_pressure_order_violation_psi": 0.01295133172139117,
+        "pressure_ordering_pass": false,
+        "all_local_closures_pass": false,
+        "active_bound_count": 0,
+        "first_order_optimality_norm": 6.344317432516178e-15,
+        "constraint_violation_norm": 0.01295133172139117,
+        "total_uv_solves": 820,
+        "optimizer_termination_reason": "pressure-order violation did not improve",
+        "diagnostics": {
+          "material_move_L1_lbmol": 16.19787918197777,
+          "material_move_L1_by_component_lbmol": {
+            "n-Propane": 10.504463297091878,
+            "n-Butane": 5.579157370362478,
+            "n-Pentane": 0.11425851452341389
+          },
+          "energy_move_L1_BTU": 133994.48755738966,
+          "terminal_component_abs_fraction": 0.42094210334730003,
+          "terminal_energy_abs_fraction": 0.4106952004575157,
+          "maximum_pressure_change_psi": 25.33385983707751,
+          "pressure_rms_change_psi": 21.20806846919485,
+          "maximum_scaled_component_change": 0.0033339254717784437,
+          "maximum_scaled_energy_change": 0.004496292586467908
+        },
+        "normalized_component_change": [
+          [
+            -0.0033339254717784437,
+            -0.0022773154761013105,
+            -0.0003375440367362111
+          ],
+          [
+            0.00023981068033627882,
+            0.0004581383111365107,
+            8.463040405353569e-05
+          ],
+          [
+            0.0005038436048092031,
+            0.0005874771576920492,
+            0.00010242670716090842
+          ],
+          [
+            0.00044438293570075955,
+            0.00046381968855115183,
+            7.886364664355616e-05
+          ],
+          [
+            0.0003815501350084016,
+            0.00035712317732301233,
+            5.863560333184983e-05
+          ],
+          [
+            0.000344251545232465,
+            0.00028841043319551344,
+            4.5265972921768026e-05
+          ],
+          [
+            0.0003274339343399391,
+            0.0002478611243006076,
+            3.7095372619149894e-05
+          ],
+          [
+            0.00032489151276981956,
+            0.00022485773006127293,
+            3.2191664750230546e-05
+          ],
+          [
+            0.00034388509031737624,
+            0.00021786795069170435,
+            2.9910431937426256e-05
+          ],
+          [
+            0.0002735082911382866,
+            0.0002530762620172849,
+            3.3962323524719375e-05
+          ],
+          [
+            0.00044859358989327133,
+            0.00023094611567714367,
+            2.9654443641012945e-05
+          ],
+          [
+            0.0002666022697458078,
+            0.00011221404303400706,
+            1.3389990947344808e-05
+          ],
+          [
+            0.00034722481396092604,
+            0.00013200314996102908,
+            1.457865371004863e-05
+          ],
+          [
+            0.00037138223900059754,
+            0.00012243124479410336,
+            1.0669794209300567e-05
+          ],
+          [
+            0.00037549072112718653,
+            0.00010191579042257624,
+            5.037155739755174e-06
+          ],
+          [
+            0.0003324495662173303,
+            -5.0700322235070095e-05,
+            -6.1311528771061086e-06
+          ],
+          [
+            0.0003327820776629465,
+            3.2820439184296265e-05,
+            -1.0218541430925484e-05
+          ],
+          [
+            -0.00025253499547605744,
+            -0.00026632181906723296,
+            -4.729257063923593e-05
+          ],
+          [
+            -0.0005456894825480983,
+            -0.00040662598009047734,
+            -6.412738896535207e-05
+          ],
+          [
+            -0.0015259330574579966,
+            -0.000829999020548172,
+            -0.00011099847454177564
+          ]
+        ],
+        "normalized_energy_change": [
+          -0.004496292586467908,
+          0.0006280723443397308,
+          0.0009588374850657114,
+          0.0008097908817108322,
+          0.0006606519554011922,
+          0.0005612172966909463,
+          0.000503158292785952,
+          0.00047290452556719085,
+          0.00047365313737582777,
+          0.0005715446639638255,
+          0.0005390502879704091,
+          0.00028384078142289513,
+          0.00034690962797253867,
+          0.00034088746381588105,
+          0.00030838600687782785,
+          0.00013720598164735777,
+          0.00017347009301481504,
+          -0.0005277767047015952,
+          -0.0008599450116211809,
+          -0.0018855665228322506
+        ],
+        "nodes": [
+          {
+            "node_id": "top_terminal",
+            "position_1based": 1,
+            "component_inventory_lbmol": {
+              "n-Propane": 1395.8170468509845,
+              "n-Butane": 110.80978212057113,
+              "n-Pentane": 0.0692059155866312
+            },
+            "component_change_lbmol": {
+              "n-Propane": -6.189569454636285,
+              "n-Butane": -3.316529731533649,
+              "n-Pentane": -0.0669208157543616
+            },
+            "internal_energy_BTU": -8669045.682718929,
+            "internal_energy_change_BTU": -77543.23361242004,
+            "T_F": 112.07779566102228,
+            "P_psia": 206.67104566554136,
+            "beta_vapor": 0.06248983822183594,
+            "component_relative_residual": 9.1391755052616e-12,
+            "energy_relative_residual": 4.474855910575247e-12,
+            "volume_relative_residual": 2.342168448551707e-10,
+            "equilibrium_beta_residual": 1.137111238502797e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_2",
+            "position_1based": 2,
+            "component_inventory_lbmol": {
+              "n-Propane": 72.51939622960373,
+              "n-Butane": 14.445566401692272,
+              "n-Pentane": 0.03554642664640359
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.4452183692976064,
+              "n-Butane": 0.6672019515890977,
+              "n-Pentane": 0.016778657183950968
+            },
+            "internal_energy_BTU": -339680.40844518907,
+            "internal_energy_change_BTU": 10831.759629969893,
+            "T_F": 122.03938396446489,
+            "P_psia": 206.68097616515252,
+            "beta_vapor": 0.40949907430552374,
+            "component_relative_residual": 7.343451106734991e-12,
+            "energy_relative_residual": 3.7038090839288866e-14,
+            "volume_relative_residual": 3.0101313112682655e-14,
+            "equilibrium_beta_residual": 2.2115087539020806e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_3",
+            "position_1based": 3,
+            "component_inventory_lbmol": {
+              "n-Propane": 39.261250552765446,
+              "n-Butane": 17.580367873123507,
+              "n-Pentane": 0.058015463415864756
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.9354063288575105,
+              "n-Butane": 0.8555623849788851,
+              "n-Pentane": 0.02030691717892158
+            },
+            "internal_energy_BTU": -287422.1342131743,
+            "internal_energy_change_BTU": 16536.14787537721,
+            "T_F": 132.0853368218448,
+            "P_psia": 206.69112201898528,
+            "beta_vapor": 0.17314916481538986,
+            "component_relative_residual": 4.445225720968026e-12,
+            "energy_relative_residual": 4.609240836090466e-14,
+            "volume_relative_residual": 7.390068425922398e-14,
+            "equilibrium_beta_residual": 8.891026803681257e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_4",
+            "position_1based": 4,
+            "component_inventory_lbmol": {
+              "n-Propane": 33.507442141659,
+              "n-Butane": 23.070394452393757,
+              "n-Pentane": 0.09317357753152378
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.8250151565348958,
+              "n-Butane": 0.6754759291339134,
+              "n-Pentane": 0.015635351220483665
+            },
+            "internal_energy_BTU": -280751.2601761204,
+            "internal_energy_change_BTU": 13965.684463394457,
+            "T_F": 141.11452929179887,
+            "P_psia": 206.70098395505144,
+            "beta_vapor": 0.16966610578229951,
+            "component_relative_residual": 1.640698692959264e-13,
+            "energy_relative_residual": 1.3585359425458456e-14,
+            "volume_relative_residual": 4.319592000047926e-14,
+            "equilibrium_beta_residual": 2.8295699117109052e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_5",
+            "position_1based": 5,
+            "component_inventory_lbmol": {
+              "n-Propane": 28.730980438818484,
+              "n-Butane": 27.303790315683436,
+              "n-Pentane": 0.15475299137772752
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.7083634835425805,
+              "n-Butane": 0.5200902763982462,
+              "n-Pentane": 0.011624979203182007
+            },
+            "internal_energy_BTU": -271951.68486856716,
+            "internal_energy_change_BTU": 11393.62884620903,
+            "T_F": 148.8628794500956,
+            "P_psia": 206.7110327821372,
+            "beta_vapor": 0.16813869196297737,
+            "component_relative_residual": 1.055021634838245e-14,
+            "energy_relative_residual": 0.0,
+            "volume_relative_residual": 4.024744982876718e-14,
+            "equilibrium_beta_residual": 3.3281155609188318e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_6",
+            "position_1based": 6,
+            "component_inventory_lbmol": {
+              "n-Propane": 25.27513172010588,
+              "n-Butane": 30.047990369564292,
+              "n-Pentane": 0.2531434022687693
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6391171209791722,
+              "n-Butane": 0.4200216380274888,
+              "n-Pentane": 0.00897434261653654
+            },
+            "internal_energy_BTU": -263148.7370955568,
+            "internal_energy_change_BTU": 9678.774925726757,
+            "T_F": 154.6310945840689,
+            "P_psia": 206.72095990607016,
+            "beta_vapor": 0.16838937170221066,
+            "component_relative_residual": 5.769864794490785e-14,
+            "energy_relative_residual": 1.0564548309038287e-14,
+            "volume_relative_residual": 2.6520792561997e-14,
+            "equilibrium_beta_residual": 4.070493941910058e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_7",
+            "position_1based": 7,
+            "component_inventory_lbmol": {
+              "n-Propane": 22.98551566564289,
+              "n-Butane": 31.777850642071165,
+              "n-Pentane": 0.40586186391761164
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6078945362029131,
+              "n-Butane": 0.36096834042581705,
+              "n-Pentane": 0.00735445549679653
+            },
+            "internal_energy_BTU": -256876.8685313212,
+            "internal_energy_change_BTU": 8677.487127717613,
+            "T_F": 158.69588055888275,
+            "P_psia": 206.7309049928088,
+            "beta_vapor": 0.1684679973005536,
+            "component_relative_residual": 4.4979380027961943e-13,
+            "energy_relative_residual": 1.894714669311545e-14,
+            "volume_relative_residual": 1.9271609976889288e-14,
+            "equilibrium_beta_residual": 3.7238823136220844e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_8",
+            "position_1based": 8,
+            "component_inventory_lbmol": {
+              "n-Propane": 21.455794735372844,
+              "n-Butane": 32.85590627837211,
+              "n-Pentane": 0.6411362719979921
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6031744262231236,
+              "n-Butane": 0.3274677377550148,
+              "n-Pentane": 0.006382256035113776
+            },
+            "internal_energy_BTU": -252755.58547148737,
+            "internal_energy_change_BTU": 8155.729503189214,
+            "T_F": 161.64105104889495,
+            "P_psia": 206.7409033350956,
+            "beta_vapor": 0.16816943409835045,
+            "component_relative_residual": 5.609922142835051e-13,
+            "energy_relative_residual": 2.2146625158612123e-14,
+            "volume_relative_residual": 1.1860036972783937e-14,
+            "equilibrium_beta_residual": 3.316069641101649e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_9",
+            "position_1based": 9,
+            "component_inventory_lbmol": {
+              "n-Propane": 20.319696181717187,
+              "n-Butane": 33.539691472566695,
+              "n-Pentane": 1.0048495991396635
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6384367823908832,
+              "n-Butane": 0.3172882912359398,
+              "n-Pentane": 0.005929983311724674
+            },
+            "internal_energy_BTU": -249928.5868650092,
+            "internal_energy_change_BTU": 8168.640091022593,
+            "T_F": 164.07751654345182,
+            "P_psia": 206.75092674361858,
+            "beta_vapor": 0.16746347561137914,
+            "component_relative_residual": 2.8334924684651153e-12,
+            "energy_relative_residual": 2.4357539545253546e-14,
+            "volume_relative_residual": 5.608749166709888e-15,
+            "equilibrium_beta_residual": 8.645695270814713e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_10",
+            "position_1based": 10,
+            "component_inventory_lbmol": {
+              "n-Propane": 19.11767674114197,
+              "n-Butane": 34.07133142214008,
+              "n-Pentane": 1.5752930000859386
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5077793666204009,
+              "n-Butane": 0.3685633177018772,
+              "n-Pentane": 0.006733303355508369
+            },
+            "internal_energy_BTU": -246874.0100972943,
+            "internal_energy_change_BTU": 9856.881096008554,
+            "T_F": 166.78827665792784,
+            "P_psia": 206.7492035738374,
+            "beta_vapor": 0.1666098524337376,
+            "component_relative_residual": 3.4330263052658502e-12,
+            "energy_relative_residual": 3.2482408817740105e-14,
+            "volume_relative_residual": 3.8572542722786013e-14,
+            "equilibrium_beta_residual": 1.0060841049153169e-11,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_11",
+            "position_1based": 11,
+            "component_inventory_lbmol": {
+              "n-Propane": 18.36081594114098,
+              "n-Butane": 34.342501608623195,
+              "n-Pentane": 2.465700661615442
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.8328324088384136,
+              "n-Butane": 0.3363344547838949,
+              "n-Pentane": 0.00587923157638004
+            },
+            "internal_energy_BTU": -247155.79568364128,
+            "internal_energy_change_BTU": 9296.481847007119,
+            "T_F": 169.2768870182363,
+            "P_psia": 206.77238580079953,
+            "beta_vapor": 0.16337329648130408,
+            "component_relative_residual": 8.900760034036815e-13,
+            "energy_relative_residual": 5.603168874477443e-14,
+            "volume_relative_residual": 4.1387903047260063e-14,
+            "equilibrium_beta_residual": 2.4650004259996194e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_12",
+            "position_1based": 12,
+            "component_inventory_lbmol": {
+              "n-Propane": 22.38810695239995,
+              "n-Butane": 42.77280590641836,
+              "n-Pentane": 5.6399860178098065
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.4949580544987633,
+              "n-Butane": 0.1634210165097585,
+              "n-Pentane": 0.002654673226652804
+            },
+            "internal_energy_BTU": -326239.33800856833,
+            "internal_energy_change_BTU": 4895.128953317821,
+            "T_F": 172.17342866352698,
+            "P_psia": 206.78096464136854,
+            "beta_vapor": 0.13295237480638386,
+            "component_relative_residual": 1.2149626578358254e-12,
+            "energy_relative_residual": 1.1448026110287931e-14,
+            "volume_relative_residual": 1.420479947709894e-15,
+            "equilibrium_beta_residual": 4.726774527341604e-14,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_13",
+            "position_1based": 13,
+            "component_inventory_lbmol": {
+              "n-Propane": 20.33941048240751,
+              "n-Butane": 44.061099515037085,
+              "n-Pentane": 5.686751387575703
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6446371163893545,
+              "n-Butane": 0.19224054642237576,
+              "n-Pentane": 0.0028903351642952657
+            },
+            "internal_energy_BTU": -317357.2280148706,
+            "internal_energy_change_BTU": 5982.816688849882,
+            "T_F": 175.17120623264935,
+            "P_psia": 206.79095897432907,
+            "beta_vapor": 0.13428095279130176,
+            "component_relative_residual": 1.2402920777176606e-12,
+            "energy_relative_residual": 1.767557464985414e-14,
+            "volume_relative_residual": 1.4055582662128009e-15,
+            "equilibrium_beta_residual": 6.2540528311672006e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_14",
+            "position_1based": 14,
+            "component_inventory_lbmol": {
+              "n-Propane": 18.059874884206362,
+              "n-Butane": 45.643765276809155,
+              "n-Pentane": 5.764405398009228
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6894863673381053,
+              "n-Butane": 0.17830066483518436,
+              "n-Pentane": 0.0021153723802136426
+            },
+            "internal_energy_BTU": -307727.6968766838,
+            "internal_energy_change_BTU": 5878.958215880964,
+            "T_F": 178.7950795415003,
+            "P_psia": 206.80099331989456,
+            "beta_vapor": 0.13534464704471616,
+            "component_relative_residual": 1.3744662697070265e-12,
+            "energy_relative_residual": 1.6219809856432858e-14,
+            "volume_relative_residual": 5.217990107840545e-15,
+            "equilibrium_beta_residual": 9.967582315084655e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_15",
+            "position_1based": 15,
+            "component_inventory_lbmol": {
+              "n-Propane": 15.633972650153156,
+              "n-Butane": 47.27308940028149,
+              "n-Pentane": 5.858540018880372
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6971139330083371,
+              "n-Butane": 0.14842333115299766,
+              "n-Pentane": 0.0009986565736594955
+            },
+            "internal_energy_BTU": -295849.16939043923,
+            "internal_energy_change_BTU": 5318.436848637997,
+            "T_F": 182.8253549625368,
+            "P_psia": 206.81100233477056,
+            "beta_vapor": 0.13903115151969206,
+            "component_relative_residual": 9.579785677163709e-13,
+            "energy_relative_residual": 2.113980947627046e-14,
+            "volume_relative_residual": 1.0207284273408049e-14,
+            "equilibrium_beta_residual": 6.355832526949712e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_16",
+            "position_1based": 16,
+            "component_inventory_lbmol": {
+              "n-Propane": 15.24654646318059,
+              "n-Butane": 57.8060160446608,
+              "n-Pentane": 7.115502173300708
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6172062626127541,
+              "n-Butane": -0.07383655354541219,
+              "n-Pentane": -0.0012155502909125815
+            },
+            "internal_energy_BTU": -335015.68752732343,
+            "internal_energy_change_BTU": 2366.259597945842,
+            "T_F": 187.4324822313046,
+            "P_psia": 206.80805100304917,
+            "beta_vapor": 0.1387087110958088,
+            "component_relative_residual": 0.00031378407620383274,
+            "energy_relative_residual": 0.0002174770011553226,
+            "volume_relative_residual": 5.310974779593454e-05,
+            "equilibrium_beta_residual": 0.0004033216503888659,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_17",
+            "position_1based": 17,
+            "component_inventory_lbmol": {
+              "n-Propane": 12.008464914678086,
+              "n-Butane": 59.26294502244592,
+              "n-Pentane": 7.430415325848636
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6178235837570103,
+              "n-Butane": 0.04779748941199102,
+              "n-Pentane": -0.0020259078933504426
+            },
+            "internal_energy_BTU": -315125.8369154445,
+            "internal_energy_change_BTU": 2991.6718471345957,
+            "T_F": 192.38274587093292,
+            "P_psia": 206.8309705043122,
+            "beta_vapor": 0.1445947511548441,
+            "component_relative_residual": 2.05444885013095e-12,
+            "energy_relative_residual": 2.5440110227974518e-14,
+            "volume_relative_residual": 2.5099897844169535e-14,
+            "equilibrium_beta_residual": 1.9356738434339604e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_18",
+            "position_1based": 18,
+            "component_inventory_lbmol": {
+              "n-Propane": 9.461743769387882,
+              "n-Butane": 70.18909623929021,
+              "n-Pentane": 9.520967855063576
+            },
+            "component_change_lbmol": {
+              "n-Propane": -0.4688415825298833,
+              "n-Butane": -0.38785325984115104,
+              "n-Pentane": -0.009376131887561812
+            },
+            "internal_energy_BTU": -365201.6937064503,
+            "internal_energy_change_BTU": -9102.057199533447,
+            "T_F": 198.1049908939822,
+            "P_psia": 206.84097447058102,
+            "beta_vapor": 0.09975020645853391,
+            "component_relative_residual": 8.158719495941328e-13,
+            "energy_relative_residual": 1.4545754789524122e-14,
+            "volume_relative_residual": 3.846642735866823e-14,
+            "equilibrium_beta_residual": 2.014249878001806e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_19",
+            "position_1based": 19,
+            "component_inventory_lbmol": {
+              "n-Propane": 6.997899957615307,
+              "n-Butane": 71.67550377930296,
+              "n-Pentane": 10.792913281533108
+            },
+            "component_change_lbmol": {
+              "n-Propane": -1.0130949181339082,
+              "n-Butane": -0.5921828427973566,
+              "n-Pentane": -0.012713769803944786
+            },
+            "internal_energy_BTU": -356200.6733924634,
+            "internal_energy_change_BTU": -14830.64450268785,
+            "T_F": 202.45000897564148,
+            "P_psia": 206.85045691537735,
+            "beta_vapor": 0.09746750235094216,
+            "component_relative_residual": 9.025322133255588e-11,
+            "energy_relative_residual": 3.283770901579356e-13,
+            "volume_relative_residual": 4.719073387116931e-12,
+            "equilibrium_beta_residual": 9.71835806273802e-11,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "bottom_terminal",
+            "position_1based": 20,
+            "component_inventory_lbmol": {
+              "n-Propane": 39.05427032088831,
+              "n-Butane": 627.8035288143127,
+              "n-Pentane": 133.69186934704328
+            },
+            "component_change_lbmol": {
+              "n-Propane": -2.832957341791854,
+              "n-Butane": -1.2087549826449049,
+              "n-Pentane": -0.02200633889327719
+            },
+            "internal_energy_BTU": -3261730.101499586,
+            "internal_energy_change_BTU": -32518.55224274844,
+            "T_F": 213.18700656753796,
+            "P_psia": 218.17578543438705,
+            "beta_vapor": 0.015101405898615064,
+            "component_relative_residual": 3.095058714765762e-13,
+            "energy_relative_residual": 1.6719460189556861e-12,
+            "volume_relative_residual": 7.491765032436436e-11,
+            "equilibrium_beta_residual": 9.738562387062721e-12,
+            "active_bound_count": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "random-moderate",
+      "result": {
+        "classification": "least_movement_local_manifold_unresolved",
+        "converged": false,
+        "objective": 5.276522424263587e-05,
+        "component_objective": 2.3450396157241215e-05,
+        "energy_objective": 2.9314828085394656e-05,
+        "component_conservation_error_lbmol": [
+          5.1514348342607263e-14,
+          -5.1514348342607263e-14,
+          3.469446951953614e-15
+        ],
+        "component_conservation_relative_max": 3.5372643159645145e-17,
+        "energy_conservation_error_BTU": 1.1641532182693481e-10,
+        "energy_conservation_relative": 6.7502646471772235e-18,
+        "maximum_pressure_order_violation_psi": 0.0015062552735207648,
+        "pressure_ordering_pass": false,
+        "all_local_closures_pass": false,
+        "active_bound_count": 0,
+        "first_order_optimality_norm": 4.880644499660747e-15,
+        "constraint_violation_norm": 0.0015062552735207648,
+        "total_uv_solves": 820,
+        "optimizer_termination_reason": "pressure-order violation did not improve",
+        "diagnostics": {
+          "material_move_L1_lbmol": 16.1424103630993,
+          "material_move_L1_by_component_lbmol": {
+            "n-Propane": 10.486529607061206,
+            "n-Butane": 5.542135670450167,
+            "n-Pentane": 0.11374508558792888
+          },
+          "energy_move_L1_BTU": 134101.56142130337,
+          "terminal_component_abs_fraction": 0.42223722494140226,
+          "terminal_energy_abs_fraction": 0.4105414278514816,
+          "maximum_pressure_change_psi": 25.338526667371497,
+          "pressure_rms_change_psi": 21.211059935360677,
+          "maximum_scaled_component_change": 0.0033331375442083346,
+          "maximum_scaled_energy_change": 0.004500629374715457
+        },
+        "normalized_component_change": [
+          [
+            -0.0033331375442083346,
+            -0.0022808663230185085,
+            -0.0003380434687758611
+          ],
+          [
+            0.00024252697177780567,
+            0.0004562364961913083,
+            8.439362923938331e-05
+          ],
+          [
+            0.0005066157097008136,
+            0.0005856385903496717,
+            0.00010219952379809594
+          ],
+          [
+            0.00044706583216102077,
+            0.00046206973778983455,
+            7.865825430948697e-05
+          ],
+          [
+            0.00038415058587425513,
+            0.00035537550826250625,
+            5.84349824546551e-05
+          ],
+          [
+            0.00034678453420514447,
+            0.00028668874334436024,
+            4.50740233379472e-05
+          ],
+          [
+            0.00032992253778205095,
+            0.0002461522559390044,
+            3.690819143029631e-05
+          ],
+          [
+            0.00032734387529944465,
+            0.00022316032677887262,
+            3.200873321682759e-05
+          ],
+          [
+            0.00034631661968742686,
+            0.0002161845751804628,
+            2.973151307003717e-05
+          ],
+          [
+            0.0002769850711994844,
+            0.0002517745202050868,
+            3.384233263538511e-05
+          ],
+          [
+            0.00045084273565057384,
+            0.00022915967004699737,
+            2.9460213416350038e-05
+          ],
+          [
+            0.00026886717777572513,
+            0.00011053715405912366,
+            1.3216035807156584e-05
+          ],
+          [
+            0.0003494435155671621,
+            0.00013033434911223095,
+            1.4407855725517982e-05
+          ],
+          [
+            0.0003735456153926648,
+            0.00012077835607109869,
+            1.050673653580415e-05
+          ],
+          [
+            0.00037759854021935854,
+            0.00010027146974734649,
+            4.880439632337882e-06
+          ],
+          [
+            0.00028565370912885294,
+            -1.8333539648912398e-05,
+            -2.6343778877502413e-06
+          ],
+          [
+            0.0003347602432137607,
+            3.117968771384879e-05,
+            -1.0365873105705246e-05
+          ],
+          [
+            -0.0002506777858881766,
+            -0.00026794450563778413,
+            -4.743179215723822e-05
+          ],
+          [
+            -0.0005435707502374622,
+            -0.0004081240532738545,
+            -6.426173713077692e-05
+          ],
+          [
+            -0.0015210371943015714,
+            -0.0008302730192126949,
+            -0.00011098521555194952
+          ]
+        ],
+        "normalized_energy_change": [
+          -0.004500629374715457,
+          0.0006266123956012402,
+          0.0009574944474973108,
+          0.0008083814927416973,
+          0.0006592180205286278,
+          0.0005597662621645837,
+          0.0005016954119904568,
+          0.0004714329703541198,
+          0.000472162587824644,
+          0.0005699392986275245,
+          0.0005376926669755491,
+          0.0002822955446878762,
+          0.00034536529524388596,
+          0.00033934427663725845,
+          0.00030684666112165633,
+          0.00016565163301479735,
+          0.0001718904670637721,
+          -0.0005293698607504171,
+          -0.0008618521790915176,
+          -0.0018839380175176077
+        ],
+        "nodes": [
+          {
+            "node_id": "top_terminal",
+            "position_1based": 1,
+            "component_inventory_lbmol": {
+              "n-Propane": 1395.8185096708532,
+              "n-Butane": 110.80461090494616,
+              "n-Pentane": 0.06910689917434196
+            },
+            "component_change_lbmol": {
+              "n-Propane": -6.188106634767564,
+              "n-Butane": -3.321700947158618,
+              "n-Pentane": -0.06701983216665083
+            },
+            "internal_energy_BTU": -8669120.475134622,
+            "internal_energy_change_BTU": -77618.02602811344,
+            "T_F": 112.07565252077615,
+            "P_psia": 206.6661183749815,
+            "beta_vapor": 0.06248883240409681,
+            "component_relative_residual": 1.872407108395236e-11,
+            "energy_relative_residual": 2.008280411915147e-12,
+            "volume_relative_residual": 1.0515416447445876e-10,
+            "equilibrium_beta_residual": 9.504348696953713e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_2",
+            "position_1based": 2,
+            "component_inventory_lbmol": {
+              "n-Propane": 72.52443913613499,
+              "n-Butane": 14.442796725784024,
+              "n-Pentane": 0.035499484138201184
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.4502612758288649,
+              "n-Butane": 0.6644322756808503,
+              "n-Pentane": 0.016731714675748563
+            },
+            "internal_energy_BTU": -339705.5867768732,
+            "internal_energy_change_BTU": 10806.581298285746,
+            "T_F": 122.03377438876804,
+            "P_psia": 206.67603425345348,
+            "beta_vapor": 0.4094793911755912,
+            "component_relative_residual": 7.431205236760456e-12,
+            "energy_relative_residual": 7.453845204043918e-15,
+            "volume_relative_residual": 3.741501889820884e-15,
+            "equilibrium_beta_residual": 3.4563463202630373e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_3",
+            "position_1based": 3,
+            "component_inventory_lbmol": {
+              "n-Propane": 39.26639707925724,
+              "n-Butane": 17.577690306787876,
+              "n-Pentane": 0.05797042248990963
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.9405528553493028,
+              "n-Butane": 0.852884818643254,
+              "n-Pentane": 0.02026187625296645
+            },
+            "internal_energy_BTU": -287445.2962903554,
+            "internal_energy_change_BTU": 16512.98579819611,
+            "T_F": 132.07762327230043,
+            "P_psia": 206.68603012466093,
+            "beta_vapor": 0.1731370556745744,
+            "component_relative_residual": 4.321162507290893e-12,
+            "energy_relative_residual": 1.3503122358774857e-14,
+            "volume_relative_residual": 1.8313888297471316e-14,
+            "equilibrium_beta_residual": 8.272077467452732e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_4",
+            "position_1based": 4,
+            "component_inventory_lbmol": {
+              "n-Propane": 33.51242304903709,
+              "n-Butane": 23.067845941311504,
+              "n-Pentane": 0.0931328568519985
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.8299960639129864,
+              "n-Butane": 0.6729274180516605,
+              "n-Pentane": 0.015594630540958387
+            },
+            "internal_energy_BTU": -280775.56655209186,
+            "internal_energy_change_BTU": 13941.378087422985,
+            "T_F": 141.1062806238983,
+            "P_psia": 206.69600649965605,
+            "beta_vapor": 0.16965437364553324,
+            "component_relative_residual": 2.3773827346002793e-12,
+            "energy_relative_residual": 6.4252227394829035e-15,
+            "volume_relative_residual": 1.4829075951614873e-14,
+            "equilibrium_beta_residual": 1.5298040612066188e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_5",
+            "position_1based": 5,
+            "component_inventory_lbmol": {
+              "n-Propane": 28.735808282567188,
+              "n-Butane": 27.301245127517422,
+              "n-Pentane": 0.1547132166778423
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.713191327291284,
+              "n-Butane": 0.5175450882322323,
+              "n-Pentane": 0.011585204503296781
+            },
+            "internal_energy_BTU": -271976.4145641263,
+            "internal_energy_change_BTU": 11368.8991506499,
+            "T_F": 148.8540292217537,
+            "P_psia": 206.70599968527787,
+            "beta_vapor": 0.16812753965735477,
+            "component_relative_residual": 4.188419809774027e-12,
+            "energy_relative_residual": 1.5032513495614616e-15,
+            "volume_relative_residual": 1.277747820958566e-14,
+            "equilibrium_beta_residual": 4.882039217335432e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_6",
+            "position_1based": 6,
+            "component_inventory_lbmol": {
+              "n-Propane": 25.279834318081434,
+              "n-Butane": 30.045483015778768,
+              "n-Pentane": 0.2531053467224258
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6438197189547274,
+              "n-Butane": 0.4175142842419639,
+              "n-Pentane": 0.008936287070193033
+            },
+            "internal_energy_BTU": -263173.76169239817,
+            "internal_energy_change_BTU": 9653.750328885391,
+            "T_F": 154.62189348639754,
+            "P_psia": 206.71599636484828,
+            "beta_vapor": 0.16837847199230968,
+            "component_relative_residual": 8.10600331944015e-13,
+            "energy_relative_residual": 2.689006415007096e-15,
+            "volume_relative_residual": 9.787815248841631e-15,
+            "equilibrium_beta_residual": 1.1823042544989448e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_7",
+            "position_1based": 7,
+            "component_inventory_lbmol": {
+              "n-Propane": 22.990135860059468,
+              "n-Butane": 31.77536196064428,
+              "n-Pentane": 0.40582475374386046
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6125147306194911,
+              "n-Butane": 0.358479658998931,
+              "n-Pentane": 0.007317345323045343
+            },
+            "internal_energy_BTU": -256902.09742937237,
+            "internal_energy_change_BTU": 8652.258229666448,
+            "T_F": 158.68643737626925,
+            "P_psia": 206.72598105946625,
+            "beta_vapor": 0.16845727874989008,
+            "component_relative_residual": 1.6173447303944577e-12,
+            "energy_relative_residual": 2.8782888330801685e-11,
+            "volume_relative_residual": 6.181741448316452e-10,
+            "equilibrium_beta_residual": 9.158784841645229e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_8",
+            "position_1based": 8,
+            "component_inventory_lbmol": {
+              "n-Propane": 21.46034764704815,
+              "n-Butane": 32.853434293918674,
+              "n-Pentane": 0.6411000043525587
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.607727337898428,
+              "n-Butane": 0.3249957533015788,
+              "n-Pentane": 0.006345988389680368
+            },
+            "internal_energy_BTU": -252780.96396887524,
+            "internal_energy_change_BTU": 8130.351005801349,
+            "T_F": 161.63144732151312,
+            "P_psia": 206.73597645974763,
+            "beta_vapor": 0.16815885999228844,
+            "component_relative_residual": 9.167350497930075e-13,
+            "energy_relative_residual": 6.3272073252451245e-15,
+            "volume_relative_residual": 2.9651195638790054e-15,
+            "equilibrium_beta_residual": 2.7990110229580978e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_9",
+            "position_1based": 9,
+            "component_inventory_lbmol": {
+              "n-Propane": 20.3242104157768,
+              "n-Butane": 33.53723991721964,
+              "n-Pentane": 1.0048141270374888
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6429510164504961,
+              "n-Butane": 0.31483673588888195,
+              "n-Pentane": 0.00589451120954998
+            },
+            "internal_energy_BTU": -249954.29293947734,
+            "internal_energy_change_BTU": 8142.934016554442,
+            "T_F": 164.06776197364377,
+            "P_psia": 206.74596918492458,
+            "beta_vapor": 0.16745293611881462,
+            "component_relative_residual": 7.073823594384457e-13,
+            "energy_relative_residual": 6.9873582429706635e-15,
+            "volume_relative_residual": 9.348260678726474e-16,
+            "equilibrium_beta_residual": 1.1968204205459188e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_10",
+            "position_1based": 10,
+            "component_inventory_lbmol": {
+              "n-Propane": 19.124131526004273,
+              "n-Butane": 34.06943565255161,
+              "n-Pentane": 1.5752692109286037
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5142341514827038,
+              "n-Butane": 0.36666754811341207,
+              "n-Pentane": 0.00670951419817345
+            },
+            "internal_energy_BTU": -246901.69628917618,
+            "internal_energy_change_BTU": 9829.194904126663,
+            "T_F": 166.78231561390567,
+            "P_psia": 206.75863496073265,
+            "beta_vapor": 0.16660141355544025,
+            "component_relative_residual": 8.672970541202921e-13,
+            "energy_relative_residual": 4.841956189089642e-15,
+            "volume_relative_residual": 1.1961589432634067e-13,
+            "equilibrium_beta_residual": 1.1338152638984411e-13,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_11",
+            "position_1based": 11,
+            "component_inventory_lbmol": {
+              "n-Propane": 18.36499157253894,
+              "n-Butane": 34.339899948858296,
+              "n-Pentane": 2.465662153913738
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.8370080402363733,
+              "n-Butane": 0.3337327950189959,
+              "n-Pentane": 0.005840723874676268
+            },
+            "internal_energy_BTU": -247179.20926715192,
+            "internal_energy_change_BTU": 9273.068263496476,
+            "T_F": 169.26716469206406,
+            "P_psia": 206.76752467074593,
+            "beta_vapor": 0.16336512953193894,
+            "component_relative_residual": 1.2686424258867866e-12,
+            "energy_relative_residual": 5.66369399290721e-14,
+            "volume_relative_residual": 4.1545831678555315e-14,
+            "equilibrium_beta_residual": 2.2744028882470957e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_12",
+            "position_1based": 12,
+            "component_inventory_lbmol": {
+              "n-Propane": 22.39231184710387,
+              "n-Butane": 42.77036379762841,
+              "n-Pentane": 5.639951529806408
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.499162949202681,
+              "n-Butane": 0.16097890771980872,
+              "n-Pentane": 0.0026201852232539125
+            },
+            "internal_energy_BTU": -326265.9872202968,
+            "internal_energy_change_BTU": 4868.479741589341,
+            "T_F": 172.16514113320693,
+            "P_psia": 206.7760184154724,
+            "beta_vapor": 0.1329458261199528,
+            "component_relative_residual": 4.564524423914978e-14,
+            "energy_relative_residual": 2.3684214772911862e-15,
+            "volume_relative_residual": 1.0653859669408655e-15,
+            "equilibrium_beta_residual": 2.8870517088108727e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_13",
+            "position_1based": 13,
+            "component_inventory_lbmol": {
+              "n-Propane": 20.34352959298966,
+              "n-Butane": 44.05866918525224,
+              "n-Pentane": 5.686717525503766
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.648756226971507,
+              "n-Butane": 0.1898102166375324,
+              "n-Pentane": 0.002856473092357703
+            },
+            "internal_energy_BTU": -317383.86163607077,
+            "internal_energy_change_BTU": 5956.183067649719,
+            "T_F": 175.16279267560515,
+            "P_psia": 206.78602250178727,
+            "beta_vapor": 0.13427447529864617,
+            "component_relative_residual": 3.004741413859966e-12,
+            "energy_relative_residual": 6.025400696430831e-15,
+            "volume_relative_residual": 1.4055914546217701e-15,
+            "equilibrium_beta_residual": 7.624068043554644e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_14",
+            "position_1based": 14,
+            "component_inventory_lbmol": {
+              "n-Propane": 18.063891281257995,
+              "n-Butane": 45.64135812037857,
+              "n-Pentane": 5.764373070516108
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6935027643897378,
+              "n-Butane": 0.17589350840459872,
+              "n-Pentane": 0.0020830448870929885
+            },
+            "internal_energy_BTU": -307754.31074168446,
+            "internal_energy_change_BTU": 5852.344350880303,
+            "T_F": 178.78657475061473,
+            "P_psia": 206.79602434592272,
+            "beta_vapor": 0.13533820459590887,
+            "component_relative_residual": 2.475338605118062e-12,
+            "energy_relative_residual": 6.159028618021943e-15,
+            "volume_relative_residual": 4.174486844281373e-15,
+            "equilibrium_beta_residual": 4.066275094416483e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_15",
+            "position_1based": 15,
+            "component_inventory_lbmol": {
+              "n-Propane": 15.637885902797597,
+              "n-Butane": 47.27069472178182,
+              "n-Pentane": 5.8585089486536495
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.7010271856527783,
+              "n-Butane": 0.1460286526533281,
+              "n-Pentane": 0.000967586346937388
+            },
+            "internal_energy_BTU": -295875.71700612165,
+            "internal_energy_change_BTU": 5291.889232955582,
+            "T_F": 182.81676565747992,
+            "P_psia": 206.80601756070166,
+            "beta_vapor": 0.1390246498790256,
+            "component_relative_residual": 1.4609891574587077e-12,
+            "energy_relative_residual": 1.0569184969969306e-14,
+            "volume_relative_residual": 8.33612914245681e-15,
+            "equilibrium_beta_residual": 1.3423429034986611e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_16",
+            "position_1based": 16,
+            "component_inventory_lbmol": {
+              "n-Propane": 15.159668034106453,
+              "n-Butane": 57.85315285898784,
+              "n-Pentane": 7.116195437021376
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.5303278335386175,
+              "n-Butane": -0.026699739218372542,
+              "n-Pentane": -0.0005222865702450008
+            },
+            "internal_energy_BTU": -334525.1127377999,
+            "internal_energy_change_BTU": 2856.8343874693965,
+            "T_F": 187.56112891690194,
+            "P_psia": 206.81714749120002,
+            "beta_vapor": 0.13878965858430015,
+            "component_relative_residual": 0.000374700675445611,
+            "energy_relative_residual": 0.00022895214406395249,
+            "volume_relative_residual": 4.754260310962202e-05,
+            "equilibrium_beta_residual": 0.00048099811419966,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_17",
+            "position_1based": 17,
+            "component_inventory_lbmol": {
+              "n-Propane": 12.012137460202327,
+              "n-Butane": 59.26055554189704,
+              "n-Pentane": 7.430386116161041
+            },
+            "component_change_lbmol": {
+              "n-Propane": 0.6214961292812511,
+              "n-Butane": 0.045408008863113025,
+              "n-Pentane": -0.0020551175809453426
+            },
+            "internal_energy_BTU": -315153.07920490555,
+            "internal_energy_change_BTU": 2964.429557673575,
+            "T_F": 192.3750157745139,
+            "P_psia": 206.82603923183427,
+            "beta_vapor": 0.14458879026278135,
+            "component_relative_residual": 2.9347518152847637e-12,
+            "energy_relative_residual": 1.3400541684250171e-14,
+            "volume_relative_residual": 1.6077314885026824e-14,
+            "equilibrium_beta_residual": 3.6440017670003044e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_18",
+            "position_1based": 18,
+            "component_inventory_lbmol": {
+              "n-Propane": 9.465191755203195,
+              "n-Butane": 70.18673306725161,
+              "n-Pentane": 9.520940253279687
+            },
+            "component_change_lbmol": {
+              "n-Propane": -0.4653935967145699,
+              "n-Butane": -0.3902164318797503,
+              "n-Pentane": -0.00940373367145142
+            },
+            "internal_energy_BTU": -365229.1693364941,
+            "internal_energy_change_BTU": -9129.532829577278,
+            "T_F": 198.09791217820637,
+            "P_psia": 206.83603979063793,
+            "beta_vapor": 0.09974665429866246,
+            "component_relative_residual": 4.2397837981650736e-12,
+            "energy_relative_residual": 1.1880130750362017e-14,
+            "volume_relative_residual": 2.6724361107815932e-14,
+            "equilibrium_beta_residual": 6.2461286143289385e-12,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "tray_19",
+            "position_1based": 19,
+            "component_inventory_lbmol": {
+              "n-Propane": 7.0018334710976795,
+              "n-Butane": 71.6733220858552,
+              "n-Pentane": 10.7928866459305
+            },
+            "component_change_lbmol": {
+              "n-Propane": -1.009161404651536,
+              "n-Butane": -0.5943645362451093,
+              "n-Pentane": -0.012740405406553634
+            },
+            "internal_energy_BTU": -356233.5644754715,
+            "internal_energy_change_BTU": -14863.535585695936,
+            "T_F": 202.44224821592258,
+            "P_psia": 206.84579008508337,
+            "beta_vapor": 0.09746311154922083,
+            "component_relative_residual": 2.4508451153833127e-12,
+            "energy_relative_residual": 4.81965249724882e-14,
+            "volume_relative_residual": 5.459685107961757e-14,
+            "equilibrium_beta_residual": 1.0548006912358687e-11,
+            "active_bound_count": 0
+          },
+          {
+            "node_id": "bottom_terminal",
+            "position_1based": 20,
+            "component_inventory_lbmol": {
+              "n-Propane": 39.06335969175265,
+              "n-Butane": 627.8031297810093,
+              "n-Pentane": 133.69187197574448
+            },
+            "component_change_lbmol": {
+              "n-Propane": -2.823867970927509,
+              "n-Butane": -1.209154015948343,
+              "n-Pentane": -0.022003710192080916
+            },
+            "internal_energy_BTU": -3261702.016234754,
+            "internal_energy_change_BTU": -32490.466977916658,
+            "T_F": 213.18828888464515,
+            "P_psia": 218.18255323825937,
+            "beta_vapor": 0.0151018789929124,
+            "component_relative_residual": 3.653947259064724e-12,
+            "energy_relative_residual": 9.627828539409755e-13,
+            "volume_relative_residual": 4.303535466535016e-11,
+            "equilibrium_beta_residual": 1.7946998054352292e-12,
+            "active_bound_count": 0
+          }
+        ]
+      }
+    }
+  ],
+  "multistart_assessment": {
+    "start_names": [
+      "checkpoint",
+      "dd067",
+      "linear",
+      "random-small",
+      "random-moderate"
+    ],
+    "successful_start_names": [
+      "linear"
+    ],
+    "objective_values": [
+      6.382785448230609e-05
+    ],
+    "relative_objective_spread": 0.0,
+    "required_relative_spread": 0.0001,
+    "reproducible_minimum_pass": false,
+    "best_start_name": "linear",
+    "maximum_normalized_pattern_difference": null,
+    "maximum_normalized_pattern_rms_difference": null
+  },
+  "best_result": {
+    "classification": "least_movement_local_manifold_converged",
+    "converged": true,
+    "objective": 6.382785448230609e-05,
+    "component_objective": 1.693124267976667e-05,
+    "energy_objective": 4.689661180253942e-05,
+    "component_conservation_error_lbmol": [
+      3.4638958368304884e-14,
+      2.1316282072803006e-14,
+      2.949029909160572e-15
+    ],
+    "component_conservation_relative_max": 1.8657792996161272e-17,
+    "energy_conservation_error_BTU": 8.731149137020111e-11,
+    "energy_conservation_relative": 5.062698485382918e-18,
+    "maximum_pressure_order_violation_psi": 0.0,
+    "pressure_ordering_pass": true,
+    "all_local_closures_pass": true,
+    "active_bound_count": 0,
+    "first_order_optimality_norm": 1.1085099851926294e-14,
+    "constraint_violation_norm": 3.323315087042639e-10,
+    "total_uv_solves": 1420,
+    "optimizer_termination_reason": "no feasible objective-reducing nonlinear step",
+    "diagnostics": {
+      "material_move_L1_lbmol": 13.639609179001177,
+      "material_move_L1_by_component_lbmol": {
+        "n-Propane": 8.878878457427033,
+        "n-Butane": 4.662095891334527,
+        "n-Pentane": 0.0986348302396157
+      },
+      "energy_move_L1_BTU": 159738.65768396592,
+      "terminal_component_abs_fraction": 0.4261664441384016,
+      "terminal_energy_abs_fraction": 0.4348152307656721,
+      "maximum_pressure_change_psi": 23.334930545696892,
+      "pressure_rms_change_psi": 20.705137970657052,
+      "maximum_scaled_component_change": 0.0028333933603994456,
+      "maximum_scaled_energy_change": 0.0060007160424846665
+    },
+    "normalized_component_change": [
+      [
+        -0.0028333933603994456,
+        -0.0019428199630835258,
+        -0.000288180647681179
+      ],
+      [
+        0.00020764275205910953,
+        0.00039034689300389194,
+        7.329302890580069e-05
+      ],
+      [
+        0.0004320564402338738,
+        0.0004997823680517111,
+        8.70932894928263e-05
+      ],
+      [
+        0.000381658134378046,
+        0.00039263995124646747,
+        6.664655171999124e-05
+      ],
+      [
+        0.00032829412549533024,
+        0.0003002613252656373,
+        4.909676613566876e-05
+      ],
+      [
+        0.0002965300638114669,
+        0.0002405842115976468,
+        3.745751829138569e-05
+      ],
+      [
+        0.0002821376377420631,
+        0.00020504928737709953,
+        3.0277518969639552e-05
+      ],
+      [
+        0.0002798789792292854,
+        0.0001845259412743541,
+        2.5893069298753924e-05
+      ],
+      [
+        0.00029603975955999314,
+        0.00017761003741714894,
+        2.3726257335628385e-05
+      ],
+      [
+        0.00024016413873632786,
+        0.0002077591707140548,
+        2.7120101799830858e-05
+      ],
+      [
+        0.00034167670791350637,
+        0.00021978272210078552,
+        4.961559379188678e-05
+      ],
+      [
+        0.00022960690611498633,
+        8.569694470697446e-05,
+        9.290928078377601e-06
+      ],
+      [
+        0.0002985833485585084,
+        0.0001014611767761208,
+        1.0013108234024333e-05
+      ],
+      [
+        0.0003192478440024086,
+        9.252131165664171e-05,
+        6.4737849527344955e-06
+      ],
+      [
+        0.00032273311904392176,
+        7.443659985166048e-05,
+        1.5098487744980552e-06
+      ],
+      [
+        0.00024036512979482797,
+        1.352585607580074e-05,
+        -8.752948201931113e-06
+      ],
+      [
+        0.000285869263327206,
+        1.527293321184702e-05,
+        -1.152129754319083e-05
+      ],
+      [
+        -0.00021451146407428979,
+        -0.00023613713543870304,
+        -4.2031887721051546e-05
+      ],
+      [
+        -0.0004321060457091027,
+        -0.0003071315179010369,
+        -5.1029350417689334e-05
+      ],
+      [
+        -0.0013024734798180227,
+        -0.0007151681139045769,
+        -9.599123421600485e-05
+      ]
+    ],
+    "normalized_energy_change": [
+      -0.0060007160424846665,
+      0.0006104115592590424,
+      0.0010232472641909063,
+      0.000866113460225898,
+      0.0007110086420532521,
+      0.0006118057130087646,
+      0.000558512356613485,
+      0.0005360102695539505,
+      0.0005482548477540686,
+      0.0006546646984512199,
+      0.0006654404168907978,
+      0.00038411334675207036,
+      0.00047085214788577064,
+      0.0004800030682188763,
+      0.00045986782879264284,
+      0.0003202576117475197,
+      0.000361776096706744,
+      -0.0004111230755625515,
+      -0.0007964038277825752,
+      -0.0020540963822752163
+    ],
+    "nodes": [
+      {
+        "node_id": "top_terminal",
+        "position_1based": 1,
+        "component_inventory_lbmol": {
+          "n-Propane": 1396.7463052563933,
+          "n-Butane": 111.29691898220932,
+          "n-Pentane": 0.07899260385375141
+        },
+        "component_change_lbmol": {
+          "n-Propane": -5.260311049227539,
+          "n-Butane": -2.8293928698954574,
+          "n-Pentane": -0.05713412748724138
+        },
+        "internal_energy_BTU": -8694991.027079526,
+        "internal_energy_change_BTU": -103488.57797301747,
+        "T_F": 111.77842448745433,
+        "P_psia": 205.8506695288065,
+        "beta_vapor": 0.06211072010840511,
+        "component_relative_residual": 2.8779325938048523e-11,
+        "energy_relative_residual": 2.9972376129977722e-15,
+        "volume_relative_residual": 2.6293809669794496e-15,
+        "equilibrium_beta_residual": 2.2493659712630176e-11,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_2",
+        "position_1based": 2,
+        "component_inventory_lbmol": {
+          "n-Propane": 72.45967515066279,
+          "n-Butane": 14.346839520792765,
+          "n-Pentane": 0.03329870098448477
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.3854972903566676,
+          "n-Butane": 0.5684750706895905,
+          "n-Pentane": 0.01453093152203215
+        },
+        "internal_energy_BTU": -339984.98701897054,
+        "internal_energy_change_BTU": 10527.18105618842,
+        "T_F": 121.67962427340203,
+        "P_psia": 205.9878927801523,
+        "beta_vapor": 0.4089076892307515,
+        "component_relative_residual": 1.0977749777826429e-11,
+        "energy_relative_residual": 6.969162155455159e-16,
+        "volume_relative_residual": 3.564745728760916e-15,
+        "equilibrium_beta_residual": 1.0708101072509635e-11,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_3",
+        "position_1based": 3,
+        "component_inventory_lbmol": {
+          "n-Propane": 39.12797473575885,
+          "n-Butane": 17.452655055029158,
+          "n-Pentane": 0.054975490236151
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.8021305118509119,
+          "n-Butane": 0.7278495668845366,
+          "n-Pentane": 0.017266943999207827
+        },
+        "internal_energy_BTU": -286311.32070324814,
+        "internal_energy_change_BTU": 17646.96138530335,
+        "T_F": 131.7928961482513,
+        "P_psia": 206.14073369003646,
+        "beta_vapor": 0.17384345594431871,
+        "component_relative_residual": 4.65686721117574e-12,
+        "energy_relative_residual": 1.0794497990845944e-15,
+        "volume_relative_residual": 4.032772286317211e-15,
+        "equilibrium_beta_residual": 6.860512158368692e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_4",
+        "position_1based": 4,
+        "component_inventory_lbmol": {
+          "n-Propane": 33.39099097392846,
+          "n-Butane": 22.966733050391657,
+          "n-Pentane": 0.09075144035991564
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.7085639888043573,
+          "n-Butane": 0.5718145271318136,
+          "n-Pentane": 0.01321321404887553
+        },
+        "internal_energy_BTU": -279779.91883668175,
+        "internal_energy_change_BTU": 14937.025802833086,
+        "T_F": 140.92857047026476,
+        "P_psia": 206.2897933552719,
+        "beta_vapor": 0.17027919135308295,
+        "component_relative_residual": 2.8418653377740754e-13,
+        "energy_relative_residual": 1.9017930461973924e-12,
+        "volume_relative_residual": 4.462340956899352e-11,
+        "equilibrium_beta_residual": 2.7201019214828648e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_5",
+        "position_1based": 5,
+        "component_inventory_lbmol": {
+          "n-Propane": 28.632108471658977,
+          "n-Butane": 27.22098052278588,
+          "n-Pentane": 0.1528618403069256
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.6094915163830734,
+          "n-Butane": 0.4372804835006896,
+          "n-Pentane": 0.009733828132380079
+        },
+        "internal_energy_BTU": -271083.2315279727,
+        "internal_energy_change_BTU": 12262.082186803513,
+        "T_F": 148.76752421580017,
+        "P_psia": 206.43827613751722,
+        "beta_vapor": 0.1686963014817869,
+        "component_relative_residual": 5.804369184498552e-13,
+        "energy_relative_residual": 5.637063782756227e-16,
+        "volume_relative_residual": 1.432712863070065e-15,
+        "equilibrium_beta_residual": 1.8466062012834072e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_6",
+        "position_1based": 6,
+        "component_inventory_lbmol": {
+          "n-Propane": 25.186534831473026,
+          "n-Butane": 29.978339463688137,
+          "n-Pentane": 0.25159531343657204
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.5505202323463187,
+          "n-Butane": 0.3503707321513332,
+          "n-Pentane": 0.007426253784339282
+        },
+        "internal_energy_BTU": -262276.2873362993,
+        "internal_energy_change_BTU": 10551.224684984249,
+        "T_F": 154.61531670053935,
+        "P_psia": 206.5869083950725,
+        "beta_vapor": 0.16896673830488274,
+        "component_relative_residual": 1.95324809236102e-12,
+        "energy_relative_residual": 1.4552846811573872e-12,
+        "volume_relative_residual": 3.195287296115173e-11,
+        "equilibrium_beta_residual": 1.4579448759377556e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_7",
+        "position_1based": 7,
+        "component_inventory_lbmol": {
+          "n-Propane": 22.901421232157908,
+          "n-Butane": 31.71550235018608,
+          "n-Pentane": 0.404510169684377
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.5238001027179315,
+          "n-Butane": 0.29862004854073376,
+          "n-Pentane": 0.006002761263561862
+        },
+        "internal_energy_BTU": -255922.2302331612,
+        "internal_energy_change_BTU": 9632.125425877632,
+        "T_F": 158.7544077130215,
+        "P_psia": 206.73587302911076,
+        "beta_vapor": 0.16911602445922885,
+        "component_relative_residual": 1.7612437824102207e-10,
+        "energy_relative_residual": 2.1022278915630343e-10,
+        "volume_relative_residual": 6.671490389023478e-11,
+        "equilibrium_beta_residual": 2.399496712435223e-10,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_8",
+        "position_1based": 8,
+        "component_inventory_lbmol": {
+          "n-Propane": 21.372227119648773,
+          "n-Butane": 32.79716976248686,
+          "n-Pentane": 0.6398875248721498
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.5196068104990523,
+          "n-Butane": 0.26873122186976417,
+          "n-Pentane": 0.005133508909271556
+        },
+        "internal_energy_BTU": -251667.26140134607,
+        "internal_energy_change_BTU": 9244.053573330515,
+        "T_F": 161.7724407799193,
+        "P_psia": 206.88522122337108,
+        "beta_vapor": 0.1689200183100705,
+        "component_relative_residual": 1.2381752718082184e-12,
+        "energy_relative_residual": 3.919093157857257e-12,
+        "volume_relative_residual": 8.236337589885822e-11,
+        "equilibrium_beta_residual": 7.328110340765193e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_9",
+        "position_1based": 9,
+        "component_inventory_lbmol": {
+          "n-Propane": 20.230869361708855,
+          "n-Butane": 33.48106254402968,
+          "n-Pentane": 1.003623536866067
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.5496099623825508,
+          "n-Butane": 0.2586593626989284,
+          "n-Pentane": 0.004703921038128223
+        },
+        "internal_energy_BTU": -248642.0029195702,
+        "internal_energy_change_BTU": 9455.224036461586,
+        "T_F": 164.28619242159786,
+        "P_psia": 207.03518190018553,
+        "beta_vapor": 0.16835420720871236,
+        "component_relative_residual": 4.2369002976011664e-14,
+        "energy_relative_residual": 7.777086584705742e-12,
+        "volume_relative_residual": 1.6139969509990503e-10,
+        "equilibrium_beta_residual": 4.557187960330111e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_10",
+        "position_1based": 10,
+        "component_inventory_lbmol": {
+          "n-Propane": 19.05577195384395,
+          "n-Butane": 34.0053346455709,
+          "n-Pentane": 1.573936474686085
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.44587457932238195,
+          "n-Butane": 0.3025665411326983,
+          "n-Pentane": 0.005376777955654832
+        },
+        "internal_energy_BTU": -245440.51880904348,
+        "internal_energy_change_BTU": 11290.37238425936,
+        "T_F": 167.0849072467439,
+        "P_psia": 207.3016050278161,
+        "beta_vapor": 0.16765703980673638,
+        "component_relative_residual": 3.8215697184368825e-12,
+        "energy_relative_residual": 1.06848862476566e-11,
+        "volume_relative_residual": 2.1863823635806105e-10,
+        "equilibrium_beta_residual": 5.447559070503871e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_11",
+        "position_1based": 11,
+        "component_inventory_lbmol": {
+          "n-Propane": 18.162320362133965,
+          "n-Butane": 34.32624398990969,
+          "n-Pentane": 2.4696581199204624
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.6343368298313976,
+          "n-Butane": 0.32007683607039183,
+          "n-Pentane": 0.009836689881400407
+        },
+        "internal_energy_BTU": -244976.06669476855,
+        "internal_energy_change_BTU": 11476.210835879843,
+        "T_F": 169.80970153030944,
+        "P_psia": 207.31199566116072,
+        "beta_vapor": 0.1646611679468769,
+        "component_relative_residual": 2.4497748077659572e-12,
+        "energy_relative_residual": 5.917076603088113e-15,
+        "volume_relative_residual": 1.5617334727318056e-15,
+        "equilibrium_beta_residual": 6.98441304791686e-13,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_12",
+        "position_1based": 12,
+        "component_inventory_lbmol": {
+          "n-Propane": 22.319423541618622,
+          "n-Butane": 42.73418818045175,
+          "n-Pentane": 5.639173345680646
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.4262746437174343,
+          "n-Butane": 0.12480329054314865,
+          "n-Pentane": 0.0018420010974926626
+        },
+        "internal_energy_BTU": -324510.03351854515,
+        "internal_energy_change_BTU": 6624.433443340997,
+        "T_F": 172.55893952965758,
+        "P_psia": 207.48014339611896,
+        "beta_vapor": 0.13372346305315247,
+        "component_relative_residual": 2.3834193284858477e-13,
+        "energy_relative_residual": 1.3923089991632796e-11,
+        "volume_relative_residual": 3.323315087042639e-10,
+        "equilibrium_beta_residual": 2.3506196988876127e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_13",
+        "position_1based": 13,
+        "component_inventory_lbmol": {
+          "n-Propane": 20.24910560575922,
+          "n-Butane": 44.01662023090169,
+          "n-Pentane": 5.685846231523849
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.5543322397410648,
+          "n-Butane": 0.14776126228697706,
+          "n-Pentane": 0.0019851791124407825
+        },
+        "internal_energy_BTU": -315219.7105843838,
+        "internal_energy_change_BTU": 8120.33411933668,
+        "T_F": 175.65331129486935,
+        "P_psia": 207.63192093088225,
+        "beta_vapor": 0.1352353341087289,
+        "component_relative_residual": 2.410691820304081e-12,
+        "energy_relative_residual": 2.220122671410076e-15,
+        "volume_relative_residual": 2.2796102839459985e-15,
+        "equilibrium_beta_residual": 4.802380715318577e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_14",
+        "position_1based": 14,
+        "component_inventory_lbmol": {
+          "n-Propane": 17.963085240422096,
+          "n-Butane": 45.60020645346668,
+          "n-Pentane": 5.763573505480249
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.5926967235538392,
+          "n-Butane": 0.13474184149271196,
+          "n-Pentane": 0.001283479851234226
+        },
+        "internal_energy_BTU": -305328.5038517858,
+        "internal_energy_change_BTU": 8278.15124077897,
+        "T_F": 179.35981326360536,
+        "P_psia": 207.78314089961773,
+        "beta_vapor": 0.1364202352685737,
+        "component_relative_residual": 2.6244418525714476e-12,
+        "energy_relative_residual": 3.5106158399784036e-15,
+        "volume_relative_residual": 3.4715903684621713e-15,
+        "equilibrium_beta_residual": 2.060601689279906e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_15",
+        "position_1based": 15,
+        "component_inventory_lbmol": {
+          "n-Propane": 15.536025996840527,
+          "n-Butane": 47.23307054760898,
+          "n-Pentane": 5.85784070195031
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.5991672796957079,
+          "n-Butane": 0.1084044784804874,
+          "n-Pentane": 0.00029933964359774023
+        },
+        "internal_energy_BTU": -293236.7081061964,
+        "internal_energy_change_BTU": 7930.8981328808,
+        "T_F": 183.467605519264,
+        "P_psia": 207.93443082168218,
+        "beta_vapor": 0.1402298183665741,
+        "component_relative_residual": 1.184355395273717e-13,
+        "energy_relative_residual": 4.0441760798791135e-15,
+        "volume_relative_residual": 4.923572360314718e-15,
+        "equilibrium_beta_residual": 9.415801471845953e-13,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_16",
+        "position_1based": 16,
+        "component_inventory_lbmol": {
+          "n-Propane": 15.07558792803851,
+          "n-Butane": 57.89955074907314,
+          "n-Pentane": 7.114982381324601
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.4462477274706753,
+          "n-Butane": 0.01969815086692961,
+          "n-Pentane": -0.0017353422670201013
+        },
+        "internal_energy_BTU": -331858.77212579665,
+        "internal_energy_change_BTU": 5523.174999472627,
+        "T_F": 188.24284031671021,
+        "P_psia": 208.08187375581832,
+        "beta_vapor": 0.13974367822567188,
+        "component_relative_residual": 3.2071124802736475e-13,
+        "energy_relative_residual": 5.048398832157232e-15,
+        "volume_relative_residual": 8.629877057265955e-15,
+        "equilibrium_beta_residual": 2.4428514766583476e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_17",
+        "position_1based": 17,
+        "component_inventory_lbmol": {
+          "n-Propane": 11.921369349674762,
+          "n-Butane": 59.23739001002773,
+          "n-Pentane": 7.430157043988276
+        },
+        "component_change_lbmol": {
+          "n-Propane": 0.5307280187536865,
+          "n-Butane": 0.022242476993802995,
+          "n-Pentane": -0.002284189753710919
+        },
+        "internal_energy_BTU": -311878.3043863448,
+        "internal_energy_change_BTU": 6239.204376234324,
+        "T_F": 193.14060465085444,
+        "P_psia": 208.2378345892111,
+        "beta_vapor": 0.1459215966075356,
+        "component_relative_residual": 7.520162366845654e-13,
+        "energy_relative_residual": 6.302444117638822e-15,
+        "volume_relative_residual": 1.1958587325220756e-14,
+        "equilibrium_beta_residual": 5.115269319233562e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_18",
+        "position_1based": 18,
+        "component_inventory_lbmol": {
+          "n-Propane": 9.532336015829502,
+          "n-Butane": 70.23305519084589,
+          "n-Pentane": 9.52201082769528
+        },
+        "component_change_lbmol": {
+          "n-Propane": -0.39824933608826285,
+          "n-Butane": -0.34389430828547063,
+          "n-Pentane": -0.008333159255858646
+        },
+        "internal_energy_BTU": -363189.8807645413,
+        "internal_energy_change_BTU": -7090.244257624436,
+        "T_F": 198.70581342115133,
+        "P_psia": 208.38371800826644,
+        "beta_vapor": 0.10022434382680138,
+        "component_relative_residual": 3.775309504495752e-12,
+        "energy_relative_residual": 8.049318667463493e-15,
+        "volume_relative_residual": 2.594781757616056e-14,
+        "equilibrium_beta_residual": 1.9291512831642876e-13,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "tray_19",
+        "position_1based": 19,
+        "component_inventory_lbmol": {
+          "n-Propane": 7.208772269297854,
+          "n-Butane": 71.82040085019062,
+          "n-Pentane": 10.795510072852151
+        },
+        "component_change_lbmol": {
+          "n-Propane": -0.8022226064513616,
+          "n-Butane": -0.44728577190969077,
+          "n-Pentane": -0.010116978484902006
+        },
+        "internal_energy_BTU": -355104.8397100123,
+        "internal_energy_change_BTU": -13734.810820236744,
+        "T_F": 203.04937221172995,
+        "P_psia": 208.84938620675797,
+        "beta_vapor": 0.0975962689198379,
+        "component_relative_residual": 1.0359861526285878e-12,
+        "energy_relative_residual": 1.1042833234522611e-14,
+        "volume_relative_residual": 1.6219361315835825e-13,
+        "equilibrium_beta_residual": 6.443581779258523e-12,
+        "active_bound_count": 0
+      },
+      {
+        "node_id": "bottom_terminal",
+        "position_1based": 20,
+        "component_inventory_lbmol": {
+          "n-Propane": 39.46913219702031,
+          "n-Butane": 627.9707608557137,
+          "n-Pentane": 133.69484465294568
+        },
+        "component_change_lbmol": {
+          "n-Propane": -2.418095465659853,
+          "n-Butane": -1.0415229412438975,
+          "n-Pentane": -0.019031032990881158
+        },
+        "internal_energy_BTU": -3264636.5738899247,
+        "internal_energy_change_BTU": -35425.02463308722,
+        "T_F": 213.15193876608873,
+        "P_psia": 218.270563016569,
+        "beta_vapor": 0.015096578326975753,
+        "component_relative_residual": 4.977425610225081e-13,
+        "energy_relative_residual": 4.913484438351274e-13,
+        "volume_relative_residual": 2.2025133949661287e-11,
+        "equilibrium_beta_residual": 1.947221897613538e-12,
+        "active_bound_count": 0
+      }
+    ]
+  },
+  "terminal_concentration": {
+    "terminal_energy_movement_fraction": 0.4348152307656721,
+    "terminal_energy_capacity_fraction": 0.6854162025696815,
+    "movement_to_capacity_ratio": 0.6343813133327082,
+    "required_maximum_ratio": 2.0
+  },
+  "comparisons": {
+    "DD067_energy_move_BTU": 747127.1133593691,
+    "DD068_max_pressure_change_psi": 79.15872501700662,
+    "retirement_pressure_threshold_psi": 50.0
+  },
+  "acceptance_gate": {
+    "criteria": {
+      "at_least_4_of_5_starts_converged": false,
+      "objective_basin_reproduced": false,
+      "movement_pattern_reproduced": false,
+      "component_energy_local_uv_and_bounds": true,
+      "candidate_volume_mismatch_below_1pct": true,
+      "canonical_live_dwsim_energy_basis": true,
+      "enthalpy_reconciliation_not_state_dependent": false,
+      "energy_movement_below_dd067": true,
+      "maximum_pressure_correction_below_50psi": true,
+      "terminal_scaling_neutral": true,
+      "terminal_movement_to_capacity_ratio_below_2": true
+    },
+    "pass": false
+  }
+}

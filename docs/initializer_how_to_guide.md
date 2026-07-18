@@ -52,9 +52,15 @@ mapped-U provenance, and empty placeholder pass. The sump and representative
 interior phase volumes do not reproduce their mapped fixed volumes, stored
 checkpoint enthalpy does not reproduce live DWSIM TP enthalpy, and DD-068's
 node-local energy scaling makes equal terminal movement hundreds to thousands
-of times cheaper than interior movement. Correct those inputs before one
-bounded redistribution repeat. If the corrected repeat still fails, stop
-checkpoint repair and formulate the direct conserved steady-state solve.
+of times cheaper than interior movement.
+
+DD-070 completed the one corrected repeat. It used live-property canonical
+internal energy, neutral whole-column scales, and a liquid-only sump volume.
+Movement and pressure correction improved substantially, but only one of five
+starts converged and the checkpoint enthalpy mismatch remained
+state-dependent. Checkpoint repair is retired. The next initializer must solve
+the conserved steady state directly from operating specifications; the
+checkpoint and imported profiles are initial guesses, not conserved targets.
 
 ## Recommended Workflow
 
@@ -76,6 +82,8 @@ checkpoint repair and formulate the direct conserved steady-state solve.
    - Solve and report the global pressure-drop/vapor-flow network separately.
    - Verify complete condenser, reflux-drum, reboiler, and sump mappings.
    - For conserved-state redistribution, require multi-start reproducibility and reject terminal-dominated movement before adding hydraulics.
+   - Canonicalize energy from one live property basis; do not conserve an incompatible serialized phase-enthalpy total.
+   - Stop checkpoint repair after its documented bounded retry fails. Move to the direct steady-state formulation rather than tuning another projection.
    - Stop before dynamic integration if any required algebraic gate fails.
 
 5. Evaluate steady-state residuals only after algebraic closure.

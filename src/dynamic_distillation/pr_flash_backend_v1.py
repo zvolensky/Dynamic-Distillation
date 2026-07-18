@@ -696,6 +696,50 @@ def phase_enthalpy_BTU_lbmol(T_F: float, P_psia: float, comp, phase: str) -> flo
     return float(val)
 
 
+def phase_fugacity_coefficients(T_F: float, P_psia: float, comp, phase: str) -> np.ndarray:
+    """Return DWSIM fugacity coefficients for an imposed phase composition."""
+    _init_dwsim()
+    from System import Array  # type: ignore
+
+    phase_name = str(phase or "").strip().lower()
+    if phase_name in ("liq", "liquid", "l"):
+        phase_calc = "Liquid"
+    elif phase_name in ("vap", "vapor", "vapour", "v"):
+        phase_calc = "Vapor"
+    else:
+        raise ValueError("phase must be 'liquid' or 'vapor'")
+
+    comp_arr = np.asarray(comp, dtype=float).ravel()
+    if comp_arr.size != len(_component_ids):
+        raise ValueError(f"comp must be length {len(_component_ids)}; got {comp_arr.size}")
+    if (
+        np.any(~np.isfinite(comp_arr))
+        or np.any(comp_arr < 0.0)
+        or float(np.sum(comp_arr)) <= 0.0
+    ):
+        raise ValueError("comp must be finite, nonnegative, and have a positive sum")
+    comp_arr = comp_arr / float(np.sum(comp_arr))
+    comp_array = Array[float](list(comp_arr))
+    values = _dtlc.CalcProp(
+        _prop_package,
+        "fugacitycoefficient",
+        "Mole",
+        phase_calc,
+        _carray,
+        F_to_K(T_F),
+        float(P_psia) * PSIA_TO_PA,
+        comp_array,
+    )
+    phi = np.asarray([float(value) for value in values], dtype=float)
+    if phi.size != comp_arr.size:
+        raise RuntimeError(
+            f"DWSIM returned {phi.size} fugacity coefficients for {comp_arr.size} components"
+        )
+    if np.any(~np.isfinite(phi)) or np.any(phi <= 0.0):
+        raise RuntimeError("DWSIM returned non-physical fugacity coefficients")
+    return phi
+
+
 def vapor_z_factor_F_psia(T_F: float, P_psia: float, y) -> Optional[float]:
     """Compute vapor-phase compressibility factor Z using DWSIM CalcProp."""
     _init_dwsim()
@@ -968,6 +1012,7 @@ __all__ = [
     "pr_flash_TP_F_psia",
     "flash_TP_full_F_psia",
     "phase_enthalpy_BTU_lbmol",
+    "phase_fugacity_coefficients",
     "vapor_z_factor_F_psia",
     "get_thermo_coefficients",
     "component_mw_lbm_per_lbmol",

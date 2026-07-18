@@ -83,6 +83,11 @@ class _FakeBackend:
         props = {"x": np.array(z), "y": np.array(z), "HL": 0.0, "HV": 0.0}
         return coeffs, props
 
+    def phase_fugacity_coefficients(self, T_F, P_psia, comp, phase):
+        values = np.asarray(comp, dtype=float)
+        multiplier = 2.0 if str(phase).lower() == "liquid" else 0.5
+        return multiplier * np.ones_like(values)
+
 
 
 def test_provider_configures_backend_and_flashes(monkeypatch):
@@ -179,6 +184,24 @@ def test_provider_stage_aware_lightweight_flash_skips_cp_coefficients(monkeypatc
     assert len(res) == 6
     assert len(fake.flash_calls) == 1
     assert fake.coeff_calls == []
+
+
+def test_provider_exposes_phase_fugacity_coefficients(monkeypatch):
+    import dynamic_distillation.thermo_provider_v1 as tp_mod
+
+    fake = _FakeBackend()
+    monkeypatch.setattr(tp_mod, "backend", fake, raising=True)
+    provider = ThermoProviderV1(["A", "B"], ["A", "B"])
+
+    values = provider.phase_fugacity_coefficients(
+        "liquid",
+        100.0,
+        200.0,
+        [7.0, 3.0],
+    )
+
+    assert np.allclose(values, [2.0, 2.0])
+    assert provider.get_call_counters()["uncategorized"]["fugacity_requests"] == 1
 
 
 def test_provider_records_call_counters_and_cache_hits(monkeypatch):

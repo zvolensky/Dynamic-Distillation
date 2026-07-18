@@ -56,6 +56,16 @@ authorized on one representative mini8 inventory volume with prescribed
 pressure and live DWSIM properties. See
 `docs/dd_079_core_v2_gate_a_dynamics_20260718.md`.
 
+2026-07-18 Gate B completion: DD-080 reconstructs one role-selected mini8
+feed volume from conserved component inventory and live DWSIM PR internal
+energy at prescribed pressure. Five static states converge from three
+predefined guesses with rank `3/3` and Jacobian condition below `3`.
+Live-density geometry is physical, and four BDF/Radau local dynamics pass
+with worst normalized method disagreement `3.75e-9`, component conservation
+`4.60e-16`, and energy conservation `2.01e-16`. Gate C is now authorized as
+one five-volume prescribed-pressure Francis column. See
+`docs/dd_080_core_v2_gate_b_one_volume_20260718.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the
@@ -400,8 +410,10 @@ DD-077 completed the new-namespace control-volume/equation registry,
 structural audit, and ownership/conservation checks. DD-078 completed the
 property-free source-equation residual comparison. DD-079 completes Gate A
 with independent dynamic-response, conservation, physical-domain, exact-event,
-and integrator-refinement checks. The next increment is limited to Gate B:
-one representative mini8 inventory volume with prescribed pressure, conserved
-component/internal-energy states, and live DWSIM property closure. It does not
-authorize the five-volume solve, pressure dynamics, vapor holdup, controllers,
-or production integration.
+and integrator-refinement checks. DD-080 completes Gate B with a full-rank,
+guess-independent one-volume live DWSIM energy/fugacity closure, physical
+geometry, and conservative BDF/Radau local dynamics. The next increment is
+limited to Gate C: one five-volume prescribed-pressure model with
+Francis-only tray liquid-flow ownership and prescribed section vapor rates.
+It does not authorize energy-determined vapor traffic, pressure dynamics,
+vapor holdup, controllers, or production integration.

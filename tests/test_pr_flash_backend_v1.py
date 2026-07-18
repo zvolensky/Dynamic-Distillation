@@ -76,6 +76,17 @@ class _FakeDTLCMassFallback:
         return [np.nan]
 
 
+class _FakeDTLCFugacity:
+    def __init__(self):
+        self.calls = []
+
+    def CalcProp(self, _prop_pack, prop, basis, phase, _carray, _T_K, _P_Pa, _x_array):
+        self.calls.append((prop, basis, phase))
+        if prop == "fugacitycoefficient" and phase == "Liquid":
+            return [1.5, 0.75]
+        return [0.8, 1.2]
+
+
 def test_liquid_density_lbmol_ft3_from_molar_density(monkeypatch):
     # Stub DWSIM init and inject fake DTL calculator + System.Array
     monkeypatch.setattr(backend, "_init_dwsim", lambda: None, raising=True)
@@ -110,3 +121,33 @@ def test_liquid_density_lbmol_ft3_mass_density_fallback(monkeypatch):
 
     assert rho is not None
     assert abs(float(rho) - float(expected)) < 1e-12
+
+
+def test_phase_fugacity_coefficients_uses_imposed_phase(monkeypatch):
+    fake = _FakeDTLCFugacity()
+    monkeypatch.setattr(backend, "_init_dwsim", lambda: None, raising=True)
+    monkeypatch.setattr(backend, "_dtlc", fake, raising=True)
+    monkeypatch.setattr(backend, "_prop_package", object(), raising=True)
+    monkeypatch.setattr(backend, "_carray", object(), raising=True)
+    monkeypatch.setattr(backend, "_component_ids", ["A", "B"], raising=True)
+    monkeypatch.setitem(sys.modules, "System", types.SimpleNamespace(Array=_DummyArray))
+
+    liquid = backend.phase_fugacity_coefficients(
+        100.0,
+        200.0,
+        [7.0, 3.0],
+        "liquid",
+    )
+    vapor = backend.phase_fugacity_coefficients(
+        100.0,
+        200.0,
+        [7.0, 3.0],
+        "vapor",
+    )
+
+    assert np.allclose(liquid, [1.5, 0.75])
+    assert np.allclose(vapor, [0.8, 1.2])
+    assert fake.calls == [
+        ("fugacitycoefficient", "Mole", "Liquid"),
+        ("fugacitycoefficient", "Mole", "Vapor"),
+    ]

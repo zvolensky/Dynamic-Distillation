@@ -373,6 +373,37 @@ class ThermoProviderV1:
                 )
             )
 
+    def phase_fugacity_coefficients(
+        self,
+        phase: str,
+        T_F: float,
+        P_psia: float,
+        comp: Sequence[float],
+    ) -> np.ndarray:
+        """Phase fugacity coefficients at an imposed composition."""
+        self.configure_backend()
+        Nc = len(self.component_ids_dwsim)
+        comp_norm = self._normalize_z(comp, Nc)
+        self._record_call_counter("fugacity_requests", 1)
+        t0 = time.perf_counter()
+        with backend.silence_console(self.silence_backend_console):
+            values = backend.phase_fugacity_coefficients(
+                float(T_F),
+                float(P_psia),
+                comp_norm,
+                str(phase),
+            )
+        self._record_call_counter(
+            "wall_sec",
+            float(time.perf_counter() - t0),
+        )
+        phi = np.asarray(values, dtype=float).reshape((Nc,))
+        if np.any(~np.isfinite(phi)) or np.any(phi <= 0.0):
+            raise RuntimeError(
+                "thermo backend returned non-physical fugacity coefficients"
+            )
+        return phi
+
     def vapor_z_factor_F_psia(
         self,
         T_F: float,

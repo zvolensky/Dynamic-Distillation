@@ -1,0 +1,1201 @@
+{
+  "schema_id": "dd080-core-v2-gate-b-one-volume-v1",
+  "classification": "dd080_gate_b_passed",
+  "decision": "authorize_gate_c_five_volume_prescribed_pressure_model",
+  "authorization": "Gate B is complete. Gate C may begin as one five-volume prescribed-pressure Francis column. Gates D through G remain unauthorized.",
+  "source_workbook": "sandbox\\mini8\\input\\distillation_column_template_8stage.xlsx",
+  "property_provider": "DWSIM",
+  "property_package": "pr",
+  "source_volume": {
+    "role": "feed_tray",
+    "source_stage_1based": 5,
+    "temperature_F": 179.654,
+    "pressure_psia": 226.896,
+    "component_names": [
+      "n-Propane",
+      "n-Butane",
+      "n-Pentane"
+    ]
+  },
+  "conserved_state": [
+    "N_k",
+    "U"
+  ],
+  "algebraic_unknowns": [
+    "T",
+    "y_independent_1",
+    "y_independent_2"
+  ],
+  "round_trip_tolerances": {
+    "temperature_F": 1e-06,
+    "liquid_mole_fraction": 1e-12,
+    "vapor_mole_fraction": 1e-08,
+    "energy_residual": 1e-09,
+    "equilibrium_residual": 1e-08
+  },
+  "jacobian_condition_limit": 100000000.0,
+  "dynamic_tolerances": {
+    "algebraic": 1e-08,
+    "component_conservation": 1e-09,
+    "energy_conservation": 1e-08,
+    "integrator_agreement": 1e-06
+  },
+  "geometry": {
+    "active_area_ft2": 169.47285339961908,
+    "tray_spacing_ft": 1.5,
+    "weir_height_in": 1.65625,
+    "weir_length_ft": 9.0,
+    "hydraulic_c_factor": 0.9623640652877183
+  },
+  "canonical_state": {
+    "component_inventory_lbmol": [
+      15.827224488456032,
+      30.93927248257306,
+      4.295644347241432
+    ],
+    "internal_energy_BTU": -256558.69859176135,
+    "live_solution": {
+      "temperature_F": 179.654,
+      "liquid_moles_lbmol": 51.06214131827053,
+      "liquid_mole_fraction": [
+        0.3099600619920124,
+        0.6059141211828242,
+        0.08412581682516337
+      ],
+      "vapor_mole_fraction": [
+        0.5058239549847355,
+        0.4598119408025804,
+        0.03436410421268411
+      ],
+      "liquid_enthalpy_BTU_lbmol": -4942.236504308137,
+      "liquid_internal_energy_BTU_lbmol": -5024.440651492267,
+      "liquid_density_lbmol_ft3": 0.5107654724663633,
+      "mass_density_lbm_ft3": 28.06887029599775,
+      "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+      "liquid_volume_ft3": 99.97179541464259,
+      "liquid_height_ft": 0.5898985790892884,
+      "over_weir_head_ft": 0.4518777457559551,
+      "francis_flow_lbmolph": 16109.48302591823,
+      "phase_fugacity_common_ratio": 0.9904083176723745,
+      "residual": [
+        0.0,
+        1.1275702593849246e-16,
+        0.0
+      ],
+      "residual_max_abs": 1.1275702593849246e-16,
+      "converged": true,
+      "iterations": 4,
+      "active_bounds": false,
+      "clipping_or_projection_used": false
+    }
+  },
+  "canonical_round_trip_pass": true,
+  "static_cases": {
+    "nominal_canonical": {
+      "state": {
+        "component_inventory_lbmol": [
+          15.827224488456032,
+          30.93927248257306,
+          4.295644347241432
+        ],
+        "internal_energy_BTU": -256558.69859176135
+      },
+      "solution": {
+        "temperature_F": 179.654,
+        "liquid_moles_lbmol": 51.06214131827053,
+        "liquid_mole_fraction": [
+          0.3099600619920124,
+          0.6059141211828242,
+          0.08412581682516337
+        ],
+        "vapor_mole_fraction": [
+          0.5058239549847355,
+          0.4598119408025804,
+          0.03436410421268411
+        ],
+        "liquid_enthalpy_BTU_lbmol": -4942.236504308137,
+        "liquid_internal_energy_BTU_lbmol": -5024.440651492267,
+        "liquid_density_lbmol_ft3": 0.5107654724663633,
+        "mass_density_lbm_ft3": 28.06887029599775,
+        "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+        "liquid_volume_ft3": 99.97179541464259,
+        "liquid_height_ft": 0.5898985790892884,
+        "over_weir_head_ft": 0.4518777457559551,
+        "francis_flow_lbmolph": 16109.48302591823,
+        "phase_fugacity_common_ratio": 0.9904083176723745,
+        "residual": [
+          0.0,
+          1.1275702593849246e-16,
+          0.0
+        ],
+        "residual_max_abs": 1.1275702593849246e-16,
+        "converged": true,
+        "iterations": 1,
+        "active_bounds": false,
+        "clipping_or_projection_used": false
+      },
+      "predefined_roots": {
+        "source_near": {
+          "temperature_F": 179.654,
+          "liquid_moles_lbmol": 51.06214131827053,
+          "liquid_mole_fraction": [
+            0.3099600619920124,
+            0.6059141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.5058239549847355,
+            0.4598119408025804,
+            0.03436410421268411
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4942.236504308137,
+          "liquid_internal_energy_BTU_lbmol": -5024.440651492267,
+          "liquid_density_lbmol_ft3": 0.5107654724663633,
+          "mass_density_lbm_ft3": 28.06887029599775,
+          "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+          "liquid_volume_ft3": 99.97179541464259,
+          "liquid_height_ft": 0.5898985790892884,
+          "over_weir_head_ft": 0.4518777457559551,
+          "francis_flow_lbmolph": 16109.48302591823,
+          "phase_fugacity_common_ratio": 0.9904083176723745,
+          "residual": [
+            0.0,
+            1.1275702593849246e-16,
+            0.0
+          ],
+          "residual_max_abs": 1.1275702593849246e-16,
+          "converged": true,
+          "iterations": 1,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        },
+        "hot_light": {
+          "temperature_F": 179.65399999999502,
+          "liquid_moles_lbmol": 51.06214131827053,
+          "liquid_mole_fraction": [
+            0.3099600619920124,
+            0.6059141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.505823954984739,
+            0.4598119408025775,
+            0.034364104212683544
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4942.236504308343,
+          "liquid_internal_energy_BTU_lbmol": -5024.440651492472,
+          "liquid_density_lbmol_ft3": 0.5107654724663633,
+          "mass_density_lbm_ft3": 28.06887029599775,
+          "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+          "liquid_volume_ft3": 99.97179541464259,
+          "liquid_height_ft": 0.5898985790892884,
+          "over_weir_head_ft": 0.4518777457559551,
+          "francis_flow_lbmolph": 16109.48302591823,
+          "phase_fugacity_common_ratio": 0.9904083176724108,
+          "residual": [
+            2.0575875832143267e-14,
+            6.730727086790012e-16,
+            -2.237793284010081e-16
+          ],
+          "residual_max_abs": 2.0575875832143267e-14,
+          "converged": true,
+          "iterations": 7,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        },
+        "cool_heavy": {
+          "temperature_F": 179.65399999998,
+          "liquid_moles_lbmol": 51.06214131827053,
+          "liquid_mole_fraction": [
+            0.3099600619920124,
+            0.6059141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.5058239549847492,
+            0.45981194080256893,
+            0.034364104212681906
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4942.236504308976,
+          "liquid_internal_energy_BTU_lbmol": -5024.440651493105,
+          "liquid_density_lbmol_ft3": 0.5107654724663633,
+          "mass_density_lbm_ft3": 28.06887029599775,
+          "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+          "liquid_volume_ft3": 99.97179541464259,
+          "liquid_height_ft": 0.5898985790892884,
+          "over_weir_head_ft": 0.4518777457559551,
+          "francis_flow_lbmolph": 16109.48302591823,
+          "phase_fugacity_common_ratio": 0.9904083176725161,
+          "residual": [
+            8.38424192495367e-14,
+            2.690556111240028e-15,
+            1.906461100098511e-15
+          ],
+          "residual_max_abs": 8.38424192495367e-14,
+          "converged": true,
+          "iterations": 8,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        }
+      },
+      "root_temperature_spread_F": 2.000888343900442e-11,
+      "root_vapor_composition_spread": 1.3655743202889425e-14,
+      "jacobians": {
+        "h_x_1": {
+          "rank": 3,
+          "condition": 2.9640361536714366,
+          "zero_rows": [],
+          "zero_columns": [],
+          "matrix": [
+            [
+              -0.4189827204990818,
+              0.0,
+              0.0
+            ],
+            [
+              0.4307901368231191,
+              0.9664298861971135,
+              0.02652845759298222
+            ],
+            [
+              0.1787771598605811,
+              -0.016336559985948712,
+              1.0123873664698648
+            ]
+          ]
+        },
+        "h_x_0.5": {
+          "rank": 3,
+          "condition": 2.9527921723410158,
+          "zero_rows": [],
+          "zero_columns": [],
+          "matrix": [
+            [
+              -0.4206945157495423,
+              0.0,
+              0.0
+            ],
+            [
+              0.43079013707456726,
+              0.9664298861631129,
+              0.026528457598359863
+            ],
+            [
+              0.17877716002208385,
+              -0.01633655999713768,
+              1.0123873664133127
+            ]
+          ]
+        }
+      },
+      "geometry_valid": true,
+      "phase_valid": true,
+      "pass_gate": true
+    },
+    "inventory_plus_1_percent": {
+      "state": {
+        "component_inventory_lbmol": [
+          15.985496733340593,
+          31.24866520739879,
+          4.338600790713847
+        ],
+        "internal_energy_BTU": -259124.28557767897
+      },
+      "solution": {
+        "temperature_F": 179.654,
+        "liquid_moles_lbmol": 51.57276273145323,
+        "liquid_mole_fraction": [
+          0.3099600619920124,
+          0.6059141211828242,
+          0.08412581682516337
+        ],
+        "vapor_mole_fraction": [
+          0.5058239549847355,
+          0.4598119408025804,
+          0.03436410421268411
+        ],
+        "liquid_enthalpy_BTU_lbmol": -4942.236504308137,
+        "liquid_internal_energy_BTU_lbmol": -5024.440651492267,
+        "liquid_density_lbmol_ft3": 0.5107654724663633,
+        "mass_density_lbm_ft3": 28.06887029599775,
+        "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+        "liquid_volume_ft3": 100.971513368789,
+        "liquid_height_ft": 0.5957975648801813,
+        "over_weir_head_ft": 0.45777673154684795,
+        "francis_flow_lbmolph": 16425.95937091746,
+        "phase_fugacity_common_ratio": 0.9904083176723745,
+        "residual": [
+          0.0,
+          1.1275702593849246e-16,
+          0.0
+        ],
+        "residual_max_abs": 1.1275702593849246e-16,
+        "converged": true,
+        "iterations": 1,
+        "active_bounds": false,
+        "clipping_or_projection_used": false
+      },
+      "predefined_roots": {
+        "source_near": {
+          "temperature_F": 179.654,
+          "liquid_moles_lbmol": 51.57276273145323,
+          "liquid_mole_fraction": [
+            0.3099600619920124,
+            0.6059141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.5058239549847355,
+            0.4598119408025804,
+            0.03436410421268411
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4942.236504308137,
+          "liquid_internal_energy_BTU_lbmol": -5024.440651492267,
+          "liquid_density_lbmol_ft3": 0.5107654724663633,
+          "mass_density_lbm_ft3": 28.06887029599775,
+          "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+          "liquid_volume_ft3": 100.971513368789,
+          "liquid_height_ft": 0.5957975648801813,
+          "over_weir_head_ft": 0.45777673154684795,
+          "francis_flow_lbmolph": 16425.95937091746,
+          "phase_fugacity_common_ratio": 0.9904083176723745,
+          "residual": [
+            0.0,
+            1.1275702593849246e-16,
+            0.0
+          ],
+          "residual_max_abs": 1.1275702593849246e-16,
+          "converged": true,
+          "iterations": 1,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        },
+        "hot_light": {
+          "temperature_F": 179.6539999999951,
+          "liquid_moles_lbmol": 51.57276273145323,
+          "liquid_mole_fraction": [
+            0.3099600619920124,
+            0.6059141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.5058239549847391,
+            0.45981194080257737,
+            0.03436410421268353
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4942.236504308337,
+          "liquid_internal_energy_BTU_lbmol": -5024.440651492467,
+          "liquid_density_lbmol_ft3": 0.5107654724663633,
+          "mass_density_lbm_ft3": 28.06887029599775,
+          "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+          "liquid_volume_ft3": 100.971513368789,
+          "liquid_height_ft": 0.5957975648801813,
+          "over_weir_head_ft": 0.45777673154684795,
+          "francis_flow_lbmolph": 16425.95937091746,
+          "phase_fugacity_common_ratio": 0.9904083176724092,
+          "residual": [
+            2.0176897630411956e-14,
+            2.130240428499519e-15,
+            2.237793284010081e-16
+          ],
+          "residual_max_abs": 2.0176897630411956e-14,
+          "converged": true,
+          "iterations": 7,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        },
+        "cool_heavy": {
+          "temperature_F": 179.65399999998272,
+          "liquid_moles_lbmol": 51.57276273145323,
+          "liquid_mole_fraction": [
+            0.3099600619920124,
+            0.6059141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.505823954984747,
+            0.4598119408025708,
+            0.03436410421268233
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4942.23650430886,
+          "liquid_internal_energy_BTU_lbmol": -5024.44065149299,
+          "liquid_density_lbmol_ft3": 0.5107654724663633,
+          "mass_density_lbm_ft3": 28.06887029599775,
+          "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+          "liquid_volume_ft3": 100.971513368789,
+          "liquid_height_ft": 0.5957975648801813,
+          "over_weir_head_ft": 0.45777673154684795,
+          "francis_flow_lbmolph": 16425.95937091746,
+          "phase_fugacity_common_ratio": 0.9904083176724966,
+          "residual": [
+            7.30130109168297e-14,
+            -1.904726376622534e-15,
+            -3.3480163086352377e-16
+          ],
+          "residual_max_abs": 7.30130109168297e-14,
+          "converged": true,
+          "iterations": 8,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        }
+      },
+      "root_temperature_spread_F": 1.7280399333685637e-11,
+      "root_vapor_composition_spread": 1.1435297153639112e-14,
+      "jacobians": {
+        "h_x_1": {
+          "rank": 3,
+          "condition": 2.936685220838696,
+          "zero_rows": [],
+          "zero_columns": [],
+          "matrix": [
+            [
+              -0.42317254770167884,
+              0.0,
+              0.0
+            ],
+            [
+              0.4307901368231191,
+              0.9664298861971135,
+              0.02652845759298222
+            ],
+            [
+              0.1787771598605811,
+              -0.016336559985948712,
+              1.0123873664698648
+            ]
+          ]
+        },
+        "h_x_0.5": {
+          "rank": 3,
+          "condition": 2.9255649905093786,
+          "zero_rows": [],
+          "zero_columns": [],
+          "matrix": [
+            [
+              -0.4249014609066958,
+              0.0,
+              0.0
+            ],
+            [
+              0.43079013707456726,
+              0.9664298861631129,
+              0.026528457598359863
+            ],
+            [
+              0.17877716002208385,
+              -0.01633655999713768,
+              1.0123873664133127
+            ]
+          ]
+        }
+      },
+      "geometry_valid": true,
+      "phase_valid": true,
+      "pass_gate": true
+    },
+    "internal_energy_plus_0p5_percent": {
+      "state": {
+        "component_inventory_lbmol": [
+          15.827224488456032,
+          30.93927248257306,
+          4.295644347241432
+        ],
+        "internal_energy_BTU": -255275.90509880256
+      },
+      "solution": {
+        "temperature_F": 180.25450597793514,
+        "liquid_moles_lbmol": 51.06214131827053,
+        "liquid_mole_fraction": [
+          0.3099600619920124,
+          0.6059141211828242,
+          0.08412581682516337
+        ],
+        "vapor_mole_fraction": [
+          0.5054184656204557,
+          0.4601538653261261,
+          0.03442766905341828
+        ],
+        "liquid_enthalpy_BTU_lbmol": -4916.943014777387,
+        "liquid_internal_energy_BTU_lbmol": -4999.3184482402385,
+        "liquid_density_lbmol_ft3": 0.5097034189705502,
+        "mass_density_lbm_ft3": 28.010505658158312,
+        "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+        "liquid_volume_ft3": 100.18010360103317,
+        "liquid_height_ft": 0.5911277327986403,
+        "over_weir_head_ft": 0.4531068994653069,
+        "francis_flow_lbmolph": 16141.62305814926,
+        "phase_fugacity_common_ratio": 0.9861296436596456,
+        "residual": [
+          5.432943169861208e-13,
+          -1.2368578383714635e-15,
+          -6.74807432154978e-16
+        ],
+        "residual_max_abs": 5.432943169861208e-13,
+        "converged": true,
+        "iterations": 5,
+        "active_bounds": false,
+        "clipping_or_projection_used": false
+      },
+      "predefined_roots": {
+        "source_near": {
+          "temperature_F": 180.25450597793514,
+          "liquid_moles_lbmol": 51.06214131827053,
+          "liquid_mole_fraction": [
+            0.3099600619920124,
+            0.6059141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.5054184656204557,
+            0.4601538653261261,
+            0.03442766905341828
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4916.943014777387,
+          "liquid_internal_energy_BTU_lbmol": -4999.3184482402385,
+          "liquid_density_lbmol_ft3": 0.5097034189705502,
+          "mass_density_lbm_ft3": 28.010505658158312,
+          "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+          "liquid_volume_ft3": 100.18010360103317,
+          "liquid_height_ft": 0.5911277327986403,
+          "over_weir_head_ft": 0.4531068994653069,
+          "francis_flow_lbmolph": 16141.62305814926,
+          "phase_fugacity_common_ratio": 0.9861296436596456,
+          "residual": [
+            5.432943169861208e-13,
+            -1.2368578383714635e-15,
+            -6.74807432154978e-16
+          ],
+          "residual_max_abs": 5.432943169861208e-13,
+          "converged": true,
+          "iterations": 5,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        },
+        "hot_light": {
+          "temperature_F": 180.25450597780733,
+          "liquid_moles_lbmol": 51.06214131827053,
+          "liquid_mole_fraction": [
+            0.3099600619920124,
+            0.6059141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.5054184656205422,
+            0.4601538653260532,
+            0.03442766905340466
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4916.943014782785,
+          "liquid_internal_energy_BTU_lbmol": -4999.318448245636,
+          "liquid_density_lbmol_ft3": 0.5097034189705502,
+          "mass_density_lbm_ft3": 28.010505658158312,
+          "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+          "liquid_volume_ft3": 100.18010360103317,
+          "liquid_height_ft": 0.5911277327986403,
+          "over_weir_head_ft": 0.4531068994653069,
+          "francis_flow_lbmolph": 16141.62305814926,
+          "phase_fugacity_common_ratio": 0.9861296436605514,
+          "residual": [
+            1.0830548270426214e-12,
+            2.0261570199409107e-15,
+            2.2516710718178956e-15
+          ],
+          "residual_max_abs": 1.0830548270426214e-12,
+          "converged": true,
+          "iterations": 6,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        },
+        "cool_heavy": {
+          "temperature_F": 180.254505978041,
+          "liquid_moles_lbmol": 51.06214131827053,
+          "liquid_mole_fraction": [
+            0.3099600619920124,
+            0.6059141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.5054184656203846,
+            0.46015386532618596,
+            0.03442766905342944
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4916.943014772924,
+          "liquid_internal_energy_BTU_lbmol": -4999.318448235775,
+          "liquid_density_lbmol_ft3": 0.5097034189705502,
+          "mass_density_lbm_ft3": 28.010505658158312,
+          "mean_molecular_weight_lbm_lbmol": 54.95451789342758,
+          "liquid_volume_ft3": 100.18010360103317,
+          "liquid_height_ft": 0.5911277327986403,
+          "over_weir_head_ft": 0.4531068994653069,
+          "francis_flow_lbmolph": 16141.62305814926,
+          "phase_fugacity_common_ratio": 0.9861296436588919,
+          "residual": [
+            9.689470613474668e-14,
+            1.8023776915399026e-15,
+            1.1275702593849246e-16
+          ],
+          "residual_max_abs": 9.689470613474668e-14,
+          "converged": true,
+          "iterations": 8,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        }
+      },
+      "root_temperature_spread_F": 1.2781242730852682e-10,
+      "root_vapor_composition_spread": 8.64863736182997e-14,
+      "jacobians": {
+        "h_x_1": {
+          "rank": 3,
+          "condition": 2.9674841438877158,
+          "zero_rows": [],
+          "zero_columns": [],
+          "matrix": [
+            [
+              -0.4189748989304151,
+              0.0,
+              0.0
+            ],
+            [
+              0.4319890312476544,
+              0.9666275265751353,
+              0.026359222951057023
+            ],
+            [
+              0.17931123188789572,
+              -0.016242091048588453,
+              1.0123073429254765
+            ]
+          ]
+        },
+        "h_x_0.5": {
+          "rank": 3,
+          "condition": 2.974102970828941,
+          "zero_rows": [],
+          "zero_columns": [],
+          "matrix": [
+            [
+              -0.4179750650798747,
+              0.0,
+              0.0
+            ],
+            [
+              0.43198903117366844,
+              0.9666275265071341,
+              0.026359223001537476
+            ],
+            [
+              0.17931123149853703,
+              -0.016242091037399486,
+              1.0123073429249563
+            ]
+          ]
+        }
+      },
+      "geometry_valid": true,
+      "phase_valid": true,
+      "pass_gate": true
+    },
+    "propane_to_butane_transfer": {
+      "state": {
+        "component_inventory_lbmol": [
+          15.72510020581949,
+          31.0413967652096,
+          4.295644347241432
+        ],
+        "internal_energy_BTU": -256558.69859176135
+      },
+      "solution": {
+        "temperature_F": 179.75005959668644,
+        "liquid_moles_lbmol": 51.06214131827053,
+        "liquid_mole_fraction": [
+          0.3079600619920124,
+          0.6079141211828242,
+          0.08412581682516337
+        ],
+        "vapor_mole_fraction": [
+          0.5033992585529917,
+          0.4621692821924117,
+          0.0344314592545965
+        ],
+        "liquid_enthalpy_BTU_lbmol": -4942.224120369895,
+        "liquid_internal_energy_BTU_lbmol": -5024.4406514924995,
+        "liquid_density_lbmol_ft3": 0.510688537960615,
+        "mass_density_lbm_ft3": 28.07896882459056,
+        "mean_molecular_weight_lbm_lbmol": 54.98257105342758,
+        "liquid_volume_ft3": 99.98685602418692,
+        "liquid_height_ft": 0.5899874464756705,
+        "over_weir_head_ft": 0.4519666131423371,
+        "francis_flow_lbmolph": 16111.808234135346,
+        "phase_fugacity_common_ratio": 0.9913942893331578,
+        "residual": [
+          2.331172635830082e-14,
+          -1.3444106938820255e-15,
+          1.1275702593849246e-16
+        ],
+        "residual_max_abs": 2.331172635830082e-14,
+        "converged": true,
+        "iterations": 5,
+        "active_bounds": false,
+        "clipping_or_projection_used": false
+      },
+      "predefined_roots": {
+        "source_near": {
+          "temperature_F": 179.75005959668644,
+          "liquid_moles_lbmol": 51.06214131827053,
+          "liquid_mole_fraction": [
+            0.3079600619920124,
+            0.6079141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.5033992585529917,
+            0.4621692821924117,
+            0.0344314592545965
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4942.224120369895,
+          "liquid_internal_energy_BTU_lbmol": -5024.4406514924995,
+          "liquid_density_lbmol_ft3": 0.510688537960615,
+          "mass_density_lbm_ft3": 28.07896882459056,
+          "mean_molecular_weight_lbm_lbmol": 54.98257105342758,
+          "liquid_volume_ft3": 99.98685602418692,
+          "liquid_height_ft": 0.5899874464756705,
+          "over_weir_head_ft": 0.4519666131423371,
+          "francis_flow_lbmolph": 16111.808234135346,
+          "phase_fugacity_common_ratio": 0.9913942893331578,
+          "residual": [
+            2.331172635830082e-14,
+            -1.3444106938820255e-15,
+            1.1275702593849246e-16
+          ],
+          "residual_max_abs": 2.331172635830082e-14,
+          "converged": true,
+          "iterations": 5,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        },
+        "hot_light": {
+          "temperature_F": 179.75005959668707,
+          "liquid_moles_lbmol": 51.06214131827053,
+          "liquid_mole_fraction": [
+            0.3079600619920124,
+            0.6079141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.5033992585529915,
+            0.4621692821924119,
+            0.03443145925459659
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4942.224120369862,
+          "liquid_internal_energy_BTU_lbmol": -5024.440651492467,
+          "liquid_density_lbmol_ft3": 0.510688537960615,
+          "mass_density_lbm_ft3": 28.07896882459056,
+          "mean_molecular_weight_lbm_lbmol": 54.98257105342758,
+          "liquid_volume_ft3": 99.98685602418692,
+          "liquid_height_ft": 0.5899874464756705,
+          "over_weir_head_ft": 0.4519666131423371,
+          "francis_flow_lbmolph": 16111.808234135346,
+          "phase_fugacity_common_ratio": 0.9913942893331537,
+          "residual": [
+            2.000590697252711e-14,
+            1.1188966420050406e-15,
+            7.840950111415168e-16
+          ],
+          "residual_max_abs": 2.000590697252711e-14,
+          "converged": true,
+          "iterations": 7,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        },
+        "cool_heavy": {
+          "temperature_F": 179.75005959668252,
+          "liquid_moles_lbmol": 51.06214131827053,
+          "liquid_mole_fraction": [
+            0.3079600619920124,
+            0.6079141211828242,
+            0.08412581682516337
+          ],
+          "vapor_mole_fraction": [
+            0.5033992585529947,
+            0.46216928219240927,
+            0.03443145925459609
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4942.224120370053,
+          "liquid_internal_energy_BTU_lbmol": -5024.440651492658,
+          "liquid_density_lbmol_ft3": 0.510688537960615,
+          "mass_density_lbm_ft3": 28.07896882459056,
+          "mean_molecular_weight_lbm_lbmol": 54.98257105342758,
+          "liquid_volume_ft3": 99.98685602418692,
+          "liquid_height_ft": 0.5899874464756705,
+          "over_weir_head_ft": 0.4519666131423371,
+          "francis_flow_lbmolph": 16111.808234135346,
+          "phase_fugacity_common_ratio": 0.9913942893331859,
+          "residual": [
+            3.9099863769668366e-14,
+            2.465042059363043e-15,
+            6.730727086790012e-16
+          ],
+          "residual_max_abs": 3.9099863769668366e-14,
+          "converged": true,
+          "iterations": 8,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        }
+      },
+      "root_temperature_spread_F": 3.922195901395753e-12,
+      "root_vapor_composition_spread": 2.9976021664879227e-15,
+      "jacobians": {
+        "h_x_1": {
+          "rank": 3,
+          "condition": 2.9620132032084476,
+          "zero_rows": [],
+          "zero_columns": [],
+          "matrix": [
+            [
+              -0.4190687726932998,
+              0.0,
+              0.0
+            ],
+            [
+              0.4302670567495059,
+              0.9664049282150782,
+              0.026545154135308027
+            ],
+            [
+              0.17855250309247933,
+              -0.016347380811347623,
+              1.0123931951277336
+            ]
+          ]
+        },
+        "h_x_0.5": {
+          "rank": 3,
+          "condition": 2.9620132911130597,
+          "zero_rows": [],
+          "zero_columns": [],
+          "matrix": [
+            [
+              -0.41906875921353626,
+              0.0,
+              0.0
+            ],
+            [
+              0.43026705639596924,
+              0.9664049281305972,
+              0.026545154090291952
+            ],
+            [
+              0.1785525031362811,
+              -0.016347380833899028,
+              1.0123931950430791
+            ]
+          ]
+        }
+      },
+      "geometry_valid": true,
+      "phase_valid": true,
+      "pass_gate": true
+    },
+    "combined_bounded": {
+      "state": {
+        "component_inventory_lbmol": [
+          15.85504315887345,
+          31.145286297010784,
+          4.317122568977639
+        ],
+        "internal_energy_BTU": -257325.8091005507
+      },
+      "solution": {
+        "temperature_F": 179.94238240630239,
+        "liquid_moles_lbmol": 51.31745202486187,
+        "liquid_mole_fraction": [
+          0.3089600619920125,
+          0.6069141211828242,
+          0.08412581682516336
+        ],
+        "vapor_mole_fraction": [
+          0.5044506030898664,
+          0.46112625320772765,
+          0.034423143702405866
+        ],
+        "liquid_enthalpy_BTU_lbmol": -4932.113401539249,
+        "liquid_internal_energy_BTU_lbmol": -5014.391770187566,
+        "liquid_density_lbmol_ft3": 0.510304722431505,
+        "mass_density_lbm_ft3": 28.0507078299763,
+        "mean_molecular_weight_lbm_lbmol": 54.96854447342758,
+        "liquid_volume_ft3": 100.56236944142701,
+        "liquid_height_ft": 0.5933833497468748,
+        "over_weir_head_ft": 0.4553625164135414,
+        "francis_flow_lbmolph": 16281.489997328097,
+        "phase_fugacity_common_ratio": 0.9891832342988756,
+        "residual": [
+          -1.7247257691984909e-13,
+          1.0096090630185017e-15,
+          1.4589024432964948e-15
+        ],
+        "residual_max_abs": 1.7247257691984909e-13,
+        "converged": true,
+        "iterations": 5,
+        "active_bounds": false,
+        "clipping_or_projection_used": false
+      },
+      "predefined_roots": {
+        "source_near": {
+          "temperature_F": 179.94238240630239,
+          "liquid_moles_lbmol": 51.31745202486187,
+          "liquid_mole_fraction": [
+            0.3089600619920125,
+            0.6069141211828242,
+            0.08412581682516336
+          ],
+          "vapor_mole_fraction": [
+            0.5044506030898664,
+            0.46112625320772765,
+            0.034423143702405866
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4932.113401539249,
+          "liquid_internal_energy_BTU_lbmol": -5014.391770187566,
+          "liquid_density_lbmol_ft3": 0.510304722431505,
+          "mass_density_lbm_ft3": 28.0507078299763,
+          "mean_molecular_weight_lbm_lbmol": 54.96854447342758,
+          "liquid_volume_ft3": 100.56236944142701,
+          "liquid_height_ft": 0.5933833497468748,
+          "over_weir_head_ft": 0.4553625164135414,
+          "francis_flow_lbmolph": 16281.489997328097,
+          "phase_fugacity_common_ratio": 0.9891832342988756,
+          "residual": [
+            -1.7247257691984909e-13,
+            1.0096090630185017e-15,
+            1.4589024432964948e-15
+          ],
+          "residual_max_abs": 1.7247257691984909e-13,
+          "converged": true,
+          "iterations": 5,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        },
+        "hot_light": {
+          "temperature_F": 179.94238240629645,
+          "liquid_moles_lbmol": 51.31745202486187,
+          "liquid_mole_fraction": [
+            0.3089600619920125,
+            0.6069141211828242,
+            0.08412581682516336
+          ],
+          "vapor_mole_fraction": [
+            0.5044506030898707,
+            0.461126253207724,
+            0.03442314370240525
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4932.113401539503,
+          "liquid_internal_energy_BTU_lbmol": -5014.39177018782,
+          "liquid_density_lbmol_ft3": 0.510304722431505,
+          "mass_density_lbm_ft3": 28.0507078299763,
+          "mean_molecular_weight_lbm_lbmol": 54.96854447342758,
+          "liquid_volume_ft3": 100.56236944142701,
+          "liquid_height_ft": 0.5933833497468748,
+          "over_weir_head_ft": 0.4553625164135414,
+          "francis_flow_lbmolph": 16281.489997328097,
+          "phase_fugacity_common_ratio": 0.9891832342989179,
+          "residual": [
+            -1.4693797200904526e-13,
+            7.858297346174936e-16,
+            -2.237793284010081e-16
+          ],
+          "residual_max_abs": 1.4693797200904526e-13,
+          "converged": true,
+          "iterations": 6,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        },
+        "cool_heavy": {
+          "temperature_F": 179.94238240625936,
+          "liquid_moles_lbmol": 51.31745202486187,
+          "liquid_mole_fraction": [
+            0.3089600619920125,
+            0.6069141211828242,
+            0.08412581682516336
+          ],
+          "vapor_mole_fraction": [
+            0.5044506030898962,
+            0.4611262532077024,
+            0.0344231437024014
+          ],
+          "liquid_enthalpy_BTU_lbmol": -4932.113401541062,
+          "liquid_internal_energy_BTU_lbmol": -5014.391770189379,
+          "liquid_density_lbmol_ft3": 0.510304722431505,
+          "mass_density_lbm_ft3": 28.0507078299763,
+          "mean_molecular_weight_lbm_lbmol": 54.96854447342758,
+          "liquid_volume_ft3": 100.56236944142701,
+          "liquid_height_ft": 0.5933833497468748,
+          "over_weir_head_ft": 0.4553625164135414,
+          "francis_flow_lbmolph": 16281.489997328097,
+          "phase_fugacity_common_ratio": 0.9891832342991834,
+          "residual": [
+            9.689470613474669e-15,
+            -1.0113437864944785e-15,
+            -2.4702462297909733e-15
+          ],
+          "residual_max_abs": 9.689470613474669e-15,
+          "converged": true,
+          "iterations": 8,
+          "active_bounds": false,
+          "clipping_or_projection_used": false
+        }
+      },
+      "root_temperature_spread_F": 4.303046807763167e-11,
+      "root_vapor_composition_spread": 2.9753977059954195e-14,
+      "jacobians": {
+        "h_x_1": {
+          "rank": 3,
+          "condition": 2.947596095663265,
+          "zero_rows": [],
+          "zero_columns": [],
+          "matrix": [
+            [
+              -0.4215860082805864,
+              0.0,
+              0.0
+            ],
+            [
+              0.4310066428930489,
+              0.9664967814362878,
+              0.02646887388366159
+            ],
+            [
+              0.17887790923964625,
+              -0.016304033493251546,
+              1.0123581631825938
+            ]
+          ]
+        },
+        "h_x_0.5": {
+          "rank": 3,
+          "condition": 2.948038738631009,
+          "zero_rows": [],
+          "zero_columns": [],
+          "matrix": [
+            [
+              -0.42151804953977834,
+              0.0,
+              0.0
+            ],
+            [
+              0.4310066432399936,
+              0.966496781441145,
+              0.02646887388886576
+            ],
+            [
+              0.17887790929472372,
+              -0.01630403348232279,
+              1.0123581631034035
+            ]
+          ]
+        }
+      },
+      "geometry_valid": true,
+      "phase_valid": true,
+      "pass_gate": true
+    }
+  },
+  "static_gate_pass": true,
+  "dynamic_horizon_sec": 10.0,
+  "dynamic_output_interval_sec": 2.0,
+  "primary_integration": {
+    "method": "BDF",
+    "rtol": 1e-07,
+    "atol": 1e-09,
+    "max_step_sec": 2.0
+  },
+  "refinement_integration": {
+    "method": "Radau",
+    "rtol": 1e-07,
+    "atol": 1e-09,
+    "max_step_sec": 1.0
+  },
+  "dynamic_cases": {
+    "nominal_no_disturbance": {
+      "primary": {
+        "method": "BDF",
+        "nfev": 20,
+        "algebraic_residual_max": 1.1275702593849246e-16
+      },
+      "refinement": {
+        "method": "Radau",
+        "nfev": 66,
+        "algebraic_residual_max": 1.1275702593849246e-16
+      },
+      "component_conservation_normalized": 0.0,
+      "energy_conservation_normalized": 0.0,
+      "integrator_agreement_normalized": 0.0,
+      "physical": true,
+      "nominal_stationary": true,
+      "pass_gate": true
+    },
+    "inlet_composition_step": {
+      "primary": {
+        "method": "BDF",
+        "nfev": 252,
+        "algebraic_residual_max": 1.6228723339850837e-12
+      },
+      "refinement": {
+        "method": "Radau",
+        "nfev": 755,
+        "algebraic_residual_max": 1.6229293308710453e-12
+      },
+      "component_conservation_normalized": 4.22851345490165e-16,
+      "energy_conservation_normalized": 1.1005420549657559e-16,
+      "integrator_agreement_normalized": 5.337816545204103e-11,
+      "physical": true,
+      "nominal_stationary": true,
+      "pass_gate": true
+    },
+    "inlet_enthalpy_step": {
+      "primary": {
+        "method": "BDF",
+        "nfev": 118,
+        "algebraic_residual_max": 8.508495136349991e-13
+      },
+      "refinement": {
+        "method": "Radau",
+        "nfev": 723,
+        "algebraic_residual_max": 8.505075323192295e-13
+      },
+      "component_conservation_normalized": 1.6898463166048976e-24,
+      "energy_conservation_normalized": 6.011390316264155e-17,
+      "integrator_agreement_normalized": 3.747829566691507e-09,
+      "physical": true,
+      "nominal_stationary": true,
+      "pass_gate": true
+    },
+    "bounded_combined": {
+      "primary": {
+        "method": "BDF",
+        "nfev": 373,
+        "algebraic_residual_max": 1.9823516937449938e-13
+      },
+      "refinement": {
+        "method": "Radau",
+        "nfev": 930,
+        "algebraic_residual_max": 1.9909012266392362e-13
+      },
+      "component_conservation_normalized": 4.595281467288211e-16,
+      "energy_conservation_normalized": 2.0132243575956189e-16,
+      "integrator_agreement_normalized": 7.859097195250798e-10,
+      "physical": true,
+      "nominal_stationary": true,
+      "pass_gate": true
+    }
+  },
+  "dynamic_gate_pass": true,
+  "profile_csv": "logs\\dd080_core_v2_gate_b_one_volume_20260718_profiles.csv",
+  "live_property_evaluation_attempted": true,
+  "nonlinear_algebraic_solve_attempted": true,
+  "dynamic_integration_attempted": true,
+  "serialized_enthalpy_used": false,
+  "fixed_vessel_volume_equation_used": false,
+  "vapor_holdup_used": false,
+  "phase_relaxation_used": false,
+  "legacy_governing_equation_used": false,
+  "clipping_or_projection_used": false,
+  "wall_clock_sec": 289.5693099999917
+}

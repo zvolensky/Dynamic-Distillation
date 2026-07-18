@@ -264,6 +264,17 @@ for one mini8 inventory volume with prescribed pressure and live DWSIM
 property/energy closure. See
 `docs/dd_079_core_v2_gate_a_dynamics_20260718.md`.
 
+DD-080 completes Gate B. One role-selected mini8 feed volume reconstructs
+liquid amount/composition directly from conserved component inventory and
+reconstructs temperature plus equilibrium-vapor composition from canonical
+live DWSIM PR internal energy and phase fugacity coefficients. The canonical
+state and four bounded perturbations converge from three guesses with full
+`3/3` rank and condition below `3`. Live-density geometry is physical. Four
+short BDF/Radau dynamics pass with worst normalized method disagreement
+`3.75e-9`, component conservation `4.60e-16`, and energy conservation
+`2.01e-16`. Gate C is authorized but not yet implemented. See
+`docs/dd_080_core_v2_gate_b_one_volume_20260718.md`.
+
 ## Acceptance language
 
 Use these descriptions consistently:
@@ -282,7 +293,11 @@ Use these descriptions consistently:
   parity and material conservation.
 - **V2 Gate A dynamics**: DD-079 passes independent trajectory parity,
   integrated conservation, exact event scheduling, physical-domain, and
-  integrator-refinement checks. One-volume Gate B is authorized.
+  integrator-refinement checks.
+- **V2 Gate B one-volume closure**: DD-080 passes canonical live DWSIM
+  energy/fugacity reconstruction, predefined perturbations, root consistency,
+  numerical rank, geometry, local dynamics, and energy/component
+  conservation. Five-volume Gate C is authorized but remains unproven.
 
 ## Supporting documents
 

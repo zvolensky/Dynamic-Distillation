@@ -438,6 +438,27 @@ agreement is at most `1.60e-9`, and solver-integrated conservation is below
 differential and solver closure. Passing DD-079 completes Gate A and
 authorizes only the one-volume Gate B energy/property study.
 
+### Gate B: One-Volume Live Property And Energy Closure
+
+Before assembling a reduced column, Gate B checks whether one inventory
+volume can consistently own conserved component inventory and internal energy
+while live thermodynamics reconstruct temperature and equilibrium vapor
+composition.
+
+DD-080 selects the mini8 feed volume by role, prescribes its pressure, and
+rebuilds canonical internal energy from live DWSIM PR enthalpy and density.
+It then checks five static states from three predefined guesses, numerical
+rank at two finite-difference steps, live-density liquid height and derived
+Francis flow, and four short conserved dynamics with both BDF and Radau.
+
+DD-080 passes. Every `3 x 3` Jacobian is rank `3`, worst condition is below
+`3`, worst algebraic residual is `5.43e-13`, worst BDF/Radau disagreement is
+`3.75e-9`, and normalized component and energy conservation are below
+`4.60e-16` and `2.01e-16`. No serialized enthalpy, vapor holdup, fixed tray
+volume equality, clipping, projection, phase relaxation, or legacy governing
+equation is used. Passing Gate B authorizes only the five-volume,
+prescribed-pressure Gate C model.
+
 ## Where Gates Are Used In The Workflow
 
 ### During Initializer Development

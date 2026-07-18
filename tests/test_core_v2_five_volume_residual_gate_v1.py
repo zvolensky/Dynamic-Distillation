@@ -12,6 +12,7 @@ from dynamic_distillation.core_v2.five_volume_residual_gate_v1 import (
     decode_direct_coordinates,
     direct_coordinate_layout,
     direct_system_size,
+    encode_direct_state,
     evaluate_five_volume_residual,
     perturbation_coordinates,
     reference_coordinates,
@@ -23,6 +24,12 @@ from dynamic_distillation.core_v2.one_volume_property_gate_v1 import (
     SECONDS_PER_HOUR,
     OneVolumeGeometry,
     normalize_composition,
+)
+from dynamic_distillation.core_v2.five_volume_steady_solve_v1 import (
+    FixedSteadySolveSettings,
+    build_coordinate_bounds,
+    build_independent_smooth_profile_start,
+    normalized_physical_difference,
 )
 
 
@@ -47,6 +54,9 @@ class _AnalyticProvider:
         if str(phase).lower() == "liquid":
             return np.asarray([2.0, 1.0, 0.5], dtype=float)
         return np.ones(3, dtype=float)
+
+    def component_mw_lbm_per_lbmol(self):
+        return np.asarray([40.0, 50.0, 60.0], dtype=float)
 
 
 def _fixture():
@@ -153,6 +163,24 @@ def test_reference_reconstructs_liquid_state_without_projection():
     )
 
 
+def test_physical_state_coordinate_round_trip():
+    _provider, spec, reference = _fixture()
+    point = perturbation_coordinates(spec)["combined_bounded_perturbation"]
+    state = decode_direct_coordinates(spec, reference, point)
+
+    encoded = encode_direct_state(spec, reference, state)
+    decoded = decode_direct_coordinates(spec, reference, encoded)
+
+    assert np.allclose(encoded, point, rtol=0.0, atol=2.0e-15)
+    assert np.allclose(
+        decoded.component_inventory_lbmol,
+        state.component_inventory_lbmol,
+    )
+    assert np.allclose(decoded.internal_energy_BTU, state.internal_energy_BTU)
+    assert np.allclose(decoded.temperature_F, state.temperature_F)
+    assert np.allclose(decoded.vapor_mole_fraction, state.vapor_mole_fraction)
+
+
 def test_live_residual_has_exact_local_closure_and_telescoping():
     provider, spec, reference = _fixture()
     evaluation = evaluate_five_volume_residual(
@@ -208,6 +236,41 @@ def test_structural_pattern_is_square_and_has_no_empty_rows_or_columns():
     assert pattern.shape == (38, 38)
     assert np.all(np.any(pattern, axis=1))
     assert np.all(np.any(pattern, axis=0))
+
+
+def test_fixed_dd082_bounds_contain_predeclared_starts():
+    provider, spec, reference = _fixture()
+    settings = FixedSteadySolveSettings()
+    bounds = build_coordinate_bounds(spec, reference, settings)
+    smooth, metadata = build_independent_smooth_profile_start(
+        spec,
+        reference,
+        provider,
+        settings,
+    )
+    starts = (
+        reference_coordinates(spec),
+        perturbation_coordinates(spec)["combined_bounded_perturbation"],
+        smooth,
+    )
+
+    assert all(np.all(point > bounds.lower) for point in starts)
+    assert all(np.all(point < bounds.upper) for point in starts)
+    assert metadata["used_mini8_internal_profile"] is False
+    assert np.all(np.diff(metadata["temperature_F"]) > 0.0)
+    assert np.all(np.asarray(metadata["hydraulic_liquid_flow_lbmolph"]) > 0.0)
+
+
+def test_normalized_physical_difference_is_symmetric_and_scaled():
+    first = np.asarray([1.0, 100.0, -5.0])
+    second = np.asarray([1.1, 90.0, -4.0])
+    scales = np.asarray([1.0, 100.0, 10.0])
+
+    forward = normalized_physical_difference(first, second, scales)
+    reverse = normalized_physical_difference(second, first, scales)
+
+    assert forward == pytest.approx(reverse)
+    assert forward == pytest.approx(0.1)
 
 
 def test_colored_and_uncolored_jacobians_agree_for_analytic_provider():

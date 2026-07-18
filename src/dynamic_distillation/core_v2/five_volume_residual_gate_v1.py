@@ -321,6 +321,76 @@ def decode_direct_coordinates(
     )
 
 
+def encode_direct_state(
+    spec: FiveVolumeOperatingSpec,
+    reference: FiveVolumeReference,
+    state: FiveVolumeState,
+) -> np.ndarray:
+    """Encode a physical state in the fixed DD-081 transformed coordinates."""
+    _validate_reference(spec, reference)
+    layout = direct_coordinate_layout(spec)
+    inventory = np.asarray(state.component_inventory_lbmol, dtype=float)
+    inventory_ref = np.asarray(reference.component_inventory_lbmol, dtype=float)
+    if inventory.shape != inventory_ref.shape or np.any(inventory <= 0.0):
+        raise ValueError("encoded component inventories must be positive")
+    energy = np.asarray(state.internal_energy_BTU, dtype=float)
+    temperature = np.asarray(state.temperature_F, dtype=float)
+    vapor = np.asarray(state.vapor_mole_fraction, dtype=float)
+    hydraulic_flow = np.asarray(
+        state.hydraulic_liquid_flow_lbmolph,
+        dtype=float,
+    )
+    if energy.shape != np.asarray(reference.internal_energy_BTU).shape:
+        raise ValueError("encoded internal-energy shape is invalid")
+    if temperature.shape != np.asarray(reference.temperature_F).shape:
+        raise ValueError("encoded temperature shape is invalid")
+    if vapor.shape != np.asarray(reference.vapor_mole_fraction).shape:
+        raise ValueError("encoded vapor-composition shape is invalid")
+    if (
+        hydraulic_flow.shape
+        != np.asarray(reference.hydraulic_liquid_flow_lbmolph).shape
+        or np.any(hydraulic_flow <= 0.0)
+    ):
+        raise ValueError("encoded hydraulic flows must be positive")
+    if state.distillate_lbmolph <= 0.0 or state.bottoms_lbmolph <= 0.0:
+        raise ValueError("encoded product flows must be positive")
+    coordinates = np.zeros(len(layout.names), dtype=float)
+    coordinates[layout.component_inventory] = np.log(
+        inventory / inventory_ref
+    ).reshape((-1,))
+    energy_ref = np.asarray(reference.internal_energy_BTU, dtype=float)
+    coordinates[layout.internal_energy] = (
+        energy - energy_ref
+    ) / np.maximum(np.abs(energy_ref), 1.0)
+    coordinates[layout.temperature] = (
+        temperature - np.asarray(reference.temperature_F, dtype=float)
+    ) / float(spec.temperature_scale_F)
+    vapor_coordinates = np.empty(
+        (
+            len(EQUILIBRIUM_VOLUME_IDS),
+            len(spec.component_names) - 1,
+        ),
+        dtype=float,
+    )
+    for index, values in enumerate(vapor):
+        vapor_coordinates[index] = (
+            vapor_logits(values)
+            - vapor_logits(reference.vapor_mole_fraction[index])
+        )
+    coordinates[layout.vapor_logits] = vapor_coordinates.reshape((-1,))
+    coordinates[layout.hydraulic_flows] = np.log(
+        hydraulic_flow
+        / np.asarray(reference.hydraulic_liquid_flow_lbmolph, dtype=float)
+    )
+    coordinates[layout.distillate] = np.log(
+        float(state.distillate_lbmolph) / float(reference.distillate_lbmolph)
+    )
+    coordinates[layout.bottoms] = np.log(
+        float(state.bottoms_lbmolph) / float(reference.bottoms_lbmolph)
+    )
+    return coordinates
+
+
 def _francis_flow(
     *,
     liquid_moles_lbmol: float,
@@ -818,6 +888,55 @@ def _rank_and_condition(matrix: np.ndarray) -> tuple[int, float]:
     return rank, condition
 
 
+def colored_finite_difference_jacobian(
+    spec: FiveVolumeOperatingSpec,
+    reference: FiveVolumeReference,
+    provider: Any,
+    coordinates: Sequence[float],
+    *,
+    fixed_scales: Sequence[float],
+    step: float,
+) -> np.ndarray:
+    """Return the registry-colored central-difference scaled Jacobian."""
+    point = np.asarray(coordinates, dtype=float).reshape((-1,))
+    baseline = evaluate_five_volume_residual(
+        spec,
+        reference,
+        provider,
+        point,
+        fixed_scales=fixed_scales,
+    )
+    pattern = structural_pattern(spec, baseline.rows)
+    colors = _greedy_column_colors(pattern)
+    matrix = np.zeros((baseline.scaled.size, point.size), dtype=float)
+    for color in range(max(colors) + 1):
+        columns = tuple(
+            index for index, value in enumerate(colors) if value == color
+        )
+        perturbation = np.zeros_like(point)
+        perturbation[list(columns)] = float(step)
+        plus = evaluate_five_volume_residual(
+            spec,
+            reference,
+            provider,
+            point + perturbation,
+            fixed_scales=fixed_scales,
+        ).scaled
+        minus = evaluate_five_volume_residual(
+            spec,
+            reference,
+            provider,
+            point - perturbation,
+            fixed_scales=fixed_scales,
+        ).scaled
+        difference = (plus - minus) / (2.0 * float(step))
+        for column in columns:
+            matrix[pattern[:, column], column] = difference[
+                pattern[:, column]
+            ]
+    return matrix
+
+
 def audit_five_volume_jacobian(
     spec: FiveVolumeOperatingSpec,
     reference: FiveVolumeReference,
@@ -858,28 +977,14 @@ def audit_five_volume_jacobian(
         matrix[:, column] = (plus - minus) / (2.0 * float(step))
 
     colors = _greedy_column_colors(pattern)
-    colored = np.zeros_like(matrix)
-    for color in range(max(colors) + 1):
-        columns = tuple(index for index, value in enumerate(colors) if value == color)
-        perturbation = np.zeros_like(point)
-        perturbation[list(columns)] = float(step)
-        plus = evaluate_five_volume_residual(
-            spec,
-            reference,
-            provider,
-            point + perturbation,
-            fixed_scales=fixed_scales,
-        ).scaled
-        minus = evaluate_five_volume_residual(
-            spec,
-            reference,
-            provider,
-            point - perturbation,
-            fixed_scales=fixed_scales,
-        ).scaled
-        difference = (plus - minus) / (2.0 * float(step))
-        for column in columns:
-            colored[pattern[:, column], column] = difference[pattern[:, column]]
+    colored = colored_finite_difference_jacobian(
+        spec,
+        reference,
+        provider,
+        point,
+        fixed_scales=fixed_scales,
+        step=step,
+    )
 
     layout = direct_coordinate_layout(spec)
     row_norm = np.max(np.abs(matrix), axis=1)
@@ -1009,9 +1114,11 @@ __all__ = [
     "ResidualRow",
     "audit_five_volume_jacobian",
     "build_operating_spec",
+    "colored_finite_difference_jacobian",
     "decode_direct_coordinates",
     "direct_coordinate_layout",
     "direct_system_size",
+    "encode_direct_state",
     "evaluate_five_volume_residual",
     "perturbation_coordinates",
     "reference_coordinates",

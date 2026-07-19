@@ -158,6 +158,20 @@ solved-duty saturated-liquid architecture is retired without tolerance,
 solver, bound, duty, topology, or dynamic variation. See
 `docs/dd_088_condenser_saturated_liquid_steady_root_20260719.md`.
 
+2026-07-19 provider-interface result: DD-089 preserves DD-088 as failed and
+investigates only the DWSIM PR property interfaces. Three fresh processes are
+exactly repeatable. The failed DD-088 metric applied flash-derived `K` to
+overall `z`, although those `K` values are exactly `y_flash/x_flash`; the
+resulting composition-basis term is `5.747e-5`. A separate direct-bubble
+versus TP-flash vapor difference is `4.280e-5`, and the opposing vectors
+partially cancel to the observed `1.467e-5`. Flash phase algebra and the lever
+rule close at roundoff. A parameter-aligned independent PR implementation
+agrees with the direct bubble within `3.83e-5 F` and `4.34e-9` composition.
+Prospective architectures shall treat direct fugacity equilibrium as primary
+and interpret TP-flash output on its returned phase bases. This finding does
+not revive DD-088 or authorize dynamics. See
+`docs/dd_089_dwsim_pr_interface_consistency_20260719.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

@@ -184,6 +184,23 @@ decision on a separately versioned successor architecture. DD-088 remains
 failed and dynamics remain unauthorized. See
 `docs/dd_090_pr_provider_authority_20260719.md`.
 
+2026-07-19 Core V3 structural result: DD-091 establishes the separate
+`dynamic_distillation.core_v3` namespace and the formal
+"Provider-Governed Energy-Owned Equilibrium Architecture." Its three-component
+steady ledger has `40` unknowns, `40` residuals, structural rank `40`, nullity
+zero, no empty row or column, and exact internal component and energy
+telescoping. Direct DWSIM imposed-phase fugacity owns stage and condenser
+equilibrium; declared DWSIM phase properties own enthalpy and density; TP
+flash is diagnostic-only; independent PR is validation-only. The registry
+rejects mixed `K_flash*z` use, TP flash in governing equilibrium rows,
+independent PR in production residuals, interface fallback, fixed `Q_C`,
+duplicate flow ownership, imported profile dependencies, Core V2 residual
+ownership, and DD-088 acceptance inheritance. DD-091 makes no property call,
+residual evaluation, solve, root import, mass-matrix derivation, or dynamic
+integration. It authorizes only one precommitted DD-092 live residual,
+provider-ownership, conservation, and Jacobian audit. See
+`docs/dd_091_core_v3_provider_governed_architecture_20260719.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

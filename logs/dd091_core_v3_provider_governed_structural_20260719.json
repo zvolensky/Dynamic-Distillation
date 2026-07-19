@@ -1,0 +1,267 @@
+{
+  "schema_id": "dd091-core-v3-provider-governed-structural-v1",
+  "architecture_name": "Core V3 - Provider-Governed Energy-Owned Equilibrium Architecture",
+  "architecture_version": "core-v3-provider-governed-v1",
+  "classification": "dd091_core_v3_structural_gate_passed",
+  "authorization": "DD-092 may perform exactly one precommitted Core V3 live residual, provider-ownership, conservation, and Jacobian audit. A root solve and dynamics remain unauthorized.",
+  "component_names": [
+    "Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "unknown_blocks": {
+    "condenser_incipient_vapor": 2,
+    "energy_owned_vapor_flow": 4,
+    "francis_liquid_flow": 3,
+    "liquid_amount": 5,
+    "liquid_composition": 10,
+    "solved_condenser_duty": 1,
+    "temperature": 5,
+    "terminal_product_flow": 2,
+    "vapor_composition": 8
+  },
+  "residual_blocks": {
+    "component_balance": 15,
+    "condenser_bubble_fugacity": 3,
+    "energy_balance": 5,
+    "francis_hydraulics": 3,
+    "full_phase_equilibrium": 12,
+    "terminal_amount_specification": 2
+  },
+  "provider_authorities": [
+    {
+      "quantity": "stage_fugacity_equilibrium",
+      "provider_path": "dwsim.direct_imposed_phase_fugacity",
+      "role": "governing_equation",
+      "expected_basis": "declared liquid x and vapor y at stage T/P",
+      "permitted_residual_blocks": [
+        "full_phase_equilibrium"
+      ],
+      "fallback_policy": "fail explicitly; do not substitute another provider interface"
+    },
+    {
+      "quantity": "condenser_bubble_equilibrium",
+      "provider_path": "dwsim.direct_imposed_phase_fugacity",
+      "role": "governing_equation",
+      "expected_basis": "drum liquid x and incipient vapor y at drum T/P",
+      "permitted_residual_blocks": [
+        "condenser_bubble_fugacity"
+      ],
+      "fallback_policy": "fail explicitly; do not substitute another provider interface"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_path": "dwsim.declared_phase_enthalpy",
+      "role": "governing_balance",
+      "expected_basis": "declared phase composition, T, and P",
+      "permitted_residual_blocks": [
+        "energy_balance"
+      ],
+      "fallback_policy": "fail explicitly; do not substitute another provider interface"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_path": "dwsim.declared_liquid_density",
+      "role": "hydraulic_geometry",
+      "expected_basis": "declared liquid x at stage T/P",
+      "permitted_residual_blocks": [
+        "francis_hydraulics"
+      ],
+      "fallback_policy": "fail explicitly; do not substitute another provider interface"
+    },
+    {
+      "quantity": "bubble_temperature_and_incipient_vapor",
+      "provider_path": "dwsim.direct_imposed_phase_fugacity",
+      "role": "governing_state",
+      "expected_basis": "fixed pressure and declared liquid x",
+      "permitted_residual_blocks": [
+        "condenser_bubble_fugacity"
+      ],
+      "fallback_policy": "fail explicitly; do not substitute another provider interface"
+    },
+    {
+      "quantity": "stable_phase",
+      "provider_path": "dwsim.tp_flash",
+      "role": "diagnostic_gate",
+      "expected_basis": "overall composition z at declared T/P",
+      "permitted_residual_blocks": [],
+      "fallback_policy": "fail explicitly; do not substitute another provider interface"
+    },
+    {
+      "quantity": "vapor_fraction",
+      "provider_path": "dwsim.tp_flash",
+      "role": "diagnostic_gate",
+      "expected_basis": "overall composition z",
+      "permitted_residual_blocks": [],
+      "fallback_policy": "fail explicitly; do not substitute another provider interface"
+    },
+    {
+      "quantity": "flash_x_y_K",
+      "provider_path": "dwsim.tp_flash",
+      "role": "flash_basis_diagnostic",
+      "expected_basis": "K_flash = y_flash/x_flash",
+      "permitted_residual_blocks": [],
+      "fallback_policy": "fail explicitly; do not substitute another provider interface"
+    },
+    {
+      "quantity": "lever_rule_closure",
+      "provider_path": "dwsim.tp_flash",
+      "role": "diagnostic_gate",
+      "expected_basis": "z = (1-beta)*x_flash + beta*y_flash",
+      "permitted_residual_blocks": [],
+      "fallback_policy": "fail explicitly; do not substitute another provider interface"
+    },
+    {
+      "quantity": "independent_pr_bubble",
+      "provider_path": "independent.parameter_aligned_peng_robinson",
+      "role": "validation_only",
+      "expected_basis": "same P, x, constants, omega, and kij",
+      "permitted_residual_blocks": [],
+      "fallback_policy": "validation failure stops authorization"
+    }
+  ],
+  "prospective_acceptance_rules": [
+    {
+      "name": "governing_stage_fugacity",
+      "quantity": "stage_fugacity_equilibrium",
+      "comparison": "max_abs_less_than",
+      "limit": 1e-10,
+      "role": "future_governing_acceptance"
+    },
+    {
+      "name": "governing_condenser_fugacity",
+      "quantity": "condenser_bubble_equilibrium",
+      "comparison": "max_abs_less_than",
+      "limit": 1e-10,
+      "role": "future_governing_acceptance"
+    },
+    {
+      "name": "independent_pr_bubble_temperature",
+      "quantity": "independent_pr_bubble",
+      "comparison": "temperature_abs_F_less_than",
+      "limit": 0.001,
+      "role": "future_validation"
+    },
+    {
+      "name": "independent_pr_incipient_vapor",
+      "quantity": "independent_pr_bubble",
+      "comparison": "composition_max_abs_less_than",
+      "limit": 1e-06,
+      "role": "future_validation"
+    },
+    {
+      "name": "tp_flash_stable_vapor",
+      "quantity": "stable_phase",
+      "comparison": "equals",
+      "limit": false,
+      "role": "future_diagnostic_gate"
+    },
+    {
+      "name": "tp_flash_bubble_region",
+      "quantity": "vapor_fraction",
+      "comparison": "less_than_or_equal",
+      "limit": 0.001,
+      "role": "future_diagnostic_gate"
+    },
+    {
+      "name": "tp_flash_Kx_internal_closure",
+      "quantity": "flash_x_y_K",
+      "comparison": "max_abs_less_than",
+      "limit": 1e-12,
+      "role": "future_diagnostic_gate"
+    },
+    {
+      "name": "tp_flash_lever_rule",
+      "quantity": "lever_rule_closure",
+      "comparison": "max_abs_less_than",
+      "limit": 1e-12,
+      "role": "future_diagnostic_gate"
+    }
+  ],
+  "liquid_links": [
+    {
+      "source": "reflux_drum",
+      "destination": "rectifying_tray",
+      "symbol": "R"
+    },
+    {
+      "source": "rectifying_tray",
+      "destination": "feed_tray",
+      "symbol": "L[rectifying_tray]"
+    },
+    {
+      "source": "feed_tray",
+      "destination": "stripping_tray",
+      "symbol": "L[feed_tray]"
+    },
+    {
+      "source": "stripping_tray",
+      "destination": "combined_reboiler_sump",
+      "symbol": "L[stripping_tray]"
+    }
+  ],
+  "vapor_links": [
+    {
+      "source": "combined_reboiler_sump",
+      "destination": "stripping_tray",
+      "unknown": "V[combined_reboiler_sump->stripping_tray]"
+    },
+    {
+      "source": "stripping_tray",
+      "destination": "feed_tray",
+      "unknown": "V[stripping_tray->feed_tray]"
+    },
+    {
+      "source": "feed_tray",
+      "destination": "rectifying_tray",
+      "unknown": "V[feed_tray->rectifying_tray]"
+    },
+    {
+      "source": "rectifying_tray",
+      "destination": "reflux_drum",
+      "unknown": "V[rectifying_tray->reflux_drum]"
+    }
+  ],
+  "global_component_form": "F_component - D*x_D - B*x_B",
+  "global_energy_form": "H_feed + Q_R + Q_C - D*h_D - B*h_B",
+  "live_property_evaluation_attempted": false,
+  "column_residual_evaluation_attempted": false,
+  "independent_pr_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "root_import_attempted": false,
+  "mass_matrix_derivation_attempted": false,
+  "dynamic_integration_attempted": false,
+  "audit": {
+    "unknown_count": 40,
+    "residual_count": 40,
+    "expected_count": 40,
+    "structural_rank": 40,
+    "structural_nullity": 0,
+    "zero_unknown_columns": [],
+    "zero_residual_rows": [],
+    "unregistered_dependencies": [],
+    "unregistered_property_quantities": [],
+    "imported_profile_dependencies": [],
+    "governing_tp_flash_uses": [],
+    "production_independent_pr_uses": [],
+    "mixed_basis_dependencies": [],
+    "unauthorized_property_uses": [],
+    "duplicate_authority_quantities": [],
+    "authority_fallbacks": [],
+    "fixed_condenser_duty_parameter_present": false,
+    "condenser_duty_unknown_count": 1,
+    "vapor_unknown_count": 4,
+    "francis_liquid_unknown_count": 3,
+    "full_fugacity_row_count": 12,
+    "condenser_bubble_row_count": 3,
+    "component_conservation_passed": true,
+    "energy_conservation_passed": true,
+    "prospective_acceptance_contract_passed": true,
+    "historical_acceptance_imported": false,
+    "core_v2_residual_owner_imported": false,
+    "live_property_evaluation_attempted": false,
+    "nonlinear_solve_attempted": false,
+    "dynamic_integration_attempted": false,
+    "pass_gate": true
+  }
+}

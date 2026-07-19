@@ -145,6 +145,19 @@ claimed. One bounded `40 x 40` root campaign may be drafted and precommitted;
 execution and dynamics remain unauthorized. See
 `docs/dd_087_condenser_saturated_liquid_numerical_audit_20260718.md`.
 
+2026-07-19 saturated-liquid root result: DD-088 executes once from frozen
+contract commit `99c9973`. All three starts converge to one root within
+`7.54e-11` physical difference, with residual at most `2.32e-14`, rank
+`40/40`, local bubble rank `3/3`, condition about `1.16e3`, negative
+`Q_C=-52.516 MMBTU/h`, ordered temperatures, no active bound, and roundoff
+conservation. The direct bubble equations close near `1e-15`, and the TP
+diagnostic remains near-bubble (`beta=6.44e-4`), but
+`max|y_bubble-normalize(K*x)|=1.467e-5` exceeds the frozen `1e-5` cross-API
+limit. Per the precommitted hard stop, DD-088 fails and this five-volume
+solved-duty saturated-liquid architecture is retired without tolerance,
+solver, bound, duty, topology, or dynamic variation. See
+`docs/dd_088_condenser_saturated_liquid_steady_root_20260719.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

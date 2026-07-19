@@ -182,7 +182,14 @@ def build_pr_provider_authority_contract() -> PRProviderAuthorityContract:
 def contract_payload(contract: PRProviderAuthorityContract) -> dict[str, Any]:
     return {
         "version": contract.version,
-        "quantities": [asdict(quantity) for quantity in contract.quantities],
+        "quantities": [
+            {
+                **asdict(quantity),
+                "permitted_uses": list(quantity.permitted_uses),
+                "forbidden_uses": list(quantity.forbidden_uses),
+            }
+            for quantity in contract.quantities
+        ],
         "tolerances": dict(contract.tolerances),
         "direct_fugacity_is_primary": contract.direct_fugacity_is_primary,
         "independent_pr_is_validation_only": (

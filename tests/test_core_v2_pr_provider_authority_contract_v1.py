@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import json
 from pathlib import Path
 
 import numpy as np
@@ -8,6 +9,7 @@ import numpy as np
 from dynamic_distillation.core_v2.pr_provider_authority_contract_v1 import (
     audit_contract_structure,
     build_pr_provider_authority_contract,
+    contract_payload,
     evaluate_dd089_evidence,
     flash_internal_coherence,
     phase_region_pass,
@@ -41,6 +43,12 @@ def test_dd090_contract_has_complete_nonoverlapping_authority():
     assert contract.direct_fugacity_is_primary
     assert contract.independent_pr_is_validation_only
     assert contract.tp_flash_is_phase_region_authority
+
+
+def test_dd090_contract_payload_is_json_native_and_round_trips():
+    payload = contract_payload(build_pr_provider_authority_contract())
+
+    assert json.loads(json.dumps(payload)) == payload
 
 
 def test_dd090_prohibits_mixed_basis_and_interface_fallback():

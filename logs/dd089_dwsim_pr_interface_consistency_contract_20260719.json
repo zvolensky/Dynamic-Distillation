@@ -1,0 +1,407 @@
+{
+  "schema_id": "dd089-dwsim-pr-phase-interface-consistency-contract-v1",
+  "preparation_base_commit": "41fb1623d1ddf97aa64e8c259fecf067c6510657",
+  "dd088_result_path": "logs\\dd088_condenser_saturated_liquid_steady_root_20260719.json",
+  "dd088_result_sha256": "c9b28e4e2d4d7a1587faa248cdf40dfe2f175c076e2fcaff5501dbc2259c9821",
+  "dd088_contract_path": "logs\\dd088_condenser_saturated_liquid_steady_root_contract_20260719.json",
+  "dd088_contract_sha256": "095011df3c3781eaef660c9b52d8b2209cd8da6a115a4ec2b5d9ab8d3833dd45",
+  "property_package": "pr",
+  "component_names_excel": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "component_ids_dwsim": [
+    "Propane",
+    "N-butane",
+    "N-pentane"
+  ],
+  "dd088_preserved_endpoint": {
+    "temperature_F": 133.7132934933824,
+    "pressure_psia": 218.44,
+    "liquid_mole_fraction": [
+      0.7030012030418336,
+      0.2836055267843538,
+      0.013393270173812703
+    ],
+    "bubble_vapor_mole_fraction": [
+      0.851276948235418,
+      0.14519622244218763,
+      0.0035268293223943673
+    ],
+    "legacy_composition_metric": 1.4670209113387678e-05
+  },
+  "independent_pr_parameters": {
+    "critical_temperature_K": [
+      369.83,
+      425.12,
+      469.7
+    ],
+    "critical_pressure_Pa": [
+      4248000.0,
+      3796000.0,
+      3370000.0
+    ],
+    "acentric_factor": [
+      0.152,
+      0.199,
+      0.251
+    ],
+    "binary_interaction": [
+      [
+        0.0,
+        0.0033,
+        0.0267
+      ],
+      [
+        0.0033,
+        0.0,
+        0.0174
+      ],
+      [
+        0.0267,
+        0.0174,
+        0.0
+      ]
+    ],
+    "source": "DWSIM compound constants and PengRobinsonPropertyPackage interaction parameters; equations evaluated independently"
+  },
+  "samples": [
+    {
+      "name": "dd088_exact",
+      "mode": "preserved",
+      "temperature_F": 133.7132934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "same_state_bubble_resolve",
+      "mode": "bubble_solve",
+      "temperature_F": 133.7132934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "fixed_temperature_m0p1_F",
+      "mode": "preserved",
+      "temperature_F": 133.6132934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "fixed_temperature_m0p01_F",
+      "mode": "preserved",
+      "temperature_F": 133.7032934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "fixed_temperature_m0p001_F",
+      "mode": "preserved",
+      "temperature_F": 133.7122934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "fixed_temperature_p0p001_F",
+      "mode": "preserved",
+      "temperature_F": 133.7142934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "fixed_temperature_p0p01_F",
+      "mode": "preserved",
+      "temperature_F": 133.72329349338239,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "fixed_temperature_p0p1_F",
+      "mode": "preserved",
+      "temperature_F": 133.8132934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "bubble_pressure_m0p1_psia",
+      "mode": "bubble_solve",
+      "temperature_F": 133.7132934933824,
+      "pressure_psia": 218.34,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "bubble_pressure_m0p01_psia",
+      "mode": "bubble_solve",
+      "temperature_F": 133.7132934933824,
+      "pressure_psia": 218.43,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "bubble_pressure_p0p01_psia",
+      "mode": "bubble_solve",
+      "temperature_F": 133.7132934933824,
+      "pressure_psia": 218.45,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "bubble_pressure_p0p1_psia",
+      "mode": "bubble_solve",
+      "temperature_F": 133.7132934933824,
+      "pressure_psia": 218.54,
+      "liquid_mole_fraction": [
+        0.7030012030418336,
+        0.2836055267843538,
+        0.013393270173812703
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "bubble_composition_alr0_m1em4",
+      "mode": "bubble_solve",
+      "temperature_F": 133.7132934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7029803235668386,
+        0.283625464691731,
+        0.013394211741430339
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "bubble_composition_alr0_p1em4",
+      "mode": "bubble_solve",
+      "temperature_F": 133.7132934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7030220816691338,
+        0.28358558968644393,
+        0.013392328644422156
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "bubble_composition_alr1_m1em4",
+      "mode": "bubble_solve",
+      "temperature_F": 133.7132934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7030211401130416,
+        0.2835852098808211,
+        0.013393650006137325
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    },
+    {
+      "name": "bubble_composition_alr1_p1em4",
+      "mode": "bubble_solve",
+      "temperature_F": 133.7132934933824,
+      "pressure_psia": 218.44,
+      "liquid_mole_fraction": [
+        0.7029812651077524,
+        0.28362584456719864,
+        0.013392890325049
+      ],
+      "vapor_guess": [
+        0.851276948235418,
+        0.14519622244218763,
+        0.0035268293223943673
+      ]
+    }
+  ],
+  "execution_orders": [
+    [
+      "dd088_exact",
+      "same_state_bubble_resolve",
+      "fixed_temperature_m0p1_F",
+      "fixed_temperature_m0p01_F",
+      "fixed_temperature_m0p001_F",
+      "fixed_temperature_p0p001_F",
+      "fixed_temperature_p0p01_F",
+      "fixed_temperature_p0p1_F",
+      "bubble_pressure_m0p1_psia",
+      "bubble_pressure_m0p01_psia",
+      "bubble_pressure_p0p01_psia",
+      "bubble_pressure_p0p1_psia",
+      "bubble_composition_alr0_m1em4",
+      "bubble_composition_alr0_p1em4",
+      "bubble_composition_alr1_m1em4",
+      "bubble_composition_alr1_p1em4"
+    ],
+    [
+      "bubble_composition_alr1_p1em4",
+      "bubble_composition_alr1_m1em4",
+      "bubble_composition_alr0_p1em4",
+      "bubble_composition_alr0_m1em4",
+      "bubble_pressure_p0p1_psia",
+      "bubble_pressure_p0p01_psia",
+      "bubble_pressure_m0p01_psia",
+      "bubble_pressure_m0p1_psia",
+      "fixed_temperature_p0p1_F",
+      "fixed_temperature_p0p01_F",
+      "fixed_temperature_p0p001_F",
+      "fixed_temperature_m0p001_F",
+      "fixed_temperature_m0p01_F",
+      "fixed_temperature_m0p1_F",
+      "same_state_bubble_resolve",
+      "dd088_exact"
+    ],
+    [
+      "dd088_exact",
+      "fixed_temperature_m0p1_F",
+      "fixed_temperature_m0p001_F",
+      "fixed_temperature_p0p01_F",
+      "bubble_pressure_m0p1_psia",
+      "bubble_pressure_p0p01_psia",
+      "bubble_composition_alr0_m1em4",
+      "bubble_composition_alr1_m1em4",
+      "same_state_bubble_resolve",
+      "fixed_temperature_m0p01_F",
+      "fixed_temperature_p0p001_F",
+      "fixed_temperature_p0p1_F",
+      "bubble_pressure_m0p01_psia",
+      "bubble_pressure_p0p1_psia",
+      "bubble_composition_alr0_p1em4",
+      "bubble_composition_alr1_p1em4"
+    ]
+  ],
+  "bubble_solver": {
+    "method": "scipy.optimize.least_squares_trf",
+    "ftol": 1e-12,
+    "xtol": 1e-12,
+    "gtol": 1e-12,
+    "jacobian": "uncolored_central_difference",
+    "jacobian_step": 1e-05,
+    "max_nfev": 100,
+    "temperature_bounds_F": [
+      80.0,
+      260.0
+    ]
+  },
+  "analysis_rules": {
+    "fresh_process_repeatability_reference": 1e-10,
+    "algebraic_closure_reference": 1e-12,
+    "legacy_metric_reproduction_reference": 1e-10,
+    "lever_basis_dominant_fraction": 0.5,
+    "rules_are_diagnostic_not_architecture_acceptance": true
+  },
+  "column_residual_evaluated_during_preparation": false,
+  "column_solve_attempted_during_preparation": false,
+  "dynamic_integration_attempted_during_preparation": false,
+  "contract_payload_sha256": "067e0f6e35161a4d935cc60da0986a5933a83ed6f2e6fa7d8f4eaf2cce5db809"
+}

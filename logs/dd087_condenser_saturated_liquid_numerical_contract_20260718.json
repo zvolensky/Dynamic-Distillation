@@ -1,0 +1,435 @@
+{
+  "schema_id": "dd087-core-v2-condenser-saturated-liquid-numerical-contract-v1",
+  "preparation_base_commit": "6a09334f168bed02a2c0eeb129d7d3b14b9a78b3",
+  "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\sandbox\\mini8\\input\\distillation_column_template_8stage.xlsx",
+  "workbook_sha256": "d1442928feb89bded76737614c0751e62bd4383a900b3c56bc243178080ca904",
+  "property_package": "pr",
+  "component_names": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "coordinate_names": [
+    "log_NL[reflux_drum]",
+    "log_NL[rectifying_tray]",
+    "log_NL[feed_tray]",
+    "log_NL[stripping_tray]",
+    "log_NL[combined_reboiler_sump]",
+    "x_logit[reflux_drum,n-Propane]",
+    "x_logit[reflux_drum,n-Butane]",
+    "x_logit[rectifying_tray,n-Propane]",
+    "x_logit[rectifying_tray,n-Butane]",
+    "x_logit[feed_tray,n-Propane]",
+    "x_logit[feed_tray,n-Butane]",
+    "x_logit[stripping_tray,n-Propane]",
+    "x_logit[stripping_tray,n-Butane]",
+    "x_logit[combined_reboiler_sump,n-Propane]",
+    "x_logit[combined_reboiler_sump,n-Butane]",
+    "T[reflux_drum]",
+    "T[rectifying_tray]",
+    "T[feed_tray]",
+    "T[stripping_tray]",
+    "T[combined_reboiler_sump]",
+    "y_logit[rectifying_tray,n-Propane]",
+    "y_logit[rectifying_tray,n-Butane]",
+    "y_logit[feed_tray,n-Propane]",
+    "y_logit[feed_tray,n-Butane]",
+    "y_logit[stripping_tray,n-Propane]",
+    "y_logit[stripping_tray,n-Butane]",
+    "y_logit[combined_reboiler_sump,n-Propane]",
+    "y_logit[combined_reboiler_sump,n-Butane]",
+    "log_L[rectifying_tray]",
+    "log_L[feed_tray]",
+    "log_L[stripping_tray]",
+    "log_V[combined_reboiler_sump->stripping_tray]",
+    "log_V[stripping_tray->feed_tray]",
+    "log_V[feed_tray->rectifying_tray]",
+    "log_V[rectifying_tray->reflux_drum]",
+    "log_D",
+    "log_B",
+    "y_bubble_logit[reflux_drum,n-Propane]",
+    "y_bubble_logit[reflux_drum,n-Butane]",
+    "q_Q_C"
+  ],
+  "residual_names": [
+    "phase_fugacity[rectifying_tray,n-Propane]",
+    "phase_fugacity[rectifying_tray,n-Butane]",
+    "phase_fugacity[rectifying_tray,n-Pentane]",
+    "phase_fugacity[feed_tray,n-Propane]",
+    "phase_fugacity[feed_tray,n-Butane]",
+    "phase_fugacity[feed_tray,n-Pentane]",
+    "phase_fugacity[stripping_tray,n-Propane]",
+    "phase_fugacity[stripping_tray,n-Butane]",
+    "phase_fugacity[stripping_tray,n-Pentane]",
+    "phase_fugacity[combined_reboiler_sump,n-Propane]",
+    "phase_fugacity[combined_reboiler_sump,n-Butane]",
+    "phase_fugacity[combined_reboiler_sump,n-Pentane]",
+    "component_balance[reflux_drum,n-Propane]",
+    "component_balance[reflux_drum,n-Butane]",
+    "component_balance[reflux_drum,n-Pentane]",
+    "energy_balance[reflux_drum]",
+    "component_balance[rectifying_tray,n-Propane]",
+    "component_balance[rectifying_tray,n-Butane]",
+    "component_balance[rectifying_tray,n-Pentane]",
+    "energy_balance[rectifying_tray]",
+    "component_balance[feed_tray,n-Propane]",
+    "component_balance[feed_tray,n-Butane]",
+    "component_balance[feed_tray,n-Pentane]",
+    "energy_balance[feed_tray]",
+    "component_balance[stripping_tray,n-Propane]",
+    "component_balance[stripping_tray,n-Butane]",
+    "component_balance[stripping_tray,n-Pentane]",
+    "energy_balance[stripping_tray]",
+    "component_balance[combined_reboiler_sump,n-Propane]",
+    "component_balance[combined_reboiler_sump,n-Butane]",
+    "component_balance[combined_reboiler_sump,n-Pentane]",
+    "energy_balance[combined_reboiler_sump]",
+    "francis_hydraulics[rectifying_tray]",
+    "francis_hydraulics[feed_tray]",
+    "francis_hydraulics[stripping_tray]",
+    "terminal_level[reflux_drum]",
+    "terminal_level[combined_reboiler_sump]",
+    "condenser_bubble_fugacity[n-Propane]",
+    "condenser_bubble_fugacity[n-Butane]",
+    "condenser_bubble_fugacity[n-Pentane]"
+  ],
+  "residual_blocks": {
+    "full_phase_equilibrium": 12,
+    "component_balance": 15,
+    "energy_balance": 5,
+    "francis_hydraulics": 3,
+    "terminal_level_specification": 2,
+    "condenser_saturated_liquid": 3
+  },
+  "source_mapping": {
+    "source_stage_1based": [
+      1,
+      3,
+      5,
+      6,
+      8
+    ],
+    "roles": [
+      "reflux_drum",
+      "rectifying_tray",
+      "feed_tray",
+      "stripping_tray",
+      "combined_reboiler_sump"
+    ],
+    "temperature_F": [
+      117.932,
+      156.578,
+      179.654,
+      196.124,
+      220.712
+    ],
+    "pressure_psia": [
+      218.44,
+      222.377,
+      226.896,
+      229.478,
+      232.06
+    ],
+    "liquid_moles_lbmol": [
+      1388.9,
+      32.51477868945729,
+      51.06214131827053,
+      62.53531141217334,
+      794.0
+    ],
+    "liquid_mole_fraction": [
+      [
+        0.9056677282091148,
+        0.09432647169262584,
+        5.800098259390512e-06
+      ],
+      [
+        0.4705840235292012,
+        0.5287740264387013,
+        0.0006419500320975016
+      ],
+      [
+        0.3099600619920124,
+        0.6059141211828242,
+        0.08412581682516336
+      ],
+      [
+        0.1857739628452074,
+        0.7244838551032289,
+        0.08974218205156358
+      ],
+      [
+        0.04716609528339047,
+        0.7861699213830079,
+        0.16666398333360166
+      ]
+    ],
+    "vapor_mole_fraction": [
+      [
+        0.6667965000973751,
+        0.3330182497636873,
+        0.0001852501389376042
+      ],
+      [
+        0.505565949443405,
+        0.4633579536642047,
+        0.031076096892390315
+      ],
+      [
+        0.33077706615541325,
+        0.6299941259988252,
+        0.03922880784576157
+      ],
+      [
+        0.09453580945358095,
+        0.813861081386108,
+        0.09160310916031092
+      ]
+    ],
+    "liquid_flow_reference_lbmolph": [
+      5258.48,
+      12372.2,
+      12584.8
+    ],
+    "vapor_flow_reference_lbmolph": [
+      8036.48,
+      7744.25,
+      7457.64,
+      7710.72
+    ],
+    "seed_mapping_used_flash_or_closure_solve": false
+  },
+  "operating_parameters": {
+    "reflux_lbmolph": 5952.48,
+    "feed_component_lbmolph": [
+      2380.99,
+      3968.32,
+      793.664
+    ],
+    "feed_enthalpy_BTUph": -36661427.88636613,
+    "condenser_duty_BTUph": -49640000.0,
+    "reboiler_duty_BTUph": 54706000.0,
+    "terminal_liquid_targets_lbmol": [
+      1388.9,
+      794.0
+    ],
+    "distillate_reference_lbmolph": 2380.99,
+    "bottoms_reference_lbmolph": 4761.98
+  },
+  "direct_provider_fixed_P_x_bubble_api": false,
+  "bubble_seed_settings": {
+    "method": "trf",
+    "jacobian_step": 1e-05,
+    "ftol": 1e-12,
+    "xtol": 1e-12,
+    "gtol": 1e-12,
+    "max_nfev": 100,
+    "temperature_min_F": 80.0,
+    "temperature_max_F": 260.0,
+    "temperature_scale_F": 100.0
+  },
+  "canonical_bubble_seed": {
+    "temperature_F": 117.81638489226692,
+    "vapor_mole_fraction": [
+      0.9586891509551994,
+      0.04130955157691584,
+      1.2974678846972106e-06
+    ],
+    "scaled_coordinates": [
+      -0.001156151077330741,
+      0.00015214098891670432,
+      4.639749133849678e-05
+    ],
+    "residual": [
+      -1.3322676295501888e-15,
+      -2.5535129566378632e-15,
+      -4.440892098500627e-16
+    ],
+    "residual_inf_norm": 2.5535129566378632e-15,
+    "success": true,
+    "status": 1,
+    "message": "`gtol` termination condition is satisfied.",
+    "nfev": 4,
+    "njev": 4
+  },
+  "canonical_phase_diagnostic": {
+    "K": [
+      1.0585608963394033,
+      0.43793580088873135,
+      0.22368932766921576
+    ],
+    "bubble_sum_xK_minus_one": 1.4678504510090562e-05,
+    "vapor_fraction": 0.0004459379965737753,
+    "Kx_normalized": [
+      0.9586903700177916,
+      0.041308332581172245,
+      1.2974010361514919e-06
+    ],
+    "bubble_y_minus_Kx_max_abs": 1.2190625920949216e-06
+  },
+  "phase_api_consistency_note": "The exact forced-phase fugacity seed and the DWSIM TP-flash endpoint have a measured numerical consistency floor. The direct bubble equations retain a 1e-10 gate; the independent TP check uses frozen near-boundary tolerances and still rejects stable vapor.",
+  "condenser_energy_seed": {
+    "drum_liquid_enthalpy_BTU_lbmol": -5860.551817660186,
+    "top_vapor_enthalpy_BTU_lbmol": 799.5149030765327,
+    "top_vapor_flow_lbmolph": 7710.72,
+    "outlet_liquid_flow_lbmolph": 8333.47,
+    "condenser_duty_reference_BTUph": -55003568.30936691,
+    "condenser_duty_scale_BTUph": 55003568.30936691
+  },
+  "fixed_residual_scales": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    12584.8,
+    12584.8,
+    12584.8,
+    73703540.46988341,
+    12584.8,
+    12584.8,
+    12584.8,
+    73703540.46988341,
+    12584.8,
+    12584.8,
+    12584.8,
+    73703540.46988341,
+    12584.8,
+    12584.8,
+    12584.8,
+    73703540.46988341,
+    12584.8,
+    12584.8,
+    12584.8,
+    73703540.46988341,
+    5258.48,
+    12372.2,
+    12584.8,
+    1388.9,
+    794.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "states": {
+    "canonical_saturated_liquid_seed": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "deterministic_combined_perturbation": [
+      0.0025244129544236896,
+      0.0027278922804770452,
+      0.00042336002417960164,
+      -0.0022704074859237846,
+      -0.0028767728239894154,
+      0.0010806046117362795,
+      -0.0008322936730942849,
+      -0.001979984993200891,
+      -0.0013072872417272238,
+      0.0005673243709264525,
+      0.001920340573300732,
+      0.0015078045086866093,
+      -0.00029100006761722706,
+      -0.0018222605237693539,
+      -0.001678143058152905,
+      0.0016829419696157931,
+      0.0018185948536513636,
+      0.0002822400161197344,
+      -0.0015136049906158565,
+      -0.001917848549326277,
+      0.0010806046117362795,
+      -0.0008322936730942849,
+      -0.001979984993200891,
+      -0.0013072872417272238,
+      0.0005673243709264525,
+      0.001920340573300732,
+      0.0015078045086866093,
+      -0.00029100006761722706,
+      0.002,
+      -0.001,
+      0.0015,
+      -0.0015,
+      0.001,
+      0.0015,
+      -0.001,
+      -0.001,
+      0.001,
+      0.0015,
+      -0.001,
+      0.001
+    ]
+  },
+  "jacobian_steps": [
+    1e-05,
+    5e-06
+  ],
+  "tolerances": {
+    "jacobian_coupling": 1e-07,
+    "jacobian_condition_hard_stop": 100000000.0,
+    "component_conservation_relative": 1e-12,
+    "energy_conservation_relative": 1e-10,
+    "bubble_seed_residual_inf": 1e-10,
+    "bubble_sum_xK_minus_one_abs": 0.0001,
+    "bubble_vapor_fraction": 0.001,
+    "bubble_composition_max_abs": 1e-05
+  },
+  "structural_registry_passed": true,
+  "preparation_property_call_counters": {
+    "uncategorized": {
+      "flash_requests": 2,
+      "backend_flash_equivalents": 10,
+      "wall_sec": 0.1984867998980917,
+      "cp_requests": 2,
+      "fugacity_requests": 58
+    }
+  },
+  "full_residual_evaluation_attempted": false,
+  "full_nonlinear_solve_attempted": false,
+  "dynamic_integration_attempted": false,
+  "contract_payload_sha256": "b7279b3d06f1817e1c15ead66a68450f4dab7cbd4e44ee9c3bc98a83de7776c8"
+}

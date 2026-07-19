@@ -1,0 +1,192 @@
+{
+  "schema_id": "dd090-pr-provider-authority-contract-v1",
+  "preparation_base_commit": "ffa166e8e9f29d77c666867864a148ef5b496752",
+  "dd089_result_path": "logs\\dd089_dwsim_pr_interface_consistency_20260719.json",
+  "dd089_result_sha256": "323bda6043e70d99ee12f2f28be06dd124906dc1482f9c9c9a522429617493f8",
+  "dd089_contract_path": "logs\\dd089_dwsim_pr_interface_consistency_contract_20260719.json",
+  "dd089_contract_sha256": "19892340a7dc337cf86fa8a86d34cb2358a74ac91762eb39a0d4a6be894586d0",
+  "provider_authority": {
+    "version": "dd090-pr-provider-authority-v1",
+    "quantities": [
+      {
+        "quantity": "direct_phase_fugacity_residual",
+        "authority": "DWSIM imposed-phase fugacity",
+        "expected_basis": "declared liquid x and incipient vapor y",
+        "permitted_uses": [
+          "bubble and dew equilibrium acceptance",
+          "equilibrium-stage saturation equations"
+        ],
+        "forbidden_uses": [
+          "phase fraction or stable-phase classification"
+        ],
+        "tolerance_name": "direct_fugacity_residual_inf",
+        "fallback_policy": "fail explicitly; do not substitute another interface"
+      },
+      {
+        "quantity": "direct_bubble_temperature",
+        "authority": "DWSIM imposed-phase fugacity",
+        "expected_basis": "fixed pressure and declared liquid x",
+        "permitted_uses": [
+          "production bubble temperature"
+        ],
+        "forbidden_uses": [
+          "TP-flash material split"
+        ],
+        "tolerance_name": "direct_fugacity_residual_inf",
+        "fallback_policy": "fail explicitly; do not substitute another interface"
+      },
+      {
+        "quantity": "direct_incipient_vapor_composition",
+        "authority": "DWSIM imposed-phase fugacity",
+        "expected_basis": "fixed pressure and declared liquid x",
+        "permitted_uses": [
+          "production incipient vapor composition"
+        ],
+        "forbidden_uses": [
+          "finite TP-flash vapor inventory"
+        ],
+        "tolerance_name": "direct_fugacity_residual_inf",
+        "fallback_policy": "fail explicitly; do not substitute another interface"
+      },
+      {
+        "quantity": "independent_pr_bubble_temperature",
+        "authority": "independent parameter-aligned Peng-Robinson",
+        "expected_basis": "same pressure, liquid x, constants, omega, and kij",
+        "permitted_uses": [
+          "validation of direct bubble temperature"
+        ],
+        "forbidden_uses": [
+          "production property evaluation"
+        ],
+        "tolerance_name": "independent_pr_temperature_abs_F",
+        "fallback_policy": "validation failure stops authorization"
+      },
+      {
+        "quantity": "independent_pr_incipient_vapor_composition",
+        "authority": "independent parameter-aligned Peng-Robinson",
+        "expected_basis": "same pressure, liquid x, constants, omega, and kij",
+        "permitted_uses": [
+          "validation of direct incipient vapor"
+        ],
+        "forbidden_uses": [
+          "production property evaluation"
+        ],
+        "tolerance_name": "independent_pr_vapor_max_abs",
+        "fallback_policy": "validation failure stops authorization"
+      },
+      {
+        "quantity": "tp_flash_phase_classification",
+        "authority": "DWSIM TP flash",
+        "expected_basis": "overall composition z at declared T and P",
+        "permitted_uses": [
+          "stable-phase and phase-region classification"
+        ],
+        "forbidden_uses": [
+          "direct fugacity equilibrium acceptance"
+        ],
+        "tolerance_name": null,
+        "fallback_policy": "fail explicitly; do not substitute another interface"
+      },
+      {
+        "quantity": "tp_flash_phase_fraction",
+        "authority": "DWSIM TP flash",
+        "expected_basis": "overall composition z",
+        "permitted_uses": [
+          "phase split and near-boundary classification"
+        ],
+        "forbidden_uses": [
+          "exact bubble equation"
+        ],
+        "tolerance_name": "bubble_region_vapor_fraction",
+        "fallback_policy": "fail explicitly; do not substitute another interface"
+      },
+      {
+        "quantity": "tp_flash_liquid_composition",
+        "authority": "DWSIM TP flash",
+        "expected_basis": "flash liquid phase x_flash",
+        "permitted_uses": [
+          "flash material split",
+          "flash K-value basis"
+        ],
+        "forbidden_uses": [
+          "replacement for declared overall z"
+        ],
+        "tolerance_name": null,
+        "fallback_policy": "fail explicitly; do not substitute another interface"
+      },
+      {
+        "quantity": "tp_flash_vapor_composition",
+        "authority": "DWSIM TP flash",
+        "expected_basis": "flash vapor phase y_flash",
+        "permitted_uses": [
+          "flash material split",
+          "flash K-value basis"
+        ],
+        "forbidden_uses": [
+          "strict equality to direct incipient vapor"
+        ],
+        "tolerance_name": null,
+        "fallback_policy": "fail explicitly; do not substitute another interface"
+      },
+      {
+        "quantity": "tp_flash_K_values",
+        "authority": "DWSIM TP flash",
+        "expected_basis": "K_flash = y_flash / x_flash",
+        "permitted_uses": [
+          "reconstruct y_flash from x_flash",
+          "Rachford-Rice phase split"
+        ],
+        "forbidden_uses": [
+          "strict bubble-vapor oracle from K_flash*z when beta is nonzero"
+        ],
+        "tolerance_name": "flash_Kx_reconstruction_max_abs",
+        "fallback_policy": "fail explicitly; do not substitute another interface"
+      },
+      {
+        "quantity": "tp_flash_lever_rule",
+        "authority": "DWSIM TP flash",
+        "expected_basis": "z = (1-beta)*x_flash + beta*y_flash",
+        "permitted_uses": [
+          "flash material closure"
+        ],
+        "forbidden_uses": [
+          "direct fugacity equilibrium acceptance"
+        ],
+        "tolerance_name": "flash_lever_rule_max_abs",
+        "fallback_policy": "fail explicitly; do not substitute another interface"
+      }
+    ],
+    "tolerances": {
+      "direct_fugacity_residual_inf": 1e-10,
+      "independent_pr_temperature_abs_F": 0.001,
+      "independent_pr_vapor_max_abs": 1e-06,
+      "flash_Kx_reconstruction_max_abs": 1e-12,
+      "flash_lever_rule_max_abs": 1e-12,
+      "bubble_region_vapor_fraction": 0.001,
+      "fresh_process_repeatability_max_abs": 1e-10
+    },
+    "direct_fugacity_is_primary": true,
+    "independent_pr_is_validation_only": true,
+    "tp_flash_is_phase_region_authority": true,
+    "mixed_basis_equilibrium_gate_prohibited": true,
+    "cross_interface_y_equality_required": false,
+    "fallback_between_direct_and_flash_permitted": false
+  },
+  "structural_audit": {
+    "pass": true,
+    "quantity_count": 11,
+    "duplicate_quantities": [],
+    "missing_quantities": [],
+    "missing_tolerances": [],
+    "empty_fallback_policies": []
+  },
+  "execution_scope": {
+    "evaluate_only_frozen_dd089_evidence": true,
+    "live_property_calls": false,
+    "column_residual": false,
+    "column_solve": false,
+    "dynamic_integration": false,
+    "dd088_reclassification": false
+  },
+  "contract_payload_sha256": "5d32cae013549350133ad814e668d060fec59da6857400e97c4cc66d41822192"
+}

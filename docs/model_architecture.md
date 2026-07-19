@@ -201,6 +201,24 @@ integration. It authorizes only one precommitted DD-092 live residual,
 provider-ownership, conservation, and Jacobian audit. See
 `docs/dd_091_core_v3_provider_governed_architecture_20260719.md`.
 
+2026-07-19 Core V3 live numerical result: DD-092 passes its single execution
+from frozen contract commit `1ffa504`. The separately implemented Core V3
+residual evaluates two complete precommitted states with live DWSIM PR. Both
+uncolored Jacobians retain rank `40/40` at `h=1e-5` and `h/2=5e-6`, every
+local condenser bubble block retains rank `3/3`, and the worst condition is
+`2.733414e6`, below the `1e8` hard stop. Component and energy telescoping
+remain near machine precision, direct bubble fugacity closes near `1e-15`,
+TP-flash phase algebra is internally coherent with `beta` about `4.46e-4`,
+and validation-only independent PR agrees within `3.61e-5 F` and `1.33e-9`
+composition. All `7,234` recorded property requests obey their declared
+ownership, with no fallback, projection, mixed-basis gate, or cross-interface
+equality gate. The diagnostic scaled residual remains about `0.397`, led by
+the expected source-profile versus Francis-hydraulics mismatch; DD-092 is a
+numerical-readiness pass, not a steady-root claim. One separate bounded
+three-start Core V3 root contract may be drafted. Root execution, mass-matrix
+work, and dynamics remain unauthorized. See
+`docs/dd_092_core_v3_provider_governed_numerical_20260719.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

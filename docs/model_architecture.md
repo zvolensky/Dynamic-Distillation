@@ -133,6 +133,18 @@ One frozen live numerical audit may be designed next; no root solve or
 integration is authorized. See
 `docs/dd_086_condenser_phase_stability_architecture_20260718.md`.
 
+2026-07-18 saturated-liquid numerical result: DD-087 executes once from
+frozen contract commit `69101d1`. The canonical live bubble seed is
+`117.8164 F` with `Q_C=-55.0036 MMBTU/h`. Both frozen states retain full
+`40/40` rank at `h` and `h/2`; the worst condition is `2.45e6`, each local
+bubble block is rank `3/3`, conservation is near `1e-16`, and `Q_C` couples
+only to the reflux-drum energy row. The independent TP flash classifies the
+canonical boundary as near-bubble (`beta=4.46e-4`), not stable vapor. The
+canonical residual remains `0.398`, led by Francis hydraulics, so no root is
+claimed. One bounded `40 x 40` root campaign may be drafted and precommitted;
+execution and dynamics remain unauthorized. See
+`docs/dd_087_condenser_saturated_liquid_numerical_audit_20260718.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

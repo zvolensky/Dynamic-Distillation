@@ -1,0 +1,490 @@
+{
+  "schema_id": "dd087-core-v2-condenser-saturated-liquid-numerical-result-v1",
+  "classification": "dd087_condenser_saturated_liquid_numerical_passed",
+  "decision": "authorize_drafting_one_bounded_40x40_root_contract",
+  "authorization": "DD-087 passes. Drafting and precommitting one bounded 40 x 40 steady-root campaign is authorized. Execution, dynamic integration, and DAE work remain unauthorized.",
+  "contract_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\dd087_condenser_saturated_liquid_numerical_contract_20260718.json",
+  "contract_commit": "69101d16a43198c372fff8bc8c96be528f6ee1f8",
+  "contract_payload_sha256": "b7279b3d06f1817e1c15ead66a68450f4dab7cbd4e44ee9c3bc98a83de7776c8",
+  "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\sandbox\\mini8\\input\\distillation_column_template_8stage.xlsx",
+  "workbook_sha256": "d1442928feb89bded76737614c0751e62bd4383a900b3c56bc243178080ca904",
+  "property_package": "pr",
+  "unknown_count": 40,
+  "residual_count": 40,
+  "structural_rank": 40,
+  "dependency_ownership": {
+    "condenser_duty_residual_rows_zero_based": [
+      15
+    ],
+    "condenser_duty_only_in_drum_energy": true,
+    "fixed_condenser_duty_parameter_present": false,
+    "pass": true
+  },
+  "canonical_phase_diagnostic": {
+    "K": [
+      1.0585608963394033,
+      0.43793580088873135,
+      0.22368932766921576
+    ],
+    "bubble_sum_xK_minus_one": 1.4678504510090562e-05,
+    "vapor_fraction": 0.0004459379965737753,
+    "Kx_normalized": [
+      0.9586903700177916,
+      0.041308332581172245,
+      1.2974010361514919e-06
+    ],
+    "bubble_y_minus_Kx_max_abs": 1.2190625920949216e-06
+  },
+  "canonical_phase_pass": true,
+  "states": {
+    "canonical_saturated_liquid_seed": {
+      "pass_gate": true,
+      "scaled_residual_inf_norm": 0.3978625262838295,
+      "raw_residual_inf_norm": 5494676.61926816,
+      "dominant_residuals": [
+        {
+          "name": "francis_hydraulics[stripping_tray]",
+          "block": "francis_hydraulics",
+          "raw": -5007.020320776737,
+          "scaled": -0.3978625262838295
+        },
+        {
+          "name": "francis_hydraulics[feed_tray]",
+          "block": "francis_hydraulics",
+          "raw": -3737.28302591823,
+          "scaled": -0.3020710161424993
+        },
+        {
+          "name": "component_balance[reflux_drum,n-Propane]",
+          "block": "component_balance",
+          "raw": -2405.8737337679795,
+          "scaled": -0.19117298119699794
+        },
+        {
+          "name": "phase_fugacity[rectifying_tray,n-Pentane]",
+          "block": "full_phase_equilibrium",
+          "raw": -0.15646750493560363,
+          "scaled": -0.15646750493560363
+        },
+        {
+          "name": "component_balance[reflux_drum,n-Butane]",
+          "block": "component_balance",
+          "raw": 1781.7436567615114,
+          "scaled": 0.14157902046607904
+        },
+        {
+          "name": "component_balance[rectifying_tray,n-Propane]",
+          "block": "component_balance",
+          "raw": 1545.2601007386393,
+          "scaled": 0.12278781551861288
+        },
+        {
+          "name": "phase_fugacity[feed_tray,n-Pentane]",
+          "block": "full_phase_equilibrium",
+          "raw": -0.10985686704685964,
+          "scaled": -0.10985686704685964
+        },
+        {
+          "name": "component_balance[combined_reboiler_sump,n-Propane]",
+          "block": "component_balance",
+          "raw": 1353.5890232392526,
+          "scaled": 0.10755745210406623
+        },
+        {
+          "name": "component_balance[rectifying_tray,n-Butane]",
+          "block": "component_balance",
+          "raw": -1331.3248755799982,
+          "scaled": -0.10578832206948051
+        },
+        {
+          "name": "phase_fugacity[stripping_tray,n-Pentane]",
+          "block": "full_phase_equilibrium",
+          "raw": -0.09793915281344955,
+          "scaled": -0.09793915281344955
+        }
+      ],
+      "component_telescoping_error_lbmolph": [
+        -7.105427357601002e-13,
+        0.0,
+        0.0
+      ],
+      "component_telescoping_relative_error": 1.7905378995648037e-16,
+      "energy_telescoping_error_BTUph": 1.6763806343078613e-08,
+      "energy_telescoping_relative_error": 3.04776705554643e-16,
+      "condenser_duty_BTUph": -55003568.30936691,
+      "bubble_vapor_mole_fraction": [
+        0.9586891509551994,
+        0.04130955157691584,
+        1.2974678846972106e-06
+      ],
+      "liquid_height_ft": [
+        0.3466855431659194,
+        0.5898985790892884,
+        0.6586749223934598
+      ],
+      "tray_spacing_ft": [
+        1.5,
+        1.5,
+        1.5
+      ],
+      "physical_pass": true,
+      "conservation_pass": true,
+      "jacobian_pass": true,
+      "clipping_or_projection_used": false,
+      "property_fallback_used": false,
+      "jacobians": [
+        {
+          "step": 1e-05,
+          "rank": 40,
+          "condition": 2447310.881108021,
+          "singular_values": [
+            3.295317534673346,
+            2.949860008509117,
+            2.848516469208116,
+            2.753391508779287,
+            2.2753508457931018,
+            2.0657822828035726,
+            1.9308140356653354,
+            1.7948417833486814,
+            1.5854637099755942,
+            1.4777118839825085,
+            1.3773263128470972,
+            1.3639820165430752,
+            1.1806031781295254,
+            1.1192526624178478,
+            1.0451383437359159,
+            1.00000000001673,
+            1.000000000004527,
+            0.9099109396070888,
+            0.8402714572412552,
+            0.80339471071104,
+            0.744267676821849,
+            0.6919958988365589,
+            0.6648788784581057,
+            0.630900770454734,
+            0.5712336641821801,
+            0.4816210677992377,
+            0.4677858112179201,
+            0.4054133448299592,
+            0.3398660525806635,
+            0.30145375434294086,
+            0.18888166944078247,
+            0.17043694738214335,
+            0.10476373352629573,
+            0.08904693344537142,
+            0.05876957342454086,
+            0.030438099625189587,
+            0.01737046899562425,
+            0.010660986962171775,
+            0.000163653122360282,
+            1.3465054889885463e-06
+          ],
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "bubble_rank": 3,
+          "bubble_singular_values": [
+            2.392183594168115,
+            0.7992133840615714,
+            0.4467934512085349
+          ],
+          "bubble_zero_rows": [],
+          "bubble_zero_columns": []
+        },
+        {
+          "step": 5e-06,
+          "rank": 40,
+          "condition": 2299442.849095124,
+          "singular_values": [
+            3.0962112596388023,
+            2.8706756297145386,
+            2.7880079198376917,
+            2.7545483667494426,
+            2.4617468294160947,
+            2.0853068861616273,
+            1.984552352423301,
+            1.8408623823151975,
+            1.574380291992382,
+            1.4755899853441772,
+            1.3722199563838011,
+            1.3615470139249926,
+            1.1707739748395598,
+            1.1191940842291455,
+            1.0471117437055695,
+            1.0000000000095712,
+            1.000000000004527,
+            0.9096476316041584,
+            0.8405433077880594,
+            0.8043536466896658,
+            0.7436096309578122,
+            0.693648910657387,
+            0.6665223800905707,
+            0.6329268881327718,
+            0.5706803375465459,
+            0.4798338487969332,
+            0.46563596186100426,
+            0.4029335390027502,
+            0.33985286595182707,
+            0.30086321726871984,
+            0.18870918604190448,
+            0.17049524786738807,
+            0.1047623364438714,
+            0.08902718407937639,
+            0.058768014381665894,
+            0.03043835287651288,
+            0.017369609430656484,
+            0.01066152787245995,
+            0.00016365312275921188,
+            1.3465049852651142e-06
+          ],
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "bubble_rank": 3,
+          "bubble_singular_values": [
+            2.3921835947026713,
+            0.7992133842024431,
+            0.4467934511570047
+          ],
+          "bubble_zero_rows": [],
+          "bubble_zero_columns": []
+        }
+      ],
+      "property_call_counters": {
+        "uncategorized": {
+          "rhoL_cache_misses": 49,
+          "rhoL_requests": 49,
+          "wall_sec": 1.2845603005262092,
+          "fugacity_requests": 1630,
+          "rhoL_cache_hits": 766
+        }
+      }
+    },
+    "deterministic_combined_perturbation": {
+      "pass_gate": true,
+      "scaled_residual_inf_norm": 0.3891214707282585,
+      "raw_residual_inf_norm": 5509585.779611573,
+      "dominant_residuals": [
+        {
+          "name": "francis_hydraulics[stripping_tray]",
+          "block": "francis_hydraulics",
+          "raw": -4897.015884820987,
+          "scaled": -0.3891214707282585
+        },
+        {
+          "name": "francis_hydraulics[feed_tray]",
+          "block": "francis_hydraulics",
+          "raw": -3763.908498873938,
+          "scaled": -0.3042230564389468
+        },
+        {
+          "name": "component_balance[reflux_drum,n-Propane]",
+          "block": "component_balance",
+          "raw": -2406.9457735575643,
+          "scaled": -0.19125816648318325
+        },
+        {
+          "name": "phase_fugacity[rectifying_tray,n-Pentane]",
+          "block": "full_phase_equilibrium",
+          "raw": -0.16050217094435668,
+          "scaled": -0.16050217094435668
+        },
+        {
+          "name": "component_balance[reflux_drum,n-Butane]",
+          "block": "component_balance",
+          "raw": 1777.490634065674,
+          "scaled": 0.1412410712975712
+        },
+        {
+          "name": "component_balance[rectifying_tray,n-Propane]",
+          "block": "component_balance",
+          "raw": 1548.2804026638114,
+          "scaled": 0.12302781153962014
+        },
+        {
+          "name": "component_balance[combined_reboiler_sump,n-Propane]",
+          "block": "component_balance",
+          "raw": 1360.2602083045508,
+          "scaled": 0.1080875507202777
+        },
+        {
+          "name": "phase_fugacity[feed_tray,n-Pentane]",
+          "block": "full_phase_equilibrium",
+          "raw": -0.10723446917946158,
+          "scaled": -0.10723446917946158
+        },
+        {
+          "name": "component_balance[rectifying_tray,n-Butane]",
+          "block": "component_balance",
+          "raw": -1326.6818203583048,
+          "scaled": -0.10541938055100636
+        },
+        {
+          "name": "phase_fugacity[stripping_tray,n-Pentane]",
+          "block": "full_phase_equilibrium",
+          "raw": -0.0978786203152093,
+          "scaled": -0.0978786203152093
+        }
+      ],
+      "component_telescoping_error_lbmolph": [
+        -2.5579538487363607e-13,
+        0.0,
+        2.2737367544323206e-13
+      ],
+      "component_telescoping_relative_error": 6.445936438433293e-17,
+      "energy_telescoping_error_BTUph": 1.0244548320770264e-08,
+      "energy_telescoping_relative_error": 1.8643887004232417e-16,
+      "condenser_duty_BTUph": -54948564.741057545,
+      "bubble_vapor_mole_fraction": [
+        0.9587880469113618,
+        0.041210657431853356,
+        1.2956567846935536e-06
+      ],
+      "liquid_height_ft": [
+        0.34781077643885294,
+        0.590182760078766,
+        0.6567581094539892
+      ],
+      "tray_spacing_ft": [
+        1.5,
+        1.5,
+        1.5
+      ],
+      "physical_pass": true,
+      "conservation_pass": true,
+      "jacobian_pass": true,
+      "clipping_or_projection_used": false,
+      "property_fallback_used": false,
+      "jacobians": [
+        {
+          "step": 1e-05,
+          "rank": 40,
+          "condition": 2442431.1299029877,
+          "singular_values": [
+            3.288178202769417,
+            2.9502932666772304,
+            2.859571433038811,
+            2.7533899653958605,
+            2.2754336934124164,
+            2.065992681191351,
+            1.9309782720704152,
+            1.7950219199080923,
+            1.5856221823563605,
+            1.47766315737095,
+            1.3773204762777858,
+            1.3638075123782953,
+            1.1807885431151133,
+            1.1191081484068803,
+            1.0449744966315633,
+            1.0025276019886946,
+            0.9971273611371959,
+            0.9101075040124724,
+            0.8403895284604457,
+            0.8033650913150335,
+            0.7442765909467809,
+            0.692075115932866,
+            0.6648131191177293,
+            0.6311360062952476,
+            0.5709000556118633,
+            0.4819078862828149,
+            0.46793303703276934,
+            0.405469550171467,
+            0.33987230245329214,
+            0.3016435326618461,
+            0.1891035185881893,
+            0.17044258835703816,
+            0.10482321577260842,
+            0.089048951570935,
+            0.05873804273510895,
+            0.030443608511336682,
+            0.017386571254571038,
+            0.010687901988745809,
+            0.00016375048950776732,
+            1.3462726389750944e-06
+          ],
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "bubble_rank": 3,
+          "bubble_singular_values": [
+            2.3916763299342465,
+            0.7990722702272295,
+            0.4465392607217002
+          ],
+          "bubble_zero_rows": [],
+          "bubble_zero_columns": []
+        },
+        {
+          "step": 5e-06,
+          "rank": 40,
+          "condition": 2442424.403119455,
+          "singular_values": [
+            3.2881723109221883,
+            2.950293216157293,
+            2.8595699265085757,
+            2.753389980276078,
+            2.2754361147401982,
+            2.0659928152816796,
+            1.9309811993777473,
+            1.7950221705417633,
+            1.5856222148971186,
+            1.4776632124332445,
+            1.3773210054120015,
+            1.363808669364754,
+            1.1807883089911462,
+            1.1191081111945296,
+            1.0449744162545938,
+            1.0025276019804978,
+            0.9971273611371948,
+            0.9101075458889358,
+            0.840389501859718,
+            0.8033649098231624,
+            0.7442760493033815,
+            0.6920749428519679,
+            0.6648126886887471,
+            0.631136040125568,
+            0.5709001628217993,
+            0.4819077423208009,
+            0.46793309430508184,
+            0.40547002819687694,
+            0.33987185695030425,
+            0.3016436836697467,
+            0.1891035446892873,
+            0.1704425583838521,
+            0.10482321503760177,
+            0.08904895528436288,
+            0.0587380421300659,
+            0.030443608621733582,
+            0.01738657103325795,
+            0.010687901873606662,
+            0.000163750488825221,
+            1.3462739345064467e-06
+          ],
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "bubble_rank": 3,
+          "bubble_singular_values": [
+            2.3916763296466104,
+            0.7990722700974534,
+            0.4465392606496813
+          ],
+          "bubble_zero_rows": [],
+          "bubble_zero_columns": []
+        }
+      ],
+      "property_call_counters": {
+        "uncategorized": {
+          "rhoL_cache_misses": 50,
+          "rhoL_requests": 50,
+          "wall_sec": 1.2763487984775566,
+          "fugacity_requests": 1630,
+          "rhoL_cache_hits": 765
+        }
+      }
+    }
+  },
+  "full_nonlinear_solve_attempted": false,
+  "dynamic_integration_attempted": false,
+  "wall_clock_sec": 7.154926899995189
+}

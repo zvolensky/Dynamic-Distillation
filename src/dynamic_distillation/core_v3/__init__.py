@@ -1,5 +1,9 @@
 """Core V3 provider-governed equilibrium architecture."""
 
+from dynamic_distillation.core_v3.provider_call_audit_v1 import (
+    ProviderCallAudit,
+    ProviderCallRecord,
+)
 from dynamic_distillation.core_v3.provider_governed_registry_v1 import (
     ARCHITECTURE_NAME,
     EQUILIBRIUM_VOLUME_IDS,
@@ -13,6 +17,30 @@ from dynamic_distillation.core_v3.provider_governed_registry_v1 import (
     audit_provider_governed_registry,
     build_provider_governed_registry,
 )
+from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
+    BubbleSolveResult,
+    BubbleSolveSettings,
+    CoordinateLayout,
+    HydraulicGeometry,
+    IndependentPengRobinsonProvider,
+    JacobianAudit,
+    LiveProperties,
+    NumericalReference,
+    OperatingSpec,
+    PengRobinsonParameters,
+    PhysicalState,
+    ResidualEvaluation,
+    ResidualRow,
+    audit_numerical_jacobian,
+    coordinate_layout,
+    decode_coordinates,
+    encode_state,
+    evaluate_residual,
+    residual_rows,
+    solve_local_bubble,
+    structural_pattern,
+    tp_flash_diagnostics,
+)
 
 __all__ = [
     "ARCHITECTURE_NAME",
@@ -22,8 +50,32 @@ __all__ = [
     "TERMINAL_VOLUME_IDS",
     "VAPOR_LINKS",
     "VOLUME_IDS",
+    "BubbleSolveResult",
+    "BubbleSolveSettings",
+    "CoordinateLayout",
+    "HydraulicGeometry",
+    "IndependentPengRobinsonProvider",
+    "JacobianAudit",
+    "LiveProperties",
+    "NumericalReference",
+    "OperatingSpec",
+    "PengRobinsonParameters",
+    "PhysicalState",
+    "ProviderCallAudit",
+    "ProviderCallRecord",
     "ProviderGovernedRegistry",
+    "ResidualEvaluation",
+    "ResidualRow",
     "RegistryAudit",
+    "audit_numerical_jacobian",
     "audit_provider_governed_registry",
     "build_provider_governed_registry",
+    "coordinate_layout",
+    "decode_coordinates",
+    "encode_state",
+    "evaluate_residual",
+    "residual_rows",
+    "solve_local_bubble",
+    "structural_pattern",
+    "tp_flash_diagnostics",
 ]

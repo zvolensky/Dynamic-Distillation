@@ -41,6 +41,16 @@ from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
     structural_pattern,
     tp_flash_diagnostics,
 )
+from dynamic_distillation.core_v3.provider_governed_steady_root_v1 import (
+    CampaignDefinition,
+    SteadyRootSettings,
+    execute_start,
+    independent_smooth_start,
+    pairwise_root_agreement,
+    physical_bounds,
+    physical_vector_and_scales,
+    prepare_campaign,
+)
 
 __all__ = [
     "ARCHITECTURE_NAME",
@@ -52,6 +62,7 @@ __all__ = [
     "VOLUME_IDS",
     "BubbleSolveResult",
     "BubbleSolveSettings",
+    "CampaignDefinition",
     "CoordinateLayout",
     "HydraulicGeometry",
     "IndependentPengRobinsonProvider",
@@ -67,6 +78,7 @@ __all__ = [
     "ResidualEvaluation",
     "ResidualRow",
     "RegistryAudit",
+    "SteadyRootSettings",
     "audit_numerical_jacobian",
     "audit_provider_governed_registry",
     "build_provider_governed_registry",
@@ -74,6 +86,12 @@ __all__ = [
     "decode_coordinates",
     "encode_state",
     "evaluate_residual",
+    "execute_start",
+    "independent_smooth_start",
+    "pairwise_root_agreement",
+    "physical_bounds",
+    "physical_vector_and_scales",
+    "prepare_campaign",
     "residual_rows",
     "solve_local_bubble",
     "structural_pattern",

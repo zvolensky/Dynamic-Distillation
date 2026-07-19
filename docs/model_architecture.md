@@ -219,6 +219,17 @@ three-start Core V3 root contract may be drafted. Root execution, mass-matrix
 work, and dynamics remain unauthorized. See
 `docs/dd_092_core_v3_provider_governed_numerical_20260719.md`.
 
+2026-07-19 Core V3 root-contract boundary: DD-093 defines one future
+three-start bounded trust-region campaign on the unchanged DD-092 residual.
+It freezes the exact two DD-092 vectors and a fully distinct smooth
+five-volume seed whose drum composition, local direct-fugacity bubble, and
+negative condenser duty are reconstructed independently. The contract fixes
+physical bounds, transformed vectors, comparison scales, solver and Jacobian
+settings, result fields, provider rules, and hard stops. No full residual or
+nonlinear root solve is used to construct the third seed, and the campaign
+has not been executed. Dynamic work remains unauthorized. See
+`docs/dd_093_core_v3_steady_root_contract_20260719.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

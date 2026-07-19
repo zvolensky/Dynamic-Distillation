@@ -172,6 +172,18 @@ and interpret TP-flash output on its returned phase bases. This finding does
 not revive DD-088 or authorize dynamics. See
 `docs/dd_089_dwsim_pr_interface_consistency_20260719.md`.
 
+2026-07-19 provider-authority result: DD-090 passes a prospective property
+ownership contract without live property or column execution. Direct
+imposed-phase fugacity owns equilibrium and saturation acceptance;
+parameter-aligned independent PR is validation-only; TP flash owns phase
+classification, phase fraction, phase compositions, and lever-rule closure.
+Flash K-values are valid on `x_flash/y_flash` bases. `K_flash*z` is prohibited
+as a strict bubble-vapor gate for nonzero beta, direct-y/flash-y equality is
+not required, and no interface fallback is allowed. Passing authorizes only a
+decision on a separately versioned successor architecture. DD-088 remains
+failed and dynamics remain unauthorized. See
+`docs/dd_090_pr_provider_authority_20260719.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

@@ -254,6 +254,19 @@ acceptance gates are unchanged. DD-094 must be committed before its one
 execution; dynamics remain unauthorized. See
 `docs/dd_094_core_v3_reporting_recovery_contract_20260725.md`.
 
+2026-07-25 accepted Core V3 root: DD-094 executes once from frozen commit
+`52f132d` and passes every gate. Canonical, DD-092-perturbed, and fully
+independent smooth starts converge to one physical root with maximum pairwise
+normalized difference `2.47414e-10`. Final scaled residuals range from
+`2.89e-15` to `7.43e-11`; all endpoint Jacobians retain rank `40/40`, local
+bubble rank `3/3`, and worst condition `1373.6911`. The root is interior,
+conservative, pressure-prescribed, phase-valid, and provider-compliant, with
+`Q_C=-52.515728 MMBTU/h` and drum temperature `133.713 F` below the supplying
+stage at `154.422 F`. This establishes steady feasibility for the reduced
+provider-governed architecture. Only a structural dynamic-DAE contract is
+authorized next; mass-matrix coding and integration remain unauthorized. See
+`docs/dd_094_core_v3_steady_root_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

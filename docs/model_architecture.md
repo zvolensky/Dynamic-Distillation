@@ -230,6 +230,18 @@ nonlinear root solve is used to construct the third seed, and the campaign
 has not been executed. Dynamic work remains unauthorized. See
 `docs/dd_093_core_v3_steady_root_contract_20260719.md`.
 
+2026-07-25 DD-093 execution result: the one frozen attempt exits during
+first-start report assembly because `movement_by_family()` accesses the
+scalar `layout.distillate` index as `layout.distillate.start`. The exception
+occurs after the first solve and endpoint audits in the frozen control flow,
+but before their values are returned or serialized. Starts 2 and 3 do not
+run, so no root-existence, reproducibility, or common-root conclusion is
+available. The reporting defect is not evidence against the Core V3
+equations, but the campaign cannot pass without its required evidence. Per
+the contract, it is not patched and rerun. DD-092 remains a readiness pass;
+root acceptance, structural dynamic-DAE work, and integration remain
+unauthorized. See `docs/dd_093_core_v3_steady_root_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

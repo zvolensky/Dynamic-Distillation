@@ -1,0 +1,37 @@
+{
+  "schema_id": "dd093-core-v3-steady-root-result-v1",
+  "classification": "dd093_execution_failed_before_scientific_decision",
+  "decision": "retire_frozen_dd093_campaign_without_rerun",
+  "contract_commit": "a33749fabf088575e136c32ada19d10683aac0b4",
+  "contract_payload_sha256": "f4f121a8d946814c1b6fe8c9be8122a10264a1e5a600061f2b71e1368547a338",
+  "authorized_execution_attempts": 1,
+  "completed_campaign_executions": 0,
+  "process_exit_code": 1,
+  "recorded_at": "2026-07-25T16:25:34.5652950-04:00",
+  "failure_phase": "first_start_postsolve_report_assembly",
+  "exception": {
+    "type": "AttributeError",
+    "message": "'int' object has no attribute 'start'",
+    "file": "src/dynamic_distillation/core_v3/provider_governed_steady_root_v1.py",
+    "function": "movement_by_family",
+    "line": 560,
+    "expression": "layout.distillate.start"
+  },
+  "evidence_interpretation": {
+    "first_start_solver_and_endpoint_audits_reached": true,
+    "basis": "The exception occurred while assembling the execute_start return payload, after the solver, endpoint residual evaluation, and endpoint Jacobian audits in the frozen control flow.",
+    "first_start_quantitative_result_retained": false,
+    "second_start_attempted": false,
+    "third_start_attempted": false,
+    "common_root_assessment_possible": false,
+    "core_v3_root_accepted": false,
+    "core_v3_root_rejected_on_physical_or_numerical_evidence": false
+  },
+  "contract_integrity": {
+    "contract_or_solver_code_modified_after_execution": false,
+    "rerun_attempted": false,
+    "post_result_tuning_attempted": false
+  },
+  "authorization": "No rerun, solver or reporting patch followed by execution, tolerance change, wider bounds, provider substitution, DD-088 root import, structural dynamic-DAE work, or dynamic integration is authorized under DD-093.",
+  "dynamic_integration_attempted": false
+}

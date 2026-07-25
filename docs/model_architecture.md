@@ -296,6 +296,17 @@ authorize only a separately frozen implicit-solver contract; a failure stops
 this fixed-pressure saturated-liquid dynamic path. See
 `docs/dd_096_core_v3_dynamic_dae_numerical_contract_20260725.md`.
 
+2026-07-25 live dynamic numerical result: DD-096 executes once from frozen
+commit `42975bc` and passes every gate. The zero-rate root residual is
+`2.462658e-11`; the provider-derived storage gradient changes by only
+`8.669536e-10` between steps and all bubble reconstructions close below
+`4.67e-15`. Both leading Jacobians retain rank `38/38`, worst condition
+`35.408732`, no zero or off-registry coupling, and singular-spectrum change
+`3.512314e-7`. Component and energy conservation remain near machine
+precision across `6306` provider-compliant calls. This authorizes one frozen
+implicit-solver contract only. No integration has been performed. See
+`docs/dd_096_core_v3_dynamic_dae_numerical_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

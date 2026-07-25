@@ -242,6 +242,18 @@ the contract, it is not patched and rerun. DD-092 remains a readiness pass;
 root acceptance, structural dynamic-DAE work, and integration remain
 unauthorized. See `docs/dd_093_core_v3_steady_root_20260725.md`.
 
+2026-07-25 reporting-recovery boundary: the user authorizes DD-094 as an
+explicit governance exception to DD-093's procedural stop. The only model
+code change corrects scalar product and condenser-duty coordinate access in
+movement reporting. Direct regression assertions and a complete analytic
+`execute_start()` reporting smoke test are added. The generated successor
+contract copies every DD-093 mathematical field under checksum
+`272890348b11b0164bb4ad506c97178a7565cf712677b51635d7e0c2feb01b93`.
+Equations, starts, bounds, scales, solver, tolerances, provider authority, and
+acceptance gates are unchanged. DD-094 must be committed before its one
+execution; dynamics remain unauthorized. See
+`docs/dd_094_core_v3_reporting_recovery_contract_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

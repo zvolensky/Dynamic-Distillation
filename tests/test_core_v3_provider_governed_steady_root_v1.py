@@ -9,7 +9,9 @@ from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
 )
 from dynamic_distillation.core_v3.provider_governed_steady_root_v1 import (
     SteadyRootSettings,
+    execute_start,
     independent_smooth_start,
+    movement_by_family,
     pairwise_root_agreement,
     physical_bounds,
     physical_vector_and_scales,
@@ -150,3 +152,54 @@ def test_dd093_pairwise_agreement_includes_bubble_and_duty():
 
     assert result["canonical__vs__bubble"] > 0.0
     assert result["canonical__vs__duty"] > 0.0
+
+
+def test_dd094_reporting_handles_scalar_product_and_duty_coordinates():
+    _provider, spec, _reference = _fixture()
+    layout = coordinate_layout(spec)
+    initial = np.zeros(40)
+    final = initial.copy()
+    final[layout.distillate] = 0.02
+    final[layout.bottoms] = -0.03
+    final[layout.condenser_duty] = 0.04
+
+    movement = movement_by_family(spec, initial, final)
+
+    assert movement["products"] == 0.03
+    assert movement["condenser_duty"] == 0.04
+
+
+def test_dd094_execute_start_serializes_complete_reporting_path():
+    provider, spec, reference = _fixture()
+    lower, upper = physical_bounds(spec, reference, SteadyRootSettings())
+    scales = np.ones(40)
+    scales[12:32] = 1.0e8
+    scales[32:35] = 1.0e4
+    scales[35:37] = 1.0e3
+
+    result = execute_start(
+        spec,
+        reference,
+        provider,
+        name="analytic_reporting_smoke",
+        initial=np.zeros(40),
+        lower_bounds=lower,
+        upper_bounds=upper,
+        fixed_scales=scales,
+        settings=SteadyRootSettings(max_nfev=1),
+    )
+
+    assert result["final_coordinates"].shape == (40,)
+    assert set(result["movement_by_coordinate_family"]) == {
+        "liquid_moles",
+        "liquid_composition",
+        "temperature",
+        "column_vapor_composition",
+        "liquid_flow",
+        "vapor_flow",
+        "products",
+        "bubble_vapor_composition",
+        "condenser_duty",
+    }
+    assert len(result["endpoint_jacobians"]) == 2
+    assert result["provider_provenance"]["pass"]

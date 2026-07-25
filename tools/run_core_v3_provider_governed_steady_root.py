@@ -45,6 +45,7 @@ from dynamic_distillation.thermo_provider_v1 import ThermoProviderV1
 
 SCHEMA_ID = "dd093-core-v3-steady-root-contract-v1"
 RESULT_SCHEMA_ID = "dd093-core-v3-steady-root-result-v1"
+RECOVERY_RESULT_SCHEMA_ID = "dd094-core-v3-steady-root-result-v1"
 DD092_CONTRACT = Path(
     "logs/dd092_core_v3_provider_governed_numerical_contract_20260719.json"
 )
@@ -401,6 +402,7 @@ def execute(contract_path: Path, out_path: Path) -> dict[str, Any]:
     """Execute only after the separately committed DD-093 contract."""
     contract_commit = _verify_committed(contract_path)
     contract = _load_hashed_json(contract_path, "contract_payload_sha256")
+    recovery_campaign = str(contract["schema_id"]).startswith("dd094-")
     _verify_hashes(contract)
     workbook = Path(contract["workbook"])
     spec = _spec(
@@ -614,7 +616,11 @@ def execute(contract_path: Path, out_path: Path) -> dict[str, Any]:
         and all(result["start_pass"] for result in results.values())
     )
     report = {
-        "schema_id": RESULT_SCHEMA_ID,
+        "schema_id": (
+            RECOVERY_RESULT_SCHEMA_ID
+            if recovery_campaign
+            else RESULT_SCHEMA_ID
+        ),
         "contract_commit": contract_commit,
         "contract_payload_sha256": contract["contract_payload_sha256"],
         "starts": _jsonable(results),
@@ -622,9 +628,17 @@ def execute(contract_path: Path, out_path: Path) -> dict[str, Any]:
         "common_root_pass": common_root_pass,
         "campaign_pass": campaign_pass,
         "classification": (
-            "dd093_core_v3_steady_root_passed"
+            (
+                "dd094_core_v3_steady_root_passed"
+                if recovery_campaign
+                else "dd093_core_v3_steady_root_passed"
+            )
             if campaign_pass
-            else "dd093_core_v3_steady_root_failed"
+            else (
+                "dd094_core_v3_steady_root_failed"
+                if recovery_campaign
+                else "dd093_core_v3_steady_root_failed"
+            )
         ),
         "decision": (
             "authorize_structural_dynamic_dae_contract_only"

@@ -557,12 +557,12 @@ def movement_by_family(
         "liquid_flow": float(np.max(delta[layout.liquid_flows])),
         "vapor_flow": float(np.max(delta[layout.vapor_flows])),
         "products": float(
-            np.max(delta[layout.distillate.start : layout.bottoms.stop])
+            np.max(delta[[layout.distillate, layout.bottoms]])
         ),
         "bubble_vapor_composition": float(
             np.max(delta[layout.bubble_alr])
         ),
-        "condenser_duty": float(delta[layout.condenser_duty][0]),
+        "condenser_duty": float(delta[layout.condenser_duty]),
     }
 
 

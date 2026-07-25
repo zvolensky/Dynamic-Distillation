@@ -284,6 +284,18 @@ leading-Jacobian and consistent-derivative audit is required before any
 numerical mass matrix or integration. See
 `docs/dd_095_core_v3_dynamic_dae_contract_20260725.md`.
 
+2026-07-25 live dynamic numerical contract: DD-096 freezes one evaluation of
+the DD-095 implicit system at the exact DD-094 root and zero inventory rate.
+The implementation reconstructs saturated-liquid storage from direct-fugacity
+bubble states, DWSIM liquid enthalpy, and DWSIM liquid density, then forms the
+chain-rule `dU/dt`. It checks the `38 x 38` leading Jacobian at `1e-5` and
+`5e-6`, numerical rank, conditioning, singular-spectrum stability, exact
+registered coupling, conservation, and provider provenance. Preparation and
+execution contain no nonlinear state solve or time integration. A pass may
+authorize only a separately frozen implicit-solver contract; a failure stops
+this fixed-pressure saturated-liquid dynamic path. See
+`docs/dd_096_core_v3_dynamic_dae_numerical_contract_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

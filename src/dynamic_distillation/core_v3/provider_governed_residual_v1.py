@@ -1016,12 +1016,18 @@ def solve_local_bubble(
     state_id: str,
     evaluation_kind: str,
     independent: bool = False,
+    governing: bool = False,
     settings: BubbleSolveSettings = BubbleSolveSettings(),
 ) -> BubbleSolveResult:
     if independent and evaluation_kind != "validation":
         raise ValueError("independent bubble solve must be validation-only")
-    if not independent and evaluation_kind not in {"preparation", "validation"}:
+    permitted_direct_kinds = {"preparation", "validation"}
+    if governing:
+        permitted_direct_kinds.update({"residual", "jacobian"})
+    if not independent and evaluation_kind not in permitted_direct_kinds:
         raise ValueError("direct local bubble solve is preparation or validation only")
+    if independent and governing:
+        raise ValueError("independent bubble solve cannot be governing")
     x = normalize_composition(liquid_x)
     y0 = normalize_composition(vapor_guess)
     reference_alr = alr_coordinates(y0)

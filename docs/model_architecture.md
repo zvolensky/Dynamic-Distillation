@@ -307,6 +307,18 @@ precision across `6306` provider-compliant calls. This authorizes one frozen
 implicit-solver contract only. No integration has been performed. See
 `docs/dd_096_core_v3_dynamic_dae_numerical_20260725.md`.
 
+2026-07-25 implicit-step contract: DD-097 freezes the first numerical
+backward-Euler endpoint solve for Core V3. Fifteen dimensionless inventory-rate
+coordinates and 23 endpoint algebraic coordinates form one `38 x 38` solve.
+The positive exponential inventory map contains no clipping or rate cap, and
+the energy rows use exact saturated-liquid storage differences rather than a
+frozen linear storage approximation. Nested direct-fugacity bubble, liquid
+enthalpy, and liquid-density calls are explicitly recorded as governing.
+The one authorized execution contains a zero-rate algebraic recovery and
+independent `1.0 s` and `0.5 s` checks from DD-094. It is not a trajectory or
+disturbance test. See
+`docs/dd_097_core_v3_implicit_step_contract_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

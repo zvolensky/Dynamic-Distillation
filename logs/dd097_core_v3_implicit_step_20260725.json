@@ -1,0 +1,351 @@
+{
+  "schema_id": "dd097-core-v3-implicit-step-result-v1",
+  "contract_commit": "ac43127ccabfe695adf2ee8221d4fa8b34799750",
+  "contract_payload_sha256": "a87de97aeb958a392eef72c43afdcf1e4bc2d807d015ca6cead13d1866b01d20",
+  "classification": "dd097_core_v3_implicit_step_passed",
+  "decision": "authorize_short_open_loop_trajectory_contract_only",
+  "wall_clock_sec": 46.25828090007417,
+  "zero_rate": {
+    "success": true,
+    "status": 1,
+    "message": "`gtol` termination condition is satisfied.",
+    "nfev": 3,
+    "njev": 3,
+    "cost": 8.875080277938588e-23,
+    "optimality": 1.4753530075822746e-13,
+    "wall_clock_sec": 7.4783757999539375,
+    "residual_inf_norm": 6.941526517555761e-12,
+    "jacobian_rank": 23,
+    "jacobian_condition": 12.197546532542136,
+    "coordinate_movement_inf_norm": 1.839509100598491e-11
+  },
+  "steps": [
+    {
+      "success": true,
+      "status": 1,
+      "message": "`gtol` termination condition is satisfied.",
+      "nfev": 2,
+      "njev": 2,
+      "cost": 2.181898004233129e-25,
+      "optimality": 7.452350856774433e-13,
+      "wall_clock_sec": 19.94936119997874,
+      "residual_inf_norm": 5.419607106329454e-13,
+      "jacobian_rank": 38,
+      "jacobian_condition": 35.132422907472616,
+      "coordinate_movement_inf_norm": 2.060933368408513e-11,
+      "step_seconds": 1.0,
+      "component_rate_max_abs_lbmolph": 7.61247065383941e-08,
+      "relative_inventory_movement_max": 9.927346585236505e-13,
+      "algebraic_movement_inf_norm": 2.060933368408513e-11,
+      "component_conservation_relative_error": 8.666203433893649e-14,
+      "energy_conservation_relative_error": 2.1842822165034725e-13,
+      "maximum_bubble_residual": 3.774758283725539e-15,
+      "inventory_lbmol": [
+        [
+          976.3983709048025,
+          393.89971615078923,
+          18.601912944408475
+        ],
+        [
+          16.4373398359631,
+          15.06333799380959,
+          1.3585694009303801
+        ],
+        [
+          16.017284536957167,
+          25.849165241153162,
+          3.98921934926458
+        ],
+        [
+          14.800863419781411,
+          33.93707385439123,
+          5.68699535760514
+        ],
+        [
+          143.61846955418088,
+          530.1615018625077,
+          120.22002858334545
+        ]
+      ],
+      "rate_coordinates": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -4.489956178770121e-12,
+          -4.2287704073930445e-12,
+          -3.858079706576747e-13
+        ],
+        [
+          1.6047172490443686e-12,
+          -2.9573953101450994e-13,
+          -2.9535842337145e-13
+        ],
+        [
+          1.849642427650887e-13,
+          -1.5508540354918976e-12,
+          -3.356287976547832e-13
+        ],
+        [
+          2.6911281035272247e-12,
+          6.048940510647297e-12,
+          1.016287048159828e-12
+        ]
+      ],
+      "algebraic_coordinates": [
+        0.15896908601115248,
+        -0.021558316089794357,
+        -0.05729356160337247,
+        -0.11299987250763248,
+        -0.20971510616053995,
+        -4.227926918722405,
+        -4.441413629919718,
+        0.00971297954136785,
+        -0.2031949725108178,
+        0.1938473020613605,
+        -0.37434900389954234,
+        1.4690571761291074,
+        -0.09876387757125231,
+        0.06807226631868928,
+        0.03344428392981131,
+        0.017838300718989602,
+        -0.03578263229238868,
+        -0.001108731339303728,
+        0.03387139685133223,
+        0.041586895207689045,
+        -8.026569322661443,
+        -6.650747613731819,
+        0.045230521250757855
+      ],
+      "temperature_F": [
+        133.71329349338205,
+        154.42216839102056,
+        173.92464383966274,
+        184.82401274923674,
+        199.740489383946
+      ],
+      "physical": {
+        "positive_inventory": true,
+        "positive_liquid_composition": true,
+        "positive_vapor_composition": true,
+        "positive_bubble_composition": true,
+        "positive_flows": true,
+        "ordered_temperature": true,
+        "negative_condenser_duty": true,
+        "hydraulic_height_below_spacing": true,
+        "all_finite": true
+      },
+      "physical_pass": true
+    },
+    {
+      "success": true,
+      "status": 3,
+      "message": "`xtol` termination condition is satisfied.",
+      "nfev": 3,
+      "njev": 2,
+      "cost": 1.1437621982941595e-24,
+      "optimality": 1.873729014919945e-12,
+      "wall_clock_sec": 18.42664929991588,
+      "residual_inf_norm": 1.0889333048683448e-12,
+      "jacobian_rank": 38,
+      "jacobian_condition": 35.19235991720727,
+      "coordinate_movement_inf_norm": 2.1742885270015222e-11,
+      "step_seconds": 0.5,
+      "component_rate_max_abs_lbmolph": 7.776179700158536e-08,
+      "relative_inventory_movement_max": 5.185951714678207e-13,
+      "algebraic_movement_inf_norm": 2.1742885270015222e-11,
+      "component_conservation_relative_error": 4.351723311102299e-14,
+      "energy_conservation_relative_error": 2.46492515589835e-13,
+      "maximum_bubble_residual": 3.5527136788004946e-15,
+      "inventory_lbmol": [
+        [
+          976.3983709048025,
+          393.89971615078923,
+          18.601912944408475
+        ],
+        [
+          16.437339835970462,
+          15.063337993816614,
+          1.3585694009310243
+        ],
+        [
+          16.017284536954907,
+          25.849165241154036,
+          3.989219349265109
+        ],
+        [
+          14.800863419781011,
+          33.937073854393795,
+          5.6869953576057135
+        ],
+        [
+          143.6184695541762,
+          530.1615018624974,
+          120.22002858334372
+        ]
+      ],
+      "rate_coordinates": [
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          -4.7684188299659135e-12,
+          -4.439141826362129e-12,
+          -4.030848504763918e-13
+        ],
+        [
+          1.9167173728294357e-12,
+          -9.146583433438452e-14,
+          -2.8811737815331124e-13
+        ],
+        [
+          1.412638996942161e-13,
+          -1.6341895734410035e-12,
+          -3.42996878753942e-13
+        ],
+        [
+          2.6992583999125033e-12,
+          6.179025252811754e-12,
+          1.040677937315664e-12
+        ]
+      ],
+      "algebraic_coordinates": [
+        0.15896908601115248,
+        -0.021558316089789458,
+        -0.057293561603318645,
+        -0.11299987250760454,
+        -0.2097151061605367,
+        -4.227926918722432,
+        -4.441413629919726,
+        0.009712979541079228,
+        -0.203194972510921,
+        0.19384730206122372,
+        -0.3743490038995706,
+        1.4690571761290883,
+        -0.0987638775712578,
+        0.06807226631982283,
+        0.033444283929790736,
+        0.01783830071910635,
+        -0.03578263229238774,
+        -0.0011087313393106648,
+        0.033871396851334425,
+        0.041586895207691536,
+        -8.026569322661443,
+        -6.650747613731819,
+        0.0452305212507541
+      ],
+      "temperature_F": [
+        133.71329349338205,
+        154.42216839102105,
+        173.92464383966814,
+        184.82401274923953,
+        199.7404893839463
+      ],
+      "physical": {
+        "positive_inventory": true,
+        "positive_liquid_composition": true,
+        "positive_vapor_composition": true,
+        "positive_bubble_composition": true,
+        "positive_flows": true,
+        "ordered_temperature": true,
+        "negative_condenser_duty": true,
+        "hydraulic_height_below_spacing": true,
+        "all_finite": true
+      },
+      "physical_pass": true
+    }
+  ],
+  "refinement": {
+    "relative_inventory_difference": 4.741394870558297e-13,
+    "rate_coordinate_difference": 3.120001237850671e-13,
+    "algebraic_coordinate_difference": 1.1335515859300926e-12
+  },
+  "provider_provenance": {
+    "total_calls": 44686,
+    "counts": [
+      {
+        "provider_interface": "dwsim.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "count": 2887
+      },
+      {
+        "provider_interface": "dwsim.declared_liquid_density",
+        "evaluation_kind": "residual",
+        "count": 84
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "count": 5581
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "residual",
+        "count": 162
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "count": 35122
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "count": 850
+      }
+    ],
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true
+  },
+  "zero_rate_gates": {
+    "success": true,
+    "residual": true,
+    "rank": true,
+    "condition": true,
+    "movement": true
+  },
+  "step_gates": [
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "stationary_rate": true,
+      "stationary_inventory": true,
+      "stationary_algebraic": true,
+      "storage_bubble": true,
+      "component_conservation": true,
+      "energy_conservation": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "stationary_rate": true,
+      "stationary_inventory": true,
+      "stationary_algebraic": true,
+      "storage_bubble": true,
+      "component_conservation": true,
+      "energy_conservation": true,
+      "physical": true
+    }
+  ],
+  "refinement_gates": {
+    "inventory": true,
+    "rate": true,
+    "algebraic": true
+  },
+  "worst_condition": 35.19235991720727,
+  "pass": true,
+  "campaign_executed_once": true,
+  "controller_attempted": false,
+  "disturbance_attempted": false,
+  "trajectory_attempted": false
+}

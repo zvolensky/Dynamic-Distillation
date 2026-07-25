@@ -319,6 +319,17 @@ independent `1.0 s` and `0.5 s` checks from DD-094. It is not a trajectory or
 disturbance test. See
 `docs/dd_097_core_v3_implicit_step_contract_20260725.md`.
 
+2026-07-25 implicit-step result: DD-097 executes once from frozen commit
+`ac43127` and passes every gate. Zero-rate algebraic recovery retains rank
+`23/23` and condition `12.20`. Independent `1.0 s` and `0.5 s` backward-Euler
+steps retain rank `38/38`, condition below `35.2`, scaled residual below
+`1.1e-12`, physical states, and discrete component/energy errors below
+`2.5e-13`. Step refinement is near `1e-12`; all `44,686` governing DWSIM
+calls pass without fallback. These stationary-root checks validate the step
+machinery but do not yet exercise nonzero transient motion. One frozen short
+open-loop trajectory contract is authorized next. See
+`docs/dd_097_core_v3_implicit_step_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

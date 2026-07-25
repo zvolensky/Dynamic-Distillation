@@ -341,6 +341,18 @@ provider ownership. Global total accumulation has an analytic target because
 feed and product totals are fixed. See
 `docs/dd_098_core_v3_short_open_loop_contract_20260725.md`.
 
+2026-07-25 short open-loop result: DD-098 executes once from frozen commit
+`5ded9f6` and passes all eight requested endpoints. The root hold remains
+stationary. Both `+0.1%` feed-step trajectories accumulate exactly
+`0.003968319 lbmol` over `2 s`, within `1.29e-11` relative of the external
+balance. Every endpoint remains rank `38/38`, condition below `35.2`, physical,
+and conservative. The `1.0 s`/`0.5 s` endpoints agree within `2.63e-6`
+relative inventory, `4.46e-6` algebraic coordinates, and `1.06e-5 F`.
+Execution requires `325,332` provider calls and `139.236 s`, so this is a
+correctness reference rather than a production-speed integrator. One modest
+longer open-loop contract is authorized. See
+`docs/dd_098_core_v3_short_open_loop_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

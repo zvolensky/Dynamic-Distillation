@@ -330,6 +330,17 @@ machinery but do not yet exercise nonzero transient motion. One frozen short
 open-loop trajectory contract is authorized next. See
 `docs/dd_097_core_v3_implicit_step_20260725.md`.
 
+2026-07-25 short open-loop contract: DD-098 freezes the first multi-step and
+nonzero-motion Core V3 test. It contains a `2.0 s` unchanged-input root hold
+and independent `2.0 s` trajectories at `dt=1.0 s` and `0.5 s` after a sole
+`+0.1%` feed-throughput step. Scaling feed component rates and total enthalpy
+together preserves composition and specific enthalpy. Duties, products,
+pressure, geometry, and DD-097 solver settings remain fixed. Every endpoint
+is fail-fast and must retain rank, physicality, discrete conservation, and
+provider ownership. Global total accumulation has an analytic target because
+feed and product totals are fixed. See
+`docs/dd_098_core_v3_short_open_loop_contract_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

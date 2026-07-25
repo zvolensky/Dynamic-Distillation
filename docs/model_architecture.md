@@ -267,6 +267,23 @@ provider-governed architecture. Only a structural dynamic-DAE contract is
 authorized next; mass-matrix coding and integration remain unauthorized. See
 `docs/dd_094_core_v3_steady_root_20260725.md`.
 
+2026-07-25 reduced dynamic contract: DD-095 qualifies DD-094 as a physical
+five-volume feasibility root rather than a production design point. Its drum
+is `133.713 F`, `15.897 F` warmer than the frozen source because its liquid is
+only `0.7030` propane versus `0.9057` in the source. The first dynamic ledger
+therefore uses the root only to test equation architecture. Under prescribed
+pressure, negligible resident vapor holdup, and full saturation, temperature
+and stored liquid energy are functions of component inventory; adding an
+independent `U` coordinate would duplicate the thermodynamic constraint.
+DD-095 uses `15` component-inventory coordinates, derives `dU/dt` through a
+provider-consistent chain rule, and solves `15` derivatives plus `23`
+algebraic variables through a structurally full-rank `38 x 38` implicit
+ledger. DD-094 `D/B` are fixed for the first open-loop audit; terminal amount
+constraints and controllers are absent. A separately frozen live
+leading-Jacobian and consistent-derivative audit is required before any
+numerical mass matrix or integration. See
+`docs/dd_095_core_v3_dynamic_dae_contract_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

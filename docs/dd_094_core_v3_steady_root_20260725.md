@@ -56,6 +56,16 @@ The drum is `20.709 F` colder than its supplying rectifying stage. Hydraulic
 liquid heights are `0.35064`, `0.52149`, and `0.55707 ft`, all below the
 `1.5 ft` tray spacing.
 
+## Design-Point Qualification
+
+DD-094 establishes a physical root for the reduced five-volume architecture;
+it does not establish the production C3/C4 operating point. The accepted drum
+is `15.897 F` warmer than the frozen source (`133.713 F` versus `117.816 F`)
+because its liquid contains materially less propane (`0.7030` versus
+`0.9057`). Its product rates and bottom composition likewise are not
+production acceptance targets. See the DD-095 dynamic contract for the
+separate feasibility and design-point gates.
+
 ## Authorization
 
 DD-094 authorizes one next artifact only: a structural dynamic-DAE contract

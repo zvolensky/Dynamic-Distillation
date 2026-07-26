@@ -164,3 +164,49 @@ def test_dd102_analytic_pressure_jacobian_is_full_rank_and_registered():
     assert not audit.zero_rows
     assert not audit.zero_columns
     assert not audit.unexpected_couplings
+
+
+def test_dd103_terminal_reboiler_link_can_be_dry_only_without_stage_logic():
+    provider, spec, reference, state, contract, numerical, storage = _problem()
+    numerical = PressureNumericalSpec(
+        reference_pressure_psia=numerical.reference_pressure_psia,
+        pressure_coordinate_scale_psia=numerical.pressure_coordinate_scale_psia,
+        pressure_residual_scale_psia=numerical.pressure_residual_scale_psia,
+        dry_tray_pressure_drop_coefficient=(
+            numerical.dry_tray_pressure_drop_coefficient
+        ),
+        component_mw_lbm_per_lbmol=numerical.component_mw_lbm_per_lbmol,
+        link_geometry=(
+            PressureLinkGeometry(
+                active_area_ft2=50.0,
+                tray_area_ft2=60.0,
+                weir_height_in=3.0,
+                include_liquid_head=False,
+            ),
+            *numerical.link_geometry[1:],
+        ),
+        enforce_pressure_order=numerical.enforce_pressure_order,
+    )
+    evaluation = evaluate_pressure_layer_residual(
+        contract,
+        spec,
+        reference,
+        state,
+        provider,
+        ProviderCallAudit(),
+        inventory_lbmol=inventory_from_state(state),
+        rate_coordinates=np.zeros(15),
+        base_algebraic_coordinates=dynamic_algebraic_coordinates(
+            spec, reference, state
+        ),
+        pressure_coordinates=np.zeros(4),
+        storage_gradient_BTU_lbmol=storage,
+        fixed_steady_scales=_scales(),
+        numerical=numerical,
+        state_id="terminal_dry_only",
+        evaluation_kind="residual",
+    )
+
+    assert evaluation.pressure_drop.liquid_head_drop_psia[0] == 0.0
+    assert np.all(evaluation.pressure_drop.liquid_head_drop_psia[1:] > 0.0)
+    assert evaluation.pressure_drop.dry_tray_drop_psia[0] > 0.0

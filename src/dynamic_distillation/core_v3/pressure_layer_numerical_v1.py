@@ -36,6 +36,7 @@ class PressureLinkGeometry:
     active_area_ft2: float
     tray_area_ft2: float
     weir_height_in: float
+    include_liquid_head: bool = True
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,7 @@ class PressureNumericalSpec:
     dry_tray_pressure_drop_coefficient: float
     component_mw_lbm_per_lbmol: np.ndarray
     link_geometry: tuple[PressureLinkGeometry, ...]
+    enforce_pressure_order: bool = True
 
 
 @dataclass(frozen=True)
@@ -113,7 +115,7 @@ def pressure_profile_from_coordinates(
     )
     if np.any(~np.isfinite(pressure)) or np.any(pressure <= 0.0):
         raise RuntimeError("pressure layer produced non-positive pressure")
-    if np.any(np.diff(pressure) <= 0.0):
+    if numerical.enforce_pressure_order and np.any(np.diff(pressure) <= 0.0):
         raise RuntimeError("pressure layer produced a non-ordered pressure profile")
     return pressure
 
@@ -180,16 +182,18 @@ def _complete_pressure_drop(
         over_weir_head[link_index] = (
             liquid_height - float(geometry.weir_height_in) / 12.0
         )
-        if over_weir_head[link_index] <= 0.0:
+        if geometry.include_liquid_head and over_weir_head[link_index] <= 0.0:
             raise RuntimeError("pressure layer has no positive over-weir head")
         liquid_mw = float(np.dot(liquid_x, molecular_weight))
         vapor_mw = float(np.dot(vapor_y, molecular_weight))
-        liquid_drop[link_index] = (
-            rho_liquid_molar
-            * liquid_mw
-            * over_weir_head[link_index]
-            / PSF_PER_PSIA
-        )
+        liquid_drop[link_index] = 0.0
+        if geometry.include_liquid_head:
+            liquid_drop[link_index] = (
+                rho_liquid_molar
+                * liquid_mw
+                * over_weir_head[link_index]
+                / PSF_PER_PSIA
+            )
         z_factor[link_index] = call_audit.vapor_compressibility_factor(
             provider,
             temperature_F=float(state.temperature_F[source_index]),

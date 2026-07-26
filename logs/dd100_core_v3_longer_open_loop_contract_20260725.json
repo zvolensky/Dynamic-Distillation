@@ -1,0 +1,464 @@
+{
+  "schema_id": "dd100-core-v3-longer-open-loop-contract-v1",
+  "preparation_base_commit": "c96d66776c676a9d8448f4d188be174104c18bf2",
+  "dd099_contract_path": "logs/dd099_core_v3_performance_contract_20260725.json",
+  "dd099_contract_sha256": "4cb8acf50ff2ec5aae05cb22ef344221c59308e4e496d8b66b0a8712895e6cf9",
+  "dd099_result_path": "logs/dd099_core_v3_performance_20260725.json",
+  "dd099_result_sha256": "ce7e5e4ca755ade8d2e9a6807028ee0ae8e335dc1dc2a931b8fa15358907f338",
+  "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\sandbox\\mini8\\input\\distillation_column_template_8stage.xlsx",
+  "workbook_sha256": "d1442928feb89bded76737614c0751e62bd4383a900b3c56bc243178080ca904",
+  "property_package": "pr",
+  "source_mapping": {
+    "component_names": [
+      "n-Propane",
+      "n-Butane",
+      "n-Pentane"
+    ],
+    "component_ids_dwsim": [
+      "Propane",
+      "N-butane",
+      "N-pentane"
+    ],
+    "source_stage_1based": [
+      1,
+      3,
+      5,
+      6,
+      8
+    ],
+    "roles": [
+      "reflux_drum",
+      "rectifying_tray",
+      "feed_tray",
+      "stripping_tray",
+      "combined_reboiler_sump"
+    ],
+    "liquid_moles_lbmol": [
+      1388.9,
+      32.51477868945729,
+      51.06214131827053,
+      62.53531141217334,
+      794.0
+    ],
+    "liquid_mole_fraction": [
+      [
+        0.9056677282091148,
+        0.09432647169262584,
+        5.800098259390512e-06
+      ],
+      [
+        0.4705840235292012,
+        0.5287740264387013,
+        0.0006419500320975016
+      ],
+      [
+        0.3099600619920124,
+        0.6059141211828242,
+        0.08412581682516336
+      ],
+      [
+        0.1857739628452074,
+        0.7244838551032289,
+        0.08974218205156358
+      ],
+      [
+        0.04716609528339047,
+        0.7861699213830079,
+        0.16666398333360166
+      ]
+    ],
+    "temperature_F": [
+      117.932,
+      156.578,
+      179.654,
+      196.124,
+      220.712
+    ],
+    "pressure_psia": [
+      218.44,
+      222.377,
+      226.896,
+      229.478,
+      232.06
+    ],
+    "vapor_mole_fraction": [
+      [
+        0.6667965000973751,
+        0.3330182497636873,
+        0.0001852501389376042
+      ],
+      [
+        0.505565949443405,
+        0.4633579536642047,
+        0.031076096892390315
+      ],
+      [
+        0.33077706615541325,
+        0.6299941259988252,
+        0.03922880784576157
+      ],
+      [
+        0.09453580945358095,
+        0.813861081386108,
+        0.09160310916031092
+      ]
+    ],
+    "liquid_flow_reference_lbmolph": [
+      5258.48,
+      12372.2,
+      12584.8
+    ],
+    "vapor_flow_reference_lbmolph": [
+      8036.48,
+      7744.25,
+      7457.64,
+      7710.72
+    ],
+    "reflux_lbmolph": 5952.48,
+    "feed_component_lbmolph": [
+      2380.99,
+      3968.32,
+      793.664
+    ],
+    "feed_temperature_F": 174.999,
+    "feed_pressure_psia": 232.06,
+    "reboiler_duty_BTUph": 54706000.0,
+    "terminal_liquid_targets_lbmol": [
+      1388.9,
+      794.0
+    ],
+    "hydraulic_geometry": [
+      {
+        "active_area_ft2": 169.47285339961908,
+        "tray_spacing_ft": 1.5,
+        "weir_height_in": 1.65625,
+        "weir_length_ft": 9.0,
+        "hydraulic_c_factor": 0.9623640652877183
+      },
+      {
+        "active_area_ft2": 169.47285339961908,
+        "tray_spacing_ft": 1.5,
+        "weir_height_in": 1.65625,
+        "weir_length_ft": 9.0,
+        "hydraulic_c_factor": 0.9623640652877183
+      },
+      {
+        "active_area_ft2": 194.60007084451445,
+        "tray_spacing_ft": 1.5,
+        "weir_height_in": 1.98125,
+        "weir_length_ft": 9.0,
+        "hydraulic_c_factor": 0.9637984277177879
+      }
+    ],
+    "distillate_reference_lbmolph": 2380.99,
+    "bottoms_reference_lbmolph": 4761.98,
+    "seed_mapping_used_flash_or_column_closure": false
+  },
+  "operating_spec": {
+    "feed_enthalpy_BTUph": -36661427.88636613,
+    "temperature_scale_F": 100.0
+  },
+  "reference": {
+    "liquid_moles_lbmol": [
+      1388.9,
+      32.51477868945729,
+      51.06214131827053,
+      62.53531141217334,
+      794.0
+    ],
+    "liquid_mole_fraction": [
+      [
+        0.9056677282091148,
+        0.09432647169262584,
+        5.800098259390512e-06
+      ],
+      [
+        0.4705840235292012,
+        0.5287740264387013,
+        0.0006419500320975016
+      ],
+      [
+        0.3099600619920124,
+        0.6059141211828242,
+        0.08412581682516336
+      ],
+      [
+        0.1857739628452074,
+        0.7244838551032289,
+        0.08974218205156358
+      ],
+      [
+        0.04716609528339047,
+        0.7861699213830079,
+        0.16666398333360166
+      ]
+    ],
+    "temperature_F": [
+      117.8163848922668,
+      156.578,
+      179.654,
+      196.124,
+      220.712
+    ],
+    "vapor_mole_fraction": [
+      [
+        0.6667965000973751,
+        0.3330182497636873,
+        0.0001852501389376042
+      ],
+      [
+        0.505565949443405,
+        0.4633579536642047,
+        0.031076096892390315
+      ],
+      [
+        0.33077706615541325,
+        0.6299941259988252,
+        0.03922880784576157
+      ],
+      [
+        0.09453580945358095,
+        0.813861081386108,
+        0.09160310916031092
+      ]
+    ],
+    "hydraulic_liquid_flow_lbmolph": [
+      5258.48,
+      12372.2,
+      12584.8
+    ],
+    "vapor_flow_lbmolph": [
+      8036.48,
+      7744.25,
+      7457.64,
+      7710.72
+    ],
+    "distillate_lbmolph": 2380.99,
+    "bottoms_lbmolph": 4761.98,
+    "bubble_vapor_mole_fraction": [
+      0.9586891509551994,
+      0.04130955157691591,
+      1.2974678846972106e-06
+    ],
+    "condenser_duty_reference_BTUph": -55003568.3093669,
+    "condenser_duty_scale_BTUph": 55003568.3093669
+  },
+  "accepted_root_state": {
+    "liquid_moles_lbmol": [
+      1388.9,
+      32.859247230734894,
+      45.855669127371364,
+      54.42493263178373,
+      794.0
+    ],
+    "liquid_mole_fraction": [
+      [
+        0.7030012030418334,
+        0.28360552678435397,
+        0.013393270173812711
+      ],
+      [
+        0.500234826457136,
+        0.45842005716232237,
+        0.041345116380541766
+      ],
+      [
+        0.34929780421393525,
+        0.563707077730216,
+        0.0869951180558488
+      ],
+      [
+        0.27195005494847735,
+        0.6235574802453254,
+        0.10449246480619716
+      ],
+      [
+        0.18087968457704215,
+        0.6677097000786985,
+        0.15141061534425931
+      ]
+    ],
+    "temperature_F": [
+      133.7132934933822,
+      154.422168391021,
+      173.9246438396751,
+      184.82401274924234,
+      199.7404893839464
+    ],
+    "vapor_mole_fraction": [
+      [
+        0.7030012030418334,
+        0.28360552678435397,
+        0.013393270173812711
+      ],
+      [
+        0.555053577033583,
+        0.4111582068529066,
+        0.03378821611351037
+      ],
+      [
+        0.45940364730893357,
+        0.4957138211705346,
+        0.04488253152053189
+      ],
+      [
+        0.3313479200012716,
+        0.5947605445927329,
+        0.07389153540599559
+      ]
+    ],
+    "hydraulic_liquid_flow_lbmolph": [
+      5628.901332493138,
+      12792.976432937698,
+      12811.305678733066
+    ],
+    "vapor_flow_lbmolph": [
+      7753.997711307092,
+      7735.668465511723,
+      7714.567365067163,
+      8038.146032574027
+    ],
+    "distillate_lbmolph": 2085.666032574026,
+    "bottoms_lbmolph": 5057.307967425973,
+    "bubble_vapor_mole_fraction": [
+      0.8512769482354178,
+      0.14519622244218774,
+      0.0035268293223943664
+    ],
+    "condenser_duty_BTUph": -52515728.24408221
+  },
+  "accepted_root_inventory_lbmol": [
+    [
+      976.3983709048025,
+      393.89971615078923,
+      18.601912944408475
+    ],
+    [
+      16.437339835978797,
+      15.063337993824373,
+      1.3585694009317288
+    ],
+    [
+      16.017284536951557,
+      25.849165241154196,
+      3.9892193492656127
+    ],
+    [
+      14.800863419780764,
+      33.93707385439665,
+      5.686995357606313
+    ],
+    [
+      143.61846955417147,
+      530.1615018624866,
+      120.2200285833419
+    ]
+  ],
+  "fixed_steady_residual_scales": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    12584.8,
+    12584.8,
+    12584.8,
+    55003568.3093669,
+    12584.8,
+    12584.8,
+    12584.8,
+    55003568.3093669,
+    12584.8,
+    12584.8,
+    12584.8,
+    55003568.3093669,
+    12584.8,
+    12584.8,
+    12584.8,
+    55003568.3093669,
+    12584.8,
+    12584.8,
+    12584.8,
+    55003568.3093669,
+    5258.48,
+    12372.2,
+    12584.8,
+    1388.9,
+    794.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "solver": {
+    "method": "trf",
+    "ftol": 1e-12,
+    "xtol": 1e-12,
+    "gtol": 1e-12,
+    "max_nfev": 40,
+    "x_scale": 1.0,
+    "jacobian_step": 1e-05,
+    "bounds": null,
+    "jacobian_mode": "colored"
+  },
+  "feed_factor": 1.001,
+  "root_duration_seconds": 5.0,
+  "perturbed_duration_seconds": 10.0,
+  "root_step_seconds": 1.0,
+  "perturbed_step_seconds": [
+    1.0,
+    0.5
+  ],
+  "requested_endpoint_count": 35,
+  "limits": {
+    "scaled_residual": 1e-08,
+    "condition": 100000000.0,
+    "bubble_residual": 1e-10,
+    "component_conservation": 1e-08,
+    "energy_conservation": 1e-08,
+    "root_component_rate_lbmolph": 0.0001,
+    "root_relative_inventory_drift": 1e-08,
+    "root_algebraic_drift": 1e-06,
+    "motion_component_rate_lbmolph": 0.001,
+    "motion_total_inventory_lbmol": 0.0001,
+    "expected_accumulation_relative_error": 1e-06,
+    "refinement_inventory": 0.0001,
+    "refinement_algebraic": 0.001,
+    "refinement_temperature_F": 0.01,
+    "refinement_accumulation": 1e-06,
+    "maximum_calls_per_endpoint": 6000.0,
+    "maximum_campaign_wall_clock_sec": 180.0
+  },
+  "required_step_rank": 38,
+  "hard_stops": [
+    "any endpoint fails or requires retry or substepping",
+    "root hold develops material motion",
+    "feed accumulation is nonmonotone or violates the external balance",
+    "refined endpoints exceed the frozen difference limits",
+    "rank, condition, physicality, conservation, or provider gate fails",
+    "any nested bubble reconstruction occurs",
+    "provider calls or wall time exceed the frozen efficiency limits",
+    "any post-result tolerance, step, forcing, solver, or equation change"
+  ],
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/colored_jacobian_v1.py": "d30f8439d26ca8859318c3091cca034320b6e147dd00afba4940abb6ecb541f9",
+    "src/dynamic_distillation/core_v3/implicit_step_v1.py": "6f7358c4e6187fbc39005b6f8b1dfb2a359333eead6737b9e5f18a87bf9ffc6b",
+    "src/dynamic_distillation/core_v3/provider_governed_residual_v1.py": "8a34b6cf7a04bb525e5292eb8777530d770bb0b0adfe03f72303111451380267",
+    "src/dynamic_distillation/core_v3/short_trajectory_v1.py": "6a815acc37084d172d9eb12feee1c65b6bb32bf3b5d63e60cae7417a0d75d283",
+    "tests/test_core_v3_colored_jacobian_v1.py": "bafaf544810754583b67ceff095228139e7b7ab11cbbc861002f27621a458a46",
+    "tests/test_core_v3_implicit_step_v1.py": "845c6d04fb76ec5d904b32a581a844839d24959f3ac0ce5d9c71d638bf848d86",
+    "tests/test_core_v3_short_trajectory_v1.py": "4a131206e638ab40ab6452c1b050deb1b07d5a3a8888ec8ee743b80b4be10633",
+    "tools/run_core_v3_longer_open_loop.py": "69dc39d725d940723f86c397ab27a2ae3948dd6fa00278cec030fb239cf78d77",
+    "docs/dd_100_core_v3_longer_open_loop_contract_20260725.md": "e6eefa9e12ef868d748664fbea78d56c381e9bf374b340271fc8900da69614de"
+  },
+  "live_property_evaluation_attempted": false,
+  "trajectory_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "65d5ab41db6e003b3520c7891e50ad3c7c0144b8e5f3a23eb4c022ce96576b37"
+}

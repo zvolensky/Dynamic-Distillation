@@ -16,6 +16,12 @@ class _Provider:
     def liquid_density_lbmol_ft3(self, temperature_F, pressure_psia, composition):
         return 2.0
 
+    def vapor_z_factor_F_psia(self, temperature_F, pressure_psia, composition):
+        return 0.8
+
+    def component_mw_lbm_per_lbmol(self):
+        return np.asarray([44.0, 58.0, 72.0])
+
     def flash_TP_full_F_psia(self, temperature_F, pressure_psia, composition):
         z = np.asarray(composition, dtype=float)
         return z, z, np.ones_like(z), 0.0, 0.0
@@ -105,3 +111,41 @@ def test_dd092_diagnostic_flash_is_recorded_without_cross_interface_gate():
     assert np.allclose(y, x)
     assert np.allclose(K, 1.0)
     assert audit.report()["pass"]
+
+
+def test_dd102_direct_vapor_z_is_governing_and_audited():
+    audit = ProviderCallAudit()
+    value = audit.vapor_compressibility_factor(
+        _Provider(),
+        temperature_F=180.0,
+        pressure_psia=225.0,
+        composition=[0.6, 0.3, 0.1],
+        caller="vapor_pressure_drop[feed->rectifying]",
+        state_id="pressure_probe",
+        evaluation_kind="jacobian",
+    )
+
+    assert value == 0.8
+    assert audit.report()["pass"]
+    assert audit.records[0].provider_interface == (
+        "dwsim.declared_vapor_compressibility_factor"
+    )
+
+
+def test_dd102_component_molecular_weights_are_preparation_only():
+    audit = ProviderCallAudit()
+    values = audit.component_molecular_weights(
+        _Provider(),
+        caller="pressure_layer_fixed_parameters",
+        state_id="dd102",
+        evaluation_kind="preparation",
+    )
+
+    assert np.allclose(values, [44.0, 58.0, 72.0])
+    with pytest.raises(RuntimeError, match="preparation-only"):
+        audit.component_molecular_weights(
+            _Provider(),
+            caller="bad_governing_row",
+            state_id="dd102",
+            evaluation_kind="residual",
+        )

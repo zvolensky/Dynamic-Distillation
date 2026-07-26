@@ -145,6 +145,62 @@ class ProviderCallAudit:
             raise RuntimeError("DWSIM liquid density is unavailable or non-physical")
         return float(result)
 
+    def vapor_compressibility_factor(
+        self,
+        provider: Any,
+        *,
+        temperature_F: float,
+        pressure_psia: float,
+        composition: Sequence[float],
+        caller: str,
+        state_id: str,
+        evaluation_kind: str,
+    ) -> float:
+        self._record(
+            quantity="vapor_compressibility_factor",
+            provider_interface="dwsim.declared_vapor_compressibility_factor",
+            caller=caller,
+            state_id=state_id,
+            evaluation_kind=evaluation_kind,
+        )
+        result = provider.vapor_z_factor_F_psia(
+            float(temperature_F),
+            float(pressure_psia),
+            list(composition),
+        )
+        if result is None or not np.isfinite(float(result)) or float(result) <= 0.0:
+            raise RuntimeError(
+                "DWSIM vapor compressibility factor is unavailable or non-physical"
+            )
+        return float(result)
+
+    def component_molecular_weights(
+        self,
+        provider: Any,
+        *,
+        caller: str,
+        state_id: str,
+        evaluation_kind: str,
+    ) -> np.ndarray:
+        if evaluation_kind != "preparation":
+            raise RuntimeError(
+                "component molecular weights are preparation-only fixed data"
+            )
+        self._record(
+            quantity="component_molecular_weights",
+            provider_interface="dwsim.declared_component_molecular_weights",
+            caller=caller,
+            state_id=state_id,
+            evaluation_kind=evaluation_kind,
+        )
+        result = provider.component_mw_lbm_per_lbmol()
+        values = np.asarray(result, dtype=float).reshape((-1,))
+        if values.size < 2 or np.any(~np.isfinite(values)) or np.any(values <= 0.0):
+            raise RuntimeError(
+                "DWSIM component molecular weights are unavailable or non-physical"
+            )
+        return values
+
     def tp_flash(
         self,
         provider: Any,
@@ -272,6 +328,7 @@ class ProviderCallAudit:
                     "dwsim.direct_imposed_phase_fugacity",
                     "dwsim.declared_phase_enthalpy",
                     "dwsim.declared_liquid_density",
+                    "dwsim.declared_vapor_compressibility_factor",
                 }
                 if record.provider_interface not in permitted:
                     violations.append(

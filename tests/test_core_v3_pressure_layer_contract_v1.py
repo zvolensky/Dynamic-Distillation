@@ -46,7 +46,7 @@ def test_dd101_pressure_rows_retain_energy_owned_vapor_flows():
         if row.block == "vapor_pressure_drop"
     }
     for source, destination, vapor_symbol in VAPOR_LINKS:
-        row = rows[f"vapor_pressure_drop[{source}->{destination}]" ]
+        row = rows[f"vapor_pressure_drop[{source}->{destination}]"]
         assert vapor_symbol in row.solve_dependencies
         assert f"P[{source}]" in row.solve_dependencies
         if destination != "reflux_drum":

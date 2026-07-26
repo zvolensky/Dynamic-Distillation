@@ -380,6 +380,19 @@ next change must be a separately frozen dynamic-scope decision; pressure,
 vapor-holdup, controller, and production-horizon claims remain unauthorized.
 See `docs/dd_100_core_v3_longer_open_loop_20260725.md`.
 
+2026-07-25 pressure-layer structural decision: DD-101 keeps reflux-drum
+pressure as the sole anchor and promotes the other four volume pressures to
+simultaneous algebraic unknowns. Four generic dry-tray-plus-liquid-head
+pressure-drop equations close the same four vapor links whose rates remain
+energy-owned. The resulting three-component implicit ledger is `42 x 42`,
+structural rank `42`, and nullity zero, with no unused or unregistered entry.
+Governing pressure drop will require declared liquid density and direct vapor
+compressibility `Z`; no TP flash, ideal-gas substitution, stale property,
+conductance owner, profile, cap, relaxation, or fallback is authorized. DD-101
+performs no live property call or solve. One frozen live residual/Jacobian audit
+is the only next authorization. See
+`docs/dd_101_core_v3_pressure_layer_contract_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

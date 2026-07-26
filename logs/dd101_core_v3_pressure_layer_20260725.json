@@ -1,0 +1,147 @@
+{
+  "schema_id": "dd101-core-v3-pressure-layer-structural-audit-v1",
+  "contract_name": "Core V3 - Algebraic Pressure and Vapor-Flow Layer",
+  "contract_version": "core-v3-pressure-layer-contract-v1",
+  "pressure_reconstruction": "P[reflux_drum] is fixed; the four lower-volume pressures are simultaneous algebraic unknowns constrained by four uncapped dry-tray-plus-liquid-head pressure-drop equations",
+  "pressure_variables": [
+    {
+      "name": "P[rectifying_tray]",
+      "block": "algebraic_pressure",
+      "owner": "rectifying_tray"
+    },
+    {
+      "name": "P[feed_tray]",
+      "block": "algebraic_pressure",
+      "owner": "feed_tray"
+    },
+    {
+      "name": "P[stripping_tray]",
+      "block": "algebraic_pressure",
+      "owner": "stripping_tray"
+    },
+    {
+      "name": "P[combined_reboiler_sump]",
+      "block": "algebraic_pressure",
+      "owner": "combined_reboiler_sump"
+    }
+  ],
+  "pressure_drop_rows": [
+    {
+      "name": "vapor_pressure_drop[combined_reboiler_sump->stripping_tray]",
+      "block": "vapor_pressure_drop",
+      "owner": "combined_reboiler_sump",
+      "solve_dependencies": [
+        "V[combined_reboiler_sump->stripping_tray]",
+        "P[combined_reboiler_sump]",
+        "P[stripping_tray]",
+        "T[combined_reboiler_sump]",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]"
+      ],
+      "state_dependencies": [
+        "N[combined_reboiler_sump,n-Propane]",
+        "N[combined_reboiler_sump,n-Butane]",
+        "N[combined_reboiler_sump,n-Pentane]"
+      ]
+    },
+    {
+      "name": "vapor_pressure_drop[stripping_tray->feed_tray]",
+      "block": "vapor_pressure_drop",
+      "owner": "stripping_tray",
+      "solve_dependencies": [
+        "V[stripping_tray->feed_tray]",
+        "P[stripping_tray]",
+        "P[feed_tray]",
+        "T[stripping_tray]",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]"
+      ],
+      "state_dependencies": [
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "vapor_pressure_drop[feed_tray->rectifying_tray]",
+      "block": "vapor_pressure_drop",
+      "owner": "feed_tray",
+      "solve_dependencies": [
+        "V[feed_tray->rectifying_tray]",
+        "P[feed_tray]",
+        "P[rectifying_tray]",
+        "T[feed_tray]",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]"
+      ],
+      "state_dependencies": [
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "vapor_pressure_drop[rectifying_tray->reflux_drum]",
+      "block": "vapor_pressure_drop",
+      "owner": "rectifying_tray",
+      "solve_dependencies": [
+        "V[rectifying_tray->reflux_drum]",
+        "P[rectifying_tray]",
+        "T[rectifying_tray]",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]"
+      ],
+      "state_dependencies": [
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]"
+      ]
+    }
+  ],
+  "fixed_parameters": [
+    "feed_rate_composition_enthalpy",
+    "R",
+    "D_dd094_root",
+    "B_dd094_root",
+    "Q_R",
+    "hydraulic_geometry",
+    "P[reflux_drum]_fixed",
+    "dry_tray_pressure_drop_coefficient",
+    "active_tray_area",
+    "component_molecular_weights",
+    "ordered_positive_pressure_gate"
+  ],
+  "audit": {
+    "solve_variable_count": 42,
+    "row_count": 42,
+    "expected_count": 42,
+    "structural_rank": 42,
+    "structural_nullity": 0,
+    "pressure_variable_count": 4,
+    "pressure_drop_row_count": 4,
+    "vapor_flow_variable_count": 4,
+    "zero_solve_columns": [],
+    "zero_rows": [],
+    "unregistered_dependencies": [],
+    "prescribed_interior_pressure_parameters": [],
+    "top_pressure_anchor_present": true,
+    "ordered_pressure_gate_declared": true,
+    "pressure_drop_property_quantities": [
+      "declared_liquid_density",
+      "declared_vapor_compressibility_factor"
+    ],
+    "component_conservation_inherited": true,
+    "energy_conservation_inherited": true,
+    "controller_rows": [],
+    "profile_dependencies": [],
+    "cap_or_relaxation_dependencies": [],
+    "explicit_vapor_inventory_present": false,
+    "preparation_only": true,
+    "pass_gate": true
+  },
+  "pass": true,
+  "live_property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "dynamic_integration_attempted": false,
+  "next_authorization": "one frozen live residual and Jacobian audit"
+}

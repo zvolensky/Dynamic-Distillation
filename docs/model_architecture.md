@@ -393,6 +393,21 @@ performs no live property call or solve. One frozen live residual/Jacobian audit
 is the only next authorization. See
 `docs/dd_101_core_v3_pressure_layer_contract_20260725.md`.
 
+2026-07-25 pressure-layer numerical result: DD-102 executes the frozen live
+audit once from contract commit `b958d00`. The accepted profile and fixed
+ordered perturbation retain rank `42/42` at both finite-difference steps, with
+worst condition `162.783`, spectrum change below `3.51e-7`, exact registered
+coupling, and roundoff conservation. All `9,465` provider calls pass in
+`8.950 s`. The accepted fixed-pressure profile is not hydraulically consistent:
+its four pressure residuals are `[1.366, 2.513, 4.444, 3.886] psi`. This is a
+reported starting residual, not a failed numerical gate. One separately frozen
+pressure-layer steady-root contract is authorized. It must explicitly decide
+whether the reduced bottom vapor link owns the selected bottom stage's tray
+geometry, because the source workbook declares no independent reboiler/sump
+pressure-drop geometry. Pressure dynamics, vapor holdup, controllers, and
+integration remain unauthorized. See
+`docs/dd_102_core_v3_pressure_layer_numerical_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

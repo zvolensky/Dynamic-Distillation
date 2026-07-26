@@ -772,3 +772,16 @@ algebraic movement alone. This retires algebraic-only pressure repair. The
 next architectural increment may only define simultaneous pressure-enabled
 implicit-DAE ownership in which conserved inventories and rates participate;
 numerical stepping and integration remain unauthorized.
+
+2026-07-26 Core V3 pressure-enabled implicit-DAE decision: DD-104 restores
+the 15 component-inventory rates as simultaneous unknowns beside the 27
+algebraic coordinates of the pressure layer. This produces the natural square
+`42 x 42` implicit system that DD-103's frozen-inventory `42 x 27` repair did
+not permit. Structural rank is `42`, nullity is zero, and every backward-Euler
+rate-to-endpoint-inventory dependency is registered. Reflux-drum pressure is
+the sole anchor; four lower pressures are algebraic; no pressure rate or vapor
+inventory is added. The combined reboiler/sump return is dry-only, while three
+physical tray links retain liquid head. The deterministic solve pattern uses
+20 conflict-free colors. No property evaluation, numerical solve, mass-matrix
+evaluation, or integration occurred. One frozen live pressure-enabled
+leading-Jacobian and consistent-rate audit is authorized next.

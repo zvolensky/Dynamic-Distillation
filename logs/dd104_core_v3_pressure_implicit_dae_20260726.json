@@ -1,0 +1,1205 @@
+{
+  "schema_id": "dd104-core-v3-pressure-implicit-dae-structural-audit-v1",
+  "contract_name": "Core V3 - Pressure-Enabled Implicit DAE Contract",
+  "contract_version": "core-v3-pressure-implicit-dae-contract-v1",
+  "state_coordinates": [
+    "N[reflux_drum,n-Propane]",
+    "N[reflux_drum,n-Butane]",
+    "N[reflux_drum,n-Pentane]",
+    "N[rectifying_tray,n-Propane]",
+    "N[rectifying_tray,n-Butane]",
+    "N[rectifying_tray,n-Pentane]",
+    "N[feed_tray,n-Propane]",
+    "N[feed_tray,n-Butane]",
+    "N[feed_tray,n-Pentane]",
+    "N[stripping_tray,n-Propane]",
+    "N[stripping_tray,n-Butane]",
+    "N[stripping_tray,n-Pentane]",
+    "N[combined_reboiler_sump,n-Propane]",
+    "N[combined_reboiler_sump,n-Butane]",
+    "N[combined_reboiler_sump,n-Pentane]"
+  ],
+  "derivative_variables": [
+    {
+      "name": "dN[reflux_drum,n-Propane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "reflux_drum"
+    },
+    {
+      "name": "dN[reflux_drum,n-Butane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "reflux_drum"
+    },
+    {
+      "name": "dN[reflux_drum,n-Pentane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "reflux_drum"
+    },
+    {
+      "name": "dN[rectifying_tray,n-Propane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "rectifying_tray"
+    },
+    {
+      "name": "dN[rectifying_tray,n-Butane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "rectifying_tray"
+    },
+    {
+      "name": "dN[rectifying_tray,n-Pentane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "rectifying_tray"
+    },
+    {
+      "name": "dN[feed_tray,n-Propane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "feed_tray"
+    },
+    {
+      "name": "dN[feed_tray,n-Butane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "feed_tray"
+    },
+    {
+      "name": "dN[feed_tray,n-Pentane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "feed_tray"
+    },
+    {
+      "name": "dN[stripping_tray,n-Propane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "stripping_tray"
+    },
+    {
+      "name": "dN[stripping_tray,n-Butane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "stripping_tray"
+    },
+    {
+      "name": "dN[stripping_tray,n-Pentane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "stripping_tray"
+    },
+    {
+      "name": "dN[combined_reboiler_sump,n-Propane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "combined_reboiler_sump"
+    },
+    {
+      "name": "dN[combined_reboiler_sump,n-Butane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "combined_reboiler_sump"
+    },
+    {
+      "name": "dN[combined_reboiler_sump,n-Pentane]/dt",
+      "block": "component_inventory_rate",
+      "owner": "combined_reboiler_sump"
+    }
+  ],
+  "algebraic_variables": [
+    {
+      "name": "T[reflux_drum]",
+      "block": "temperature",
+      "owner": "reflux_drum"
+    },
+    {
+      "name": "T[rectifying_tray]",
+      "block": "temperature",
+      "owner": "rectifying_tray"
+    },
+    {
+      "name": "T[feed_tray]",
+      "block": "temperature",
+      "owner": "feed_tray"
+    },
+    {
+      "name": "T[stripping_tray]",
+      "block": "temperature",
+      "owner": "stripping_tray"
+    },
+    {
+      "name": "T[combined_reboiler_sump]",
+      "block": "temperature",
+      "owner": "combined_reboiler_sump"
+    },
+    {
+      "name": "y[rectifying_tray,n-Propane]",
+      "block": "equilibrium_vapor_composition",
+      "owner": "rectifying_tray"
+    },
+    {
+      "name": "y[rectifying_tray,n-Butane]",
+      "block": "equilibrium_vapor_composition",
+      "owner": "rectifying_tray"
+    },
+    {
+      "name": "y[feed_tray,n-Propane]",
+      "block": "equilibrium_vapor_composition",
+      "owner": "feed_tray"
+    },
+    {
+      "name": "y[feed_tray,n-Butane]",
+      "block": "equilibrium_vapor_composition",
+      "owner": "feed_tray"
+    },
+    {
+      "name": "y[stripping_tray,n-Propane]",
+      "block": "equilibrium_vapor_composition",
+      "owner": "stripping_tray"
+    },
+    {
+      "name": "y[stripping_tray,n-Butane]",
+      "block": "equilibrium_vapor_composition",
+      "owner": "stripping_tray"
+    },
+    {
+      "name": "y[combined_reboiler_sump,n-Propane]",
+      "block": "equilibrium_vapor_composition",
+      "owner": "combined_reboiler_sump"
+    },
+    {
+      "name": "y[combined_reboiler_sump,n-Butane]",
+      "block": "equilibrium_vapor_composition",
+      "owner": "combined_reboiler_sump"
+    },
+    {
+      "name": "L[rectifying_tray]",
+      "block": "francis_liquid_flow",
+      "owner": "rectifying_tray"
+    },
+    {
+      "name": "L[feed_tray]",
+      "block": "francis_liquid_flow",
+      "owner": "feed_tray"
+    },
+    {
+      "name": "L[stripping_tray]",
+      "block": "francis_liquid_flow",
+      "owner": "stripping_tray"
+    },
+    {
+      "name": "V[combined_reboiler_sump->stripping_tray]",
+      "block": "energy_owned_vapor_flow",
+      "owner": "combined_reboiler_sump"
+    },
+    {
+      "name": "V[stripping_tray->feed_tray]",
+      "block": "energy_owned_vapor_flow",
+      "owner": "stripping_tray"
+    },
+    {
+      "name": "V[feed_tray->rectifying_tray]",
+      "block": "energy_owned_vapor_flow",
+      "owner": "feed_tray"
+    },
+    {
+      "name": "V[rectifying_tray->reflux_drum]",
+      "block": "energy_owned_vapor_flow",
+      "owner": "rectifying_tray"
+    },
+    {
+      "name": "y_bubble[reflux_drum,n-Propane]",
+      "block": "condenser_incipient_vapor",
+      "owner": "total_condenser_reflux_drum_boundary"
+    },
+    {
+      "name": "y_bubble[reflux_drum,n-Butane]",
+      "block": "condenser_incipient_vapor",
+      "owner": "total_condenser_reflux_drum_boundary"
+    },
+    {
+      "name": "Q_C",
+      "block": "energy_owned_condenser_duty",
+      "owner": "total_condenser_reflux_drum_boundary"
+    },
+    {
+      "name": "P[rectifying_tray]",
+      "block": "algebraic_pressure",
+      "owner": "rectifying_tray"
+    },
+    {
+      "name": "P[feed_tray]",
+      "block": "algebraic_pressure",
+      "owner": "feed_tray"
+    },
+    {
+      "name": "P[stripping_tray]",
+      "block": "algebraic_pressure",
+      "owner": "stripping_tray"
+    },
+    {
+      "name": "P[combined_reboiler_sump]",
+      "block": "algebraic_pressure",
+      "owner": "combined_reboiler_sump"
+    }
+  ],
+  "rows": [
+    {
+      "name": "component_balance[reflux_drum,n-Propane]",
+      "block": "component_balance",
+      "owner": "reflux_drum",
+      "solve_dependencies": [
+        "dN[reflux_drum,n-Propane]/dt",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "V[rectifying_tray->reflux_drum]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[reflux_drum,n-Butane]",
+      "block": "component_balance",
+      "owner": "reflux_drum",
+      "solve_dependencies": [
+        "dN[reflux_drum,n-Butane]/dt",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "V[rectifying_tray->reflux_drum]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[reflux_drum,n-Pentane]",
+      "block": "component_balance",
+      "owner": "reflux_drum",
+      "solve_dependencies": [
+        "dN[reflux_drum,n-Pentane]/dt",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "V[rectifying_tray->reflux_drum]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[rectifying_tray,n-Propane]",
+      "block": "component_balance",
+      "owner": "rectifying_tray",
+      "solve_dependencies": [
+        "dN[rectifying_tray,n-Propane]/dt",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "L[rectifying_tray]",
+        "V[feed_tray->rectifying_tray]",
+        "V[rectifying_tray->reflux_drum]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]",
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[rectifying_tray,n-Butane]",
+      "block": "component_balance",
+      "owner": "rectifying_tray",
+      "solve_dependencies": [
+        "dN[rectifying_tray,n-Butane]/dt",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "L[rectifying_tray]",
+        "V[feed_tray->rectifying_tray]",
+        "V[rectifying_tray->reflux_drum]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]",
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[rectifying_tray,n-Pentane]",
+      "block": "component_balance",
+      "owner": "rectifying_tray",
+      "solve_dependencies": [
+        "dN[rectifying_tray,n-Pentane]/dt",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "L[rectifying_tray]",
+        "V[feed_tray->rectifying_tray]",
+        "V[rectifying_tray->reflux_drum]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]",
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[feed_tray,n-Propane]",
+      "block": "component_balance",
+      "owner": "feed_tray",
+      "solve_dependencies": [
+        "dN[feed_tray,n-Propane]/dt",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "L[rectifying_tray]",
+        "L[feed_tray]",
+        "V[stripping_tray->feed_tray]",
+        "V[feed_tray->rectifying_tray]"
+      ],
+      "state_dependencies": [
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]",
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[feed_tray,n-Butane]",
+      "block": "component_balance",
+      "owner": "feed_tray",
+      "solve_dependencies": [
+        "dN[feed_tray,n-Butane]/dt",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "L[rectifying_tray]",
+        "L[feed_tray]",
+        "V[stripping_tray->feed_tray]",
+        "V[feed_tray->rectifying_tray]"
+      ],
+      "state_dependencies": [
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]",
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[feed_tray,n-Pentane]",
+      "block": "component_balance",
+      "owner": "feed_tray",
+      "solve_dependencies": [
+        "dN[feed_tray,n-Pentane]/dt",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "L[rectifying_tray]",
+        "L[feed_tray]",
+        "V[stripping_tray->feed_tray]",
+        "V[feed_tray->rectifying_tray]"
+      ],
+      "state_dependencies": [
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]",
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[stripping_tray,n-Propane]",
+      "block": "component_balance",
+      "owner": "stripping_tray",
+      "solve_dependencies": [
+        "dN[stripping_tray,n-Propane]/dt",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "L[feed_tray]",
+        "L[stripping_tray]",
+        "V[combined_reboiler_sump->stripping_tray]",
+        "V[stripping_tray->feed_tray]"
+      ],
+      "state_dependencies": [
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]",
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[stripping_tray,n-Butane]",
+      "block": "component_balance",
+      "owner": "stripping_tray",
+      "solve_dependencies": [
+        "dN[stripping_tray,n-Butane]/dt",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "L[feed_tray]",
+        "L[stripping_tray]",
+        "V[combined_reboiler_sump->stripping_tray]",
+        "V[stripping_tray->feed_tray]"
+      ],
+      "state_dependencies": [
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]",
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[stripping_tray,n-Pentane]",
+      "block": "component_balance",
+      "owner": "stripping_tray",
+      "solve_dependencies": [
+        "dN[stripping_tray,n-Pentane]/dt",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "L[feed_tray]",
+        "L[stripping_tray]",
+        "V[combined_reboiler_sump->stripping_tray]",
+        "V[stripping_tray->feed_tray]"
+      ],
+      "state_dependencies": [
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]",
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[combined_reboiler_sump,n-Propane]",
+      "block": "component_balance",
+      "owner": "combined_reboiler_sump",
+      "solve_dependencies": [
+        "dN[combined_reboiler_sump,n-Propane]/dt",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "L[stripping_tray]",
+        "V[combined_reboiler_sump->stripping_tray]"
+      ],
+      "state_dependencies": [
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]",
+        "N[combined_reboiler_sump,n-Propane]",
+        "N[combined_reboiler_sump,n-Butane]",
+        "N[combined_reboiler_sump,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[combined_reboiler_sump,n-Butane]",
+      "block": "component_balance",
+      "owner": "combined_reboiler_sump",
+      "solve_dependencies": [
+        "dN[combined_reboiler_sump,n-Butane]/dt",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "L[stripping_tray]",
+        "V[combined_reboiler_sump->stripping_tray]"
+      ],
+      "state_dependencies": [
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]",
+        "N[combined_reboiler_sump,n-Propane]",
+        "N[combined_reboiler_sump,n-Butane]",
+        "N[combined_reboiler_sump,n-Pentane]"
+      ]
+    },
+    {
+      "name": "component_balance[combined_reboiler_sump,n-Pentane]",
+      "block": "component_balance",
+      "owner": "combined_reboiler_sump",
+      "solve_dependencies": [
+        "dN[combined_reboiler_sump,n-Pentane]/dt",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "L[stripping_tray]",
+        "V[combined_reboiler_sump->stripping_tray]"
+      ],
+      "state_dependencies": [
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]",
+        "N[combined_reboiler_sump,n-Propane]",
+        "N[combined_reboiler_sump,n-Butane]",
+        "N[combined_reboiler_sump,n-Pentane]"
+      ]
+    },
+    {
+      "name": "energy_balance[reflux_drum]",
+      "block": "energy_balance",
+      "owner": "reflux_drum",
+      "solve_dependencies": [
+        "dN[reflux_drum,n-Propane]/dt",
+        "dN[reflux_drum,n-Butane]/dt",
+        "dN[reflux_drum,n-Pentane]/dt",
+        "T[reflux_drum]",
+        "T[rectifying_tray]",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "V[rectifying_tray->reflux_drum]",
+        "Q_C",
+        "P[rectifying_tray]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]"
+      ]
+    },
+    {
+      "name": "energy_balance[rectifying_tray]",
+      "block": "energy_balance",
+      "owner": "rectifying_tray",
+      "solve_dependencies": [
+        "dN[rectifying_tray,n-Propane]/dt",
+        "dN[rectifying_tray,n-Butane]/dt",
+        "dN[rectifying_tray,n-Pentane]/dt",
+        "T[reflux_drum]",
+        "T[rectifying_tray]",
+        "T[feed_tray]",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "L[rectifying_tray]",
+        "V[feed_tray->rectifying_tray]",
+        "V[rectifying_tray->reflux_drum]",
+        "P[rectifying_tray]",
+        "P[feed_tray]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]",
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "energy_balance[feed_tray]",
+      "block": "energy_balance",
+      "owner": "feed_tray",
+      "solve_dependencies": [
+        "dN[feed_tray,n-Propane]/dt",
+        "dN[feed_tray,n-Butane]/dt",
+        "dN[feed_tray,n-Pentane]/dt",
+        "T[rectifying_tray]",
+        "T[feed_tray]",
+        "T[stripping_tray]",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "L[rectifying_tray]",
+        "L[feed_tray]",
+        "V[stripping_tray->feed_tray]",
+        "V[feed_tray->rectifying_tray]",
+        "P[rectifying_tray]",
+        "P[feed_tray]",
+        "P[stripping_tray]"
+      ],
+      "state_dependencies": [
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]",
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "energy_balance[stripping_tray]",
+      "block": "energy_balance",
+      "owner": "stripping_tray",
+      "solve_dependencies": [
+        "dN[stripping_tray,n-Propane]/dt",
+        "dN[stripping_tray,n-Butane]/dt",
+        "dN[stripping_tray,n-Pentane]/dt",
+        "T[feed_tray]",
+        "T[stripping_tray]",
+        "T[combined_reboiler_sump]",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "L[feed_tray]",
+        "L[stripping_tray]",
+        "V[combined_reboiler_sump->stripping_tray]",
+        "V[stripping_tray->feed_tray]",
+        "P[feed_tray]",
+        "P[stripping_tray]",
+        "P[combined_reboiler_sump]"
+      ],
+      "state_dependencies": [
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]",
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "energy_balance[combined_reboiler_sump]",
+      "block": "energy_balance",
+      "owner": "combined_reboiler_sump",
+      "solve_dependencies": [
+        "dN[combined_reboiler_sump,n-Propane]/dt",
+        "dN[combined_reboiler_sump,n-Butane]/dt",
+        "dN[combined_reboiler_sump,n-Pentane]/dt",
+        "T[stripping_tray]",
+        "T[combined_reboiler_sump]",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "L[stripping_tray]",
+        "V[combined_reboiler_sump->stripping_tray]",
+        "P[stripping_tray]",
+        "P[combined_reboiler_sump]"
+      ],
+      "state_dependencies": [
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]",
+        "N[combined_reboiler_sump,n-Propane]",
+        "N[combined_reboiler_sump,n-Butane]",
+        "N[combined_reboiler_sump,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[rectifying_tray,n-Propane]",
+      "block": "full_phase_equilibrium",
+      "owner": "rectifying_tray",
+      "solve_dependencies": [
+        "T[rectifying_tray]",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "P[rectifying_tray]"
+      ],
+      "state_dependencies": [
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[rectifying_tray,n-Butane]",
+      "block": "full_phase_equilibrium",
+      "owner": "rectifying_tray",
+      "solve_dependencies": [
+        "T[rectifying_tray]",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "P[rectifying_tray]"
+      ],
+      "state_dependencies": [
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[rectifying_tray,n-Pentane]",
+      "block": "full_phase_equilibrium",
+      "owner": "rectifying_tray",
+      "solve_dependencies": [
+        "T[rectifying_tray]",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]",
+        "P[rectifying_tray]"
+      ],
+      "state_dependencies": [
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[feed_tray,n-Propane]",
+      "block": "full_phase_equilibrium",
+      "owner": "feed_tray",
+      "solve_dependencies": [
+        "T[feed_tray]",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "P[feed_tray]"
+      ],
+      "state_dependencies": [
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[feed_tray,n-Butane]",
+      "block": "full_phase_equilibrium",
+      "owner": "feed_tray",
+      "solve_dependencies": [
+        "T[feed_tray]",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "P[feed_tray]"
+      ],
+      "state_dependencies": [
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[feed_tray,n-Pentane]",
+      "block": "full_phase_equilibrium",
+      "owner": "feed_tray",
+      "solve_dependencies": [
+        "T[feed_tray]",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]",
+        "P[feed_tray]"
+      ],
+      "state_dependencies": [
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[stripping_tray,n-Propane]",
+      "block": "full_phase_equilibrium",
+      "owner": "stripping_tray",
+      "solve_dependencies": [
+        "T[stripping_tray]",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "P[stripping_tray]"
+      ],
+      "state_dependencies": [
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[stripping_tray,n-Butane]",
+      "block": "full_phase_equilibrium",
+      "owner": "stripping_tray",
+      "solve_dependencies": [
+        "T[stripping_tray]",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "P[stripping_tray]"
+      ],
+      "state_dependencies": [
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[stripping_tray,n-Pentane]",
+      "block": "full_phase_equilibrium",
+      "owner": "stripping_tray",
+      "solve_dependencies": [
+        "T[stripping_tray]",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]",
+        "P[stripping_tray]"
+      ],
+      "state_dependencies": [
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[combined_reboiler_sump,n-Propane]",
+      "block": "full_phase_equilibrium",
+      "owner": "combined_reboiler_sump",
+      "solve_dependencies": [
+        "T[combined_reboiler_sump]",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "P[combined_reboiler_sump]"
+      ],
+      "state_dependencies": [
+        "N[combined_reboiler_sump,n-Propane]",
+        "N[combined_reboiler_sump,n-Butane]",
+        "N[combined_reboiler_sump,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[combined_reboiler_sump,n-Butane]",
+      "block": "full_phase_equilibrium",
+      "owner": "combined_reboiler_sump",
+      "solve_dependencies": [
+        "T[combined_reboiler_sump]",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "P[combined_reboiler_sump]"
+      ],
+      "state_dependencies": [
+        "N[combined_reboiler_sump,n-Propane]",
+        "N[combined_reboiler_sump,n-Butane]",
+        "N[combined_reboiler_sump,n-Pentane]"
+      ]
+    },
+    {
+      "name": "full_phase_equilibrium[combined_reboiler_sump,n-Pentane]",
+      "block": "full_phase_equilibrium",
+      "owner": "combined_reboiler_sump",
+      "solve_dependencies": [
+        "T[combined_reboiler_sump]",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]",
+        "P[combined_reboiler_sump]"
+      ],
+      "state_dependencies": [
+        "N[combined_reboiler_sump,n-Propane]",
+        "N[combined_reboiler_sump,n-Butane]",
+        "N[combined_reboiler_sump,n-Pentane]"
+      ]
+    },
+    {
+      "name": "francis_hydraulics[rectifying_tray]",
+      "block": "francis_hydraulics",
+      "owner": "rectifying_tray",
+      "solve_dependencies": [
+        "L[rectifying_tray]",
+        "T[rectifying_tray]",
+        "P[rectifying_tray]"
+      ],
+      "state_dependencies": [
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "francis_hydraulics[feed_tray]",
+      "block": "francis_hydraulics",
+      "owner": "feed_tray",
+      "solve_dependencies": [
+        "L[feed_tray]",
+        "T[feed_tray]",
+        "P[feed_tray]"
+      ],
+      "state_dependencies": [
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "francis_hydraulics[stripping_tray]",
+      "block": "francis_hydraulics",
+      "owner": "stripping_tray",
+      "solve_dependencies": [
+        "L[stripping_tray]",
+        "T[stripping_tray]",
+        "P[stripping_tray]"
+      ],
+      "state_dependencies": [
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "condenser_bubble_fugacity[n-Propane]",
+      "block": "condenser_bubble_fugacity",
+      "owner": "total_condenser_reflux_drum_boundary",
+      "solve_dependencies": [
+        "T[reflux_drum]",
+        "y_bubble[reflux_drum,n-Propane]",
+        "y_bubble[reflux_drum,n-Butane]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]"
+      ]
+    },
+    {
+      "name": "condenser_bubble_fugacity[n-Butane]",
+      "block": "condenser_bubble_fugacity",
+      "owner": "total_condenser_reflux_drum_boundary",
+      "solve_dependencies": [
+        "T[reflux_drum]",
+        "y_bubble[reflux_drum,n-Propane]",
+        "y_bubble[reflux_drum,n-Butane]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]"
+      ]
+    },
+    {
+      "name": "condenser_bubble_fugacity[n-Pentane]",
+      "block": "condenser_bubble_fugacity",
+      "owner": "total_condenser_reflux_drum_boundary",
+      "solve_dependencies": [
+        "T[reflux_drum]",
+        "y_bubble[reflux_drum,n-Propane]",
+        "y_bubble[reflux_drum,n-Butane]"
+      ],
+      "state_dependencies": [
+        "N[reflux_drum,n-Propane]",
+        "N[reflux_drum,n-Butane]",
+        "N[reflux_drum,n-Pentane]"
+      ]
+    },
+    {
+      "name": "vapor_pressure_drop[combined_reboiler_sump->stripping_tray]",
+      "block": "vapor_pressure_drop",
+      "owner": "combined_reboiler_sump",
+      "solve_dependencies": [
+        "V[combined_reboiler_sump->stripping_tray]",
+        "P[combined_reboiler_sump]",
+        "P[stripping_tray]",
+        "T[combined_reboiler_sump]",
+        "y[combined_reboiler_sump,n-Propane]",
+        "y[combined_reboiler_sump,n-Butane]"
+      ],
+      "state_dependencies": []
+    },
+    {
+      "name": "vapor_pressure_drop[stripping_tray->feed_tray]",
+      "block": "vapor_pressure_drop",
+      "owner": "stripping_tray",
+      "solve_dependencies": [
+        "V[stripping_tray->feed_tray]",
+        "P[stripping_tray]",
+        "P[feed_tray]",
+        "T[stripping_tray]",
+        "y[stripping_tray,n-Propane]",
+        "y[stripping_tray,n-Butane]"
+      ],
+      "state_dependencies": [
+        "N[stripping_tray,n-Propane]",
+        "N[stripping_tray,n-Butane]",
+        "N[stripping_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "vapor_pressure_drop[feed_tray->rectifying_tray]",
+      "block": "vapor_pressure_drop",
+      "owner": "feed_tray",
+      "solve_dependencies": [
+        "V[feed_tray->rectifying_tray]",
+        "P[feed_tray]",
+        "P[rectifying_tray]",
+        "T[feed_tray]",
+        "y[feed_tray,n-Propane]",
+        "y[feed_tray,n-Butane]"
+      ],
+      "state_dependencies": [
+        "N[feed_tray,n-Propane]",
+        "N[feed_tray,n-Butane]",
+        "N[feed_tray,n-Pentane]"
+      ]
+    },
+    {
+      "name": "vapor_pressure_drop[rectifying_tray->reflux_drum]",
+      "block": "vapor_pressure_drop",
+      "owner": "rectifying_tray",
+      "solve_dependencies": [
+        "V[rectifying_tray->reflux_drum]",
+        "P[rectifying_tray]",
+        "T[rectifying_tray]",
+        "y[rectifying_tray,n-Propane]",
+        "y[rectifying_tray,n-Butane]"
+      ],
+      "state_dependencies": [
+        "N[rectifying_tray,n-Propane]",
+        "N[rectifying_tray,n-Butane]",
+        "N[rectifying_tray,n-Pentane]"
+      ]
+    }
+  ],
+  "pressure_link_ownership": [
+    {
+      "source": "combined_reboiler_sump",
+      "destination": "stripping_tray",
+      "vapor_flow": "V[combined_reboiler_sump->stripping_tray]",
+      "role": "terminal_reboiler_return",
+      "includes_liquid_head": false
+    },
+    {
+      "source": "stripping_tray",
+      "destination": "feed_tray",
+      "vapor_flow": "V[stripping_tray->feed_tray]",
+      "role": "physical_tray_link",
+      "includes_liquid_head": true
+    },
+    {
+      "source": "feed_tray",
+      "destination": "rectifying_tray",
+      "vapor_flow": "V[feed_tray->rectifying_tray]",
+      "role": "physical_tray_link",
+      "includes_liquid_head": true
+    },
+    {
+      "source": "rectifying_tray",
+      "destination": "reflux_drum",
+      "vapor_flow": "V[rectifying_tray->reflux_drum]",
+      "role": "physical_tray_link",
+      "includes_liquid_head": true
+    }
+  ],
+  "endpoint_inventory_map": "N_next = N_prev * exp(dt * nominal_rate / N_prev); physical inventory rates are recomputed from the exact endpoint difference",
+  "energy_storage": "U_next = NL_next * (hL(T_next,P_next,x_next) - P_next/rhoL(T_next,P_next,x_next)); energy rows use the exact backward-Euler storage difference",
+  "index_claim": "property-free square implicit-index-1 candidate; numerical index and leading-Jacobian acceptance remain unclaimed",
+  "audit": {
+    "state_coordinate_count": 15,
+    "derivative_variable_count": 15,
+    "algebraic_variable_count": 27,
+    "solve_variable_count": 42,
+    "row_count": 42,
+    "structural_rank": 42,
+    "structural_nullity": 0,
+    "zero_solve_columns": [],
+    "zero_rows": [],
+    "unregistered_solve_dependencies": [],
+    "unregistered_state_dependencies": [],
+    "pressure_variable_count": 4,
+    "pressure_rate_variable_count": 0,
+    "pressure_drop_row_count": 4,
+    "terminal_dry_only_link_count": 1,
+    "tray_liquid_head_link_count": 3,
+    "terminal_pressure_rate_couplings": [],
+    "tray_pressure_rate_coupling_count": 9,
+    "color_count": 20,
+    "color_groups": [
+      [
+        12,
+        17,
+        35,
+        37
+      ],
+      [
+        13,
+        36,
+        39
+      ],
+      [
+        0,
+        18
+      ],
+      [
+        1,
+        40
+      ],
+      [
+        2,
+        6,
+        14
+      ],
+      [
+        7,
+        15
+      ],
+      [
+        8,
+        20
+      ],
+      [
+        21,
+        24
+      ],
+      [
+        25,
+        34
+      ],
+      [
+        29
+      ],
+      [
+        32
+      ],
+      [
+        9,
+        16
+      ],
+      [
+        10,
+        38
+      ],
+      [
+        3,
+        11
+      ],
+      [
+        4,
+        19
+      ],
+      [
+        5,
+        26
+      ],
+      [
+        22,
+        27
+      ],
+      [
+        23,
+        30
+      ],
+      [
+        28,
+        31
+      ],
+      [
+        33,
+        41
+      ]
+    ],
+    "color_conflict_free": true,
+    "component_conservation_inherited": true,
+    "energy_conservation_inherited": true,
+    "top_pressure_anchor_present": true,
+    "fixed_product_rates_present": true,
+    "controller_rows": [],
+    "profile_dependencies": [],
+    "cap_or_relaxation_dependencies": [],
+    "explicit_vapor_inventory_present": false,
+    "preparation_only": true,
+    "pass_gate": true
+  },
+  "pass": true,
+  "live_property_evaluation_attempted": false,
+  "mass_matrix_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "dynamic_integration_attempted": false,
+  "next_authorization": "one frozen live pressure-enabled leading-Jacobian and consistent-rate audit"
+}

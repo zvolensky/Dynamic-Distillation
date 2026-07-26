@@ -906,3 +906,18 @@ positive normalized selection objective gives a full-rank `117 x 117` KKT
 pattern. The two-component generic audit also passes. No property call, solve,
 or timestep occurred. One separately frozen live constrained-initializer
 contract may be drafted; execution and dynamics remain unauthorized.
+
+2026-07-26 Core V3 conserved-`N/U` live initializer contract: DD-112 freezes
+the complete numerical selection campaign without executing it. Sixty-five
+coordinates use positive log component inventories, scaled affine lower
+energies, validated normalized rates, and the DD-103 algebraic basis. Exact
+targets preserve DD-094 component and terminal totals plus DD-096 total stored
+energy. Two starts use the DD-094 pressure profile and the DD-103 pressure
+endpoint with its DD-109 live storage. One SLSQP equality-constrained solver
+uses an analytic `1/10/1` state/rate/algebraic objective and a 21-color central-
+difference constraint Jacobian. Both starts must reach one interior physical
+optimum satisfying all 52 constraints, rank, conditioning, spectrum,
+registered-coupling, KKT, conservation, provider, call, and wall gates. No
+penalty relaxation, retry, alternate solver, changed weight, continuation,
+timestep, or dynamics is permitted. One execution is authorized only after
+the contract commit.

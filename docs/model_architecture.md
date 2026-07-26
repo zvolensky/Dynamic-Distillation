@@ -824,3 +824,17 @@ balances cannot be evaluated exactly for the nonzero-rate initializer
 objective. Hidden timestepping, fixed-pressure-gradient reuse, and numerical
 tuning are prohibited. One property-free conserved-`N/U` plus algebraic-
 pressure ownership audit is the only authorized successor.
+
+2026-07-26 Core V3 conserved-energy pressure-DAE decision: DD-108 first tests
+independent `U/dU` ownership in all five volumes. That `47 x 47` assembly has
+structural rank `46`: fixed drum pressure plus bubble equilibrium already
+determines top temperature/storage, so the top storage row duplicates a
+constraint and leaves `Q_C` unmatched. The corrected ownership follows
+pressure ownership. Top energy remains derived through the exact fixed-
+pressure saturation gradient; each of the four lower algebraic-pressure
+volumes receives independent `U/dU` and one live enthalpy/density storage
+closure. The resulting three-component ledger is `46 x 46`, rank `46`,
+nullity zero; a generic two-component ledger is `36 x 36`, rank `36`.
+Conservation and single vapor-flow ownership remain intact, with no pressure
+rate, vapor inventory, controller, profile, cap, or relaxation. One frozen
+live leading-Jacobian and state-manifold numerical contract is authorized.

@@ -1,0 +1,61 @@
+{
+  "schema_id": "dd108-core-v3-conserved-nu-pressure-dae-v1",
+  "classification": "dd108_structural_passed",
+  "decision": "authorize_one_frozen_live_nu_pressure_numerical_contract",
+  "contract": {
+    "name": "Core V3 - Conserved N/U Algebraic-Pressure DAE Contract",
+    "version": "core-v3-conserved-nu-pressure-dae-contract-v1",
+    "storage_definition": "For each lower pressure-owning volume, U[j] = NL[j] * (hL(T[j],P[j],x[j]) - P[j]/rhoL(T[j],P[j],x[j])). Top U is derived on its fixed-pressure bubble manifold.",
+    "energy_balance_definition": "Lower dU[j]/dt equals the exact enthalpy-flow balance. The top energy balance uses the exact fixed-pressure saturation-manifold dU_top/dN gradient; no timestep or moving-pressure gradient is used.",
+    "pressure_definition": "P[reflux_drum] is fixed; four lower pressures are simultaneous algebraic unknowns. The terminal reboiler/sump return uses dry resistance only; three physical tray links use dry resistance plus liquid head.",
+    "storage_property_quantities": [
+      "phase_enthalpy",
+      "liquid_density"
+    ],
+    "index_claim": "property-free square implicit-index-1 candidate; live leading-Jacobian and constraint-manifold rank remain unclaimed"
+  },
+  "audit": {
+    "component_count": 3,
+    "component_inventory_state_count": 15,
+    "internal_energy_state_count": 4,
+    "state_coordinate_count": 19,
+    "component_rate_count": 15,
+    "internal_energy_rate_count": 4,
+    "derivative_variable_count": 19,
+    "algebraic_variable_count": 27,
+    "solve_variable_count": 46,
+    "row_count": 46,
+    "expected_count": 46,
+    "structural_rank": 46,
+    "structural_nullity": 0,
+    "zero_solve_columns": [],
+    "zero_rows": [],
+    "duplicate_variable_names": [],
+    "unregistered_solve_dependencies": [],
+    "unregistered_state_dependencies": [],
+    "component_balance_count": 15,
+    "energy_balance_count": 5,
+    "storage_closure_count": 4,
+    "pressure_drop_count": 4,
+    "energy_rows_use_valid_storage_rates": true,
+    "storage_rows_cover_all_independent_energy_volumes": true,
+    "storage_rows_use_live_lower_pressure": true,
+    "top_pressure_remains_parameter": true,
+    "pressure_rate_count": 0,
+    "explicit_vapor_inventory_present": false,
+    "component_conservation_passed": true,
+    "energy_conservation_passed": true,
+    "single_vapor_flow_owner_passed": true,
+    "storage_property_ownership_passed": true,
+    "controller_rows": [],
+    "profile_dependencies": [],
+    "cap_or_relaxation_dependencies": [],
+    "preparation_only": true,
+    "pass_gate": true
+  },
+  "scope": {
+    "property_evaluation_attempted": false,
+    "nonlinear_solve_attempted": false,
+    "dynamic_integration_attempted": false
+  }
+}

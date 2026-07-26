@@ -892,3 +892,17 @@ rank/manifold evidence without reclassifying or rerunning its raw result. One
 separately frozen conserved-`N/U` pressure-consistent initializer contract may
 now be drafted; initializer execution and dynamic stepping remain
 unauthorized.
+
+2026-07-26 Core V3 conserved-`N/U` initializer structure: DD-111 replaces
+DD-106's incomplete energy ownership with the validated DD-108/DD-109 mixed
+energy formulation. The primal contains 15 component inventories, four lower
+internal energies, 19 matching rates, and 27 algebraic coordinates. All 46
+pressure DAE rows remain exact, including four live lower storage closures;
+three component totals, one whole-column energy total, and two terminal total-
+inventory constraints produce 52 independent equalities over 65 primals.
+Whole-column energy uses derived fixed-pressure top storage plus the four
+independent lower `U` states. The feasible manifold has dimension 13, and a
+positive normalized selection objective gives a full-rank `117 x 117` KKT
+pattern. The two-component generic audit also passes. No property call, solve,
+or timestep occurred. One separately frozen live constrained-initializer
+contract may be drafted; execution and dynamics remain unauthorized.

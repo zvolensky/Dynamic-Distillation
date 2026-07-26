@@ -633,6 +633,15 @@ def _evaluate_properties(
             state_id=state_id,
             evaluation_kind=evaluation_kind,
         )
+        density[index] = call_audit.liquid_density(
+            provider,
+            temperature_F=float(state.temperature_F[index]),
+            pressure_psia=float(spec.pressure_psia[index]),
+            composition=state.liquid_mole_fraction[index],
+            caller=f"internal_energy_storage[{volume}]",
+            state_id=state_id,
+            evaluation_kind=evaluation_kind,
+        )
         if volume in EQUILIBRIUM_VOLUME_IDS:
             vapor_index = EQUILIBRIUM_VOLUME_IDS.index(volume)
             stage_equilibrium.extend(
@@ -661,15 +670,6 @@ def _evaluate_properties(
             )
         if volume in HYDRAULIC_VOLUME_IDS:
             hydraulic_index = HYDRAULIC_VOLUME_IDS.index(volume)
-            density[index] = call_audit.liquid_density(
-                provider,
-                temperature_F=float(state.temperature_F[index]),
-                pressure_psia=float(spec.pressure_psia[index]),
-                composition=state.liquid_mole_fraction[index],
-                caller=f"francis_hydraulics[{volume}]",
-                state_id=state_id,
-                evaluation_kind=evaluation_kind,
-            )
             francis[index], height[index], head[index] = _francis_flow(
                 liquid_moles_lbmol=float(state.liquid_moles_lbmol[index]),
                 density_lbmol_ft3=float(density[index]),

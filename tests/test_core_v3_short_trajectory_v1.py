@@ -7,7 +7,7 @@ from dynamic_distillation.core_v3.implicit_step_v1 import (
     ImplicitStepSettings,
     component_rate_scales,
     evaluate_backward_euler_residual,
-    saturated_storage_vector,
+    governing_storage_vector,
     zero_rate_evaluation,
 )
 from dynamic_distillation.core_v3.provider_call_audit_v1 import (
@@ -117,15 +117,7 @@ def test_dd098_trajectory_chains_successful_step_endpoints_without_retry():
             evaluation_kind="residual",
         )
         rate_scales = component_rate_scales(contract, baseline)
-        storage, _ = saturated_storage_vector(
-            spec,
-            template,
-            provider,
-            call_audit,
-            previous,
-            state_id=f"{name}:storage",
-            evaluation_kind="residual",
-        )
+        storage = governing_storage_vector(spec, baseline, previous)
         point = np.concatenate((np.zeros(15), algebraic))
         evaluation = evaluate_backward_euler_residual(
             contract,

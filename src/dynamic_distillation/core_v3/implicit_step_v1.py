@@ -9,6 +9,10 @@ from typing import Any, Callable, Sequence
 import numpy as np
 from scipy.optimize import least_squares
 
+from dynamic_distillation.core_v3.colored_jacobian_v1 import (
+    colored_central_difference_jacobian,
+    contract_sparsity_pattern,
+)
 from dynamic_distillation.core_v3.dynamic_dae_contract_v1 import (
     DynamicDAEContract,
 )
@@ -41,6 +45,7 @@ class ImplicitStepSettings:
     max_nfev: int = 40
     x_scale: float = 1.0
     jacobian_step: float = 1.0e-5
+    jacobian_mode: str = "uncolored"
 
 
 @dataclass(frozen=True)
@@ -180,6 +185,47 @@ def saturated_storage_vector(
     return storage, maximum_bubble
 
 
+def governing_storage_vector(
+    spec: OperatingSpec,
+    evaluation: DynamicImplicitEvaluation,
+    inventory_lbmol: Sequence[Sequence[float]],
+) -> np.ndarray:
+    """Build liquid internal-energy storage from the governing property packet."""
+    inventory = np.asarray(inventory_lbmol, dtype=float)
+    expected = (len(VOLUME_IDS), len(spec.component_names))
+    if inventory.shape != expected or np.any(inventory <= 0.0):
+        raise ValueError("storage inventory must be positive with model shape")
+    properties = evaluation.steady_evaluation.properties
+    enthalpy = np.asarray(properties.liquid_enthalpy_BTU_lbmol, dtype=float)
+    density = np.asarray(properties.liquid_density_lbmol_ft3, dtype=float)
+    pressure = np.asarray(spec.pressure_psia, dtype=float)
+    if (
+        enthalpy.shape != (len(VOLUME_IDS),)
+        or density.shape != enthalpy.shape
+        or pressure.shape != enthalpy.shape
+        or np.any(~np.isfinite(enthalpy))
+        or np.any(~np.isfinite(density))
+        or np.any(density <= 0.0)
+    ):
+        raise ValueError("governing liquid property packet is invalid")
+    molar_internal_energy = enthalpy - pressure / density * BTU_PER_PSI_FT3
+    return np.sum(inventory, axis=1) * molar_internal_energy
+
+
+def _maximum_equilibrium_residual(
+    contract: DynamicDAEContract,
+    evaluation: DynamicImplicitEvaluation,
+) -> float:
+    indices = [
+        index
+        for index, row in enumerate(contract.rows)
+        if row.block in {"full_phase_equilibrium", "condenser_bubble"}
+    ]
+    if not indices:
+        raise RuntimeError("dynamic contract has no equilibrium rows")
+    return float(np.max(np.abs(np.asarray(evaluation.raw)[indices])))
+
+
 def zero_rate_evaluation(
     contract: DynamicDAEContract,
     spec: OperatingSpec,
@@ -269,15 +315,7 @@ def evaluate_backward_euler_residual(
         state_id=state_id,
         evaluation_kind=evaluation_kind,
     )
-    endpoint_storage, bubble = saturated_storage_vector(
-        spec,
-        dynamic.physical_state,
-        provider,
-        call_audit,
-        endpoint_inventory,
-        state_id=f"{state_id}:storage",
-        evaluation_kind=evaluation_kind,
-    )
+    endpoint_storage = governing_storage_vector(spec, dynamic, endpoint_inventory)
     previous_storage = np.asarray(previous_internal_energy_BTU, dtype=float)
     if previous_storage.shape != (len(VOLUME_IDS),):
         raise ValueError("previous storage vector has invalid shape")
@@ -300,7 +338,7 @@ def evaluate_backward_euler_residual(
         endpoint_internal_energy_BTU=endpoint_storage,
         energy_storage_rate_BTUph=storage_rate,
         dynamic_evaluation=dynamic,
-        maximum_bubble_residual=float(bubble),
+        maximum_bubble_residual=_maximum_equilibrium_residual(contract, dynamic),
     )
 
 
@@ -314,10 +352,7 @@ def central_difference_jacobian(
     coordinates = np.asarray(point, dtype=float).reshape((-1,))
     if not np.isfinite(step) or step <= 0.0:
         raise ValueError("Jacobian step must be positive")
-    baseline = np.asarray(
-        objective(coordinates, f"{state_id}:baseline"), dtype=float
-    ).reshape((-1,))
-    matrix = np.empty((baseline.size, coordinates.size), dtype=float)
+    matrix: np.ndarray | None = None
     for column in range(coordinates.size):
         delta = np.zeros_like(coordinates)
         delta[column] = float(step)
@@ -329,7 +364,15 @@ def central_difference_jacobian(
             objective(coordinates - delta, f"{state_id}:{column}:minus"),
             dtype=float,
         )
+        plus = plus.reshape((-1,))
+        minus = minus.reshape((-1,))
+        if matrix is None:
+            matrix = np.empty((plus.size, coordinates.size), dtype=float)
+        elif plus.size != matrix.shape[0] or minus.size != matrix.shape[0]:
+            raise ValueError("objective row count changed during Jacobian evaluation")
         matrix[:, column] = (plus - minus) / (2.0 * float(step))
+    if matrix is None:
+        raise ValueError("Jacobian point must contain at least one coordinate")
     return matrix
 
 
@@ -339,11 +382,26 @@ def _least_squares(
     objective: Callable[[np.ndarray, str], np.ndarray],
     endpoint: Callable[[np.ndarray], BackwardEulerEvaluation | DynamicImplicitEvaluation],
     settings: ImplicitStepSettings,
+    *,
+    jacobian_pattern: np.ndarray | None = None,
 ) -> ImplicitSolveOutcome:
     def residual(point: np.ndarray) -> np.ndarray:
         return objective(point, f"{name}:residual")
 
     def jacobian(point: np.ndarray) -> np.ndarray:
+        if settings.jacobian_mode == "colored":
+            if jacobian_pattern is None:
+                raise ValueError("colored Jacobian requires a sparsity pattern")
+            matrix, _groups = colored_central_difference_jacobian(
+                objective,
+                point,
+                pattern=jacobian_pattern,
+                step=settings.jacobian_step,
+                state_id=f"{name}:jacobian",
+            )
+            return matrix
+        if settings.jacobian_mode != "uncolored":
+            raise ValueError(f"unknown Jacobian mode {settings.jacobian_mode!r}")
         return central_difference_jacobian(
             objective,
             point,
@@ -467,15 +525,7 @@ def solve_backward_euler_step(
         evaluation_kind="residual",
     )
     rate_scales = component_rate_scales(contract, baseline)
-    previous_storage, _ = saturated_storage_vector(
-        spec,
-        template,
-        provider,
-        call_audit,
-        previous,
-        state_id=f"{name}:previous_storage",
-        evaluation_kind="residual",
-    )
+    previous_storage = governing_storage_vector(spec, baseline, previous)
     initial = np.concatenate(
         (np.zeros(len(contract.derivative_variables), dtype=float), algebraic)
     )
@@ -516,7 +566,17 @@ def solve_backward_euler_step(
             evaluation_kind="residual",
         )
 
-    return _least_squares(name, initial, evaluate, endpoint, settings)
+    pattern, _variable_names = contract_sparsity_pattern(
+        contract, include_state_rate_dependencies=True
+    )
+    return _least_squares(
+        name,
+        initial,
+        evaluate,
+        endpoint,
+        settings,
+        jacobian_pattern=pattern,
+    )
 
 
 __all__ = [
@@ -526,6 +586,7 @@ __all__ = [
     "central_difference_jacobian",
     "component_rate_scales",
     "evaluate_backward_euler_residual",
+    "governing_storage_vector",
     "saturated_storage_vector",
     "solve_backward_euler_step",
     "solve_zero_rate_algebraic",

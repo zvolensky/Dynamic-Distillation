@@ -785,3 +785,16 @@ physical tray links retain liquid head. The deterministic solve pattern uses
 20 conflict-free colors. No property evaluation, numerical solve, mass-matrix
 evaluation, or integration occurred. One frozen live pressure-enabled
 leading-Jacobian and consistent-rate audit is authorized next.
+
+2026-07-26 Core V3 pressure-enabled first-step result: DD-105 replaces the
+inapplicable fixed-pressure storage gradient with exact live endpoint energy
+storage and solves independent `1.0 s` and `0.5 s` backward-Euler first steps.
+Both endpoints close below `9.0e-13`; all four Jacobians are rank `42/42`,
+well conditioned relative to the gate, conservative, physical, and provider
+compliant. They do not refine to one state: inventory differs by `6.28%`,
+algebraic coordinates by `1.67`, and pressure by `2.77 psi`. DD-094 is
+therefore not a consistent initial state for the pressure-enabled model, and
+the first step would embed an arbitrary timestep-dependent pressure/energy
+handoff. Pressure-enabled stepping is stopped before a trajectory. Any
+successor initializer must move conserved states under explicit global
+component/energy constraints and terminal-inventory ownership.

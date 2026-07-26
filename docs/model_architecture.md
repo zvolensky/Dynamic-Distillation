@@ -798,3 +798,17 @@ the first step would embed an arbitrary timestep-dependent pressure/energy
 handoff. Pressure-enabled stepping is stopped before a trajectory. Any
 successor initializer must move conserved states under explicit global
 component/energy constraints and terminal-inventory ownership.
+
+2026-07-26 Core V3 pressure-consistent initializer structure: DD-106 removes
+the timestep from initialization and registers one equality-constrained
+selection problem over 15 positive component inventories, 15 continuous
+inventory rates, and 27 pressure-enabled algebraic variables. The 42 DD-104
+DAE rows remain exact. Three component-total constraints, one live stored-
+energy-total constraint, and two terminal total-holdup constraints bring the
+ledger to 48 independent equalities over 57 primal variables. Structural rank
+is 48, leaving nine selection degrees of freedom. A diagonal normalized
+minimum-rate/minimum-movement objective produces a full-rank `105 x 105` KKT
+pattern. Drum and sump total inventories are held to DD-094 values, while
+their compositions remain free. No property call or solve occurred. One
+separately frozen live numerical initializer contract is authorized; a
+timestep, trajectory, controller, and integration remain unauthorized.

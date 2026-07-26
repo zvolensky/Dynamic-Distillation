@@ -755,3 +755,20 @@ active transformed-coordinate bound. The current Gate C operating
 specification is retired. Energy-determined vapor traffic, pressure dynamics,
 vapor holdup, controllers, production integration, and another solver variant
 remain unauthorized.
+
+2026-07-26 Core V3 pressure-layer steady-root decision: DD-103 resolves the
+reduced bottom-boundary ownership by treating the combined reboiler/sump
+return as a dry-resistance-only link; only the three physical tray links
+receive liquid head. It then fixes all 15 conserved inventory rates at zero
+and solves 27 algebraic coordinates against the 42 pressure-enabled steady
+equations from two predefined starts. Both solves terminate at nearly the same
+positive, ordered profile near `218.44-218.66 psia`; the pressure equations
+close to about `2.1e-5 psi`, both endpoint Jacobians have column rank `27/27`,
+worst condition is `65.959`, and conservation/provider gates pass.
+Nevertheless, the full scaled residual stalls near `8.947e-3`, and the
+endpoints miss the frozen common-root limit. The fixed DD-094 inventories
+therefore cannot be reconciled into an exact pressure-enabled steady state by
+algebraic movement alone. This retires algebraic-only pressure repair. The
+next architectural increment may only define simultaneous pressure-enabled
+implicit-DAE ownership in which conserved inventories and rates participate;
+numerical stepping and integration remain unauthorized.

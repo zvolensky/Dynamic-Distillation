@@ -1,0 +1,102 @@
+{
+  "schema_id": "dd110-core-v3-dd109-physical-gate-adjudication-contract-v1",
+  "preparation_base_commit": "045a152d19b47d2a070e446fe97c2a6d6b160d5f",
+  "governance_exception": {
+    "authorized_by_user": true,
+    "authorization_date": "2026-07-26",
+    "reason": "DD-109 completed all numerical work but its reporting gate applied Francis tray-height requirements to non-Francis terminals",
+    "scope": "statically re-adjudicate only the two failed physical gates; preserve every numerical value and all other gates"
+  },
+  "source_dd109_contract": "logs/dd109_core_v3_conserved_nu_pressure_numerical_contract_20260726.json",
+  "source_dd109_contract_sha256": "0bb5bc1dfd1bc47385489a2f00e06c09dfb0bb9312ee36be2b4ae234137c57b3",
+  "source_dd109_result": "logs/dd109_core_v3_conserved_nu_pressure_numerical_20260726.json",
+  "source_dd109_result_sha256": "5b15dccb8d44a11b2c24f6d6b7ac1599b278c5e9d6497ae340b3950d253ccd9f",
+  "source_dd109_contract_commit": "99b88fdeb99df5359bd2a17a45ee7836a509c3b4",
+  "source_dd109_contract_payload_sha256": "c3ffe33e917eeea8a7d70490a8808aacdc93355c84878e154150c6be2aa6c31c",
+  "source_failed_gates": [
+    "finite_physical_state",
+    "positive_pressure_and_geometry_terms"
+  ],
+  "replaceable_gates": [
+    "finite_physical_state",
+    "positive_pressure_and_geometry_terms"
+  ],
+  "pressure_link_geometry": [
+    {
+      "active_area_ft2": 194.60007084451445,
+      "tray_area_ft2": 259.46676112601926,
+      "weir_height_in": 1.98125,
+      "include_liquid_head": false
+    },
+    {
+      "active_area_ft2": 194.60007084451445,
+      "tray_area_ft2": 259.46676112601926,
+      "weir_height_in": 1.98125,
+      "include_liquid_head": true
+    },
+    {
+      "active_area_ft2": 169.47285339961908,
+      "tray_area_ft2": 225.96380453282543,
+      "weir_height_in": 1.65625,
+      "include_liquid_head": true
+    },
+    {
+      "active_area_ft2": 169.47285339961908,
+      "tray_area_ft2": 225.96380453282543,
+      "weir_height_in": 1.65625,
+      "include_liquid_head": true
+    }
+  ],
+  "applicable_volume_indices": [
+    1,
+    2,
+    3
+  ],
+  "terminal_sentinel_indices": [
+    0,
+    4
+  ],
+  "liquid_head_link_mask": [
+    false,
+    true,
+    true,
+    true
+  ],
+  "preserved_gates": {
+    "rank": true,
+    "condition": true,
+    "spectrum": true,
+    "structure": true,
+    "storage_rank": true,
+    "colored_full": true,
+    "canonical_storage": true,
+    "positive_inventory_and_flows": true,
+    "normalized_compositions": true,
+    "pressure": true,
+    "conservation": true,
+    "provider": true,
+    "calls": true,
+    "wall": true
+  },
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/dd109_gate_adjudication_v1.py": "390b89be6a971c17e081b9001ad2a397caa146d8778e5bc94915ef8db1134879",
+    "tests/test_core_v3_dd109_gate_adjudication_v1.py": "887a30571144c597de55ee28fe7d0e73f600aa577c7b8b91d505623d17891fb1",
+    "tools/adjudicate_core_v3_dd109_physical_gate.py": "74d780095274e6da7d959a04328a303914c2902ce40df3f0440b1f208487eddf"
+  },
+  "hard_stops": [
+    "the DD-109 result or contract hash changes",
+    "any failed DD-109 gate lies outside the two authorized physical gates",
+    "any applicable Francis tray height is nonfinite or nonpositive",
+    "either non-Francis terminal lacks its intentional NaN height sentinel",
+    "the dry-only link carries liquid head or a liquid-head link lacks positive head",
+    "any inherited DD-109 gate is changed or false",
+    "a property call, residual evaluation, Jacobian, solve, initializer, or timestep is attempted"
+  ],
+  "live_property_evaluation_attempted": false,
+  "residual_or_jacobian_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "initializer_attempted": false,
+  "dynamic_integration_attempted": false,
+  "adjudication_executed": false,
+  "contract_payload_sha256": "6ca640a955e568231404a3d1ede8f0e59cbea5819ffaa4c7e19d515f117b7f29"
+}

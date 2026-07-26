@@ -867,3 +867,16 @@ zero liquid-head drop is also intentional. The raw failure stands and is not
 rerun. This is a gate-scope defect rather than evidence of numerical rank or
 state-manifold failure, but further work requires an explicit governance
 decision.
+
+2026-07-26 Core V3 DD-109 physical-gate recovery contract: DD-110 uses the
+explicit user-authorized reporting-only exception and does not rerun DD-109.
+It hashes the frozen DD-109 contract and result, preserves all numerical
+values and every unrelated gate, and re-adjudicates only the two failed
+physical-reporting gates according to existing ownership. The rectifying,
+feed, and stripping volumes must have finite positive Francis tray heights;
+the reflux drum and combined reboiler/sump must retain their intentional
+`NaN` tray-height sentinels. Liquid-head pressure drop must be positive only
+on the three links that own liquid head and zero on the dry-only terminal
+link. Any unrelated failure or evidence change is a hard stop. Preparation
+performs no property, residual, Jacobian, solve, initializer, or timestep
+work. One static adjudication is authorized after the contract commit.

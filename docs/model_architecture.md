@@ -838,3 +838,17 @@ nullity zero; a generic two-component ledger is `36 x 36`, rank `36`.
 Conservation and single vapor-flow ownership remain intact, with no pressure
 rate, vapor inventory, controller, profile, cap, or relaxation. One frozen
 live leading-Jacobian and state-manifold numerical contract is authorized.
+
+2026-07-26 Core V3 conserved-energy numerical contract: DD-109 freezes the
+first live evaluation of the corrected DD-108 `46 x 46` system. It uses the
+DD-094 conserved state with two independently frozen algebraic-pressure
+profiles, four explicit lower internal-energy coordinates reconstructed from
+the accepted provider basis, and the fixed-pressure drum's exact reduced
+storage gradient. Two central-difference steps use a precomputed 15-color
+structural grouping, while one full canonical Jacobian independently checks
+the colored reconstruction and the registered coupling graph. Full rank,
+four-dimensional lower storage-manifold rank, conditioning, spectrum,
+conservation, provider provenance, physicality, and strict call/wall limits
+are hard gates. Contract preparation performs no live property evaluation.
+After commit, exactly one numerical audit is authorized; no root solve,
+initializer, state repair, backward-Euler step, or trajectory is included.

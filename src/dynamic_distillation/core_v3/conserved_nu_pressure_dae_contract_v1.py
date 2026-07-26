@@ -16,6 +16,7 @@ from scipy.sparse.csgraph import structural_rank
 
 from dynamic_distillation.core_v3.dynamic_dae_contract_v1 import DAERow, SolveVariable
 from dynamic_distillation.core_v3.pressure_implicit_dae_contract_v1 import (
+    PressureImplicitDAEContract,
     PressureLinkOwnership,
     build_pressure_implicit_dae_contract,
 )
@@ -34,6 +35,7 @@ TOP_VOLUME = VOLUME_IDS[0]
 class ConservedNUPressureDAEContract:
     name: str
     version: str
+    pressure_dae: PressureImplicitDAEContract
     component_names: tuple[str, ...]
     state_coordinates: tuple[str, ...]
     derivative_variables: tuple[SolveVariable, ...]
@@ -154,6 +156,7 @@ def build_conserved_nu_pressure_dae_contract(
     return ConservedNUPressureDAEContract(
         name=CONTRACT_NAME,
         version=CONTRACT_VERSION,
+        pressure_dae=pressure,
         component_names=components,
         state_coordinates=(*pressure.state_coordinates, *energy_states),
         derivative_variables=(*pressure.derivative_variables, *energy_rates),

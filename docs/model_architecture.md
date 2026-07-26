@@ -353,6 +353,20 @@ correctness reference rather than a production-speed integrator. One modest
 longer open-loop contract is authorized. See
 `docs/dd_098_core_v3_short_open_loop_20260725.md`.
 
+2026-07-25 performance correction: DD-099 removes the five nested bubble
+reconstructions formerly performed inside every backward-Euler residual. The
+governing property packet now includes liquid density for all five volumes,
+and internal-energy storage uses the same trial-state enthalpy and density as
+the governing equations. A backward-Euler-specific structural pattern includes
+the rate-to-endpoint-inventory chain and colors 38 columns into 17 groups,
+reducing central Jacobian evaluations from 76 to 34. In one frozen execution,
+colored and uncolored stationary/feed-step endpoints and Jacobians are
+identical to reported precision; all gates pass; no nested bubble call occurs;
+and mean calls fall from `40,666.5` to `3,000` per endpoint (`13.56x`). The
+actual trial-state Jacobian condition is about `1.83e5`, still full rank and
+below `1e8`. One modest longer open-loop contract is authorized. See
+`docs/dd_099_core_v3_performance_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

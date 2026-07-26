@@ -812,3 +812,15 @@ pattern. Drum and sump total inventories are held to DD-094 values, while
 their compositions remain free. No property call or solve occurred. One
 separately frozen live numerical initializer contract is authorized; a
 timestep, trajectory, controller, and integration remain unauthorized.
+
+2026-07-26 Core V3 initializer numerical-readiness decision: DD-107 stops the
+DD-106 live numerical successor before implementation or DWSIM execution.
+DD-106 permits nonzero `dN/dt` while four lower pressures move algebraically,
+but it has no independent `U` states, no `dU/dt` rates, and no pressure-aware
+continuous reduced storage derivative. Its inherited exact storage statement
+is `U_next-U_previous`, which requires a timestep. DD-096's gradient cannot be
+reused because it was derived at fixed pressure. Consequently the five energy
+balances cannot be evaluated exactly for the nonzero-rate initializer
+objective. Hidden timestepping, fixed-pressure-gradient reuse, and numerical
+tuning are prohibited. One property-free conserved-`N/U` plus algebraic-
+pressure ownership audit is the only authorized successor.

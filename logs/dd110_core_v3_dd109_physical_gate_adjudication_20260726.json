@@ -1,0 +1,65 @@
+{
+  "schema_id": "dd110-core-v3-dd109-physical-gate-adjudication-result-v1",
+  "contract_commit": "464e568c388775bb94db98f4b0ca8d9215c0bb50",
+  "contract_payload_sha256": "6ca640a955e568231404a3d1ede8f0e59cbea5819ffaa4c7e19d515f117b7f29",
+  "source_dd109_result_sha256": "5b15dccb8d44a11b2c24f6d6b7ac1599b278c5e9d6497ae340b3950d253ccd9f",
+  "classification": "dd110_passed",
+  "decision": "authorize_frozen_conserved_nu_initializer_contract",
+  "adjudication": {
+    "source_failed_gates": [
+      "finite_physical_state",
+      "positive_pressure_and_geometry_terms"
+    ],
+    "unexpected_source_failures": [],
+    "applicable_volume_indices": [
+      1,
+      2,
+      3
+    ],
+    "terminal_sentinel_indices": [
+      0,
+      4
+    ],
+    "liquid_head_link_mask": [
+      false,
+      true,
+      true,
+      true
+    ],
+    "replacement_gates": {
+      "finite_physical_state": true,
+      "positive_pressure_and_geometry_terms": true,
+      "terminal_height_sentinels": true
+    },
+    "final_gates": {
+      "rank": true,
+      "condition": true,
+      "spectrum": true,
+      "structure": true,
+      "storage_rank": true,
+      "colored_full": true,
+      "canonical_storage": true,
+      "finite_physical_state": true,
+      "positive_inventory_and_flows": true,
+      "normalized_compositions": true,
+      "pressure": true,
+      "positive_pressure_and_geometry_terms": true,
+      "conservation": true,
+      "provider": true,
+      "calls": true,
+      "wall": true,
+      "terminal_height_sentinels": true
+    },
+    "pass_gate": true
+  },
+  "preserved_gates_unchanged": true,
+  "source_numerical_evidence_changed": false,
+  "live_property_calls": 0,
+  "residual_evaluations": 0,
+  "jacobian_evaluations": 0,
+  "nonlinear_solve_attempted": false,
+  "initializer_attempted": false,
+  "dynamic_integration_attempted": false,
+  "pass": true,
+  "adjudication_executed_once": true
+}

@@ -880,3 +880,15 @@ on the three links that own liquid head and zero on the dry-only terminal
 link. Any unrelated failure or evidence change is a hard stop. Preparation
 performs no property, residual, Jacobian, solve, initializer, or timestep
 work. One static adjudication is authorized after the contract commit.
+
+2026-07-26 Core V3 DD-109 physical-gate recovery result: DD-110 executes once
+from commit `464e568` and passes. The source DD-109 contract/result hashes are
+unchanged, every inherited numerical gate remains true, and the ownership-
+aware physical checks confirm three positive Francis tray heights, two
+intentional non-Francis terminal `NaN` sentinels, and zero liquid-head drop on
+the dry-only terminal link. The adjudication uses zero property, residual,
+Jacobian, solver, initializer, or timestep evaluations. This accepts DD-109's
+rank/manifold evidence without reclassifying or rerunning its raw result. One
+separately frozen conserved-`N/U` pressure-consistent initializer contract may
+now be drafted; initializer execution and dynamic stepping remain
+unauthorized.

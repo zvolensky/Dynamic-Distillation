@@ -852,3 +852,18 @@ conservation, provider provenance, physicality, and strict call/wall limits
 are hard gates. Contract preparation performs no live property evaluation.
 After commit, exactly one numerical audit is authorized; no root solve,
 initializer, state repair, backward-Euler step, or trajectory is included.
+
+2026-07-26 Core V3 conserved-energy numerical result: DD-109 executes once
+from frozen commit `99b88fd`. All five leading Jacobians are rank `46/46`;
+the four lower storage constraints retain rank `4/4`; worst condition is
+`4.30341e5`; colored/full agreement is exact to reported precision; spectra,
+storage closure, pressure ordering, conservation, provider ownership, calls,
+and runtime pass. The formal result nevertheless fails because the added
+physical gate applies tray-height requirements to every volume. Core V3
+intentionally records `NaN` tray height for the reflux drum and combined
+reboiler/sump, which do not own Francis tray geometry; the three applicable
+tray heights are finite and positive. The dry-only terminal pressure link's
+zero liquid-head drop is also intentional. The raw failure stands and is not
+rerun. This is a gate-scope defect rather than evidence of numerical rank or
+state-manifold failure, but further work requires an explicit governance
+decision.

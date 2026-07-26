@@ -1,0 +1,4962 @@
+{
+  "schema_id": "dd100-core-v3-longer-open-loop-result-v1",
+  "contract_commit": "d92d35459eb86ef1aa9d28041eea45bdfb116901",
+  "contract_payload_sha256": "65d5ab41db6e003b3520c7891e50ad3c7c0144b8e5f3a23eb4c022ce96576b37",
+  "classification": "dd100_longer_open_loop_passed",
+  "decision": "authorize_next_dynamic_scope_decision",
+  "wall_clock_sec": 69.26425770006608,
+  "completed_endpoint_count": 35,
+  "expected_total_accumulation_lbmol": 0.019841594444442813,
+  "root_hold": {
+    "name": "dd100_root_hold",
+    "step_seconds": 1.0,
+    "duration_seconds": 5.0,
+    "requested_steps": 5,
+    "completed_steps": 5,
+    "completed": true,
+    "steps": [
+      {
+        "success": true,
+        "status": 3,
+        "message": "`xtol` termination condition is satisfied.",
+        "nfev": 3,
+        "njev": 2,
+        "cost": 3.869577987922882e-26,
+        "optimality": 6.581061863347675e-11,
+        "wall_clock_sec": 0.8384925000136718,
+        "residual_inf_norm": 2.0006897515742573e-13,
+        "jacobian_rank": 38,
+        "jacobian_condition": 183316.36560276878,
+        "coordinate_movement_inf_norm": 2.0613427631488435e-11,
+        "step_seconds": 1.0,
+        "component_rate_max_abs_lbmolph": 7.898961484897882e-08,
+        "relative_inventory_movement_max": 1.007607699999721e-12,
+        "algebraic_movement_inf_norm": 2.0613427631488435e-11,
+        "component_conservation_relative_error": 3.781616043880865e-14,
+        "energy_conservation_relative_error": 1.975651387126207e-14,
+        "maximum_bubble_residual": 3.330669073875464e-15,
+        "inventory_lbmol": [
+          [
+            976.3983709048017,
+            393.8997161507889,
+            18.601912944408458
+          ],
+          [
+            16.437339835963318,
+            15.063337993809485,
+            1.35856940093036
+          ],
+          [
+            16.017284536957252,
+            25.84916524115304,
+            3.989219349264565
+          ],
+          [
+            14.800863419781546,
+            33.93707385439111,
+            5.686995357605107
+          ],
+          [
+            143.6184695541813,
+            530.1615018625085,
+            120.22002858334552
+          ]
+        ],
+        "rate_coordinates": [
+          [
+            -2.2764829878780147e-13,
+            -9.756355662334349e-14,
+            -5.081435240799141e-15
+          ],
+          [
+            -4.4279626688323705e-12,
+            -4.2587508753137594e-12,
+            -3.9158810324408373e-13
+          ],
+          [
+            1.6291081382002044e-12,
+            -3.3029329065194414e-13,
+            -2.996776433261293e-13
+          ],
+          [
+            2.2358315059516217e-13,
+            -1.5854077951293317e-12,
+            -3.450294528502616e-13
+          ],
+          [
+            2.813082549306404e-12,
+            6.276588809435098e-12,
+            1.0366127891230246e-12
+          ]
+        ],
+        "algebraic_coordinates": [
+          0.15896908601115248,
+          -0.021558316089799707,
+          -0.05729356160337507,
+          -0.11299987250763588,
+          -0.20971510616054032,
+          -4.227926918722376,
+          -4.441413629919709,
+          0.009712979541377733,
+          -0.20319497251081833,
+          0.19384730206137674,
+          -0.37434900389953957,
+          1.4690571761291096,
+          -0.09876387757125167,
+          0.06807226631869337,
+          0.03344428392980829,
+          0.01783830071898779,
+          -0.03578263229294109,
+          -0.0011087313398514872,
+          0.033871396850814535,
+          0.04158689520714969,
+          -8.026569322661443,
+          -6.650747613731819,
+          0.0452305212507813
+        ],
+        "temperature_F": [
+          133.71329349338205,
+          154.42216839102002,
+          173.92464383966248,
+          184.8240127492364,
+          199.74048938394594
+        ],
+        "physical": {
+          "positive_inventory": true,
+          "positive_liquid_composition": true,
+          "positive_vapor_composition": true,
+          "positive_bubble_composition": true,
+          "positive_flows": true,
+          "ordered_temperature": true,
+          "negative_condenser_duty": true,
+          "hydraulic_height_below_spacing": true,
+          "all_finite": true
+        },
+        "physical_pass": true,
+        "index": 1,
+        "time_seconds": 1.0
+      },
+      {
+        "success": true,
+        "status": 3,
+        "message": "`xtol` termination condition is satisfied.",
+        "nfev": 2,
+        "njev": 2,
+        "cost": 6.017131984073734e-26,
+        "optimality": 1.0078144697211311e-10,
+        "wall_clock_sec": 0.8303073999704793,
+        "residual_inf_norm": 3.064021813176012e-13,
+        "jacobian_rank": 38,
+        "jacobian_condition": 183316.36442077986,
+        "coordinate_movement_inf_norm": 5.940513213566128e-12,
+        "step_seconds": 1.0,
+        "component_rate_max_abs_lbmolph": 7.448761607520282e-08,
+        "relative_inventory_movement_max": 9.09216810235863e-13,
+        "algebraic_movement_inf_norm": 2.145866817571118e-12,
+        "component_conservation_relative_error": 8.952689497824018e-14,
+        "energy_conservation_relative_error": 4.210154815107683e-13,
+        "maximum_bubble_residual": 4.884981308350701e-15,
+        "inventory_lbmol": [
+          [
+            976.3983709048016,
+            393.8997161507888,
+            18.60191294440845
+          ],
+          [
+            16.437339835949455,
+            15.063337993796099,
+            1.3585694009291247
+          ],
+          [
+            16.017284536960933,
+            25.849165241150725,
+            3.9892193492634864
+          ],
+          [
+            14.800863419782408,
+            33.93707385438614,
+            5.686995357603975
+          ],
+          [
+            143.61846955419068,
+            530.1615018625292,
+            120.22002858334899
+          ]
+        ],
+        "rate_coordinates": [
+          [
+            -3.25211855411145e-14,
+            -3.25211855411145e-14,
+            -2.032574096319656e-15
+          ],
+          [
+            -3.965552061919649e-12,
+            -3.829369597466232e-12,
+            -3.533503030570702e-13
+          ],
+          [
+            1.052873381893582e-12,
+            -6.626191554002079e-13,
+            -3.085701549975278e-13
+          ],
+          [
+            2.464496091787583e-13,
+            -1.4207692933274396e-12,
+            -3.2368742483890525e-13
+          ],
+          [
+            2.682997807141946e-12,
+            5.918855768482839e-12,
+            9.918961590039923e-13
+          ]
+        ],
+        "algebraic_coordinates": [
+          0.1589690860111554,
+          -0.021558316089812426,
+          -0.05729356160346974,
+          -0.11299987250769362,
+          -0.20971510616054662,
+          -4.227926918722308,
+          -4.441413629919687,
+          0.009712979541900304,
+          -0.20319497251063218,
+          0.19384730206165407,
+          -0.37434900389947995,
+          1.469057176129149,
+          -0.09876387757124211,
+          0.0680722663165475,
+          0.03344428392983128,
+          0.01783830071878319,
+          -0.0357826322924515,
+          -0.001108731339322954,
+          0.03387139685123671,
+          0.04158689520760153,
+          -8.026569322661443,
+          -6.650747613731817,
+          0.045230521251816445
+        ],
+        "temperature_F": [
+          133.71329349338234,
+          154.42216839101877,
+          173.92464383965302,
+          184.82401274923063,
+          199.74048938394532
+        ],
+        "physical": {
+          "positive_inventory": true,
+          "positive_liquid_composition": true,
+          "positive_vapor_composition": true,
+          "positive_bubble_composition": true,
+          "positive_flows": true,
+          "ordered_temperature": true,
+          "negative_condenser_duty": true,
+          "hydraulic_height_below_spacing": true,
+          "all_finite": true
+        },
+        "physical_pass": true,
+        "index": 2,
+        "time_seconds": 2.0
+      },
+      {
+        "success": true,
+        "status": 3,
+        "message": "`xtol` termination condition is satisfied.",
+        "nfev": 2,
+        "njev": 2,
+        "cost": 6.535752110995581e-26,
+        "optimality": 7.190828452634013e-11,
+        "wall_clock_sec": 0.8097395000513643,
+        "residual_inf_norm": 2.813427633053305e-13,
+        "jacobian_rank": 38,
+        "jacobian_condition": 183316.3616702402,
+        "coordinate_movement_inf_norm": 5.561473677744546e-12,
+        "step_seconds": 1.0,
+        "component_rate_max_abs_lbmolph": 6.998561730142683e-08,
+        "relative_inventory_movement_max": 8.098452803744018e-13,
+        "algebraic_movement_inf_norm": 2.2902166274541003e-12,
+        "component_conservation_relative_error": 1.062576811117737e-13,
+        "energy_conservation_relative_error": 5.413165631749419e-13,
+        "maximum_bubble_residual": 2.664535259100372e-15,
+        "inventory_lbmol": [
+          [
+            976.3983709048027,
+            393.8997161507891,
+            18.60191294440846
+          ],
+          [
+            16.437339835936935,
+            15.063337993784156,
+            1.3585694009280245
+          ],
+          [
+            16.017284536962766,
+            25.849165241147425,
+            3.9892193492623953
+          ],
+          [
+            14.80086341978319,
+            33.93707385438162,
+            5.686995357602908
+          ],
+          [
+            143.61846955419955,
+            530.1615018625487,
+            120.22002858335225
+          ]
+        ],
+        "rate_coordinates": [
+          [
+            3.25211855411145e-13,
+            9.756355662334349e-14,
+            3.048861144479484e-15
+          ],
+          [
+            -3.5813955577152343e-12,
+            -3.416248912389262e-12,
+            -3.1473139522699673e-13
+          ],
+          [
+            5.244041168504712e-13,
+            -9.441306677404803e-13,
+            -3.121271596660872e-13
+          ],
+          [
+            2.2358315059516217e-13,
+            -1.2927171252593013e-12,
+            -3.0539425797202833e-13
+          ],
+          [
+            2.536652472206931e-12,
+            5.561122727530579e-12,
+            9.309189361144024e-13
+          ]
+        ],
+        "algebraic_coordinates": [
+          0.15896908601115337,
+          -0.02155831608982302,
+          -0.05729356160354964,
+          -0.11299987250774185,
+          -0.2097151061605554,
+          -4.227926918722255,
+          -4.441413629919668,
+          0.009712979542311788,
+          -0.2031949725104765,
+          0.1938473020619082,
+          -0.3743490038994181,
+          1.4690571761291837,
+          -0.09876387757123249,
+          0.06807226631462408,
+          0.03344428392972203,
+          0.017838300718598828,
+          -0.03578263229180421,
+          -0.001108731338750259,
+          0.03387139685191598,
+          0.04158689520829276,
+          -8.026569322661443,
+          -6.65074761373182,
+          0.04523052124952623
+        ],
+        "temperature_F": [
+          133.71329349338214,
+          154.4221683910177,
+          173.92464383964503,
+          184.8240127492258,
+          199.74048938394446
+        ],
+        "physical": {
+          "positive_inventory": true,
+          "positive_liquid_composition": true,
+          "positive_vapor_composition": true,
+          "positive_bubble_composition": true,
+          "positive_flows": true,
+          "ordered_temperature": true,
+          "negative_condenser_duty": true,
+          "hydraulic_height_below_spacing": true,
+          "all_finite": true
+        },
+        "physical_pass": true,
+        "index": 3,
+        "time_seconds": 3.0
+      },
+      {
+        "success": true,
+        "status": 3,
+        "message": "`xtol` termination condition is satisfied.",
+        "nfev": 2,
+        "njev": 2,
+        "cost": 4.215019413855032e-26,
+        "optimality": 9.396139991461795e-11,
+        "wall_clock_sec": 0.8245429999660701,
+        "residual_inf_norm": 2.8567736533988547e-13,
+        "jacobian_rank": 38,
+        "jacobian_condition": 183316.36289692964,
+        "coordinate_movement_inf_norm": 5.869109579149012e-12,
+        "step_seconds": 1.0,
+        "component_rate_max_abs_lbmolph": 7.366907084360719e-08,
+        "relative_inventory_movement_max": 7.751959969362056e-13,
+        "algebraic_movement_inf_norm": 2.1461513122211784e-12,
+        "component_conservation_relative_error": 4.0903047777658375e-14,
+        "energy_conservation_relative_error": 2.785234340291108e-13,
+        "maximum_bubble_residual": 1.887379141862768e-15,
+        "inventory_lbmol": [
+          [
+            976.3983709048017,
+            393.8997161507886,
+            18.601912944408433
+          ],
+          [
+            16.437339835926316,
+            15.063337993773093,
+            1.3585694009269713
+          ],
+          [
+            16.0172845369637,
+            25.849165241143265,
+            3.9892193492612846
+          ],
+          [
+            14.800863419784136,
+            33.937073854376884,
+            5.686995357601766
+          ],
+          [
+            143.61846955420924,
+            530.1615018625691,
+            120.22002858335559
+          ]
+        ],
+        "rate_coordinates": [
+          [
+            -2.926906698700305e-13,
+            -1.4634533493501524e-13,
+            -8.130296385278624e-15
+          ],
+          [
+            -3.037681986949726e-12,
+            -3.1647178679697046e-12,
+            -3.0126559183887903e-13
+          ],
+          [
+            2.672834936660348e-13,
+            -1.1900721333951586e-12,
+            -3.1771673843096625e-13
+          ],
+          [
+            2.708404983345942e-13,
+            -1.3557269222452106e-12,
+            -3.264822142213448e-13
+          ],
+          [
+            2.772431067380011e-12,
+            5.8538133974006096e-12,
+            9.553098252702384e-13
+          ]
+        ],
+        "algebraic_coordinates": [
+          0.15896908601115398,
+          -0.021558316089845944,
+          -0.057293561603614186,
+          -0.11299987250779932,
+          -0.2097151061605596,
+          -4.22792691872212,
+          -4.441413629919628,
+          0.009712979542665166,
+          -0.20319497251035606,
+          0.19384730206219164,
+          -0.3743490038993521,
+          1.4690571761292246,
+          -0.09876387757122279,
+          0.06807226631290704,
+          0.03344428392953494,
+          0.017838300718401933,
+          -0.03578263229305701,
+          -0.0011087313399294626,
+          0.03387139685062105,
+          0.041586895206984914,
+          -8.026569322661441,
+          -6.650747613731818,
+          0.04523052125167238
+        ],
+        "temperature_F": [
+          133.7132934933822,
+          154.42216839101542,
+          173.92464383963858,
+          184.82401274922006,
+          199.74048938394404
+        ],
+        "physical": {
+          "positive_inventory": true,
+          "positive_liquid_composition": true,
+          "positive_vapor_composition": true,
+          "positive_bubble_composition": true,
+          "positive_flows": true,
+          "ordered_temperature": true,
+          "negative_condenser_duty": true,
+          "hydraulic_height_below_spacing": true,
+          "all_finite": true
+        },
+        "physical_pass": true,
+        "index": 4,
+        "time_seconds": 4.0
+      },
+      {
+        "success": true,
+        "status": 3,
+        "message": "`xtol` termination condition is satisfied.",
+        "nfev": 2,
+        "njev": 2,
+        "cost": 1.0221638872954876e-25,
+        "optimality": 1.4782153396203748e-10,
+        "wall_clock_sec": 0.8219864999409765,
+        "residual_inf_norm": 4.494440484579137e-13,
+        "jacobian_rank": 38,
+        "jacobian_condition": 183316.36543040362,
+        "coordinate_movement_inf_norm": 5.3132308760902795e-12,
+        "step_seconds": 1.0,
+        "component_rate_max_abs_lbmolph": 6.71207089908421e-08,
+        "relative_inventory_movement_max": 6.732094268148231e-13,
+        "algebraic_movement_inf_norm": 2.0058954497415016e-12,
+        "component_conservation_relative_error": 9.003540774171658e-14,
+        "energy_conservation_relative_error": 4.17482972567824e-13,
+        "maximum_bubble_residual": 4.2188474935756035e-15,
+        "inventory_lbmol": [
+          [
+            976.3983709048026,
+            393.8997161507888,
+            18.601912944408436
+          ],
+          [
+            16.437339835916507,
+            15.063337993763366,
+            1.3585694009260567
+          ],
+          [
+            16.017284536963388,
+            25.849165241138763,
+            3.989219349260218
+          ],
+          [
+            14.800863419784607,
+            33.9370738543724,
+            5.6869953576006935
+          ],
+          [
+            143.61846955421805,
+            530.1615018625878,
+            120.22002858335865
+          ]
+        ],
+        "rate_coordinates": [
+          [
+            2.60169484328916e-13,
+            4.8781778311671746e-14,
+            1.016287048159828e-15
+          ],
+          [
+            -2.805968539969285e-12,
+            -2.7825939378616092e-12,
+            -2.6163039696064575e-13
+          ],
+          [
+            -8.943326023806486e-14,
+            -1.2876356900185021e-12,
+            -3.0514018620998837e-13
+          ],
+          [
+            1.3465803388117722e-13,
+            -1.282554254777703e-12,
+            -3.069186885442681e-13
+          ],
+          [
+            2.5203918794363734e-12,
+            5.3334744287427774e-12,
+            8.780720096100914e-13
+          ]
+        ],
+        "algebraic_coordinates": [
+          0.15896908601115176,
+          -0.02155831608985931,
+          -0.05729356160366155,
+          -0.11299987250784414,
+          -0.20971510616056804,
+          -4.227926918722039,
+          -4.441413629919599,
+          0.009712979542926737,
+          -0.2031949725102585,
+          0.19384730206242481,
+          -0.3743490038992936,
+          1.4690571761292655,
+          -0.0987638775712108,
+          0.06807226631137196,
+          0.033444283929278736,
+          0.017838300718206697,
+          -0.03578263229193411,
+          -0.0011087313388344463,
+          0.03387139685174513,
+          0.04158689520811457,
+          -8.026569322661437,
+          -6.650747613731816,
+          0.045230521249666485
+        ],
+        "temperature_F": [
+          133.71329349338197,
+          154.42216839101408,
+          173.92464383963383,
+          184.82401274921557,
+          199.74048938394318
+        ],
+        "physical": {
+          "positive_inventory": true,
+          "positive_liquid_composition": true,
+          "positive_vapor_composition": true,
+          "positive_bubble_composition": true,
+          "positive_flows": true,
+          "ordered_temperature": true,
+          "negative_condenser_duty": true,
+          "hydraulic_height_below_spacing": true,
+          "all_finite": true
+        },
+        "physical_pass": true,
+        "index": 5,
+        "time_seconds": 5.0
+      }
+    ],
+    "per_step_gates": [
+      {
+        "success": true,
+        "residual": true,
+        "rank": true,
+        "condition": true,
+        "storage_bubble": true,
+        "component_conservation": true,
+        "energy_conservation": true,
+        "physical": true
+      },
+      {
+        "success": true,
+        "residual": true,
+        "rank": true,
+        "condition": true,
+        "storage_bubble": true,
+        "component_conservation": true,
+        "energy_conservation": true,
+        "physical": true
+      },
+      {
+        "success": true,
+        "residual": true,
+        "rank": true,
+        "condition": true,
+        "storage_bubble": true,
+        "component_conservation": true,
+        "energy_conservation": true,
+        "physical": true
+      },
+      {
+        "success": true,
+        "residual": true,
+        "rank": true,
+        "condition": true,
+        "storage_bubble": true,
+        "component_conservation": true,
+        "energy_conservation": true,
+        "physical": true
+      },
+      {
+        "success": true,
+        "residual": true,
+        "rank": true,
+        "condition": true,
+        "storage_bubble": true,
+        "component_conservation": true,
+        "energy_conservation": true,
+        "physical": true
+      }
+    ],
+    "per_step_pass": true,
+    "total_inventory_history_lbmol": [
+      2316.0398489898903,
+      2316.0398489898903,
+      2316.0398489898903,
+      2316.03984898989,
+      2316.03984898989,
+      2316.0398489898903
+    ],
+    "total_inventory_accumulation_lbmol": 0.0,
+    "total_inventory_strictly_increasing": false,
+    "maximum_component_rate_abs_lbmolph": 7.898961484897882e-08,
+    "relative_inventory_drift_from_initial": 4.175075214354075e-12,
+    "algebraic_drift_from_initial": 1.3292020262234416e-11,
+    "endpoint_inventory_lbmol": [
+      [
+        976.3983709048026,
+        393.8997161507888,
+        18.601912944408436
+      ],
+      [
+        16.437339835916507,
+        15.063337993763366,
+        1.3585694009260567
+      ],
+      [
+        16.017284536963388,
+        25.849165241138763,
+        3.989219349260218
+      ],
+      [
+        14.800863419784607,
+        33.9370738543724,
+        5.6869953576006935
+      ],
+      [
+        143.61846955421805,
+        530.1615018625878,
+        120.22002858335865
+      ]
+    ],
+    "endpoint_algebraic_coordinates": [
+      0.15896908601115176,
+      -0.02155831608985931,
+      -0.05729356160366155,
+      -0.11299987250784414,
+      -0.20971510616056804,
+      -4.227926918722039,
+      -4.441413629919599,
+      0.009712979542926737,
+      -0.2031949725102585,
+      0.19384730206242481,
+      -0.3743490038992936,
+      1.4690571761292655,
+      -0.0987638775712108,
+      0.06807226631137196,
+      0.033444283929278736,
+      0.017838300718206697,
+      -0.03578263229193411,
+      -0.0011087313388344463,
+      0.03387139685174513,
+      0.04158689520811457,
+      -8.026569322661437,
+      -6.650747613731816,
+      0.045230521249666485
+    ],
+    "endpoint_temperature_F": [
+      133.71329349338197,
+      154.42216839101408,
+      173.92464383963383,
+      184.82401274921557,
+      199.74048938394318
+    ],
+    "gates": {
+      "completed": true,
+      "component_rate": true,
+      "inventory_drift": true,
+      "algebraic_drift": true
+    },
+    "pass": true
+  },
+  "perturbed": [
+    {
+      "name": "dd100_feed_step_1s",
+      "step_seconds": 1.0,
+      "duration_seconds": 10.0,
+      "requested_steps": 10,
+      "completed_steps": 10,
+      "completed": true,
+      "steps": [
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 6.684148114211845e-27,
+          "optimality": 2.9270672814022954e-11,
+          "wall_clock_sec": 2.1249383999966085,
+          "residual_inf_norm": 8.899479802195578e-14,
+          "jacobian_rank": 38,
+          "jacobian_condition": 183292.50812608172,
+          "coordinate_movement_inf_norm": 0.0002716014466136342,
+          "step_seconds": 1.0,
+          "component_rate_max_abs_lbmolph": 3.418112659819883,
+          "relative_inventory_movement_max": 4.8274215760985466e-05,
+          "algebraic_movement_inf_norm": 7.666861205720549e-05,
+          "component_conservation_relative_error": 9.488956493118254e-14,
+          "energy_conservation_relative_error": 1.20164888548301e-13,
+          "maximum_bubble_residual": 3.9968028886505714e-15,
+          "inventory_lbmol": [
+            [
+              976.3983721362646,
+              393.899716723175,
+              18.601912988658594
+            ],
+            [
+              16.4373381856196,
+              15.063338166750366,
+              1.3585702045738666
+            ],
+            [
+              16.017855188900114,
+              25.850114716893035,
+              3.989411925701197
+            ],
+            [
+              14.800944762465662,
+              33.93720681602336,
+              5.6870190816751025
+            ],
+            [
+              143.61847935755122,
+              530.1615209951515,
+              120.22003189993146
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              3.52271270446557e-07,
+              1.6373631533320332e-07,
+              1.2658161087232155e-08
+            ],
+            [
+              -4.7210071793639593e-07,
+              4.9467101319727844e-08,
+              2.2988936620462522e-07
+            ],
+            [
+              0.00016324033872652387,
+              0.0002716064347323663,
+              5.5088294458684004e-05
+            ],
+            [
+              2.3268837457062788e-05,
+              3.8034919598325855e-05,
+              6.786492247959181e-06
+            ],
+            [
+              2.8043486678477788e-06,
+              5.47307812191512e-06,
+              9.487415295567958e-07
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908605537727,
+            -0.021558268200743417,
+            -0.05729248835456479,
+            -0.11300025208820877,
+            -0.2097151138053988,
+            -4.227927615008186,
+            -4.44141420664669,
+            0.009700323425820868,
+            -0.20320635549878263,
+            0.1938487674847788,
+            -0.3743491983518837,
+            1.4690572192463582,
+            -0.09876386823881923,
+            0.06807224346913957,
+            0.033520952533829834,
+            0.01784750673425497,
+            -0.03578239599380031,
+            -0.0011077171166867916,
+            0.03387192818386498,
+            0.04158772290477961,
+            -8.026569323783482,
+            -6.650747614655764,
+            0.045229708078414685
+          ],
+          "temperature_F": [
+            133.71329349780453,
+            154.42217317992566,
+            173.92475116454352,
+            184.82397479117913,
+            199.7404886194601
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 1,
+          "time_seconds": 1.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 4,
+          "cost": 2.322475576214696e-26,
+          "optimality": 5.327188457248981e-11,
+          "wall_clock_sec": 1.7147318000206724,
+          "residual_inf_norm": 1.620057510414903e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 183316.2865767265,
+          "coordinate_movement_inf_norm": 0.0002339551262958648,
+          "step_seconds": 1.0,
+          "component_rate_max_abs_lbmolph": 2.944325049958252,
+          "relative_inventory_movement_max": 4.220060280510481e-05,
+          "algebraic_movement_inf_norm": 6.626923843237875e-05,
+          "component_conservation_relative_error": 4.637868797194429e-14,
+          "energy_conservation_relative_error": 2.5733689244118693e-13,
+          "maximum_bubble_residual": 3.1086244689504336e-15,
+          "inventory_lbmol": [
+            [
+              976.3983727566401,
+              393.8997171513479,
+              18.60191305746075
+            ],
+            [
+              16.437335660646458,
+              15.063338121205824,
+              1.3585716390638842
+            ],
+            [
+              16.018349280254526,
+              25.850932584962468,
+              3.9895802812892995
+            ],
+            [
+              14.801087029519499,
+              33.9374383886451,
+              5.687060579610214
+            ],
+            [
+              143.6185062636517,
+              530.161573498815,
+              120.22004101566642
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              1.7746423947678243e-07,
+              1.2248286626244417e-07,
+              1.9681501359062322e-08
+            ],
+            [
+              -7.222922340329688e-07,
+              -1.3028443240655092e-08,
+              4.103493153308581e-07
+            ],
+            [
+              0.0001413394631525735,
+              0.00023395882731217437,
+              4.815969400935036e-05
+            ],
+            [
+              4.0696824249385804e-05,
+              6.624351902692399e-05,
+              1.18708733075427e-05
+            ],
+            [
+              7.69674224094165e-06,
+              1.5019165067184323e-05,
+              2.607641431498613e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908616442415,
+            -0.021558194332256798,
+            -0.05729156507537269,
+            -0.11300092094192084,
+            -0.20971513477746817,
+            -4.227928828385712,
+            -4.441415258002877,
+            0.009688980173209585,
+            -0.20321676363930266,
+            0.1938513323244998,
+            -0.3743495665163022,
+            1.4690573374774691,
+            -0.09876384274525414,
+            0.0680722025326359,
+            0.03358722177226221,
+            0.01786356873482437,
+            -0.03578198376368073,
+            -0.0011068150165826495,
+            0.03387134160929546,
+            0.041587395629179943,
+            -8.026569326855624,
+            -6.650747617261283,
+            0.04523000064830323
+          ],
+          "temperature_F": [
+            133.7132935087092,
+            154.42218056677433,
+            173.92484349246274,
+            184.8239079058079,
+            199.74048652225318
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 2,
+          "time_seconds": 2.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 4,
+          "cost": 4.451531138461295e-26,
+          "optimality": 8.829170010919607e-11,
+          "wall_clock_sec": 1.7496716000605375,
+          "residual_inf_norm": 2.684744135152456e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 183630.24732067966,
+          "coordinate_movement_inf_norm": 0.00020132468307818759,
+          "step_seconds": 1.0,
+          "component_rate_max_abs_lbmolph": 2.5336653607027415,
+          "relative_inventory_movement_max": 3.690872187238414e-05,
+          "algebraic_movement_inf_norm": 5.727675494898027e-05,
+          "component_conservation_relative_error": 9.626332427870079e-14,
+          "energy_conservation_relative_error": 3.5507247721922707e-13,
+          "maximum_bubble_residual": 2.997602166487927e-15,
+          "inventory_lbmol": [
+            [
+              976.3983728250723,
+              393.89971747047286,
+              18.601913164416256
+            ],
+            [
+              16.43733255069909,
+              15.063337777234453,
+              1.3585735977559639
+            ],
+            [
+              16.018777681797467,
+              25.851636380895997,
+              3.989727531598289
+            ],
+            [
+              14.801273709442695,
+              33.937740810763685,
+              5.687115028193387
+            ],
+            [
+              143.61855554842583,
+              530.1616696539645,
+              120.22005773749073
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              1.9575672339876295e-08,
+              9.128869143674207e-08,
+              3.059562545467902e-08
+            ],
+            [
+              -8.896295948339635e-07,
+              -9.839623464751695e-08,
+              5.603022286173641e-07
+            ],
+            [
+              0.00012254827685668227,
+              0.0002013274236144191,
+              4.212233109487298e-05
+            ],
+            [
+              5.340154182079594e-05,
+              8.651068168841725e-05,
+              1.557552757470767e-05
+            ],
+            [
+              1.4098371594057851e-05,
+              2.7506081811192438e-05,
+              4.783434580861476e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908635067175,
+            -0.021558102752780427,
+            -0.05729078493180747,
+            -0.11300180610782896,
+            -0.2097151731753074,
+            -4.227930461520379,
+            -4.441416710974613,
+            0.009678848006410579,
+            -0.20322629803742454,
+            0.19385470255550055,
+            -0.37435008916753565,
+            1.4690575538470618,
+            -0.09876379627678473,
+            0.06807214660579146,
+            0.03364449852721119,
+            0.017884586353541912,
+            -0.0357814443940112,
+            -0.0011060124297611817,
+            0.03387084253524199,
+            0.04158711668234584,
+            -8.026569332547176,
+            -6.65074762218762,
+            0.04523024057111557
+          ],
+          "temperature_F": [
+            133.71329352733397,
+            154.42218972472196,
+            173.92492150681926,
+            184.8238193892171,
+            199.74048268246923
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 3,
+          "time_seconds": 3.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 8.223059940208124e-27,
+          "optimality": 2.5388983107171808e-11,
+          "wall_clock_sec": 2.2175277000060305,
+          "residual_inf_norm": 8.9672079589855e-14,
+          "jacobian_rank": 38,
+          "jacobian_condition": 183310.98757089596,
+          "coordinate_movement_inf_norm": 0.00017305609092695934,
+          "step_seconds": 1.0,
+          "component_rate_max_abs_lbmolph": 2.1779017760309216,
+          "relative_inventory_movement_max": 3.2297571322006366e-05,
+          "algebraic_movement_inf_norm": 4.950137941676924e-05,
+          "component_conservation_relative_error": 1.3856366418770027e-13,
+          "energy_conservation_relative_error": 1.9927606473076963e-13,
+          "maximum_bubble_residual": 2.4424906541753475e-15,
+          "inventory_lbmol": [
+            [
+              976.3983723988339,
+              393.89971770140164,
+              18.601913320514537
+            ],
+            [
+              16.437329111569504,
+              15.063337065095999,
+              1.3585759869286749
+            ],
+            [
+              16.019149685057968,
+              25.85224135361156,
+              3.9898563901077964
+            ],
+            [
+              14.801491528222758,
+              33.93809179394357,
+              5.687178541051585
+            ],
+            [
+              143.6186308626991,
+              530.1618165603701,
+              120.22008332825914
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -1.2192950202986932e-07,
+              6.605934107528519e-08,
+              4.465337641315497e-08
+            ],
+            [
+              -9.837952536401463e-07,
+              -2.0371388004108185e-07,
+              6.834452482052399e-07
+            ],
+            [
+              0.00010641501953198045,
+              0.00017305811582471884,
+              3.686118446266968e-05
+            ],
+            [
+              6.230910369877793e-05,
+              0.00010040202844594125,
+              1.816844840717375e-05
+            ],
+            [
+              2.154435380284675e-05,
+              4.2023954299764123e-05,
+              7.320479169132772e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908661928544,
+            -0.021558000740349473,
+            -0.057290139189138424,
+            -0.1130028488966361,
+            -0.20971523182705581,
+            -4.227932428794101,
+            -4.441418501360792,
+            0.009669826416884488,
+            -0.2032350479562621,
+            0.19385864326679222,
+            -0.3743507484870754,
+            1.4690578841861637,
+            -0.09876372562943996,
+            0.06807207764288362,
+            0.03369399990662796,
+            0.01790903220659842,
+            -0.0357808172729597,
+            -0.001105298538047751,
+            0.03387041862011876,
+            0.04158687764631366,
+            -8.026569341387916,
+            -6.6507476299699455,
+            0.04523043812526999
+          ],
+          "temperature_F": [
+            133.71329355419533,
+            154.42219992596506,
+            173.92498608108616,
+            184.8237151103364,
+            199.7404768172944
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 4,
+          "time_seconds": 4.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 4,
+          "njev": 4,
+          "cost": 9.607330213078186e-26,
+          "optimality": 9.10752018676482e-11,
+          "wall_clock_sec": 1.8198097000131384,
+          "residual_inf_norm": 3.9458424145807796e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 183311.00558985793,
+          "coordinate_movement_inf_norm": 0.00014857941302538261,
+          "step_seconds": 1.0,
+          "component_rate_max_abs_lbmolph": 1.869860980778526,
+          "relative_inventory_movement_max": 2.8279201643249083e-05,
+          "algebraic_movement_inf_norm": 4.277901312775556e-05,
+          "component_conservation_relative_error": 3.1803959894367847e-14,
+          "energy_conservation_relative_error": 2.498973434866488e-13,
+          "maximum_bubble_residual": 3.441691376337991e-15,
+          "inventory_lbmol": [
+            [
+              976.3983715381729,
+              393.8997178546743,
+              18.601913534558655
+            ],
+            [
+              16.437325560196957,
+              15.063335925022376,
+              1.3585787243877245
+            ],
+            [
+              16.019473237331503,
+              25.852760759439555,
+              3.98996922006118
+            ],
+            [
+              14.801729885427113,
+              33.93847357866881,
+              5.687248007939051
+            ],
+            [
+              143.618734562138,
+              530.1620187828922,
+              120.22011861620186
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -2.462001391644724e-07,
+              4.384507860712334e-08,
+              6.122932610361736e-08
+            ],
+            [
+              -1.015903404880583e-06,
+              -3.261287460289901e-07,
+              7.830758199401961e-07
+            ],
+            [
+              9.255516056883839e-05,
+              0.0001485809055987005,
+              3.227606574442751e-05
+            ],
+            [
+              6.818431247824363e-05,
+              0.00010921309920471562,
+              1.9871654287364834e-05
+            ],
+            [
+              2.9664196496942076e-05,
+              5.784764793505467e-05,
+              1.009444677716149e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.1589690869692516,
+            -0.02155789454399211,
+            -0.057289617991593274,
+            -0.11300400232553058,
+            -0.2097153125492473,
+            -4.2279346556104835,
+            -4.4414205727798794,
+            0.009661818130334987,
+            -0.20324309231565038,
+            0.1938629679155483,
+            -0.37435152798859733,
+            1.4690583386010914,
+            -0.09876362887401254,
+            0.0680720010774983,
+            0.03373677891975572,
+            0.017935689677944976,
+            -0.035780132301285336,
+            -0.0011046616910174556,
+            0.03387006128694657,
+            0.04158667425631948,
+            -8.026569353786154,
+            -6.650747641052104,
+            0.045230599282630186
+          ],
+          "temperature_F": [
+            133.71329358919195,
+            154.4222105456008,
+            173.92503820084067,
+            184.82359976744695,
+            199.74046874507525
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 5,
+          "time_seconds": 5.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 4,
+          "njev": 4,
+          "cost": 1.6322573136014871e-25,
+          "optimality": 1.2980301685925257e-10,
+          "wall_clock_sec": 1.7356169000267982,
+          "residual_inf_norm": 5.622791576699216e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 183311.05800010494,
+          "coordinate_movement_inf_norm": 0.00012739637904509417,
+          "step_seconds": 1.0,
+          "component_rate_max_abs_lbmolph": 1.6032717602428193,
+          "relative_inventory_movement_max": 2.4776883340141723e-05,
+          "algebraic_movement_inf_norm": 3.6967242447387416e-05,
+          "component_conservation_relative_error": 5.0406951058677497e-14,
+          "energy_conservation_relative_error": 6.343194371764108e-13,
+          "maximum_bubble_residual": 2.997602166487927e-15,
+          "inventory_lbmol": [
+            [
+              976.3983702976597,
+              393.899717928922,
+              18.601913813296324
+            ],
+            [
+              16.437322083745176,
+              15.063334312209404,
+              1.358581738555258
+            ],
+            [
+              16.01975513642849,
+              25.85320611270629,
+              3.990068079063076
+            ],
+            [
+              14.80198038843134,
+              33.93887215021438,
+              5.687320961021074
+            ],
+            [
+              143.61886797857792,
+              530.1622788811962,
+              120.2201640845301
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -3.5486044463341284e-07,
+              2.1239244804453697e-08,
+              7.973552299638133e-08
+            ],
+            [
+              -9.94471617380846e-07,
+              -4.6136026764258276e-07,
+              8.622308754082332e-07
+            ],
+            [
+              8.06398789929928e-05,
+              0.00012739747633993542,
+              2.82795441188071e-05
+            ],
+            [
+              7.165873237719089e-05,
+              0.000114015126505084,
+              2.0868912917499626e-05
+            ],
+            [
+              3.816502318041961e-05,
+              7.440355781894744e-05,
+              1.3006641476904332e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908739437446,
+            -0.021557789473415453,
+            -0.057289210926643165,
+            -0.11300522903401743,
+            -0.20971541636024466,
+            -4.227937077162788,
+            -4.441422875673284,
+            0.009654730304851167,
+            -0.20325050107990636,
+            0.19386752962894058,
+            -0.374352412408781,
+            1.4690589226848754,
+            -0.0987635050796092,
+            0.06807191601191839,
+            0.033773746162203105,
+            0.017963594518580723,
+            -0.03577941604778707,
+            -0.001104095871196867,
+            0.03386975875712311,
+            0.041586497715397776,
+            -8.026569370044832,
+            -6.650747655797731,
+            0.045230734110640776
+          ],
+          "temperature_F": [
+            133.71329363170423,
+            154.42222105265847,
+            173.9250789073357,
+            184.82347709659825,
+            199.74045836397553
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 6,
+          "time_seconds": 6.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 4,
+          "njev": 4,
+          "cost": 8.52489854413028e-27,
+          "optimality": 3.234584333459928e-11,
+          "wall_clock_sec": 1.6871740999631584,
+          "residual_inf_norm": 9.834128365896484e-14,
+          "jacobian_rank": 38,
+          "jacobian_condition": 183308.12805727075,
+          "coordinate_movement_inf_norm": 0.00011568757019453657,
+          "step_seconds": 1.0,
+          "component_rate_max_abs_lbmolph": 1.4559136077593848,
+          "relative_inventory_movement_max": 2.1723859409784557e-05,
+          "algebraic_movement_inf_norm": 3.194313253429559e-05,
+          "component_conservation_relative_error": 8.143817132006633e-14,
+          "energy_conservation_relative_error": 1.65312906460052e-13,
+          "maximum_bubble_residual": 3.219646771412959e-15,
+          "inventory_lbmol": [
+            [
+              976.3983687351927,
+              393.8997179164685,
+              18.601914161869708
+            ],
+            [
+              16.437318834788353,
+              15.063332194193142,
+              1.358584967270939
+            ],
+            [
+              16.020001201237925,
+              25.853587412827647,
+              3.990154758741061
+            ],
+            [
+              14.802236455517972,
+              33.93927657066098,
+              5.68739546131056
+            ],
+            [
+              143.61903164273843,
+              530.1625978473237,
+              120.22021994585944
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -4.469583282087889e-07,
+              -3.5624357065447645e-09,
+              9.971268359978136e-08
+            ],
+            [
+              -9.293945522913669e-07,
+              -6.058784043412622e-07,
+              9.236043839338753e-07
+            ],
+            [
+              7.038914515650896e-05,
+              0.0001090744737213646,
+              2.47955343546284e-05
+            ],
+            [
+              7.325039030209635e-05,
+              0.00011568825946851638,
+              2.1311506114478194e-05
+            ],
+            [
+              4.681766717285983e-05,
+              9.124325049477867e-05,
+              1.5979656858810166e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908788423317,
+            -0.021557689892989902,
+            -0.05728890744924071,
+            -0.11300649950118495,
+            -0.20971554365412431,
+            -4.2279396378583085,
+            -4.44142536660817,
+            0.009648475402754318,
+            -0.20325733634037735,
+            0.19387221372283328,
+            -0.3743533876742894,
+            1.4690596385040275,
+            -0.09876335408888426,
+            0.0680718254429645,
+            0.0338056892947374,
+            0.017991994209421283,
+            -0.035778686476545564,
+            -0.0011035915246738063,
+            0.033869505089935165,
+            0.04158634597026075,
+            -8.026569390376595,
+            -6.650747674500209,
+            0.045230845899154645
+          ],
+          "temperature_F": [
+            133.71329368069013,
+            154.422231010701,
+            173.92510925507594,
+            184.8233500498815,
+            199.74044563458756
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 7,
+          "time_seconds": 7.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 4,
+          "njev": 4,
+          "cost": 4.336346868632414e-26,
+          "optimality": 6.705835331494504e-11,
+          "wall_clock_sec": 1.675835800007917,
+          "residual_inf_norm": 2.905199285503648e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 183308.20831357222,
+          "coordinate_movement_inf_norm": 0.00011495347111882063,
+          "step_seconds": 1.0,
+          "component_rate_max_abs_lbmolph": 1.4466750078838686,
+          "relative_inventory_movement_max": 1.9061964065240463e-05,
+          "algebraic_movement_inf_norm": 2.8313490607782127e-05,
+          "component_conservation_relative_error": 6.911726717201201e-14,
+          "energy_conservation_relative_error": 2.727267145347853e-13,
+          "maximum_bubble_residual": 3.108624468950443e-15,
+          "inventory_lbmol": [
+            [
+              976.3983669072419,
+              393.89971780316364,
+              18.601914583970316
+            ],
+            [
+              16.43731593646157,
+              15.063329550788692,
+              1.3585883567745771
+            ],
+            [
+              16.020216414880572,
+              25.8539133387747,
+              3.990230818927687
+            ],
+            [
+              14.80249298931024,
+              33.939678424829836,
+              5.687470004193159
+            ],
+            [
+              143.61922546768227,
+              530.1629754652549,
+              120.22028620319129
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -5.229024511081103e-07,
+              -3.2411914357696354e-08,
+              1.2074583555373874e-07
+            ],
+            [
+              -8.29093543168267e-07,
+              -7.561706201125483e-07,
+              9.69599286245726e-07
+            ],
+            [
+              6.156387972242211e-05,
+              9.323417212740672e-05,
+              2.175772931259402e-05
+            ],
+            [
+              7.338389582378086e-05,
+              0.00011495415166580865,
+              2.1323690273696586e-05
+            ],
+            [
+              5.544544194641698e-05,
+              0.00010802114872284884,
+              1.8953530820340025e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.1589690884250959,
+            -0.021557599327125747,
+            -0.057288697192536,
+            -0.11300779061569825,
+            -0.20971569434438186,
+            -4.227942290237531,
+            -4.441428007532193,
+            0.00964297168586653,
+            -0.20326365330177873,
+            0.19387693173842907,
+            -0.37435444081991903,
+            1.469060485414182,
+            -0.09876317633185987,
+            0.06807173106744689,
+            0.03383328949283789,
+            0.018020307700029065,
+            -0.035777958758220416,
+            -0.0011031422586647932,
+            0.033869293070965145,
+            0.04158621483192555,
+            -8.026569414917208,
+            -6.65074769739147,
+            0.045230939759970556
+          ],
+          "temperature_F": [
+            133.71329373477639,
+            154.42224006728742,
+            173.9251302807464,
+            184.82322093843018,
+            199.7404305655618
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 8,
+          "time_seconds": 8.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 4,
+          "njev": 4,
+          "cost": 2.5298016249855935e-26,
+          "optimality": 5.929841602311984e-11,
+          "wall_clock_sec": 1.7390762000577524,
+          "residual_inf_norm": 1.8029235337476886e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 183308.31141533336,
+          "coordinate_movement_inf_norm": 0.00012447524999716195,
+          "step_seconds": 1.0,
+          "component_rate_max_abs_lbmolph": 1.5664967691009224,
+          "relative_inventory_movement_max": 1.7099402544116537e-05,
+          "algebraic_movement_inf_norm": 2.7786584503360773e-05,
+          "component_conservation_relative_error": 6.028084636896492e-14,
+          "energy_conservation_relative_error": 3.0727720561770335e-13,
+          "maximum_bubble_residual": 2.8865798640254113e-15,
+          "inventory_lbmol": [
+            [
+              976.3983648694483,
+              393.89971757022863,
+              18.601915082070565
+            ],
+            [
+              16.43731348496021,
+              15.063326373086278,
+              1.358591860793991
+            ],
+            [
+              16.020405046768875,
+              25.854191420146115,
+              3.9902976175875526
+            ],
+            [
+              14.80274610309652,
+              33.940071355827776,
+              5.687543440308786
+            ],
+            [
+              143.6194488976653,
+              530.1634106032463,
+              120.22036269965443
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -5.829299578163428e-07,
+              -6.663324243652923e-08,
+              1.4248624503911263e-07
+            ],
+            [
+              -7.01274942254685e-07,
+              -9.090115608298865e-07,
+              1.002357597279942e-06
+            ],
+            [
+              5.395991973580293e-05,
+              7.954778280924454e-05,
+              1.910838277259138e-05
+            ],
+            [
+              7.240557105479972e-05,
+              0.00011240159498627548,
+              2.1007089207310864e-05
+            ],
+            [
+              6.391424090456221e-05,
+              0.0001244753010855097,
+              2.188253029798138e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908900068793,
+            -0.021557520535976992,
+            -0.05728857017838814,
+            -0.11300908447721378,
+            -0.2097158679801533,
+            -4.227944994138434,
+            -4.441430765169421,
+            0.009638143424153395,
+            -0.2032695011220931,
+            0.19388161643495969,
+            -0.37435555993289027,
+            1.4690614607196153,
+            -0.09876297267589688,
+            0.06807163436619874,
+            0.033857135805961204,
+            0.018048094284532426,
+            -0.035777244170263824,
+            -0.0011027420081472848,
+            0.03386911684945198,
+            0.04158610131014991,
+            -8.026569443737477,
+            -6.650747724649756,
+            0.04523101941845724
+          ],
+          "temperature_F": [
+            133.71329379233558,
+            154.4222479464023,
+            173.9251429821612,
+            184.8230915522786,
+            199.74041320198467
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 9,
+          "time_seconds": 9.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 4,
+          "njev": 4,
+          "cost": 1.9853119674533228e-26,
+          "optimality": 4.070193575260415e-11,
+          "wall_clock_sec": 1.6774555000010878,
+          "residual_inf_norm": 1.7619479988897867e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 183308.43126271642,
+          "coordinate_movement_inf_norm": 0.00014041170726859537,
+          "step_seconds": 1.0,
+          "component_rate_max_abs_lbmolph": 1.7670540717062977,
+          "relative_inventory_movement_max": 1.6671925687299522e-05,
+          "algebraic_movement_inf_norm": 2.693294994134815e-05,
+          "component_conservation_relative_error": 6.931045208025677e-14,
+          "energy_conservation_relative_error": 1.594651145472743e-13,
+          "maximum_bubble_residual": 3.5527136788004946e-15,
+          "inventory_lbmol": [
+            [
+              976.3983626762805,
+              393.89971719554023,
+              18.601915657612444
+            ],
+            [
+              16.437311552526005,
+              15.063322662175146,
+              1.3585954396953281
+            ],
+            [
+              16.020570756668555,
+              25.854428186546443,
+              3.9903563369030266
+            ],
+            [
+              14.80299289337952,
+              33.940450677739236,
+              5.687614909523722
+            ],
+            [
+              143.6197010291314,
+              530.1639014515996,
+              120.22044915901304
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -6.273762067987865e-07,
+              -1.0718312817929192e-07,
+              1.6463914917674182e-07
+            ],
+            [
+              -5.527909176112164e-07,
+              -1.0615409125115504e-06,
+              1.0237782732687558e-06
+            ],
+            [
+              4.740287003734993e-05,
+              6.772924807532694e-05,
+              1.679721057992773e-05
+            ],
+            [
+              7.059667366947716e-05,
+              0.00010850858823782852,
+              2.0444438828667417e-05
+            ],
+            [
+              7.212456915502644e-05,
+              0.00014041177227340108,
+              2.473250993314483e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908959293454,
+            -0.021557455601034243,
+            -0.05728851695961713,
+            -0.11301036741055813,
+            -0.20971606384063635,
+            -4.227947715873055,
+            -4.441433610478235,
+            0.009633920918672474,
+            -0.20327492363935706,
+            0.19388621767911673,
+            -0.3743567340957467,
+            1.4690625602087,
+            -0.09876274430411773,
+            0.06807153662632996,
+            0.03387773758005202,
+            0.018075027234473774,
+            -0.035776551082329126,
+            -0.0011023853947742409,
+            0.033868971361698884,
+            0.041586002920460025,
+            -8.0265694768539,
+            -6.650747756406534,
+            0.04523108792631495
+          ],
+          "temperature_F": [
+            133.71329385156025,
+            154.4222544398966,
+            173.9251483040383,
+            184.82296325894418,
+            199.74039361593634
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 10,
+          "time_seconds": 10.0
+        }
+      ],
+      "per_step_gates": [
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        }
+      ],
+      "per_step_pass": true,
+      "total_inventory_history_lbmol": [
+        2316.0398489898903,
+        2316.0418331493347,
+        2316.0438173087796,
+        2316.0458014682235,
+        2316.047785627668,
+        2316.0497697871124,
+        2316.051753946557,
+        2316.0537381060008,
+        2316.0557222654456,
+        2316.057706424889,
+        2316.0596905843345
+      ],
+      "total_inventory_accumulation_lbmol": 0.01984159444418765,
+      "total_inventory_strictly_increasing": true,
+      "maximum_component_rate_abs_lbmolph": 3.418112659819883,
+      "relative_inventory_drift_from_initial": 0.0002850150713380023,
+      "algebraic_drift_from_initial": 0.00043345365827938964,
+      "endpoint_inventory_lbmol": [
+        [
+          976.3983626762805,
+          393.89971719554023,
+          18.601915657612444
+        ],
+        [
+          16.437311552526005,
+          15.063322662175146,
+          1.3585954396953281
+        ],
+        [
+          16.020570756668555,
+          25.854428186546443,
+          3.9903563369030266
+        ],
+        [
+          14.80299289337952,
+          33.940450677739236,
+          5.687614909523722
+        ],
+        [
+          143.6197010291314,
+          530.1639014515996,
+          120.22044915901304
+        ]
+      ],
+      "endpoint_algebraic_coordinates": [
+        0.15896908959293454,
+        -0.021557455601034243,
+        -0.05728851695961713,
+        -0.11301036741055813,
+        -0.20971606384063635,
+        -4.227947715873055,
+        -4.441433610478235,
+        0.009633920918672474,
+        -0.20327492363935706,
+        0.19388621767911673,
+        -0.3743567340957467,
+        1.4690625602087,
+        -0.09876274430411773,
+        0.06807153662632996,
+        0.03387773758005202,
+        0.018075027234473774,
+        -0.035776551082329126,
+        -0.0011023853947742409,
+        0.033868971361698884,
+        0.041586002920460025,
+        -8.0265694768539,
+        -6.650747756406534,
+        0.04523108792631495
+      ],
+      "endpoint_temperature_F": [
+        133.71329385156025,
+        154.4222544398966,
+        173.9251483040383,
+        184.82296325894418,
+        199.74039361593634
+      ],
+      "expected_accumulation_relative_error": 1.2860052464173122e-11,
+      "gates": {
+        "completed": true,
+        "monotone_inventory": true,
+        "nonzero_rate": true,
+        "nonzero_accumulation": true,
+        "expected_accumulation": true
+      },
+      "pass": true
+    },
+    {
+      "name": "dd100_feed_step_0.5s",
+      "step_seconds": 0.5,
+      "duration_seconds": 10.0,
+      "requested_steps": 20,
+      "completed_steps": 20,
+      "completed": true,
+      "steps": [
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 5.693430450428349e-25,
+          "optimality": 6.248143763193973e-10,
+          "wall_clock_sec": 2.199885300011374,
+          "residual_inf_norm": 9.506324087033268e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732769.9363125802,
+          "coordinate_movement_inf_norm": 0.00029176858703391326,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 3.6718855353655044,
+          "relative_inventory_movement_max": 2.5759345533760287e-05,
+          "algebraic_movement_inf_norm": 4.112221268215421e-05,
+          "component_conservation_relative_error": 1.4973976887948938e-13,
+          "energy_conservation_relative_error": 1.4332793273032529e-12,
+          "maximum_bubble_residual": 2.2204460492503107e-15,
+          "inventory_lbmol": [
+            [
+              976.3983716807893,
+              393.89971647837564,
+              18.601912962269065
+            ],
+            [
+              16.437339267794762,
+              15.063338124403169,
+              1.3585696308618644
+            ],
+            [
+              16.017590468339705,
+              25.84967522525633,
+              3.9893221089452404
+            ],
+            [
+              14.800886574794042,
+              33.93711183852556,
+              5.687002109334907
+            ],
+            [
+              143.61847095252452,
+              530.1615045919465,
+              120.22002905545196
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              4.4395659026215853e-07,
+              1.8741832394720674e-07,
+              1.0218378047594674e-08
+            ],
+            [
+              -3.2506873780387493e-07,
+              7.470657694904555e-08,
+              1.3154734094343652e-07
+            ],
+            [
+              0.00017502908227903235,
+              0.00029177146520926073,
+              5.879073909155537e-05
+            ],
+            [
+              1.3247417169721234e-05,
+              2.173143221536268e-05,
+              3.8627904993903645e-06
+            ],
+            [
+              8.000239936545588e-07,
+              1.5615751646444946e-06,
+              2.7010301541007834e-07
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908601908918,
+            -0.02155829973502281,
+            -0.057292986788465235,
+            -0.11299997988037763,
+            -0.20971510725175713,
+            -4.227927124662952,
+            -4.441413789910507,
+            0.009706310669908716,
+            -0.20320092102431178,
+            0.19384771910498272,
+            -0.3743490552055842,
+            1.4690571822872756,
+            -0.09876387623151563,
+            0.06807225982722107,
+            0.03348540613445478,
+            0.017840926675717808,
+            -0.035782564887653474,
+            -0.0011081945276164371,
+            0.03387224493951369,
+            0.0415878997077479,
+            -8.026569322827898,
+            -6.650747613860222,
+            0.045229547298508976
+          ],
+          "temperature_F": [
+            133.71329349417573,
+            154.42217002649772,
+            173.92470132115346,
+            184.82400201196222,
+            199.74048927482428
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 1,
+          "time_seconds": 0.5
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 1.2730165969663124e-26,
+          "optimality": 9.295166370719267e-11,
+          "wall_clock_sec": 2.237266600015573,
+          "residual_inf_norm": 1.414163913773544e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732850.7481568556,
+          "coordinate_movement_inf_norm": 0.0002701692726628496,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 3.400057318879135,
+          "relative_inventory_movement_max": 2.4024912097337683e-05,
+          "algebraic_movement_inf_norm": 3.813184221389265e-05,
+          "component_conservation_relative_error": 7.843307274737014e-14,
+          "energy_conservation_relative_error": 1.2604672874004686e-13,
+          "maximum_bubble_residual": 1.9984014443252798e-15,
+          "inventory_lbmol": [
+            [
+              976.3983722788826,
+              393.89971675408367,
+              18.601912982138927
+            ],
+            [
+              16.437338402520883,
+              15.063338218387077,
+              1.3585700473081317
+            ],
+            [
+              16.017874216542268,
+              25.850147455439508,
+              3.989417952058236
+            ],
+            [
+              14.800929775778704,
+              33.93718257105053,
+              5.6870147078110795
+            ],
+            [
+              143.61847496164492,
+              530.1615124162657,
+              120.22003040942262
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              3.4218036934856123e-07,
+              1.5773773387836643e-07,
+              1.136792065350922e-08
+            ],
+            [
+              -4.950394070893659e-07,
+              5.37699560040706e-08,
+              2.382567163712506e-07
+            ],
+            [
+              0.0001623376659502545,
+              0.00027017174042329916,
+              5.4833641660312545e-05
+            ],
+            [
+              2.471609318888561e-05,
+              4.0467403516005546e-05,
+              7.207824394678387e-06
+            ],
+            [
+              2.2936929390968884e-06,
+              4.476439723635522e-06,
+              7.746319967139143e-07
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908603862125,
+            -0.02155827470085546,
+            -0.05729245075083302,
+            -0.11300018088862936,
+            -0.20971511038018537,
+            -4.227927486159496,
+            -4.441414088507232,
+            0.0096999955856551,
+            -0.2032065981196117,
+            0.1938484972966716,
+            -0.3743491549861553,
+            1.4690571999397555,
+            -0.09876387239583272,
+            0.06807225184600577,
+            0.033523537976668676,
+            0.017845820634331135,
+            -0.035782452892608445,
+            -0.0011077028854143572,
+            0.03387188919334183,
+            0.0415876956944355,
+            -8.02656932328576,
+            -6.650747614227909,
+            0.04522973644882031
+          ],
+          "temperature_F": [
+            133.71329349612893,
+            154.42217252991446,
+            173.9247549249167,
+            184.82398191113705,
+            199.74048896198144
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 2,
+          "time_seconds": 1.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 2.2468083497601802e-26,
+          "optimality": 8.398834824529889e-11,
+          "wall_clock_sec": 2.0758749999804422,
+          "residual_inf_norm": 1.8225646992167658e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732187.2244687899,
+          "coordinate_movement_inf_norm": 0.0002501050122836992,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 3.1475481728449495,
+          "relative_inventory_movement_max": 2.2409924337315502e-05,
+          "algebraic_movement_inf_norm": 3.5357962408381904e-05,
+          "component_conservation_relative_error": 1.3193813733456537e-13,
+          "energy_conservation_relative_error": 9.113021865822133e-14,
+          "maximum_bubble_residual": 1.554312234475218e-15,
+          "inventory_lbmol": [
+            [
+              976.3983727448358,
+              393.8997170009105,
+              18.60191300701257
+            ],
+            [
+              16.437337278415928,
+              15.063338274773947,
+              1.358570635671054
+            ],
+            [
+              16.01813747781648,
+              25.85058461490796,
+              3.9895073546126913
+            ],
+            [
+              14.800990223319157,
+              33.937281358135834,
+              5.687032341497407
+            ],
+            [
+              143.61848259938444,
+              530.1615273248648,
+              120.22003299289865
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              2.6658058076174915e-07,
+              1.4121427236508035e-07,
+              1.4230677281155578e-08
+            ],
+            [
+              -6.431215176450375e-07,
+              3.225998554171875e-08,
+              3.3661345759593256e-07
+            ],
+            [
+              0.0001506167101849533,
+              0.0002501071270775022,
+              5.114887738223756e-05
+            ],
+            [
+              3.458317106895972e-05,
+              5.651794340854093e-05,
+              1.0088562516312268e-05
+            ],
+            [
+              4.36969395661998e-06,
+              8.529488994575603e-06,
+              1.4780550689674429e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908607293522,
+            -0.02155824195341063,
+            -0.05729195301023022,
+            -0.11300046301146997,
+            -0.20971511633613382,
+            -4.2279279900329145,
+            -4.441414515082211,
+            0.009694021125587631,
+            -0.20321201902352642,
+            0.19384958566776794,
+            -0.37434930069291483,
+            1.4690572335354888,
+            -0.09876386511685156,
+            0.06807223086229987,
+            0.03355889593907706,
+            0.01785266113364549,
+            -0.035782239921754624,
+            -0.001107189605505566,
+            0.033871612065356604,
+            0.041587555945206675,
+            -8.026569324149222,
+            -6.650747614937148,
+            0.04522986112085599
+          ],
+          "temperature_F": [
+            133.7132934995603,
+            154.42217580465893,
+            173.92480469897697,
+            184.823953698853,
+            199.74048836638661
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 3,
+          "time_seconds": 1.5
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 4,
+          "cost": 3.58823643838035e-25,
+          "optimality": 1.5158955568169079e-10,
+          "wall_clock_sec": 1.6829754000063986,
+          "residual_inf_norm": 7.338595981391077e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 733498.4965779744,
+          "coordinate_movement_inf_norm": 0.00023146395931525078,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 2.9129504296548703,
+          "relative_inventory_movement_max": 2.090577459569394e-05,
+          "algebraic_movement_inf_norm": 3.278548752629756e-05,
+          "component_conservation_relative_error": 4.670924881494087e-13,
+          "energy_conservation_relative_error": 9.942097458696295e-15,
+          "maximum_bubble_residual": 4.440892098500617e-15,
+          "inventory_lbmol": [
+            [
+              976.3983730044387,
+              393.8997171917153,
+              18.60191303734941
+            ],
+            [
+              16.437335951732372,
+              15.06333826676838,
+              1.3585713784865827
+            ],
+            [
+              16.018381835699277,
+              25.850989191356522,
+              3.9895907583541947
+            ],
+            [
+              14.801065429019859,
+              33.937403976728255,
+              5.687054277298735
+            ],
+            [
+              143.6184947869344,
+              530.1615511080223,
+              120.22003711487552
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              1.4852366898493018e-07,
+              1.0916298543384942e-07,
+              1.735627419549342e-08
+            ],
+            [
+              -7.5902053290448e-07,
+              -4.580135393701535e-09,
+              4.2497868907149815e-07
+            ],
+            [
+              0.00013980172558399238,
+              0.00023146577058474275,
+              4.7716844036015845e-05
+            ],
+            [
+              4.302659120937475e-05,
+              7.015239538422092e-05,
+              1.254988315773251e-05
+            ],
+            [
+              6.972725810889106e-06,
+              1.36067902723535e-05,
+              2.3582602407007327e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908612435365,
+            -0.02155820318128658,
+            -0.05729149329793264,
+            -0.11300081554062606,
+            -0.20971512584176535,
+            -4.227928619691645,
+            -4.441415058538866,
+            0.009688375724372323,
+            -0.20321719793117535,
+            0.19385094110070425,
+            -0.3743494894518502,
+            1.4690572871492,
+            -0.09876385350952342,
+            0.06807220984682984,
+            0.033591681426603355,
+            0.01786116014354209,
+            -0.03578209125299551,
+            -0.001106811432747379,
+            0.033871251944774534,
+            0.04158732582412184,
+            -8.026569325518928,
+            -6.650747616081187,
+            0.04523007099675424
+          ],
+          "temperature_F": [
+            133.71329350470216,
+            154.42217968187134,
+            173.92485067020672,
+            184.82391844593738,
+            199.74048741582345
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 4,
+          "time_seconds": 2.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 1.375745123822209e-26,
+          "optimality": 4.9163171366009724e-11,
+          "wall_clock_sec": 2.1432002999354154,
+          "residual_inf_norm": 1.0663798286573012e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 735077.3769827648,
+          "coordinate_movement_inf_norm": 0.00021415931270294644,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 2.695171631728499,
+          "relative_inventory_movement_max": 1.9505539026180543e-05,
+          "algebraic_movement_inf_norm": 3.0399331431216203e-05,
+          "component_conservation_relative_error": 1.4221271245454562e-13,
+          "energy_conservation_relative_error": 1.1099738943612985e-14,
+          "maximum_bubble_residual": 2.2204460492503107e-15,
+          "inventory_lbmol": [
+            [
+              976.3983731826295,
+              393.899717379632,
+              18.601913077271927
+            ],
+            [
+              16.437334434359684,
+              15.063338202847277,
+              1.3585722648934369
+            ],
+            [
+              16.018608721131997,
+              25.851363520749818,
+              3.9896685774724303
+            ],
+            [
+              14.801153131969961,
+              33.93754667345088,
+              5.6870798657342965
+            ],
+            [
+              143.61851221556643,
+              530.161585122676,
+              120.2200430181162
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              1.0194630671397734e-07,
+              1.0751068156006202e-07,
+              2.2840421309422277e-08
+            ],
+            [
+              -8.681173600840683e-07,
+              -3.657046136263565e-08,
+              5.071299782119949e-07
+            ],
+            [
+              0.0001298054093499984,
+              0.0002141608632420459,
+              4.452177637277368e-05
+            ],
+            [
+              5.017650187023565e-05,
+              8.163947006796178e-05,
+              1.463962367643309e-05
+            ],
+            [
+              9.971247103318237e-06,
+              1.946042103077611e-05,
+              3.3773546558115084e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908619508401,
+            -0.02155815871457613,
+            -0.05729107042836735,
+            -0.11300122808816952,
+            -0.20971513942690853,
+            -4.227929366465939,
+            -4.44141571040962,
+            0.009683044867507073,
+            -0.2032221481370579,
+            0.19385252128578273,
+            -0.37434971918352006,
+            1.4690573637463376,
+            -0.0987638369743103,
+            0.068072184085528,
+            0.03362208075803457,
+            0.017871059430388372,
+            -0.03578175611610817,
+            -0.00110630833503578,
+            0.03387106727517719,
+            0.041587258900529236,
+            -8.02656932748849,
+            -6.650747617746441,
+            0.04523012155887578
+          ],
+          "temperature_F": [
+            133.7132935117752,
+            154.4221841285424,
+            173.92489295716325,
+            184.82387719118304,
+            199.74048605730914
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 5,
+          "time_seconds": 2.5
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 6,
+          "njev": 6,
+          "cost": 4.977339426920535e-25,
+          "optimality": 6.19486897640217e-10,
+          "wall_clock_sec": 2.601986699970439,
+          "residual_inf_norm": 9.425050298885364e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 735689.9391314118,
+          "coordinate_movement_inf_norm": 0.00019808509924341516,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 2.492878050648528,
+          "relative_inventory_movement_max": 1.8201280050294082e-05,
+          "algebraic_movement_inf_norm": 2.8186475252815757e-05,
+          "component_conservation_relative_error": 1.8750384094303797e-13,
+          "energy_conservation_relative_error": 6.339619302472453e-13,
+          "maximum_bubble_residual": 2.8865798640254113e-15,
+          "inventory_lbmol": [
+            [
+              976.3983731947986,
+              393.8997175315216,
+              18.601913126678692
+            ],
+            [
+              16.437332784292618,
+              15.06333805793208,
+              1.3585732791811782
+            ],
+            [
+              16.018819480097786,
+              25.851709753812408,
+              3.9897411945475167
+            ],
+            [
+              14.801251346140921,
+              33.93770606910074,
+              5.687108517879844
+            ],
+            [
+              143.61853554983213,
+              530.1616306568044,
+              120.22005092560359
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              6.962200443012874e-09,
+              8.689888424884582e-08,
+              2.8266536400327112e-08
+            ],
+            [
+              -9.440343013699997e-07,
+              -8.290870043773992e-08,
+              5.802930310958834e-07
+            ],
+            [
+              0.00012057915530483362,
+              0.00019808642573966438,
+              4.1545589967446894e-05
+            ],
+            [
+              5.619016837048419e-05,
+              9.119323938313235e-05,
+              1.6392429593117164e-05
+            ],
+            [
+              1.3349970844128951e-05,
+              2.6050928453773715e-05,
+              4.524021771021693e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908628646803,
+            -0.02155811020004977,
+            -0.05729068376982929,
+            -0.11300169220458425,
+            -0.20971515761318663,
+            -4.227930214941263,
+            -4.441416460761902,
+            0.009678016826039419,
+            -0.20322688212334916,
+            0.1938542925025751,
+            -0.37434998717589,
+            1.4690574662663545,
+            -0.09876381487965927,
+            0.06807215473244292,
+            0.03365026723328739,
+            0.0178821287190813,
+            -0.03578150771334731,
+            -0.0011059470252167314,
+            0.033870786053127586,
+            0.04158708641487937,
+            -8.026569330138907,
+            -6.650747620011239,
+            0.04523027256147106
+          ],
+          "temperature_F": [
+            133.7132935209136,
+            154.422188979995,
+            173.92493162301707,
+            184.82383077954157,
+            199.74048423868132
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 6,
+          "time_seconds": 3.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 6,
+          "njev": 5,
+          "cost": 3.3886539858827733e-26,
+          "optimality": 7.115231202097434e-11,
+          "wall_clock_sec": 2.06311290001031,
+          "residual_inf_norm": 1.816056040645918e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 738767.1185182265,
+          "coordinate_movement_inf_norm": 0.00018316449987196187,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 2.305102871332565,
+          "relative_inventory_movement_max": 1.698689332865539e-05,
+          "algebraic_movement_inf_norm": 2.6134207533633214e-05,
+          "component_conservation_relative_error": 6.199089055676108e-14,
+          "energy_conservation_relative_error": 6.80284613783397e-14,
+          "maximum_bubble_residual": 2.5535129566378632e-15,
+          "inventory_lbmol": [
+            [
+              976.39837310073,
+              393.8997176720146,
+              18.601913188077013
+            ],
+            [
+              16.437331023361114,
+              15.063337830620577,
+              1.358574410404367
+            ],
+            [
+              16.01901533450153,
+              25.85202990698898,
+              3.9898089678555975
+            ],
+            [
+              14.801358276266246,
+              33.937879168770756,
+              5.687139712940495
+            ],
+            [
+              143.61856527919636,
+              530.1616886670328,
+              120.22006100918583
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -5.381839935879523e-08,
+              8.037867923852222e-08,
+              3.512713049683906e-08
+            ],
+            [
+              -1.007461924450019e-06,
+              -1.300491721177724e-07,
+              6.471939927591506e-07
+            ],
+            [
+              0.00011205197595062712,
+              0.00018316563404524228,
+              3.8774380060167005e-05
+            ],
+            [
+              6.117672925588327e-05,
+              9.90335662152427e-05,
+              1.7847278994324087e-05
+            ],
+            [
+              1.7008726594725522e-05,
+              3.318873913599686e-05,
+              5.7690064302813996e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908639956195,
+            -0.021558058266156505,
+            -0.05729033206262253,
+            -0.11300219978566868,
+            -0.20971518077661863,
+            -4.227931155681757,
+            -4.441417301680874,
+            0.009673277985938769,
+            -0.20323141157289465,
+            0.19385622208277994,
+            -0.3743502913069961,
+            1.4690575968099646,
+            -0.09876378680817774,
+            0.0680721219917148,
+            0.03367640144082102,
+            0.017894162446851207,
+            -0.03578116789724274,
+            -0.0011055418607822658,
+            0.03387059233326695,
+            0.04158699178767029,
+            -8.026569333543508,
+            -6.650747622947509,
+            0.045230347246231796
+          ],
+          "temperature_F": [
+            133.713293532223,
+            154.42219417338436,
+            173.92496679373775,
+            184.82378002143312,
+            199.74048192233812
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 7,
+          "time_seconds": 3.5
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 6,
+          "njev": 6,
+          "cost": 1.030811157366027e-25,
+          "optimality": 1.7756589143411586e-10,
+          "wall_clock_sec": 2.5186483999714255,
+          "residual_inf_norm": 3.853393480562538e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 733065.1580207136,
+          "coordinate_movement_inf_norm": 0.0001693173798202627,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 2.130837558189569,
+          "relative_inventory_movement_max": 1.585620384945789e-05,
+          "algebraic_movement_inf_norm": 2.4230548645698402e-05,
+          "component_conservation_relative_error": 1.3800557445277098e-13,
+          "energy_conservation_relative_error": 1.8476298582060083e-13,
+          "maximum_bubble_residual": 2.7755575615628953e-15,
+          "inventory_lbmol": [
+            [
+              976.3983729615426,
+              393.8997178258596,
+              18.601913263868628
+            ],
+            [
+              16.4373291716978,
+              15.063337520692407,
+              1.3585756484696283
+            ],
+            [
+              16.019197409694662,
+              25.85232585664984,
+              3.989872231079912
+            ],
+            [
+              14.801472322700352,
+              33.93806330911295,
+              5.687172986888963
+            ],
+            [
+              143.61860179428052,
+              530.1617599172906,
+              120.22007340783998
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -7.963176517019945e-08,
+              8.801761303146015e-08,
+              4.3361803627111895e-08
+            ],
+            [
+              -1.059371293631217e-06,
+              -1.773157162387032e-07,
+              7.083203452290795e-07
+            ],
+            [
+              0.00010416863125081766,
+              0.00016931834897571427,
+              3.619407658969054e-05
+            ],
+            [
+              6.524810291504463e-05,
+              0.00010535014174105054,
+              1.9036649685890463e-05
+            ],
+            [
+              2.0890964176163705e-05,
+              4.0763608209732296e-05,
+              7.093502469412729e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908653516714,
+            -0.021558003476864172,
+            -0.05729001393310591,
+            -0.11300274358307459,
+            -0.20971520921561637,
+            -4.227932179991864,
+            -4.441418225799351,
+            0.009668814813584337,
+            -0.2032357474527917,
+            0.19385828090011956,
+            -0.3743506295436551,
+            1.469057757038397,
+            -0.09876375244082838,
+            0.06807208503429497,
+            0.03370063198946672,
+            0.017906977174906333,
+            -0.03578073847968668,
+            -0.001105088845745108,
+            0.03387048708224077,
+            0.04158697622566682,
+            -8.026569337768565,
+            -6.6507476266212295,
+            0.045230344628570285
+          ],
+          "temperature_F": [
+            133.7132935457835,
+            154.4221996523136,
+            173.9249986066894,
+            184.82372564169253,
+            199.74047907843834
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 8,
+          "time_seconds": 4.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 6.011324044430977e-26,
+          "optimality": 1.564314199792101e-10,
+          "wall_clock_sec": 2.118350900011137,
+          "residual_inf_norm": 3.3948738590947745e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732084.0556639351,
+          "coordinate_movement_inf_norm": 0.0001564475649476906,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.9688717282065227,
+          "relative_inventory_movement_max": 1.480215943353425e-05,
+          "algebraic_movement_inf_norm": 2.2466998669562477e-05,
+          "component_conservation_relative_error": 3.537430319859497e-14,
+          "energy_conservation_relative_error": 4.0027156754943026e-13,
+          "maximum_bubble_residual": 2.8865798640254113e-15,
+          "inventory_lbmol": [
+            [
+              976.3983725128838,
+              393.89971788349743,
+              18.60191334996099
+            ],
+            [
+              16.437327319659797,
+              15.063337074983814,
+              1.3585769750767691
+            ],
+            [
+              16.01936678757036,
+              25.852599311056537,
+              3.989931289804796
+            ],
+            [
+              14.801592119082324,
+              33.93825608220462,
+              5.687207914165555
+            ],
+            [
+              143.6186455509571,
+              530.1618452715423,
+              120.22008826494447
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -2.566860751032361e-07,
+              3.2975669109051575e-08,
+              4.9255055059703396e-08
+            ],
+            [
+              -1.0595856610908595e-06,
+              -2.5499824183424504e-07,
+              7.589768143952781e-07
+            ],
+            [
+              9.690425791554079e-05,
+              0.00015644839236273305,
+              3.378860364597818e-05
+            ],
+            [
+              6.853775587980018e-05,
+              0.00011028909955005185,
+              1.998254969972706e-05
+            ],
+            [
+              2.5034014950016808e-05,
+              4.8832767497973205e-05,
+              8.500027995681833e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.1589690866926493,
+            -0.021557948448682796,
+            -0.05728972906713655,
+            -0.11300331849092428,
+            -0.2097152433001956,
+            -4.227933268292801,
+            -4.441419223038288,
+            0.009664618444281571,
+            -0.2032399000672878,
+            0.19386044954991624,
+            -0.37435099881812645,
+            1.469057949050443,
+            -0.09876371130127304,
+            0.06807205024429729,
+            0.03372309898813628,
+            0.0179204127629028,
+            -0.03578064158283718,
+            -0.0011050050451012344,
+            0.03387004825420545,
+            0.041586622074327395,
+            -8.026569342864272,
+            -6.650747631090143,
+            0.04523066835670201
+          ],
+          "temperature_F": [
+            133.7132935615317,
+            154.42220515513173,
+            173.92502709328633,
+            184.82366815090757,
+            199.74047566998044
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 9,
+          "time_seconds": 4.5
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 4.136204596939368e-26,
+          "optimality": 1.4387602041359532e-10,
+          "wall_clock_sec": 2.083520199987106,
+          "residual_inf_norm": 2.1889740274502367e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732375.0810861158,
+          "coordinate_movement_inf_norm": 0.0001445194776295771,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.818757607520638,
+          "relative_inventory_movement_max": 1.3821419886541472e-05,
+          "algebraic_movement_inf_norm": 2.0829308814071523e-05,
+          "component_conservation_relative_error": 7.707362339305521e-14,
+          "energy_conservation_relative_error": 4.218581764152297e-14,
+          "maximum_bubble_residual": 3.9968028886505714e-15,
+          "inventory_lbmol": [
+            [
+              976.3983720107682,
+              393.8997179466389,
+              18.601913452171754
+            ],
+            [
+              16.43732543760496,
+              15.063336527480867,
+              1.3585783870512256
+            ],
+            [
+              16.019524397234473,
+              25.852851916279803,
+              3.989986436320471
+            ],
+            [
+              14.801716369047963,
+              33.93845542402007,
+              5.687244136649518
+            ],
+            [
+              143.6186966874769,
+              530.1619450136627,
+              120.22010564470514
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -2.872697784945532e-07,
+              3.612440281432782e-08,
+              5.8476693324222546e-08
+            ],
+            [
+              -1.076758853207201e-06,
+              -3.1323669918121207e-07,
+              8.078170560167899e-07
+            ],
+            [
+              9.017144345752957e-05,
+              0.00014452018367559582,
+              3.1550355417556335e-05
+            ],
+            [
+              7.10857345845659e-05,
+              0.00011404718956671697,
+              2.072356211751294e-05
+            ],
+            [
+              2.9256161604944767e-05,
+              5.706433687134037e-05,
+              9.943286892094817e-06
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.1589690868719421,
+            -0.021557892311532333,
+            -0.05728947528805115,
+            -0.11300391790310255,
+            -0.20971528312031085,
+            -4.227934420390099,
+            -4.441420288966687,
+            0.009660673164391863,
+            -0.2032438790500499,
+            0.19386270103275768,
+            -0.3743513979446946,
+            1.4690581733075505,
+            -0.09876366337485387,
+            0.06807201042614158,
+            0.03374392829695035,
+            0.01793432217676203,
+            -0.03578021303399207,
+            -0.0011046212166985656,
+            0.033869946143372555,
+            0.04158659355885037,
+            -8.0265693488808,
+            -6.650747636408468,
+            0.045230677427345996
+          ],
+          "temperature_F": [
+            133.713293579461,
+            154.42221076884678,
+            173.92505247119487,
+            184.82360820968975,
+            199.74047168796892
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 10,
+          "time_seconds": 5.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 4,
+          "njev": 4,
+          "cost": 1.3059248384179309e-24,
+          "optimality": 1.0617711391533513e-09,
+          "wall_clock_sec": 1.7672072999412194,
+          "residual_inf_norm": 1.6154519957531884e-12,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732910.5491797731,
+          "coordinate_movement_inf_norm": 0.0001334503663893344,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.679453747323123,
+          "relative_inventory_movement_max": 1.290794518605052e-05,
+          "algebraic_movement_inf_norm": 1.9311182309425523e-05,
+          "component_conservation_relative_error": 9.393079538656042e-14,
+          "energy_conservation_relative_error": 1.6925399475061397e-12,
+          "maximum_bubble_residual": 3.663735981263024e-15,
+          "inventory_lbmol": [
+            [
+              976.3983714420218,
+              393.8997180075661,
+              18.601913571050293
+            ],
+            [
+              16.437323555559004,
+              15.063335868219845,
+              1.3585798744226678
+            ],
+            [
+              16.019671129087357,
+              25.85308517374471,
+              3.990037938846684
+            ],
+            [
+              14.801843967967514,
+              33.93865947845918,
+              5.687281327465272
+            ],
+            [
+              143.61875539851187,
+              530.1620595176715,
+              120.22012561624136
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -3.253904617621368e-07,
+              3.485760507394479e-08,
+              6.801264071670018e-08
+            ],
+            [
+              -1.0767537738045343e-06,
+              -3.771755898516973e-07,
+              8.509530849973232e-07
+            ],
+            [
+              8.394804373202443e-05,
+              0.00013345096841611492,
+              2.9465560734726795e-05
+            ],
+            [
+              7.300173389876518e-05,
+              0.00011674336990552551,
+              2.127756288776051e-05
+            ],
+            [
+              3.358968372660131e-05,
+              6.550988998688177e-05,
+              1.1426090265538969e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908707253085,
+            -0.02155783591987229,
+            -0.057289251306876406,
+            -0.11300453698983769,
+            -0.20971532882614155,
+            -4.227935626977414,
+            -4.441421416912391,
+            0.009656967161467155,
+            -0.20324769349377256,
+            0.19386501640990586,
+            -0.3743518248793171,
+            1.4690584306397878,
+            -0.09876360851340976,
+            0.06807196791863634,
+            0.03376323947925978,
+            0.017948579105583156,
+            -0.035779802172823366,
+            -0.001104281792162075,
+            0.03386983250337269,
+            0.041586546822222535,
+            -8.026569355860715,
+            -6.650747642625003,
+            0.04523070380917303
+          ],
+          "temperature_F": [
+            133.7132935995199,
+            154.4222164080128,
+            173.92507486931237,
+            184.82354630101622,
+            199.74046711738583
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 11,
+          "time_seconds": 5.5
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 2.381606173628652e-25,
+          "optimality": 2.7039408748712105e-10,
+          "wall_clock_sec": 2.264943700050935,
+          "residual_inf_norm": 5.867628863494779e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732375.1547542845,
+          "coordinate_movement_inf_norm": 0.00012317883303229483,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.550187432857797,
+          "relative_inventory_movement_max": 1.2057019715516954e-05,
+          "algebraic_movement_inf_norm": 1.7903537814258075e-05,
+          "component_conservation_relative_error": 1.3293983685879742e-13,
+          "energy_conservation_relative_error": 1.957605799273094e-13,
+          "maximum_bubble_residual": 2.8865798640254113e-15,
+          "inventory_lbmol": [
+            [
+              976.3983707785383,
+              393.89971805165425,
+              18.601913706723472
+            ],
+            [
+              16.437321704613293,
+              15.06333508585499,
+              1.3585814274783314
+            ],
+            [
+              16.019807806767503,
+              25.85330047755483,
+              3.9900860468127783
+            ],
+            [
+              14.80197394457182,
+              33.93886660997566,
+              5.687319197357054
+            ],
+            [
+              143.61882182595005,
+              530.1621890526801,
+              120.22014823002503
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -3.795913753052666e-07,
+              2.5223659153987194e-08,
+              7.76211692975833e-08
+            ],
+            [
+              -1.0589607400872237e-06,
+              -4.4760560041347484e-07,
+              8.885322594018564e-07
+            ],
+            [
+              7.819586302938276e-05,
+              0.00012317934594572794,
+              2.7523469254911696e-05
+            ],
+            [
+              7.436205192010877e-05,
+              0.0001185038235550158,
+              2.1666075013289094e-05
+            ],
+            [
+              3.8004382662431924e-05,
+              7.410940672019831e-05,
+              1.2937769565488413e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.1589690872934702,
+            -0.02155778015819245,
+            -0.057289055867970645,
+            -0.11300517154792994,
+            -0.2097153805277613,
+            -4.227936878859365,
+            -4.441422600477205,
+            0.009653489161711179,
+            -0.20325135194091848,
+            0.19386737936158976,
+            -0.37435227760494777,
+            1.4690587216518816,
+            -0.09876354661597787,
+            0.0680719235972385,
+            0.033781143017074036,
+            0.017963071661242478,
+            -0.0357794301207705,
+            -0.0011040044372322107,
+            0.03386968714080453,
+            0.041586461923588044,
+            -8.026569363839105,
+            -6.650747649783373,
+            0.04523076700694927
+          ],
+          "temperature_F": [
+            133.71329362161381,
+            154.42222198418077,
+            173.92509441320294,
+            184.823482845207,
+            199.74046194722385
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 12,
+          "time_seconds": 6.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 4,
+          "njev": 4,
+          "cost": 1.571895326970442e-25,
+          "optimality": 2.3865466813930665e-10,
+          "wall_clock_sec": 1.633675399934873,
+          "residual_inf_norm": 5.178833508941285e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 731491.7389219191,
+          "coordinate_movement_inf_norm": 0.00011944558883510567,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.5032034698720054,
+          "relative_inventory_movement_max": 1.1264436349503452e-05,
+          "algebraic_movement_inf_norm": 1.659848975447964e-05,
+          "component_conservation_relative_error": 1.7167698846017144e-13,
+          "energy_conservation_relative_error": 3.030467069559122e-13,
+          "maximum_bubble_residual": 4.6629367034256464e-15,
+          "inventory_lbmol": [
+            [
+              976.3983700282901,
+              393.8997180783162,
+              18.601913859896122
+            ],
+            [
+              16.437319904774817,
+              15.063334175417356,
+              1.3585830380770694
+            ],
+            [
+              16.01993518558642,
+              25.853499127312098,
+              3.9901309928830817
+            ],
+            [
+              14.802105439231289,
+              33.939075388235366,
+              5.68735749291592
+            ],
+            [
+              143.61889604334516,
+              530.1623337566956,
+              120.22017351530292
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -4.2923106249151297e-07,
+              1.5253801908575425e-08,
+              8.763294431858346e-08
+            ],
+            [
+              -1.0297213324214342e-06,
+              -5.208784371975973e-07,
+              9.214537309389167e-07
+            ],
+            [
+              7.287581019960666e-05,
+              0.00011365125010648916,
+              2.57144893986574e-05
+            ],
+            [
+              7.523055973666046e-05,
+              0.00011944595622274533,
+              2.1909607132176798e-05
+            ],
+            [
+              4.246116305297776e-05,
+              8.278787994878848e-05,
+              1.4466181486955952e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908753350764,
+            -0.021557725608887586,
+            -0.05728888758799204,
+            -0.11300581773298783,
+            -0.20971543827988182,
+            -4.227938168749446,
+            -4.441423834018469,
+            0.009650227771250791,
+            -0.20325486241571766,
+            0.1938697749422865,
+            -0.37435275430457293,
+            1.4690590466319975,
+            -0.09876347765801896,
+            0.06807187849860802,
+            0.033797741506828516,
+            0.01797770179175338,
+            -0.035779053989073197,
+            -0.001103742438751097,
+            0.033869555198690886,
+            0.04158638427167839,
+            -8.026569372845136,
+            -6.650747657922636,
+            0.04523082337576331
+          ],
+          "temperature_F": [
+            133.71329364561757,
+            154.42222743911125,
+            173.9251112412008,
+            184.82341822670122,
+            199.74045617201182
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 13,
+          "time_seconds": 6.5
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 6,
+          "njev": 6,
+          "cost": 3.4102624560603985e-25,
+          "optimality": 3.74566715243131e-10,
+          "wall_clock_sec": 2.660514199989848,
+          "residual_inf_norm": 8.127717455574432e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 735276.7716924305,
+          "coordinate_movement_inf_norm": 0.00011967298355985666,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.5060652046315681,
+          "relative_inventory_movement_max": 1.052615798209851e-05,
+          "algebraic_movement_inf_norm": 1.5388225405706113e-05,
+          "component_conservation_relative_error": 2.161238273496682e-13,
+          "energy_conservation_relative_error": 8.976828749949582e-13,
+          "maximum_bubble_residual": 3.774758283725539e-15,
+          "inventory_lbmol": [
+            [
+              976.3983691981105,
+              393.8997180860394,
+              18.601914031149843
+            ],
+            [
+              16.43731817455272,
+              15.06333313288401,
+              1.3585846986490884
+            ],
+            [
+              16.020053962460345,
+              25.853682330864267,
+              3.990172993632282
+            ],
+            [
+              14.802237698920989,
+              33.93928456395823,
+              5.687395991848167
+            ],
+            [
+              143.61897807866822,
+              530.1624936784157,
+              120.22020148584785
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -4.7496131292149086e-07,
+              4.418588437100145e-09,
+              9.797746391459574e-08
+            ],
+            [
+              -9.898924982741928e-07,
+              -5.964528714551319e-07,
+              9.500443818587147e-07
+            ],
+            [
+              6.795447621456171e-05,
+              0.00010481418660723939,
+              2.40294159813867e-05
+            ],
+            [
+              7.5668247873491e-05,
+              0.0001196733523481953,
+              2.2025960855603616e-05
+            ],
+            [
+              4.69339461920746e-05,
+              9.149421401198935e-05,
+              1.6002473104683285e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908779114954,
+            -0.021557672803352614,
+            -0.05728874509028707,
+            -0.11300647216271102,
+            -0.20971550210176487,
+            -4.227939489881944,
+            -4.44142511225156,
+            0.00964717197308618,
+            -0.20325823246885769,
+            0.1938721901044994,
+            -0.3743532532303116,
+            1.4690594056682755,
+            -0.09876340165860345,
+            0.06807183247803913,
+            0.03381312973223422,
+            0.017992383246849316,
+            -0.035778676671005996,
+            -0.0011034958424729696,
+            0.03386943454745309,
+            0.041586311906498086,
+            -8.026569382902478,
+            -6.65074766707757,
+            0.04523087497105524
+          ],
+          "temperature_F": [
+            133.71329367138176,
+            154.42223271966475,
+            173.92512549097128,
+            184.8233527837289,
+            199.74044978982351
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 14,
+          "time_seconds": 7.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 6,
+          "njev": 6,
+          "cost": 2.8569435595853674e-25,
+          "optimality": 3.4355483062688925e-10,
+          "wall_clock_sec": 2.562917299917899,
+          "residual_inf_norm": 7.45551549943447e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 733311.6745766272,
+          "coordinate_movement_inf_norm": 0.00011927952455947831,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.5011135713393742,
+          "relative_inventory_movement_max": 9.83846656903984e-06,
+          "algebraic_movement_inf_norm": 1.4655643380719063e-05,
+          "component_conservation_relative_error": 9.380200544773058e-14,
+          "energy_conservation_relative_error": 8.708868794470336e-13,
+          "maximum_bubble_residual": 2.997602166487927e-15,
+          "inventory_lbmol": [
+            [
+              976.398368291066,
+              393.89971807135515,
+              18.601914220898998
+            ],
+            [
+              16.43731653225324,
+              15.063331955308724,
+              1.3585864021441851
+            ],
+            [
+              16.020164781480783,
+              25.85385121155139,
+              3.9902122508158846
+            ],
+            [
+              14.802370067354243,
+              33.93949305195425,
+              5.687434500046757
+            ],
+            [
+              143.6190679199492,
+              530.1626687878377,
+              120.22023214170717
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -5.189371104338967e-07,
+              -8.401132818465027e-09,
+              1.0855904872518406e-07
+            ],
+            [
+              -9.395903179521401e-07,
+              -6.737128960361422e-07,
+              9.746014792987343e-07
+            ],
+            [
+              6.340163905318904e-05,
+              9.661980701243172e-05,
+              2.24597706708303e-05
+            ],
+            [
+              7.573046209963358e-05,
+              0.0001192798909271005,
+              2.2031262304794895e-05
+            ],
+            [
+              5.139988105244137e-05,
+              0.0001001833830032074,
+              1.753879180442788e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.1589690880646624,
+            -0.021557622241305318,
+            -0.05728862702051378,
+            -0.11300713187587572,
+            -0.20971557198186827,
+            -4.227940835890099,
+            -4.441426430201733,
+            0.009644311162503723,
+            -0.20326146921284577,
+            0.19387461353217614,
+            -0.3743537726943753,
+            1.4690597986750749,
+            -0.09876331867441666,
+            0.06807178392274578,
+            0.03382739414871252,
+            0.018007038890230035,
+            -0.03577830272072401,
+            -0.0011032675098745174,
+            0.03386931981373641,
+            0.04158623955227141,
+            -8.026569394029645,
+            -6.6507476772789484,
+            0.04523092703696511
+          ],
+          "temperature_F": [
+            133.71329369873303,
+            154.42223777586946,
+            173.92513729794862,
+            184.82328681241242,
+            199.74044280181317
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 15,
+          "time_seconds": 7.5
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 2.99015531391465e-25,
+          "optimality": 3.485127369550899e-10,
+          "wall_clock_sec": 2.06714059994556,
+          "residual_inf_norm": 7.562525987162544e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732248.2243567404,
+          "coordinate_movement_inf_norm": 0.00011834747834369362,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.4893838842681362,
+          "relative_inventory_movement_max": 9.197761049225486e-06,
+          "algebraic_movement_inf_norm": 1.4569403447045604e-05,
+          "component_conservation_relative_error": 9.893929300772071e-14,
+          "energy_conservation_relative_error": 6.323446369962588e-13,
+          "maximum_bubble_residual": 4.218847493575586e-15,
+          "inventory_lbmol": [
+            [
+              976.3983673225237,
+              393.8997180354793,
+              18.60191442971114
+            ],
+            [
+              16.4373149904302,
+              15.063330641683121,
+              1.3585881422892059
+            ],
+            [
+              16.020268232810746,
+              25.854006810443806,
+              3.9902489518347033
+            ],
+            [
+              14.802501971173662,
+              33.939699910827066,
+              5.687472848425409
+            ],
+            [
+              143.61916551968585,
+              530.1628589868071,
+              120.22026547132091
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -5.541212607318598e-07,
+              -2.0525258436491298e-08,
+              1.1946534131280764e-07
+            ],
+            [
+              -8.821058663245179e-07,
+              -7.515498332369204e-07,
+              9.955695878653222e-07
+            ],
+            [
+              5.918644521430949e-05,
+              8.902104327405003e-05,
+              2.0997340879045852e-05
+            ],
+            [
+              7.546464781455045e-05,
+              0.00011834783900166362,
+              2.1939826321351833e-05
+            ],
+            [
+              5.583863898246878e-05,
+              0.00010881639597224994,
+              1.9068496833274904e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.1589690883521424,
+            -0.02155757428654405,
+            -0.057288532002669146,
+            -0.11300779424435786,
+            -0.2097156478803504,
+            -4.2279422013620875,
+            -4.441427783345805,
+            0.009641634947834083,
+            -0.20326457935683223,
+            0.19387703523498614,
+            -0.37435431112131434,
+            1.4690602254068572,
+            -0.09876322879720965,
+            0.06807173439679585,
+            0.03384061967835609,
+            0.01802160829367708,
+            -0.035777924945053566,
+            -0.0011030440273211279,
+            0.03386922529873294,
+            0.041586182560012175,
+            -8.026569406240768,
+            -6.650747688553871,
+            0.045230964872419024
+          ],
+          "temperature_F": [
+            133.71329372748104,
+            154.4222425713456,
+            173.92514679973308,
+            184.82322057556422,
+            199.74043521196495
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 16,
+          "time_seconds": 8.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 3.343173615811718e-26,
+          "optimality": 1.0811550898592766e-10,
+          "wall_clock_sec": 2.1571605999488384,
+          "residual_inf_norm": 2.346103351202853e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732428.8356062789,
+          "coordinate_movement_inf_norm": 0.00011736167677124557,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.4769735158552066,
+          "relative_inventory_movement_max": 8.846259285150763e-06,
+          "algebraic_movement_inf_norm": 1.442416055464843e-05,
+          "component_conservation_relative_error": 2.2283521416202297e-13,
+          "energy_conservation_relative_error": 1.3816791605270396e-13,
+          "maximum_bubble_residual": 2.8865798640254027e-15,
+          "inventory_lbmol": [
+            [
+              976.3983662947185,
+              393.89971797399846,
+              18.60191465782263
+            ],
+            [
+              16.437313562003556,
+              15.063329188841136,
+              1.3585899128651562
+            ],
+            [
+              16.020364866126318,
+              25.854150097495015,
+              3.990283271440362
+            ],
+            [
+              14.802632917944168,
+              33.939904333224995,
+              5.687510890745703
+            ],
+            [
+              143.61927080273156,
+              530.1630641220177,
+              120.220301453193
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -5.880266129719752e-07,
+              -3.51743288999297e-08,
+              1.3050685902248527e-07
+            ],
+            [
+              -8.172296602072371e-07,
+              -8.311981354299675e-07,
+              1.0129796931342903e-06
+            ],
+            [
+              5.528573136766468e-05,
+              8.197720811653809e-05,
+              1.9634889767227303e-05
+            ],
+            [
+              7.491710219017338e-05,
+              0.00011695388604377026,
+              2.1764724597626706e-05
+            ],
+            [
+              6.0234404132859135e-05,
+              0.00011736169949901522,
+              2.058590355303414e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908865149786,
+            -0.02155752933850101,
+            -0.05728845874934162,
+            -0.11300845701881923,
+            -0.20971572973654132,
+            -4.227943580889906,
+            -4.441429167337163,
+            0.009639133598394325,
+            -0.20326756918900601,
+            0.19387944680745758,
+            -0.37435486694963344,
+            1.4690606855015165,
+            -0.09876313214243394,
+            0.06807168621988627,
+            0.03385287989257851,
+            0.01803603245423173,
+            -0.03577755474818076,
+            -0.001102838779251927,
+            0.03386913325491858,
+            0.041586123828451095,
+            -8.026569419545602,
+            -6.650747700925956,
+            0.04523100509468978
+          ],
+          "temperature_F": [
+            133.71329375741658,
+            154.4222470661499,
+            173.92515412506583,
+            184.82315429811808,
+            199.74042702634586
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 17,
+          "time_seconds": 8.5
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 6,
+          "njev": 5,
+          "cost": 3.8209290835243516e-26,
+          "optimality": 1.1005460946865987e-10,
+          "wall_clock_sec": 2.154565699980594,
+          "residual_inf_norm": 1.7910711063094527e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 735678.8958561434,
+          "coordinate_movement_inf_norm": 0.00012589765180277316,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.5843970968489884,
+          "relative_inventory_movement_max": 8.75560736030066e-06,
+          "algebraic_movement_inf_norm": 1.4230494998549587e-05,
+          "component_conservation_relative_error": 2.2895989125304183e-13,
+          "energy_conservation_relative_error": 6.865835453925026e-14,
+          "maximum_bubble_residual": 3.219646771412959e-15,
+          "inventory_lbmol": [
+            [
+              976.3983649799655,
+              393.8997177875971,
+              18.601914900893043
+            ],
+            [
+              16.437312313174594,
+              15.063327560058566,
+              1.3585917021049365
+            ],
+            [
+              16.020455218672687,
+              25.85428194642904,
+              3.990315368664311
+            ],
+            [
+              14.802762523985896,
+              33.9401055994832,
+              5.687548492306932
+            ],
+            [
+              143.61938377424588,
+              530.16328417717,
+              120.22034008013856
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -7.521947933885717e-07,
+              -1.0664369927472144e-07,
+              1.3906514030720724e-07
+            ],
+            [
+              -7.144784602488395e-07,
+              -9.318570422325215e-07,
+              1.0236576201785419e-06
+            ],
+            [
+              5.1692385564947644e-05,
+              7.543324685173391e-05,
+              1.8363423529356877e-05
+            ],
+            [
+              7.415004612253686e-05,
+              0.00011514819934399516,
+              2.1512558073997367e-05
+            ],
+            [
+              6.46331211499581e-05,
+              0.00012589767790103845,
+              2.2099199668113653e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908895962297,
+            -0.021557489240980634,
+            -0.05728840678301923,
+            -0.11300911919805805,
+            -0.20971581756744787,
+            -4.2279449613404605,
+            -4.441430575843675,
+            0.009636800810751436,
+            -0.2032704446823531,
+            0.193881845580813,
+            -0.3743554379074421,
+            1.4690611790596548,
+            -0.09876302867959062,
+            0.06807163705049968,
+            0.03386424496077492,
+            0.01805026294923028,
+            -0.03577748723683353,
+            -0.0011029448938001615,
+            0.0338687477746488,
+            0.0415857683049128,
+            -8.026569433943134,
+            -6.650747714413646,
+            0.04523133286082379
+          ],
+          "temperature_F": [
+            133.7132937882291,
+            154.42225107590193,
+            173.92515932169806,
+            184.8230880801942,
+            199.7404182432552
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 18,
+          "time_seconds": 9.0
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 6,
+          "njev": 5,
+          "cost": 3.3360010251323554e-25,
+          "optimality": 3.563963052396986e-10,
+          "wall_clock_sec": 2.2176904999651015,
+          "residual_inf_norm": 6.086729450710173e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732246.8062317424,
+          "coordinate_movement_inf_norm": 0.0001339670091967157,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.6859483901498606,
+          "relative_inventory_movement_max": 8.632209325074936e-06,
+          "algebraic_movement_inf_norm": 1.3997631312139686e-05,
+          "component_conservation_relative_error": 4.9698606395113395e-14,
+          "energy_conservation_relative_error": 8.01156004120287e-14,
+          "maximum_bubble_residual": 3.108624468950443e-15,
+          "inventory_lbmol": [
+            [
+              976.3983640877323,
+              393.89971776058957,
+              18.601915172747244
+            ],
+            [
+              16.437311089658706,
+              15.063325866211716,
+              1.3585935238228037
+            ],
+            [
+              16.02053966100386,
+              25.85440327220524,
+              3.990345405447405
+            ],
+            [
+              14.802890304530592,
+              33.940303216682295,
+              5.68758557267598
+            ],
+            [
+              143.61950399067462,
+              530.1635183366686,
+              120.2203812439616
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -5.104633903293039e-07,
+              -1.5451530716665402e-08,
+              1.5553288489936502e-07
+            ],
+            [
+              -6.999963759102842e-07,
+              -9.690815361412875e-07,
+              1.0422389425343363e-06
+            ],
+            [
+              4.831104065520122e-05,
+              6.941275098788985e-05,
+              1.718460669041419e-05
+            ],
+            [
+              7.310564504912516e-05,
+              0.000113060504216295,
+              2.121437425677531e-05
+            ],
+            [
+              6.8778072510676e-05,
+              0.0001339670388206297,
+              2.355059483667976e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908927592865,
+            -0.021557449668566857,
+            -0.057288372445556145,
+            -0.11300977614199542,
+            -0.20971591098101935,
+            -4.227946363512862,
+            -4.4414320121013136,
+            0.009634618066256855,
+            -0.20327321136626386,
+            0.19388421133974434,
+            -0.3743560250018028,
+            1.4690617037759095,
+            -0.09876291908258736,
+            0.06807158612318634,
+            0.033874780258393765,
+            0.01806426058054242,
+            -0.035776534571052385,
+            -0.0011021661253492194,
+            0.03386927379235048,
+            0.04158631532460068,
+            -8.026569449449655,
+            -6.65074772903817,
+            0.045230789990519826
+          ],
+          "temperature_F": [
+            133.71329381985967,
+            154.42225503314333,
+            173.92516275544438,
+            184.82302238580044,
+            199.74040890189806
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 19,
+          "time_seconds": 9.5
+        },
+        {
+          "success": true,
+          "status": 3,
+          "message": "`xtol` termination condition is satisfied.",
+          "nfev": 5,
+          "njev": 5,
+          "cost": 1.3425271505590004e-25,
+          "optimality": 3.1141598996368927e-10,
+          "wall_clock_sec": 2.0947390000801533,
+          "residual_inf_norm": 4.738261849022852e-13,
+          "jacobian_rank": 38,
+          "jacobian_condition": 732412.0075105595,
+          "coordinate_movement_inf_norm": 0.00014219784408661982,
+          "step_seconds": 0.5,
+          "component_rate_max_abs_lbmolph": 1.7895318480441347,
+          "relative_inventory_movement_max": 8.496370711898075e-06,
+          "algebraic_movement_inf_norm": 1.372963077082498e-05,
+          "component_conservation_relative_error": 3.080655336809678e-13,
+          "energy_conservation_relative_error": 7.150819548888342e-13,
+          "maximum_bubble_residual": 3.5527136788004946e-15,
+          "inventory_lbmol": [
+            [
+              976.3983629269799,
+              393.89971760636996,
+              18.60191546009155
+            ],
+            [
+              16.437310063694472,
+              15.063323996433368,
+              1.3585953543438714
+            ],
+            [
+              16.020618718646492,
+              25.85451477278803,
+              3.9903735121483868
+            ],
+            [
+              14.803016075374227,
+              33.94049660375728,
+              5.687622013610178
+            ],
+            [
+              143.61963162683142,
+              530.1637668827586,
+              120.22042497050728
+            ]
+          ],
+          "rate_coordinates": [
+            [
+              -6.640882023934712e-07,
+              -8.82319276441761e-08,
+              1.6439506446752413e-07
+            ],
+            [
+              -5.869733716941702e-07,
+              -1.06973524463559e-06,
+              1.0472754185064837e-06
+            ],
+            [
+              4.523035939860535e-05,
+              6.379157365130804e-05,
+              1.6080370531797314e-05
+            ],
+            [
+              7.195585739709385e-05,
+              0.00011064037091599746,
+              2.0848541591997172e-05
+            ],
+            [
+              7.302303802943252e-05,
+              0.00014219787744295775,
+              2.5016776502109105e-05
+            ]
+          ],
+          "algebraic_coordinates": [
+            0.15896908959707096,
+            -0.021557415468048124,
+            -0.05728835692307535,
+            -0.113010429317683,
+            -0.20971601015410232,
+            -4.227947758226514,
+            -4.441433465665527,
+            0.009632586058379907,
+            -0.20327587462463084,
+            0.1938865528212477,
+            -0.3743566244661383,
+            1.4690622607038508,
+            -0.09876280301908187,
+            0.0680715361012818,
+            0.033884546450863605,
+            0.018077990211313243,
+            -0.035776472880472504,
+            -0.0011022867802880777,
+            0.033868910808454084,
+            0.04158597473122429,
+            -8.02656946605738,
+            -6.6507477448121515,
+            0.04523110479715074
+          ],
+          "temperature_F": [
+            133.7132938519739,
+            154.42225845319518,
+            173.92516430769246,
+            184.8229570682317,
+            199.74039898458975
+          ],
+          "physical": {
+            "positive_inventory": true,
+            "positive_liquid_composition": true,
+            "positive_vapor_composition": true,
+            "positive_bubble_composition": true,
+            "positive_flows": true,
+            "ordered_temperature": true,
+            "negative_condenser_duty": true,
+            "hydraulic_height_below_spacing": true,
+            "all_finite": true
+          },
+          "physical_pass": true,
+          "index": 20,
+          "time_seconds": 10.0
+        }
+      ],
+      "per_step_gates": [
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        },
+        {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "storage_bubble": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "physical": true
+        }
+      ],
+      "per_step_pass": true,
+      "total_inventory_history_lbmol": [
+        2316.0398489898903,
+        2316.0408410696127,
+        2316.041833149335,
+        2316.042825229057,
+        2316.0438173087796,
+        2316.044809388502,
+        2316.045801468224,
+        2316.0467935479464,
+        2316.0477856276684,
+        2316.048777707391,
+        2316.049769787113,
+        2316.050761866835,
+        2316.0517539465573,
+        2316.0527460262797,
+        2316.053738106002,
+        2316.0547301857237,
+        2316.055722265446,
+        2316.0567143451685,
+        2316.0577064248905,
+        2316.0586985046125,
+        2316.059690584335
+      ],
+      "total_inventory_accumulation_lbmol": 0.019841594444642396,
+      "total_inventory_strictly_increasing": true,
+      "maximum_component_rate_abs_lbmolph": 3.6718855353655044,
+      "relative_inventory_drift_from_initial": 0.00028932048647224874,
+      "algebraic_drift_from_initial": 0.0004402625290909762,
+      "endpoint_inventory_lbmol": [
+        [
+          976.3983629269799,
+          393.89971760636996,
+          18.60191546009155
+        ],
+        [
+          16.437310063694472,
+          15.063323996433368,
+          1.3585953543438714
+        ],
+        [
+          16.020618718646492,
+          25.85451477278803,
+          3.9903735121483868
+        ],
+        [
+          14.803016075374227,
+          33.94049660375728,
+          5.687622013610178
+        ],
+        [
+          143.61963162683142,
+          530.1637668827586,
+          120.22042497050728
+        ]
+      ],
+      "endpoint_algebraic_coordinates": [
+        0.15896908959707096,
+        -0.021557415468048124,
+        -0.05728835692307535,
+        -0.113010429317683,
+        -0.20971601015410232,
+        -4.227947758226514,
+        -4.441433465665527,
+        0.009632586058379907,
+        -0.20327587462463084,
+        0.1938865528212477,
+        -0.3743566244661383,
+        1.4690622607038508,
+        -0.09876280301908187,
+        0.0680715361012818,
+        0.033884546450863605,
+        0.018077990211313243,
+        -0.035776472880472504,
+        -0.0011022867802880777,
+        0.033868910808454084,
+        0.04158597473122429,
+        -8.02656946605738,
+        -6.6507477448121515,
+        0.04523110479715074
+      ],
+      "endpoint_temperature_F": [
+        133.7132938519739,
+        154.42225845319518,
+        173.92516430769246,
+        184.8229570682317,
+        199.74039898458975
+      ],
+      "expected_accumulation_relative_error": 1.0058839067441097e-11,
+      "gates": {
+        "completed": true,
+        "monotone_inventory": true,
+        "nonzero_rate": true,
+        "nonzero_accumulation": true,
+        "expected_accumulation": true
+      },
+      "pass": true
+    }
+  ],
+  "refinement": {
+    "relative_inventory_difference": 4.305415134246469e-06,
+    "algebraic_coordinate_difference": 6.808870811586543e-06,
+    "temperature_difference_F": 1.600365416720706e-05,
+    "accumulation_relative_difference": 2.291889153161422e-11,
+    "gates": {
+      "inventory": true,
+      "algebraic": true,
+      "temperature": true,
+      "accumulation": true
+    },
+    "pass": true
+  },
+  "provider_provenance": {
+    "total_calls": 130368,
+    "counts": [
+      {
+        "provider_interface": "dwsim.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "count": 26010
+      },
+      {
+        "provider_interface": "dwsim.declared_liquid_density",
+        "evaluation_kind": "residual",
+        "count": 1150
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "count": 46818
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "residual",
+        "count": 2070
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "count": 52020
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "count": 2300
+      }
+    ],
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true,
+    "nested_bubble_calls": 0
+  },
+  "calls_per_endpoint": 3724.8,
+  "efficiency_gates": {
+    "endpoint_count": true,
+    "no_nested_bubble": true,
+    "calls_per_endpoint": true,
+    "wall_clock": true
+  },
+  "pass": true,
+  "campaign_executed_once": true,
+  "trajectory_attempted": true,
+  "controller_attempted": false,
+  "pressure_dynamics_attempted": false,
+  "vapor_holdup_attempted": false
+}

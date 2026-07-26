@@ -367,6 +367,19 @@ actual trial-state Jacobian condition is about `1.83e5`, still full rank and
 below `1e8`. One modest longer open-loop contract is authorized. See
 `docs/dd_099_core_v3_performance_20260725.md`.
 
+2026-07-25 longer open-loop result: DD-100 executes 35 colored-Jacobian
+backward-Euler endpoints from frozen contract commit `d92d354`: a `5 s` root
+hold and independent `10 s` `+0.1%` feed steps at `dt=1.0 s` and `0.5 s`.
+Every endpoint is rank `38/38`, physical, conservative, and below the residual
+and equilibrium limits; worst condition is `7.39e5`. Both disturbed runs match
+the exact `0.0198415944 lbmol` accumulation within about `1e-11` relative.
+Refined endpoints differ by `4.31e-6` relative inventory, `6.81e-6` algebraic
+coordinates, and `1.61e-5 F`. Runtime is `69.264 s` for `130,368` calls, or
+`3,724.8` per endpoint, with no nested bubble reconstruction or fallback. The
+next change must be a separately frozen dynamic-scope decision; pressure,
+vapor-holdup, controller, and production-horizon claims remain unauthorized.
+See `docs/dd_100_core_v3_longer_open_loop_20260725.md`.
+
 2026-07-07 status note: broad residual reweighting is not the current acceptance path. Recent top-liquid alignment, vapor-flow ceiling, and vapor-flow/energy residual-objective probes showed that a targeted residual can improve while the dynamic launch and physical audit get worse. Treat those knobs as diagnostics for the energy/vapor-flow closure review, not as accepted initialization mechanisms.
 
 Historical 2026-07-08 status note, superseded by DD-075/DD-076: the

@@ -1094,3 +1094,12 @@ difference is zero, conservation is at roundoff, and all `7113` DWSIM calls
 pass in `3.144 s`. The starting residual remains about `0.06`; no root has
 been found. One frozen overdetermined zero-rate root campaign is authorized to
 test whether the terminal targets are exactly compatible with the DAE root.
+
+2026-07-27 Core V3 zero-rate root contract: DD-120 is frozen but not yet
+executed. Exactly the two DD-119 states feed one bounded 20-color
+`least_squares(method="trf")` campaign on the unchanged `48 x 46` residual.
+Every DAE and terminal row must close below `1e-8`, both starts must reach the
+same interior physical endpoint, and the endpoint Jacobians must pass the
+frozen rank, condition, spectrum, coloring, conservation, provider, call, and
+wall gates. A failure retires this terminal-scaled path without variation. No
+timestep, controller, continuation, or dynamics is part of DD-120.

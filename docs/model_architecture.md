@@ -944,3 +944,15 @@ endpoint disagreement in inventory, composition, energy, rates, pressure,
 temperature, flow, product, or duty stops the path. Contract preparation uses
 zero property, residual, Jacobian, solve, initializer, timestep, or dynamic
 evaluations. One static execution is authorized only after commit.
+
+2026-07-27 Core V3 DD-112 physical-equivalence adjudication result: DD-113
+passes once from frozen commit `5d794bd`. All 15 physical comparison gates
+pass; every inherited DD-112 gate is unchanged and true; saved liquid, vapor,
+and bubble compositions reconstruct as positive normalized vectors. The
+largest inventory difference is `1.706e-6` on its reference scale, liquid and
+vapor mole-fraction differences are below `5.55e-7`, pressure differs by
+`5.564e-9` on its 10-psi scale, and temperature differs by `5.303e-5 F`.
+The lower-objective DD-094-start endpoint is selected canonically. This static
+action uses zero property, residual, Jacobian, solver, initializer, timestep,
+or dynamic calls. DD-112 remains formally failed; DD-113 authorizes drafting
+one frozen zero-time audit of the canonical saved endpoint only.

@@ -1083,3 +1083,14 @@ selections; whole-column component and stored-energy targets are diagnostics.
 Two independent saved states, two colored Jacobian steps, and one full
 canonical cross-check are required. No nonlinear root solve, timestep,
 controller, retry, or dynamics is part of DD-119.
+
+2026-07-27 Core V3 live zero-rate readiness result: DD-119 passes once from
+contract commit `a56d2ce`. At both frozen states, the DAE-only matrix is
+formally rank `46/46` but has condition `2.54e13` to `3.76e13`. The two
+terminal holdup rows regularize those near-scale directions: the augmented
+`48 x 46` matrices remain rank 46 with condition below `5.68e3`. Both
+finite-difference steps are spectrum-stable, the canonical colored/full
+difference is zero, conservation is at roundoff, and all `7113` DWSIM calls
+pass in `3.144 s`. The starting residual remains about `0.06`; no root has
+been found. One frozen overdetermined zero-rate root campaign is authorized to
+test whether the terminal targets are exactly compatible with the DAE root.

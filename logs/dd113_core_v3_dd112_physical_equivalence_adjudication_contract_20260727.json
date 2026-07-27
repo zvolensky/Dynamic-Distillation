@@ -1,0 +1,82 @@
+{
+  "schema_id": "dd113-core-v3-dd112-physical-equivalence-adjudication-contract-v1",
+  "preparation_base_commit": "820bf35423270ec59ea494f55d4c1426f7b63e57",
+  "governance_exception": {
+    "authorized_by_user": true,
+    "authorization_date": "2026-07-27",
+    "reason": "DD-112 passed every equation, physical, conservation, provider, and efficiency gate but missed a transformed-coordinate comparison",
+    "scope": "statically adjudicate physical endpoint equivalence only; preserve the DD-112 classification, all numerical evidence, and every other gate"
+  },
+  "source_dd112_contract": "logs/dd112_core_v3_conserved_nu_pressure_initializer_contract_20260726.json",
+  "source_dd112_contract_sha256": "5b4ff5262dc6bacbe9312a89749633cb3108e29f13768a1d0f34d69d5c8f3b50",
+  "source_dd112_result": "logs/dd112_core_v3_conserved_nu_pressure_initializer_20260726.json",
+  "source_dd112_result_sha256": "b3a38cb9d2a0e78b95792d0fa4fb326787e17a4734921a14c490d1f5bf15bff1",
+  "source_dd112_contract_commit": "0f4dac3753f0f6ffc8ec563dc001a848e25b1666",
+  "source_dd112_contract_payload_sha256": "84e687c306061e050384035b87eca7a37862dd0d5293593ee4032a2e905dac9a",
+  "source_failed_gates": [
+    "common_solution"
+  ],
+  "replaceable_gates": [
+    "common_solution"
+  ],
+  "preserved_gates": {
+    "solver_success": true,
+    "constraints": true,
+    "rank": true,
+    "condition": true,
+    "spectrum": true,
+    "structure": true,
+    "colored_full": true,
+    "kkt_stationarity": true,
+    "interior_bounds": true,
+    "pressure_order": true,
+    "physical": true,
+    "conservation": true,
+    "provider": true,
+    "calls": true,
+    "wall": true
+  },
+  "physical_equivalence_limits": {
+    "objective_abs_difference": 1e-09,
+    "inventory_scaled_difference": 1e-05,
+    "liquid_composition_abs_difference": 1e-06,
+    "lower_internal_energy_scaled_difference": 1e-06,
+    "component_rate_scaled_difference": 1e-06,
+    "internal_energy_rate_scaled_difference": 1e-06,
+    "pressure_scaled_difference": 1e-06,
+    "temperature_abs_difference_F": 0.001,
+    "vapor_composition_abs_difference": 1e-06,
+    "bubble_composition_abs_difference": 1e-06,
+    "liquid_flow_scaled_difference": 1e-06,
+    "vapor_flow_scaled_difference": 1e-06,
+    "distillate_scaled_difference": 1e-06,
+    "bottoms_scaled_difference": 1e-06,
+    "condenser_duty_scaled_difference": 1e-06
+  },
+  "physical_comparison_scales": {
+    "material_rate_scale_lbmolph": 12584.8,
+    "energy_rate_scale_BTUph": 55003568.3093669,
+    "pressure_scale_psia": 10.0
+  },
+  "canonical_selection_rule": "lowest final objective, then lexical start name",
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/dd112_physical_equivalence_adjudication_v1.py": "caed0a827578bea14f25e9c145f3ae0b155eb833d1f7c9bcfc35a3d872a37959",
+    "tests/test_core_v3_dd112_physical_equivalence_adjudication_v1.py": "a1ac2e383f544bc24f57d1287d0d731886213a9b4dd814baa6a223c8a8801b41",
+    "tools/adjudicate_core_v3_dd112_physical_equivalence.py": "585ddcbeca5365b7af67b0460cb42c26511c16e5de06ac25ff01f87729d908cb"
+  },
+  "hard_stops": [
+    "the DD-112 result or contract hash changes",
+    "any failed DD-112 gate lies outside common_solution",
+    "any inherited DD-112 gate is changed or false",
+    "any frozen physical-equivalence metric reaches or exceeds its limit",
+    "either endpoint has a nonphysical reconstructed composition",
+    "a property call, residual evaluation, Jacobian, solve, initializer, timestep, or dynamics is attempted"
+  ],
+  "live_property_evaluation_attempted": false,
+  "residual_or_jacobian_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "initializer_attempted": false,
+  "dynamic_integration_attempted": false,
+  "adjudication_executed": false,
+  "contract_payload_sha256": "8e17596cdbce8118e108b106ad023926c57a3ffbe34a05045da39d70b7e5426c"
+}

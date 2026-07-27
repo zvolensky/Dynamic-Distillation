@@ -933,3 +933,14 @@ composition value. Physical endpoint pressure differs by only `5.56e-8 psia`,
 but the frozen gate is controlling. DD-112 is retired without retry or tuning.
 No accepted initializer exists, and zero-time audit, timestep, and dynamic
 integration remain unauthorized pending an explicit architecture decision.
+
+2026-07-27 Core V3 DD-112 physical-equivalence adjudication contract: DD-113
+is a governance-only static successor. It keeps DD-112 formally failed and
+does not rerun or retune its optimizer. Immutable source hashes, all inherited
+gates other than `common_solution`, engineering-variable scales and limits,
+physical composition reconstruction, and deterministic canonical endpoint
+selection are frozen before execution. Any unrelated source failure or saved-
+endpoint disagreement in inventory, composition, energy, rates, pressure,
+temperature, flow, product, or duty stops the path. Contract preparation uses
+zero property, residual, Jacobian, solve, initializer, timestep, or dynamic
+evaluations. One static execution is authorized only after commit.

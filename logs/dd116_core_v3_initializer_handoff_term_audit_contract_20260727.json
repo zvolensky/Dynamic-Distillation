@@ -1,0 +1,78 @@
+{
+  "schema_id": "dd116-core-v3-initializer-handoff-term-audit-contract-v1",
+  "preparation_base_commit": "f324926e57f9d9d3f4b08dff1238ee37cf7b62cd",
+  "sources": {
+    "logs/dd112_core_v3_conserved_nu_pressure_initializer_contract_20260726.json": "5b4ff5262dc6bacbe9312a89749633cb3108e29f13768a1d0f34d69d5c8f3b50",
+    "logs/dd112_core_v3_conserved_nu_pressure_initializer_20260726.json": "b3a38cb9d2a0e78b95792d0fa4fb326787e17a4734921a14c490d1f5bf15bff1",
+    "logs/dd114_core_v3_initializer_zero_time_audit_20260727.json": "85e650095f2e453bfbeb532c98c3d83c104b6e94409b217df3198664f2c48df5",
+    "logs/dd115_core_v3_initializer_first_step_refinement_contract_20260727.json": "66d4f93ce4c3cac9cb5491a4d3ec91641f43d22c2d6e4e0e0815cbdf74d1c75f",
+    "logs/dd115_core_v3_initializer_first_step_refinement_20260727.json": "001e554cd1d92817f8c7f17656762f1cd4457988e85993833459a75fa8e345d4"
+  },
+  "source_contract_commits": {
+    "dd112": "0f4dac3753f0f6ffc8ec563dc001a848e25b1666",
+    "dd114": "6e5538b94ebca493502141930a60ce949b8fda6b",
+    "dd115": "28ba8d94f7f54b50482c060528f998c7dfd8781d"
+  },
+  "snapshot_sha256": {
+    "zero_time": "d4e7df14ba0ebf0aa401f4570be6bbae54fc89d21bedc0d61651f49b77e8684b",
+    "half_step": "031d5ad3b954d731295648cbc244c1255bd212ea2ea15a8deed5078c0d72143c",
+    "refined_one_second": "f2eb4e3476f15f7c33cc2f365f4f2c506dcba7d85704207e34930ff5402c0099"
+  },
+  "snapshot_order": [
+    "zero_time",
+    "half_step",
+    "refined_one_second"
+  ],
+  "material_rate_scale_lbmolph": 12584.8,
+  "energy_rate_scale_BTUph": 55003568.3093669,
+  "component_rate_reconciliation_limit": 1e-10,
+  "energy_rate_reconciliation_limit": 1e-10,
+  "physical_reproduction_limit": 1e-08,
+  "pressure_reproduction_limit_psia": 1e-07,
+  "temperature_reproduction_limit_F": 1e-06,
+  "ownership_change_limit": 0,
+  "provider_call_limit": 5000,
+  "wall_clock_limit_sec": 30.0,
+  "permitted_live_residual_evaluations": 3,
+  "initializer_objective_blocks": {
+    "conserved_state": [
+      0,
+      19
+    ],
+    "conserved_rate": [
+      19,
+      38
+    ],
+    "algebraic": [
+      38,
+      65
+    ]
+  },
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/handoff_balance_audit_v1.py": "4d3eb1f3bc416268a4edbb93e0f3b5eac4255125dcca16c9a12da710412311c8",
+    "src/dynamic_distillation/core_v3/conserved_nu_pressure_numerical_v1.py": "e0b4e4fb47148f83e12ed44b139f69f32c750425dadf8537094609f3318d0755",
+    "src/dynamic_distillation/core_v3/provider_governed_residual_v1.py": "8a34b6cf7a04bb525e5292eb8777530d770bb0b0adfe03f72303111451380267",
+    "tests/test_core_v3_handoff_balance_audit_v1.py": "4a04768f6f7ff07e1179715eccd084b6364ecf96f463ead22d4e836df97e82ac",
+    "tools/audit_core_v3_initializer_handoff_terms.py": "10bd03d13b1e5b14b0114434ae9917fbf576fd525bea36a4d2cf35bc83dfecbe",
+    "tools/audit_core_v3_pressure_layer_numerical.py": "2692442e34d7a9722b7ef2c614a4a19cb25af0d1beebe98508cae44df7ceac4d"
+  },
+  "hard_stops": [
+    "any DD-112, DD-114, or DD-115 evidence hash changes",
+    "any frozen snapshot or DD-116 implementation hash changes",
+    "more or fewer than three saved-state residual/property evaluations are attempted",
+    "a nonlinear solve, Jacobian, timestep, controller, trajectory, or initializer is attempted",
+    "a reported component or energy rate cannot be reconciled from its signed physical terms",
+    "a saved physical state cannot be reproduced",
+    "balance ownership changes between snapshots",
+    "provider ownership, call count, or wall-clock limits fail"
+  ],
+  "authorization_on_pass": "structural_slow_start_feasibility_audit_only",
+  "live_property_evaluation_attempted": false,
+  "residual_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "jacobian_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "audit_executed": false,
+  "contract_payload_sha256": "c82a9ebda4657fab2bc086a283d455638f9cd423f85cd1b745c879124bdf1c00"
+}

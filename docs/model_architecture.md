@@ -1008,3 +1008,16 @@ finite transient rather than rank, conservation, or provider failure, and it
 is orders of magnitude smaller than DD-105. Nevertheless, the frozen stop is
 binding: this initializer-to-step handoff is retired, no short trajectory is
 authorized, and no DD-115 timestep or solver tuning may follow.
+
+2026-07-27 Core V3 initializer handoff term-audit contract: DD-116 adds a
+read-only diagnostic ledger around the unchanged Core V3 equations. It freezes
+the accepted DD-114 `t=0` state and the DD-115 refined `t=0.5 s` and `t=1.0 s`
+states, then permits exactly one live residual/property evaluation per saved
+state. Every material and energy rate is independently reconstructed from
+signed physical inflow, outflow, feed, product, and duty terms. The audit
+requires exact rate reconciliation, saved-state reproduction, unchanged term
+ownership, direct DWSIM PR provenance, fewer than `5000` property calls, and
+less than `30 s` wall time. It performs no solve, Jacobian, timestep,
+controller, initializer, or trajectory. A pass may authorize only a
+property-free structural feasibility audit for an exact zero-rate or bounded
+slow-start selection; it cannot revive or relax DD-115.

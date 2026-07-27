@@ -33,6 +33,7 @@ def _selected_paths() -> tuple[Path, ...]:
         "README.md",
         "pyproject.toml",
         "docs/core_v3_zero_rate_initializer_problem_statement_20260727.md",
+        "docs/core_v3_zero_rate_initializer_external_review_prompt_20260727.md",
         "docs/requirements.md",
         "docs/model_architecture.md",
         "docs/issue_log.md",

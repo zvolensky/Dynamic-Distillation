@@ -968,3 +968,14 @@ Contract preparation performs no property, residual, Jacobian, solve,
 initializer, timestep, or dynamic evaluation. One zero-time execution is
 authorized only after commit; passing may authorize only a separately frozen
 first-step refinement contract.
+
+2026-07-27 Core V3 canonical initializer zero-time result: DD-114 passes once
+from frozen commit `6e5538b`. The fresh live residual closes all 52 rows below
+`2.02e-12`; two colored and one full Jacobian are rank `52/52` with worst
+condition `2.055e3`; spectrum change is `2.91e-6`; and colored/full difference
+is zero. The physical endpoint reproduces the DD-112 record exactly, remains
+positive and pressure ordered, and conserves component and energy totals at
+roundoff. Direct DWSIM PR ownership passes with `6021` calls in `7.395 s`.
+The accepted object is a consistent initial state plus its generally nonzero
+equation-owned rates, not a steady state. One separately frozen first-step
+refinement contract may now be drafted; no timestep or dynamics occurred.

@@ -1037,3 +1037,14 @@ reinterpretation differs by `3.08e-5` scaled even though the physical rate
 reconciles. DD-116 is not rerun or changed. Its raw stop remains binding unless
 an explicitly authorized, static, zero-call adjudication accepts that
 representation-only distinction.
+
+2026-07-27 Core V3 DD-116 representation-gate adjudication contract: DD-117
+is a static governance exception authorized by the user. It freezes the
+immutable DD-115/DD-116 evidence, permits replacement of only the failed
+`physical_reproduction` gate, and preserves every other result and gate. The
+replacement keeps all actual pressure, temperature, flow, product, and duty
+checks, then algebraically reconstructs DD-115's exponential endpoint
+inventory, effective finite-step rate, and reported nominal/effective rate
+mismatch. No property, residual, Jacobian, solver, initializer, timestep,
+controller, or trajectory call is permitted. Passing may authorize only a
+property-free structural zero-rate feasibility audit.

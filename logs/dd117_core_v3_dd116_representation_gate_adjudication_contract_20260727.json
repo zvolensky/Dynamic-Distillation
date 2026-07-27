@@ -1,0 +1,59 @@
+{
+  "schema_id": "dd117-core-v3-dd116-representation-gate-adjudication-contract-v1",
+  "preparation_base_commit": "a817161f149f104f2df2157ea174943fad6224ac",
+  "governance_exception": {
+    "authorized_by_user": true,
+    "authorization_date": "2026-07-27",
+    "reason": "DD-116 grouped a nominal exponential-step coordinate with physical-field reproduction",
+    "scope": "statically replace only physical_reproduction while preserving all numerical evidence and other gates"
+  },
+  "sources": {
+    "logs/dd116_core_v3_initializer_handoff_term_audit_contract_20260727.json": "66fa782484e6fe6f84b54e6f41b39b1cd3b36e5181832dab9f28bc40910b3c30",
+    "logs/dd116_core_v3_initializer_handoff_term_audit_20260727.json": "03ae3ed54089d1893df89edbde685ea2e3554008ebc2a4848ff9b1f06880444f",
+    "logs/dd115_core_v3_initializer_first_step_refinement_contract_20260727.json": "66d4f93ce4c3cac9cb5491a4d3ec91641f43d22c2d6e4e0e0815cbdf74d1c75f",
+    "logs/dd115_core_v3_initializer_first_step_refinement_20260727.json": "001e554cd1d92817f8c7f17656762f1cd4457988e85993833459a75fa8e345d4"
+  },
+  "source_failed_gates": [
+    "physical_reproduction"
+  ],
+  "replaceable_gates": [
+    "physical_reproduction"
+  ],
+  "preserved_gates": {
+    "component_reconciliation": true,
+    "energy_reconciliation": true,
+    "ownership_unchanged": true,
+    "provider": true,
+    "calls": true,
+    "wall": true,
+    "exactly_three_evaluations": true
+  },
+  "limits": {
+    "physical": 1e-08,
+    "pressure_psia": 1e-07,
+    "temperature_F": 1e-06,
+    "transform_reconstruction": 1e-12
+  },
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/dd116_gate_adjudication_v1.py": "23f386fad2f12217fbad02c94b53f2a35719ccb17a5869584b5206c3f2a14581",
+    "tests/test_core_v3_dd116_gate_adjudication_v1.py": "ece6d1f98aec24786e06feaea9b2194dd81508215705990bbdafe64579b60d49",
+    "tools/adjudicate_core_v3_dd116_representation_gate.py": "664bec8f7cd8e47f09d3bac90cf439a41a7c36cc42c46b9cad95c05d4d7c4efd"
+  },
+  "hard_stops": [
+    "any DD-115 or DD-116 source hash changes",
+    "any DD-116 failed gate lies outside physical_reproduction",
+    "any actual physical reproduction metric fails its frozen limit",
+    "the exponential endpoint, effective rate, or reported coordinate mismatch cannot be reconstructed",
+    "any inherited DD-116 gate is changed or false",
+    "a property call, residual, Jacobian, solve, initializer, timestep, controller, or trajectory is attempted"
+  ],
+  "live_property_calls": 0,
+  "residual_evaluations": 0,
+  "jacobian_evaluations": 0,
+  "nonlinear_solve_attempted": false,
+  "initializer_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "adjudication_executed": false,
+  "contract_payload_sha256": "4fc638b955194dc7b527566858ffecc8400efb02a37749078d11bf785cb48624"
+}

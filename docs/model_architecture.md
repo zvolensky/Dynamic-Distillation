@@ -1073,3 +1073,13 @@ diagnostics rather than exact steady-state constraints. Drum and sump total
 holdups remain provisional terminal scale selections, subject to a frozen live
 rank and compatibility audit. No root solve, initializer execution, or
 dynamics is authorized by this structural pass.
+
+2026-07-27 Core V3 live zero-rate readiness contract: DD-119 is frozen but
+not yet executed. The 19 conserved rates are fixed exactly to zero and removed
+from the numerical unknown vector. The remaining 46 coordinates contain 19
+conserved-state and 27 algebraic coordinates. The residual retains all 46
+unchanged DAE/storage/pressure rows and adds the two terminal total-holdup scale
+selections; whole-column component and stored-energy targets are diagnostics.
+Two independent saved states, two colored Jacobian steps, and one full
+canonical cross-check are required. No nonlinear root solve, timestep,
+controller, retry, or dynamics is part of DD-119.

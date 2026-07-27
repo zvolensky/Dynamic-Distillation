@@ -1103,3 +1103,14 @@ same interior physical endpoint, and the endpoint Jacobians must pass the
 frozen rank, condition, spectrum, coloring, conservation, provider, call, and
 wall gates. A failure retires this terminal-scaled path without variation. No
 timestep, controller, continuation, or dynamics is part of DD-120.
+
+2026-07-27 Core V3 zero-rate root result: DD-120 fails once from contract
+commit `67b9c51`. Both starts converge to the same stationary physical endpoint
+within `1.36e-9`. The terminal rows close below `7.04e-12`, and all gates pass
+except exact residual closure. The DAE rows stop at `2.4486e-3`, with
+left-null residual projection `7.6737e-3`. Thus the inherited drum and sump
+holdups are not exactly compatible with the zero-rate DAE root under the
+frozen operating specifications. The terminal-scaled path is retired without
+retry, target adjustment, alternate solver, continuation, timestep, or
+dynamics. Any DAE-only successor must be separately justified rather than
+treated as the next automatic solver variation.

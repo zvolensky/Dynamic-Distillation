@@ -1,0 +1,46 @@
+{
+  "schema_id": "dd117-core-v3-dd116-representation-gate-adjudication-result-v1",
+  "contract_commit": "faf7850172f538a9ab5e3f0220d05fea932f5e17",
+  "contract_payload_sha256": "4fc638b955194dc7b527566858ffecc8400efb02a37749078d11bf785cb48624",
+  "classification": "dd117_passed",
+  "decision": "authorize_structural_zero_rate_feasibility_audit",
+  "adjudication": {
+    "source_failed_gates": [
+      "physical_reproduction"
+    ],
+    "unexpected_source_failures": [],
+    "physical_field_maximum": 0.0,
+    "pressure_field_maximum_psia": 0.0,
+    "temperature_field_maximum_F": 0.0,
+    "endpoint_inventory_reconstruction_maximum": 0.0,
+    "effective_rate_reconstruction_maximum": 0.0,
+    "coordinate_mismatch_reconstruction_maximum": 0.0,
+    "replacement_gates": {
+      "physical_reproduction": true,
+      "nominal_effective_rate_representation_proven": true
+    },
+    "final_gates": {
+      "component_reconciliation": true,
+      "energy_reconciliation": true,
+      "physical_reproduction": true,
+      "ownership_unchanged": true,
+      "provider": true,
+      "calls": true,
+      "wall": true,
+      "exactly_three_evaluations": true,
+      "nominal_effective_rate_representation_proven": true
+    },
+    "pass_gate": true
+  },
+  "preserved_gates_unchanged": true,
+  "source_numerical_evidence_changed": false,
+  "live_property_calls": 0,
+  "residual_evaluations": 0,
+  "jacobian_evaluations": 0,
+  "nonlinear_solve_attempted": false,
+  "initializer_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "pass": true,
+  "adjudication_executed_once": true
+}

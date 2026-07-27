@@ -1048,3 +1048,14 @@ inventory, effective finite-step rate, and reported nominal/effective rate
 mismatch. No property, residual, Jacobian, solver, initializer, timestep,
 controller, or trajectory call is permitted. Passing may authorize only a
 property-free structural zero-rate feasibility audit.
+
+2026-07-27 Core V3 DD-116 representation-gate adjudication result: DD-117
+passes once from frozen commit `faf7850`. Every inherited non-reproduction
+gate remains unchanged and true. Actual physical-field reproduction,
+exponential endpoint inventory reconstruction, effective finite-step rate
+reconstruction, and nominal/effective mismatch reconstruction all have exactly
+zero error. No numerical evidence changes and no property, residual, Jacobian,
+solver, initializer, timestep, controller, or trajectory call occurs. DD-116's
+term-level conclusion is accepted: the startup rate bend is physical and
+balance-explained, not an equation-ownership discontinuity. One property-free
+structural zero-rate feasibility audit is authorized.

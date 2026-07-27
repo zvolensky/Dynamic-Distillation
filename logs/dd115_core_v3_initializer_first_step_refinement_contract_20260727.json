@@ -1,0 +1,200 @@
+{
+  "schema_id": "dd115-core-v3-initializer-first-step-refinement-contract-v1",
+  "preparation_base_commit": "d754f0bf284c801ce1c4178c3d7daeba5e808bd1",
+  "sources": {
+    "logs/dd112_core_v3_conserved_nu_pressure_initializer_contract_20260726.json": "5b4ff5262dc6bacbe9312a89749633cb3108e29f13768a1d0f34d69d5c8f3b50",
+    "logs/dd112_core_v3_conserved_nu_pressure_initializer_20260726.json": "b3a38cb9d2a0e78b95792d0fa4fb326787e17a4734921a14c490d1f5bf15bff1",
+    "logs/dd114_core_v3_initializer_zero_time_audit_20260727.json": "85e650095f2e453bfbeb532c98c3d83c104b6e94409b217df3198664f2c48df5"
+  },
+  "source_dd114_contract_commit": "6e5538b94ebca493502141930a60ce949b8fda6b",
+  "canonical_start": "dd094_storage_and_pressure_profile",
+  "previous_inventory_lbmol": [
+    [
+      1037.0438270290442,
+      334.3134851277145,
+      17.542687843241396
+    ],
+    [
+      16.685009046050535,
+      14.9777376309268,
+      1.3733052379026534
+    ],
+    [
+      15.151823344178009,
+      26.6785980086797,
+      3.996191522840527
+    ],
+    [
+      12.401169068200527,
+      36.33473885826829,
+      5.541276272845222
+    ],
+    [
+      85.99049976421364,
+      586.606235477062,
+      121.40326475872435
+    ]
+  ],
+  "previous_top_internal_energy_BTU": -8172020.663760647,
+  "previous_lower_internal_energy_BTU": [
+    -186364.99133035773,
+    -241750.3711625146,
+    -269337.5676277046,
+    -3540836.672355115
+  ],
+  "initial_component_rate_lbmolph": [
+    [
+      -198.80886466956224,
+      339.1585187391073,
+      6.931416166843028
+    ],
+    [
+      -50.118571546523874,
+      -76.56970614227909,
+      -5.261432147024331
+    ],
+    [
+      -99.15528400253199,
+      -51.49917424854322,
+      -3.328440987781296
+    ],
+    [
+      -168.79729321896363,
+      -77.02778335759973,
+      57.976556282597414
+    ],
+    [
+      792.8666088918199,
+      -404.10254338251275,
+      -62.26400637704634
+    ]
+  ],
+  "initial_internal_energy_rate_BTUph": [
+    -645600.3443935101,
+    639018.8224530645,
+    388118.7165629308,
+    -179754.5629587682,
+    -1145813.7004323106
+  ],
+  "component_rate_scale_lbmolph": 12584.8,
+  "initial_coordinates": [
+    -0.015797538671219427,
+    0.0269498536916842,
+    0.0005507768233776483,
+    -0.003982468656357183,
+    -0.006084300596138126,
+    -0.0004180783283822016,
+    -0.00787897177567637,
+    -0.004092172640689023,
+    -0.00026448103964952135,
+    -0.0134127910828113,
+    -0.006120699840887398,
+    0.004606871486443759,
+    0.06300192366122782,
+    -0.03211036674261909,
+    -0.004947556288303854,
+    0.011617770302808555,
+    0.007056246139886086,
+    -0.0032680527551910967,
+    -0.020831624850004192,
+    0.12325935512160185,
+    -0.042098346782471076,
+    -0.07098718295510842,
+    -0.10656746583758094,
+    -0.16767643550592856,
+    -4.208768938545504,
+    -4.451328527926873,
+    -0.027495292625149804,
+    -0.1643540954144255,
+    0.05728993915552606,
+    -0.2740192727121017,
+    0.9493522338519642,
+    -0.005889081425998367,
+    0.07315759422310589,
+    0.026997212616040253,
+    0.0082663842067894,
+    -0.09536999321601945,
+    -0.03007555864395345,
+    0.039562436605172814,
+    0.05974382219452312,
+    -7.898776701952221,
+    -6.752881222712,
+    0.03202152188916042,
+    -0.388443420567607,
+    -0.8326710850607304,
+    -1.0839142968750248,
+    -1.3400544231213294
+  ],
+  "initial_coordinates_sha256": "6b037c38e038b05cd7141f96818ea087b2602328d6b1e31d34e456201172926c",
+  "grid": {
+    "coarse": [
+      1.0
+    ],
+    "refined": [
+      0.5,
+      0.5
+    ],
+    "common_endpoint_seconds": 1.0
+  },
+  "solver": {
+    "method": "trf",
+    "ftol": 1e-12,
+    "xtol": 1e-12,
+    "gtol": 1e-12,
+    "max_nfev": 50,
+    "x_scale": 1.0,
+    "jacobian_step": 1e-05,
+    "jacobian_mode": "colored"
+  },
+  "step_pattern_shape": [
+    46,
+    46
+  ],
+  "step_color_count": 21,
+  "endpoint_jacobian_step": 1e-05,
+  "spectrum_check_step": 5e-06,
+  "required_rank": 46,
+  "residual_limit": 1e-08,
+  "condition_limit": 100000000.0,
+  "spectrum_change_limit": 0.25,
+  "coupling_tolerance": 1e-07,
+  "inventory_refinement_limit": 0.0001,
+  "lower_energy_refinement_limit": 0.0001,
+  "top_energy_refinement_limit": 0.0001,
+  "algebraic_refinement_limit": 0.001,
+  "pressure_refinement_limit_psia": 0.01,
+  "temperature_refinement_limit_F": 0.01,
+  "flow_refinement_limit": 0.001,
+  "initial_component_rate_consistency_limit": 0.001,
+  "initial_energy_rate_consistency_limit": 0.001,
+  "component_conservation_limit": 1e-12,
+  "energy_conservation_limit": 1e-10,
+  "discrete_kinematic_limit": 1e-12,
+  "provider_call_limit": 100000,
+  "wall_clock_limit_sec": 180.0,
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/conserved_nu_implicit_step_v1.py": "2c627fb5a1ddc4e1d4882ac1d9fa4a0d2b9d68dbfd6dd2db86f448a692bcda0f",
+    "src/dynamic_distillation/core_v3/conserved_nu_pressure_dae_contract_v1.py": "2e876e19fb45e4878b00bdd17d565951efbfeb4bdda8c1e52f7484de022b16d6",
+    "src/dynamic_distillation/core_v3/conserved_nu_pressure_numerical_v1.py": "e0b4e4fb47148f83e12ed44b139f69f32c750425dadf8537094609f3318d0755",
+    "src/dynamic_distillation/core_v3/colored_jacobian_v1.py": "d30f8439d26ca8859318c3091cca034320b6e147dd00afba4940abb6ecb541f9",
+    "tests/test_core_v3_conserved_nu_implicit_step_v1.py": "4c8513c09b304e789e3fc3664378375cec80664810033b6cc021873bf9e00582",
+    "tools/run_core_v3_initializer_first_step_refinement.py": "01f12a123db91c9d830ff96e7e81fddec54a3f4bcd63512674ebbd9312535276",
+    "tools/audit_core_v3_pressure_layer_numerical.py": "2692442e34d7a9722b7ef2c614a4a19cb25af0d1beebe98508cae44df7ceac4d"
+  },
+  "hard_stops": [
+    "a DD-112 or DD-114 source hash changes",
+    "the canonical state, rate predictor, or initial-coordinate hash changes",
+    "any of the three precommitted solves fails or exceeds the residual limit",
+    "an endpoint Jacobian loses rank or fails condition, spectrum, or registry gates",
+    "the one-second coarse and refined endpoints exceed any frozen refinement limit",
+    "the first numerical rates disagree materially with the accepted zero-time rates",
+    "physicality, pressure ordering, conservation, provider, call, or wall gates fail",
+    "a retry, alternate solver, changed step, changed tolerance, controller, or longer trajectory is attempted"
+  ],
+  "live_property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "388fcde1f35de0824145104472e2b8609fcd0acadb5bf03fc2a255ccf9fae9cf"
+}

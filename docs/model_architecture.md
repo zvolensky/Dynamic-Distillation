@@ -979,3 +979,16 @@ roundoff. Direct DWSIM PR ownership passes with `6021` calls in `7.395 s`.
 The accepted object is a consistent initial state plus its generally nonzero
 equation-owned rates, not a steady state. One separately frozen first-step
 refinement contract may now be drafted; no timestep or dynamics occurred.
+
+2026-07-27 Core V3 initializer first-step refinement contract: DD-115 adds the
+missing conserved-`N/U` backward-Euler kernel for the accepted pressure DAE.
+Fifteen component inventories advance through positivity-preserving exponential
+coordinates; four lower internal energies advance from their independent
+rates; fixed-pressure top storage uses the exact endpoint-minus-previous
+saturation-manifold value. The live system remains `46 x 46`. One `1.0 s`
+step is compared with two sequential `0.5 s` steps at the same `t=1 s`
+endpoint using one fixed colored trust-region solver. Initial-rate consistency,
+grid refinement, endpoint rank/condition/spectrum/registry, exact discrete
+kinematics, conservation, physicality, provider, call, and wall gates are
+frozen. Preparation performs no property evaluation, solve, or timestep. One
+execution is authorized only after commit.

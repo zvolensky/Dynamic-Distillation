@@ -1021,3 +1021,19 @@ less than `30 s` wall time. It performs no solve, Jacobian, timestep,
 controller, initializer, or trajectory. A pass may authorize only a
 property-free structural feasibility audit for an exact zero-rate or bounded
 slow-start selection; it cannot revive or relax DD-115.
+
+2026-07-27 Core V3 initializer handoff term-audit result: DD-116 executes once
+from frozen commit `f5117ed`. Its physical evidence is clean: all material and
+energy term sums reproduce saved rates below `2.74e-13` scaled; pressure,
+temperature, hydraulic/vapor/product flows, condenser duty, ownership, and
+provider provenance reproduce; and only `85` property calls are used in
+`0.162 s`. The initial bend is dominated by a `437.64 lbmol/h` increase in
+the energy-owned combined-reboiler/sump-to-stripping vapor link. That term
+explains `-307.70 lbmol/h` of the bottom n-butane rate change and
+`-0.956 MMBTU/h` of the bottom energy-rate change. The formal aggregate gate
+still fails because DD-115 serialized its nominal exponential-step rate
+coordinate separately from the effective finite-step component rate; direct
+reinterpretation differs by `3.08e-5` scaled even though the physical rate
+reconciles. DD-116 is not rerun or changed. Its raw stop remains binding unless
+an explicitly authorized, static, zero-call adjudication accepts that
+representation-only distinction.

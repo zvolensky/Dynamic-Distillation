@@ -992,3 +992,19 @@ grid refinement, endpoint rank/condition/spectrum/registry, exact discrete
 kinematics, conservation, physicality, provider, call, and wall gates are
 frozen. Preparation performs no property evaluation, solve, or timestep. One
 execution is authorized only after commit.
+
+2026-07-27 Core V3 initializer first-step refinement result: DD-115 executes
+once from frozen commit `28ba8d9` and fails the precommitted dynamic-handoff
+gate. All three `46 x 46` backward-Euler roots converge below `2.74e-13`, all
+endpoint Jacobians retain rank `46/46`, and physicality, ordered pressure,
+exact component/energy kinematics, conservation, provider ownership, runtime,
+and call-count gates pass. Coarse/refined inventory, stored energy, pressure,
+temperature, and liquid-flow agreement also pass. Algebraic separation is
+`3.20e-3` and normalized vapor-flow separation is `2.08e-3`, both above their
+`1e-3` limits. Half-step component and energy rates differ from DD-114's
+zero-time rates by `2.39e-2` and `1.74e-2`, led by the generic
+stripping-to-feed vapor link and bottom-volume rates. This is a localized,
+finite transient rather than rank, conservation, or provider failure, and it
+is orders of magnitude smaller than DD-105. Nevertheless, the frozen stop is
+binding: this initializer-to-step handoff is retired, no short trajectory is
+authorized, and no DD-115 timestep or solver tuning may follow.

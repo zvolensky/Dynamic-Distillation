@@ -921,3 +921,15 @@ registered-coupling, KKT, conservation, provider, call, and wall gates. No
 penalty relaxation, retry, alternate solver, changed weight, continuation,
 timestep, or dynamics is permitted. One execution is authorized only after
 the contract commit.
+
+2026-07-26 Core V3 conserved-`N/U` live initializer result: DD-112 executes
+once from frozen commit `0f4dac3`. Both SLSQP starts converge to essentially
+the same objective, satisfy all 52 constraints below `9e-11`, retain rank
+`52/52` with condition about `2.05e3`, and pass the Jacobian, KKT, interior-
+bound, pressure, physicality, conservation, provider, call, and wall gates.
+The normalized endpoint difference is `1.880119e-6`, above the precommitted
+`1e-6` limit; its largest coordinate is a transformed reflux-drum bubble-
+composition value. Physical endpoint pressure differs by only `5.56e-8 psia`,
+but the frozen gate is controlling. DD-112 is retired without retry or tuning.
+No accepted initializer exists, and zero-time audit, timestep, and dynamic
+integration remain unauthorized pending an explicit architecture decision.

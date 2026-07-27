@@ -1,0 +1,1270 @@
+{
+  "schema_id": "dd121-core-v3-terminal-gauge-invariance-result-v1",
+  "contract_commit": "aa4ed13f42aafbe3ff9d3c0d3fca97949d41e0da",
+  "contract_payload_sha256": "40f92c70178a7530b87059c47e28b10ca1d560c9598e21e464b0132004298cd6",
+  "classification": "dd121_passed",
+  "decision": "authorize_frozen_controlled_terminal_48x48_contract",
+  "baseline_dae_scaled": [
+    -0.0023009745530303194,
+    -0.00021579509552545147,
+    0.0010937282328439915,
+    -0.0022671233999787513,
+    0.0009605505518090141,
+    0.002448575533219474,
+    -0.002113637878030825,
+    0.0008611225003960355,
+    0.0014787914239543147,
+    -0.001981487997103067,
+    0.0007861878998405319,
+    0.0012222531555811558,
+    -0.0018467710851653547,
+    0.0007345809038094881,
+    0.001139999807379684,
+    1.760932076537938e-14,
+    -0.002185340918993465,
+    -0.002203377333698665,
+    -0.00222270273351846,
+    -0.002229728705748986,
+    -0.0005156559212073161,
+    -0.00045266991608234193,
+    -2.8626285885585347e-05,
+    -5.4643230863703675e-05,
+    2.5038413627558623e-05,
+    2.1970547270628654e-05,
+    -4.0437536791009814e-05,
+    1.8453039038459336e-05,
+    7.353004423199538e-06,
+    -0.00042132620685489614,
+    -0.0007604753217534203,
+    -0.00010074950294350436,
+    -1.088403758374859e-07,
+    -1.50840389940291e-07,
+    -1.5378377287285876e-07,
+    0.0008904809432695225,
+    0.00016364522370606154,
+    5.249539987047818e-06,
+    3.97526266357473e-06,
+    4.038185342163103e-06,
+    4.103878130941319e-06,
+    5.495025732309838e-06,
+    -2.465432001539408e-12,
+    -2.757302850995436e-12,
+    8.023314582457093e-11,
+    5.9891306306891284e-12
+  ],
+  "baseline_terminal_scaled": [
+    4.824466999288681e-13,
+    7.035411156535674e-12
+  ],
+  "provider_repeatability_inf_norm": 0.0,
+  "invariance_limit": 1e-10,
+  "perturbations": [
+    {
+      "name": "reflux_drum_plus_1pct",
+      "terminal": "reflux_drum",
+      "factor": 1.01,
+      "dae_residual_difference_inf_norm": 0.0,
+      "dae_residual_difference": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal_scaled_residual": [
+        0.010000000000487282,
+        7.035411156535674e-12
+      ],
+      "terminal_scaled_residual_difference": [
+        0.010000000000004835,
+        0.0
+      ],
+      "composition_difference_inf_norm": 0.0,
+      "bottom_specific_energy_difference": 0.0,
+      "terminal_inventory_scaling_error_lbmol": 3.552713678800501e-15,
+      "algebraic_coordinate_difference_inf_norm": 0.0
+    },
+    {
+      "name": "reflux_drum_minus_1pct",
+      "terminal": "reflux_drum",
+      "factor": 0.99,
+      "dae_residual_difference_inf_norm": 0.0,
+      "dae_residual_difference": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "terminal_scaled_residual": [
+        -0.00999999999952239,
+        7.035411156535674e-12
+      ],
+      "terminal_scaled_residual_difference": [
+        -0.010000000000004837,
+        0.0
+      ],
+      "composition_difference_inf_norm": 5.551115123125783e-17,
+      "bottom_specific_energy_difference": 0.0,
+      "terminal_inventory_scaling_error_lbmol": 5.684341886080802e-14,
+      "algebraic_coordinate_difference_inf_norm": 0.0
+    },
+    {
+      "name": "combined_reboiler_sump_plus_1pct",
+      "terminal": "combined_reboiler_sump",
+      "factor": 1.01,
+      "dae_residual_difference_inf_norm": 5.982252986258071e-14,
+      "dae_residual_difference": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        9.107298248878237e-18,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -6.765421556309548e-17,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.3333518317226734e-15,
+        -4.441298674315308e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        5.982252986258071e-14
+      ],
+      "terminal_scaled_residual": [
+        4.824466999288681e-13,
+        0.01000000000710564
+      ],
+      "terminal_scaled_residual_difference": [
+        0.0,
+        0.010000000000070229
+      ],
+      "composition_difference_inf_norm": 2.7755575615628914e-17,
+      "bottom_specific_energy_difference": 0.0,
+      "terminal_inventory_scaling_error_lbmol": 1.1368683772161603e-13,
+      "algebraic_coordinate_difference_inf_norm": 0.0
+    },
+    {
+      "name": "combined_reboiler_sump_minus_1pct",
+      "terminal": "combined_reboiler_sump",
+      "factor": 0.99,
+      "dae_residual_difference_inf_norm": 5.995229673863856e-14,
+      "dae_residual_difference": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.1107651257113993e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -5.995229673863856e-14
+      ],
+      "terminal_scaled_residual": [
+        4.824466999288681e-13,
+        -0.009999999993035103
+      ],
+      "terminal_scaled_residual_difference": [
+        0.0,
+        -0.010000000000070513
+      ],
+      "composition_difference_inf_norm": 1.1102230246251565e-16,
+      "bottom_specific_energy_difference": 0.0,
+      "terminal_inventory_scaling_error_lbmol": 1.4210854715202004e-14,
+      "algebraic_coordinate_difference_inf_norm": 0.0
+    }
+  ],
+  "provider_provenance": {
+    "total_calls": 169,
+    "grouped_records": [
+      {
+        "quantity": "component_molecular_weights",
+        "provider_interface": "dwsim.declared_component_molecular_weights",
+        "caller": "dd121_molecular_weight",
+        "state_id": "dd121:preparation",
+        "evaluation_kind": "preparation",
+        "count": 1
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "condenser_bubble_fugacity[reflux_drum]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "condenser_bubble_fugacity[reflux_drum]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "condenser_bubble_fugacity[reflux_drum]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "condenser_bubble_fugacity[reflux_drum]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "condenser_bubble_fugacity[reflux_drum]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "condenser_bubble_fugacity[reflux_drum]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[combined_reboiler_sump]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[combined_reboiler_sump]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[combined_reboiler_sump]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[combined_reboiler_sump]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[combined_reboiler_sump]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[combined_reboiler_sump]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[feed_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[feed_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[feed_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[feed_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[feed_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[feed_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[rectifying_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[rectifying_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[rectifying_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[rectifying_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[rectifying_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[rectifying_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[reflux_drum]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[reflux_drum]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[reflux_drum]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[reflux_drum]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[reflux_drum]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[reflux_drum]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[stripping_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[stripping_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[stripping_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[stripping_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[stripping_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[stripping_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[combined_reboiler_sump]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[combined_reboiler_sump]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[combined_reboiler_sump]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[combined_reboiler_sump]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[combined_reboiler_sump]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[combined_reboiler_sump]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[feed_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[feed_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[feed_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[feed_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[feed_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[feed_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[rectifying_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[rectifying_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[rectifying_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[rectifying_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[rectifying_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[rectifying_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[reflux_drum]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[reflux_drum]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[reflux_drum]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[reflux_drum]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[reflux_drum]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[reflux_drum]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[stripping_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[stripping_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[stripping_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[stripping_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[stripping_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[stripping_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[feed_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[feed_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[feed_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[feed_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[feed_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[feed_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[rectifying_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[rectifying_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[rectifying_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[rectifying_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[rectifying_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[rectifying_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[stripping_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[stripping_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[stripping_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[stripping_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[stripping_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[stripping_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[combined_reboiler_sump->stripping_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[combined_reboiler_sump->stripping_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[combined_reboiler_sump->stripping_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[combined_reboiler_sump->stripping_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[combined_reboiler_sump->stripping_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[combined_reboiler_sump->stripping_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[feed_tray->rectifying_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[feed_tray->rectifying_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[feed_tray->rectifying_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[feed_tray->rectifying_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[feed_tray->rectifying_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[feed_tray->rectifying_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[rectifying_tray->reflux_drum]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[rectifying_tray->reflux_drum]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[rectifying_tray->reflux_drum]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[rectifying_tray->reflux_drum]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[rectifying_tray->reflux_drum]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[rectifying_tray->reflux_drum]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[stripping_tray->feed_tray]",
+        "state_id": "dd121:baseline:1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[stripping_tray->feed_tray]",
+        "state_id": "dd121:baseline:2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[stripping_tray->feed_tray]",
+        "state_id": "dd121:combined_reboiler_sump_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[stripping_tray->feed_tray]",
+        "state_id": "dd121:combined_reboiler_sump_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[stripping_tray->feed_tray]",
+        "state_id": "dd121:reflux_drum_minus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_pressure_drop[stripping_tray->feed_tray]",
+        "state_id": "dd121:reflux_drum_plus_1pct",
+        "evaluation_kind": "residual",
+        "count": 1
+      }
+    ],
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true
+  },
+  "wall_clock_sec": 0.9597983000567183,
+  "gates": {
+    "evaluation_count": true,
+    "dae_invariance": true,
+    "inventory_scaling": true,
+    "fixed_algebraics": true,
+    "provider": true,
+    "calls": true,
+    "wall": true
+  },
+  "pass": true,
+  "audit_executed_once": true,
+  "jacobian_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "dynamic_integration_attempted": false
+}

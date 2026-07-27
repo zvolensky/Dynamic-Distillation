@@ -1114,3 +1114,17 @@ frozen operating specifications. The terminal-scaled path is retired without
 retry, target adjustment, alternate solver, continuation, timestep, or
 dynamics. Any DAE-only successor must be separately justified rather than
 treated as the next automatic solver variation.
+
+2026-07-27 Core V3 terminal gauge result: DD-121 passes once from contract
+commit `aa4ed13`. Homogeneous `+/-1%` scaling of reflux-drum inventory leaves
+all 46 DAE rows exactly unchanged. Homogeneous scaling of combined
+reboiler/sump inventory and internal energy changes the DAE vector by at most
+`6.00e-14`. In both cases composition and bottom specific internal energy are
+unchanged, while only the applicable terminal target row moves by exactly
+`+/-0.01`. The six residual evaluations use `169` accepted DWSIM calls in
+`0.960 s`; no Jacobian or solve occurs. Terminal amounts are therefore gauge
+selections, not independent steady operating specifications. The next
+authorized design is one frozen square `48 x 48` zero-rate system that keeps
+the drum and sump amount targets and releases positive distillate and bottoms
+rates as level-controller outputs. DD-120's broader claim of target
+incompatibility is narrowed accordingly.

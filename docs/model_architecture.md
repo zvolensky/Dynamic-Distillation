@@ -956,3 +956,15 @@ The lower-objective DD-094-start endpoint is selected canonically. This static
 action uses zero property, residual, Jacobian, solver, initializer, timestep,
 or dynamic calls. DD-112 remains formally failed; DD-113 authorizes drafting
 one frozen zero-time audit of the canonical saved endpoint only.
+
+2026-07-27 Core V3 canonical initializer zero-time contract: DD-114 freezes a
+fresh live evaluation of the DD-113-selected 65-coordinate endpoint. The audit
+retains all 52 DAE, global conservation, and terminal ownership rows; evaluates
+one residual, two 21-color Jacobians at `1e-5` and `5e-6`, and one full
+cross-check; and compares the reconstructed engineering state against the
+immutable DD-112 endpoint. Rank, condition, spectrum, registry, physicality,
+pressure, conservation, provider, `50000`-call, and `180 s` gates are fixed.
+Contract preparation performs no property, residual, Jacobian, solve,
+initializer, timestep, or dynamic evaluation. One zero-time execution is
+authorized only after commit; passing may authorize only a separately frozen
+first-step refinement contract.

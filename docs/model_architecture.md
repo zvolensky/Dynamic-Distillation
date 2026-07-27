@@ -1128,3 +1128,17 @@ authorized design is one frozen square `48 x 48` zero-rate system that keeps
 the drum and sump amount targets and releases positive distillate and bottoms
 rates as level-controller outputs. DD-120's broader claim of target
 incompatibility is narrowed accordingly.
+
+2026-07-27 Core V3 controlled-terminal zero-rate result: DD-122 passes once
+from contract commit `76404ac`. Adding only positive transformed distillate
+and bottoms rates to the unchanged 46-row DAE plus two terminal amount rows
+gives a structurally full-rank `48 x 48` system. Two independent starts reach
+the same root within `8.74e-12`; final residuals are below `1.38e-13`, endpoint
+rank is `48/48`, condition is about `5.94e3`, and every frozen physical,
+conservation, provider, bound, and efficiency gate passes. The stationary
+level-control outputs are `D=2255.740878` and `B=4887.233122 lbmol/h`; their
+sum matches the feed. This is an accepted zero-rate initial condition, not yet
+a dynamic trajectory. The next contract must define bumpless terminal
+level-control ownership initialized at these outputs. Imported product rates
+remain comparison targets unless a separate operating degree of freedom is
+introduced to own throughput.

@@ -1,0 +1,125 @@
+{
+  "schema_id": "dd118-core-v3-zero-rate-feasibility-result-v1",
+  "classification": "dd118_passed",
+  "decision": "authorize_frozen_live_zero_rate_readiness_contract",
+  "primary_three_component_audit": {
+    "component_count": 3,
+    "primal_count": 65,
+    "rate_count": 19,
+    "zero_rate_unknown_count": 46,
+    "dae_row_count": 46,
+    "retained_target_row_count": 6,
+    "zero_rate_dae_shape": [
+      46,
+      46
+    ],
+    "zero_rate_dae_structural_rank": 46,
+    "all_target_shape": [
+      52,
+      46
+    ],
+    "all_target_structural_rank": 46,
+    "all_target_equation_surplus": 6,
+    "augmented_shape": [
+      71,
+      65
+    ],
+    "augmented_structural_rank": 65,
+    "augmented_equation_surplus": 6,
+    "unmatched_all_target_rows": [
+      "global_component_inventory[n-Propane]",
+      "global_component_inventory[n-Butane]",
+      "global_component_inventory[n-Pentane]",
+      "global_stored_energy",
+      "terminal_total_inventory[reflux_drum]",
+      "terminal_total_inventory[combined_reboiler_sump]"
+    ],
+    "global_target_rows": [
+      "global_component_inventory[n-Propane]",
+      "global_component_inventory[n-Butane]",
+      "global_component_inventory[n-Pentane]",
+      "global_stored_energy"
+    ],
+    "terminal_target_rows": [
+      "terminal_total_inventory[reflux_drum]",
+      "terminal_total_inventory[combined_reboiler_sump]"
+    ],
+    "recommended_shape": [
+      48,
+      46
+    ],
+    "recommended_structural_rank": 46,
+    "recommended_equation_surplus": 2,
+    "released_global_target_count": 4,
+    "terminal_scale_freedom_count": 2,
+    "exact_zero_rate_with_all_targets_generically_overdetermined": true,
+    "zero_rate_dae_core_structurally_viable": true,
+    "pass_gate": true
+  },
+  "generic_two_component_audit": {
+    "component_count": 2,
+    "primal_count": 50,
+    "rate_count": 14,
+    "zero_rate_unknown_count": 36,
+    "dae_row_count": 36,
+    "retained_target_row_count": 5,
+    "zero_rate_dae_shape": [
+      36,
+      36
+    ],
+    "zero_rate_dae_structural_rank": 36,
+    "all_target_shape": [
+      41,
+      36
+    ],
+    "all_target_structural_rank": 36,
+    "all_target_equation_surplus": 5,
+    "augmented_shape": [
+      55,
+      50
+    ],
+    "augmented_structural_rank": 50,
+    "augmented_equation_surplus": 5,
+    "unmatched_all_target_rows": [
+      "global_component_inventory[A]",
+      "global_component_inventory[B]",
+      "global_stored_energy",
+      "terminal_total_inventory[reflux_drum]",
+      "terminal_total_inventory[combined_reboiler_sump]"
+    ],
+    "global_target_rows": [
+      "global_component_inventory[A]",
+      "global_component_inventory[B]",
+      "global_stored_energy"
+    ],
+    "terminal_target_rows": [
+      "terminal_total_inventory[reflux_drum]",
+      "terminal_total_inventory[combined_reboiler_sump]"
+    ],
+    "recommended_shape": [
+      38,
+      36
+    ],
+    "recommended_structural_rank": 36,
+    "recommended_equation_surplus": 2,
+    "released_global_target_count": 3,
+    "terminal_scale_freedom_count": 2,
+    "exact_zero_rate_with_all_targets_generically_overdetermined": true,
+    "zero_rate_dae_core_structurally_viable": true,
+    "pass_gate": true
+  },
+  "interpretation": {
+    "all_initializer_targets": "generically_overdetermined_at_zero_rate",
+    "global_component_and_energy_targets": "release_from_exact_constraints_and_retain_as_diagnostics",
+    "terminal_total_holdups": "retain_as_physical_scale_selection_subject_to_live_rank_audit",
+    "zero_rate_dae_core": "square_and_structurally_full_rank"
+  },
+  "live_property_calls": 0,
+  "residual_evaluations": 0,
+  "jacobian_evaluations": 0,
+  "nonlinear_solve_attempted": false,
+  "initializer_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "pass": true
+}

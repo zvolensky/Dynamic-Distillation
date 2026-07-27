@@ -1059,3 +1059,17 @@ solver, initializer, timestep, controller, or trajectory call occurs. DD-116's
 term-level conclusion is accepted: the startup rate bend is physical and
 balance-explained, not an equation-ownership discontinuity. One property-free
 structural zero-rate feasibility audit is authorized.
+
+2026-07-27 Core V3 zero-rate feasibility result: DD-118 passes property-free.
+For three components, removing the 19 rate unknowns by fixing them exactly to
+zero leaves the live DAE core `46 x 46`, structural rank `46`. Retaining all
+six DD-112 selection targets produces `52 x 46`, rank `46`; equivalently,
+adding 19 zero-rate rows to the original initializer gives `71 x 65`, rank
+`65`. Maximum matching leaves exactly the three global component inventories,
+one global stored-energy target, and two terminal total holdups unmatched. The
+two-component audit reproduces the generic `Nc+3` surplus. The next numerical
+architecture must treat the `Nc+1` inherited global component/energy totals as
+diagnostics rather than exact steady-state constraints. Drum and sump total
+holdups remain provisional terminal scale selections, subject to a frozen live
+rank and compatibility audit. No root solve, initializer execution, or
+dynamics is authorized by this structural pass.

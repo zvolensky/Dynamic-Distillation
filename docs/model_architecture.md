@@ -1142,3 +1142,16 @@ a dynamic trajectory. The next contract must define bumpless terminal
 level-control ownership initialized at these outputs. Imported product rates
 remain comparison targets unless a separate operating degree of freedom is
 introduced to own throughput.
+
+2026-07-27 Core V3 controlled-terminal dynamic structure: DD-123 adds explicit
+geometry-based level ownership without changing the accepted DD-122 column
+physics. Two PI-memory states and rates plus positive distillate and bottoms
+outputs add four equations to the inherited ledger, producing a square,
+structurally full-rank `50 x 50` C3/C4 system and a `40 x 40` generic
+two-component system. Liquid volume is total inventory divided by live DWSIM
+liquid molar density. The reflux drum uses a horizontal cylinder with two
+hemispherical heads; the sump uses a vertical cylinder. Controller memories
+are initialized from `D=2255.740878` and `B=4887.233122 lbmol/h`, so the
+stationary handoff has no artificial output jump. This pass is property-free
+and authorizes only a separately frozen live zero-time level reconstruction
+and leading-system audit before any timestep or trajectory.

@@ -1,0 +1,18 @@
+{
+  "schema_id": "dd125-core-v3-controlled-terminal-zero-time-abort-v1",
+  "contract_commit": "50f83e8",
+  "classification": "dd125_aborted_before_scientific_audit",
+  "decision": "stop_controlled_terminal_dynamic_handoff",
+  "exception_type": "ValueError",
+  "exception_message": "full residual evaluation kind must be residual or jacobian",
+  "cause": "The setpoint-reconstruction call used evaluation_kind='preparation', which the provider-governed full residual rejects.",
+  "controlled_terminal_residual_completed": false,
+  "level_setpoint_reconstructed": false,
+  "jacobian_evaluated": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "retry_attempted": false,
+  "dynamic_integration_attempted": false,
+  "scientific_gate_result": null,
+  "further_corrective_successor_authorized": false
+}

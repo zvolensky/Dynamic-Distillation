@@ -1155,3 +1155,15 @@ are initialized from `D=2255.740878` and `B=4887.233122 lbmol/h`, so the
 stationary handoff has no artificial output jump. This pass is property-free
 and authorizes only a separately frozen live zero-time level reconstruction
 and leading-system audit before any timestep or trajectory.
+
+2026-07-27 controlled-terminal live handoff status: DD-124 and DD-125 do not
+alter the accepted architecture or supply a physical result. DD-124 aborts on
+a mismatched pressure-specification keyword before its first governed
+residual. The separately frozen keyword-only DD-125 correction then aborts
+because setpoint reconstruction labels the call as `preparation`, while the
+provider-governed residual accepts only `residual` or `jacobian`. Neither run
+returns a controlled-terminal residual, reconstructs a level, evaluates a
+Jacobian, solves a nonlinear system, or takes a timestep. Per the DD-125 hard
+stop, another automatic corrective successor is prohibited. DD-122 remains
+the accepted stationary zero-rate state; DD-123 remains structural only; the
+live controlled dynamic handoff is unproven.

@@ -1,0 +1,19 @@
+{
+  "schema_id": "dd124-core-v3-controlled-terminal-zero-time-abort-v1",
+  "contract_commit": "bd91364",
+  "classification": "dd124_aborted_before_audit",
+  "decision": "retire_dd124_contract_without_scientific_result",
+  "exception_type": "TypeError",
+  "exception_message": "evaluate_controlled_terminal_zero_time() got an unexpected keyword argument 'pressure_numerical'",
+  "cause": "The shared frozen context exposes the pressure specification as pressure_numerical, while the DD-124 kernel parameter was named numerical.",
+  "governed_residual_evaluated": false,
+  "level_setpoint_reconstructed": false,
+  "jacobian_evaluated": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "retry_attempted": false,
+  "dynamic_integration_attempted": false,
+  "provider_context_construction_began": true,
+  "scientific_gate_result": null,
+  "correction_scope": "A successor may change only the mismatched pressure-numerical keyword wiring and must refreeze every implementation hash before one execution."
+}

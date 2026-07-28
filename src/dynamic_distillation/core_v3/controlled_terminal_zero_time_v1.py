@@ -196,7 +196,7 @@ def evaluate_controlled_terminal_zero_time(
     energy_rate_scales_BTUph: Sequence[float],
     fixed_steady_scales: Sequence[float],
     storage_scales_BTU: Sequence[float],
-    numerical: PressureNumericalSpec,
+    pressure_numerical: PressureNumericalSpec,
     state_id: str,
     evaluation_kind: str,
 ) -> ControlledTerminalZeroTimeEvaluation:
@@ -234,7 +234,7 @@ def evaluate_controlled_terminal_zero_time(
         solve_coordinates=base_coordinates,
         fixed_steady_scales=fixed_steady_scales,
         storage_scales_BTU=storage_scales_BTU,
-        numerical=numerical,
+        numerical=pressure_numerical,
         state_id=state_id,
         evaluation_kind=evaluation_kind,
     )

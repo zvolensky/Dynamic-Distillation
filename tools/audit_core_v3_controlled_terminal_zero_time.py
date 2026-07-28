@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Prepare or execute the frozen DD-124 controlled-terminal zero-time audit."""
+"""Prepare or execute the frozen DD-125 controlled-terminal zero-time audit."""
 
 from __future__ import annotations
 
@@ -40,12 +40,14 @@ from dynamic_distillation.core_v3.controlled_terminal_zero_time_v1 import (
 )
 
 
-SCHEMA = "dd124-core-v3-controlled-terminal-zero-time-contract-v1"
-RESULT_SCHEMA = "dd124-core-v3-controlled-terminal-zero-time-result-v1"
-CONTRACT = Path("logs/dd124_core_v3_controlled_terminal_zero_time_contract_20260727.json")
-RESULT = Path("logs/dd124_core_v3_controlled_terminal_zero_time_20260727.json")
-CONTRACT_DOC = Path("docs/dd_124_core_v3_controlled_terminal_zero_time_contract_20260727.md")
-RESULT_DOC = Path("docs/dd_124_core_v3_controlled_terminal_zero_time_20260727.md")
+SCHEMA = "dd125-core-v3-controlled-terminal-zero-time-contract-v1"
+RESULT_SCHEMA = "dd125-core-v3-controlled-terminal-zero-time-result-v1"
+CONTRACT = Path("logs/dd125_core_v3_controlled_terminal_zero_time_contract_20260727.json")
+RESULT = Path("logs/dd125_core_v3_controlled_terminal_zero_time_20260727.json")
+CONTRACT_DOC = Path("docs/dd_125_core_v3_controlled_terminal_zero_time_contract_20260727.md")
+RESULT_DOC = Path("docs/dd_125_core_v3_controlled_terminal_zero_time_20260727.md")
+DD124_CONTRACT = Path("logs/dd124_core_v3_controlled_terminal_zero_time_contract_20260727.json")
+DD124_RESULT = Path("logs/dd124_core_v3_controlled_terminal_zero_time_20260727.json")
 DD123_RESULT = Path("logs/dd123_core_v3_controlled_terminal_dynamic_contract_20260727.json")
 DD122_CONTRACT = Path("logs/dd122_core_v3_controlled_terminal_zero_rate_contract_20260727.json")
 DD122_RESULT = Path("logs/dd122_core_v3_controlled_terminal_zero_rate_20260727.json")
@@ -101,14 +103,22 @@ def prepare() -> dict[str, Any]:
     structural = _load(DD123_RESULT)
     source = _load(DD122_CONTRACT)
     root = _load(DD122_RESULT)
+    aborted = _load(DD124_RESULT)
+    if (
+        aborted["classification"] != "dd124_aborted_before_audit"
+        or aborted["governed_residual_evaluated"]
+        or aborted["jacobian_evaluated"]
+        or aborted["timestep_attempted"]
+    ):
+        raise RuntimeError("DD-125 correction requires the immutable pre-audit DD-124 abort")
     if (
         not structural["pass"]
         or structural["decision"]
         != "authorize_frozen_live_controlled_terminal_handoff_contract"
     ):
-        raise RuntimeError("DD-124 requires the passed DD-123 authorization")
+        raise RuntimeError("DD-125 requires the passed DD-123 authorization")
     if not root["pass"] or root["decision"] != "authorize_zero_rate_dynamic_handoff_contract":
-        raise RuntimeError("DD-124 requires the accepted DD-122 root")
+        raise RuntimeError("DD-125 requires the accepted DD-122 root")
     contract = build_controlled_terminal_dynamic_contract(
         tuple(source["source_mapping"]["component_names"]),
         geometry=TerminalGeometry(**structural["geometry"]),
@@ -116,7 +126,7 @@ def prepare() -> dict[str, Any]:
     )
     pattern = controlled_terminal_zero_time_pattern(contract)
     if pattern.shape != (50, 50) or structural_rank(csr_matrix(pattern)) != 50:
-        raise RuntimeError("DD-124 leading pattern is not full rank")
+        raise RuntimeError("DD-125 leading pattern is not full rank")
     endpoint = root["starts"][0]
     saved = np.asarray(endpoint["final_coordinates"], dtype=float)
     component_count = len(source["source_mapping"]["component_names"])
@@ -132,13 +142,19 @@ def prepare() -> dict[str, Any]:
         )
     )
     if point.shape != (50,):
-        raise RuntimeError("DD-124 zero-time coordinate reconstruction failed")
+        raise RuntimeError("DD-125 zero-time coordinate reconstruction failed")
     payload: dict[str, Any] = {
         "schema_id": SCHEMA,
         "preparation_base_commit": _git("rev-parse", "HEAD"),
         "sources": {
             str(path).replace("\\", "/"): _sha(ROOT / path)
-            for path in (DD123_RESULT, DD122_CONTRACT, DD122_RESULT)
+            for path in (
+                DD123_RESULT,
+                DD122_CONTRACT,
+                DD122_RESULT,
+                DD124_CONTRACT,
+                DD124_RESULT,
+            )
         },
         "workbook": source["workbook"],
         "workbook_sha256": source["workbook_sha256"],
@@ -170,6 +186,7 @@ def prepare() -> dict[str, Any]:
         "structural_shape": list(pattern.shape),
         "structural_rank": int(structural_rank(csr_matrix(pattern))),
         "level_setpoint_rule": "reconstruct once from DD-122 terminal inventory divided by live DWSIM liquid density and the frozen DD-123 vessel geometry",
+        "correction_from_dd124": "keyword-only pressure_numerical wiring correction; all physical inputs, gates, steps, and limits retained",
         "jacobian_steps": list(JACOBIAN_STEPS),
         "residual_limit": 1.0e-8,
         "controller_residual_limit": 1.0e-10,
@@ -204,7 +221,7 @@ def prepare() -> dict[str, Any]:
     (ROOT / CONTRACT_DOC).write_text(
         "\n".join(
             (
-                "# DD-124 Frozen Controlled-Terminal Zero-Time Contract",
+                "# DD-125 Frozen Controlled-Terminal Zero-Time Contract",
                 "",
                 f"- Payload SHA-256: `{payload['contract_payload_sha256']}`",
                 "- System: `50 x 50`, structural rank `50`",
@@ -228,17 +245,17 @@ def _verify(payload: dict[str, Any]) -> None:
     actual = _hash(payload)
     payload["contract_payload_sha256"] = claimed
     if claimed != actual:
-        raise RuntimeError("DD-124 contract checksum mismatch")
+        raise RuntimeError("DD-125 contract checksum mismatch")
     for path, expected in payload["sources"].items():
         if _sha(ROOT / path) != expected:
-            raise RuntimeError(f"DD-124 source changed: {path}")
+            raise RuntimeError(f"DD-125 source changed: {path}")
     for path, expected in payload["implementation_sha256"].items():
         if _sha(ROOT / path) != expected:
-            raise RuntimeError(f"DD-124 implementation changed: {path}")
+            raise RuntimeError(f"DD-125 implementation changed: {path}")
     if _sha(Path(payload["workbook"])) != payload["workbook_sha256"]:
-        raise RuntimeError("DD-124 workbook changed")
+        raise RuntimeError("DD-125 workbook changed")
     if (ROOT / RESULT).exists():
-        raise RuntimeError("DD-124 result already exists")
+        raise RuntimeError("DD-125 result already exists")
     _git("ls-files", "--error-unmatch", str(CONTRACT))
 
 
@@ -258,8 +275,8 @@ def _full_jacobian(objective, point, step):
     for column in range(point.size):
         delta = np.zeros_like(point)
         delta[column] = step
-        plus = objective(point + delta, f"dd124:full:{column}:plus")
-        minus = objective(point - delta, f"dd124:full:{column}:minus")
+        plus = objective(point + delta, f"dd125:full:{column}:plus")
+        minus = objective(point - delta, f"dd125:full:{column}:minus")
         matrix[:, column] = (plus - minus) / (2.0 * step)
     return matrix
 
@@ -289,7 +306,7 @@ def execute() -> dict[str, Any]:
         controller_memory=memory,
         level_setpoints=provisional,
         solve_coordinates=point,
-        state_id="dd124:setpoint_reconstruction",
+        state_id="dd125:setpoint_reconstruction",
         evaluation_kind="preparation",
         **common,
     )
@@ -316,13 +333,13 @@ def execute() -> dict[str, Any]:
     def objective(candidate, state_id):
         return evaluate(candidate, state_id).scaled
 
-    baseline = evaluate(point, "dd124:baseline")
-    repeated = evaluate(point, "dd124:repeat")
+    baseline = evaluate(point, "dd125:baseline")
+    repeated = evaluate(point, "dd125:repeat")
     audits = []
     matrices = []
     for step in payload["jacobian_steps"]:
         matrix, singular, rank, condition, colors = _jacobian(
-            objective, point, pattern, float(step), f"dd124:jacobian:{step:g}"
+            objective, point, pattern, float(step), f"dd125:jacobian:{step:g}"
         )
         matrices.append(matrix)
         unexpected = tuple(
@@ -393,7 +410,7 @@ def execute() -> dict[str, Any]:
         "schema_id": RESULT_SCHEMA,
         "contract_commit": _git("rev-parse", "HEAD"),
         "contract_payload_sha256": payload["contract_payload_sha256"],
-        "classification": "dd124_passed" if passed else "dd124_failed",
+        "classification": "dd125_passed" if passed else "dd125_failed",
         "decision": "authorize_frozen_controlled_terminal_first_step_contract" if passed else "stop_controlled_terminal_dynamic_handoff",
         "level_setpoints": asdict(setpoints),
         "liquid_density_lbmol_ft3": _vector(densities),
@@ -427,7 +444,7 @@ def execute() -> dict[str, Any]:
     (ROOT / RESULT_DOC).write_text(
         "\n".join(
             (
-                "# DD-124 Core V3 Controlled-Terminal Zero-Time Audit",
+                "# DD-125 Core V3 Controlled-Terminal Zero-Time Audit",
                 "",
                 f"- Classification: `{result['classification']}`",
                 f"- Decision: `{result['decision']}`",
@@ -440,7 +457,7 @@ def execute() -> dict[str, Any]:
                 f"- Wall clock: `{elapsed:.3f} s`",
                 f"- Gates: `{gates}`",
                 "",
-                "DD-124 performed no nonlinear solve, timestep, retry, or dynamic integration.",
+                "DD-125 performed no nonlinear solve, timestep, retry, or dynamic integration.",
                 "",
             )
         ),

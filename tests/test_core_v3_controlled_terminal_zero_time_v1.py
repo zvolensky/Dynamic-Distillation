@@ -1,3 +1,5 @@
+import inspect
+
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import structural_rank
@@ -10,6 +12,7 @@ from dynamic_distillation.core_v3.controlled_terminal_dynamic_contract_v1 import
 from dynamic_distillation.core_v3.controlled_terminal_zero_time_v1 import (
     controlled_terminal_zero_time_pattern,
     controlled_terminal_zero_time_variable_names,
+    evaluate_controlled_terminal_zero_time,
     horizontal_drum_level_fraction,
     horizontal_drum_liquid_volume_ft3,
     horizontal_drum_total_volume_ft3,
@@ -87,3 +90,10 @@ def test_zero_time_pattern_remains_generic_for_two_components():
 
     assert pattern.shape == (40, 40)
     assert structural_rank(csr_matrix(pattern)) == 40
+
+
+def test_zero_time_kernel_accepts_the_shared_pressure_numerical_keyword():
+    parameters = inspect.signature(evaluate_controlled_terminal_zero_time).parameters
+
+    assert "pressure_numerical" in parameters
+    assert "numerical" not in parameters

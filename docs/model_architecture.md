@@ -1167,3 +1167,14 @@ Jacobian, solves a nonlinear system, or takes a timestep. Per the DD-125 hard
 stop, another automatic corrective successor is prohibited. DD-122 remains
 the accepted stationary zero-rate state; DD-123 remains structural only; the
 live controlled dynamic handoff is unproven.
+
+2026-08-05 controlled-terminal interface qualification: after explicit user
+authorization to reopen the interface-only stop, DD-126 replaces the invalid
+setpoint call label with the provider-supported `residual` label. The live
+50-row controlled DAE closes at `3.09e-11`; all four controller rows are
+exactly zero. Direct DWSIM density plus frozen geometry gives a reflux-drum
+level of `0.469288` diameter fraction and sump level of `0.524957` height
+fraction. The accepted stationary outputs reproduce exactly at
+`D=2255.740878` and `B=4887.233122 lbmol/h`. All 57 provider calls pass. This
+is a development interface preflight, not a Jacobian or timestep result. It
+authorizes one separately frozen live `50 x 50` Jacobian audit.

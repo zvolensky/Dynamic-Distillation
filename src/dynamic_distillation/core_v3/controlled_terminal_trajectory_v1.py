@@ -58,6 +58,10 @@ def run_controlled_terminal_trajectory(
     objective_factory: Callable[[np.ndarray, float, np.ndarray, np.ndarray, float], Callable],
     jacobian_factory: Callable[[Callable], Callable],
     *,
+    step_jacobian_factory: Callable[
+        [Callable, np.ndarray, float, np.ndarray, np.ndarray, float], Callable
+    ]
+    | None = None,
     initial_inventory_lbmol: Sequence[Sequence[float]],
     initial_top_internal_energy_BTU: float,
     initial_lower_internal_energy_BTU: Sequence[float],
@@ -94,9 +98,21 @@ def run_controlled_terminal_trajectory(
         objective = objective_factory(
             inventory, top_u, lower_u, memory, float(step_seconds)
         )
+        jacobian = (
+            step_jacobian_factory(
+                objective,
+                inventory,
+                top_u,
+                lower_u,
+                memory,
+                float(step_seconds),
+            )
+            if step_jacobian_factory is not None
+            else jacobian_factory(objective)
+        )
         outcome = solve_modified_newton(
             objective,
-            jacobian_factory(objective),
+            jacobian,
             coordinates,
             settings,
             lower_bounds=lower,

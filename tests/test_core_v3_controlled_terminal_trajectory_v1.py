@@ -73,6 +73,51 @@ def test_dd134_trajectory_chains_endpoints_with_one_jacobian_per_step():
     assert all(step.outcome.jacobian_evaluations == 1 for step in result.steps)
 
 
+def test_trajectory_step_jacobian_factory_receives_advancing_state():
+    seen, objective_factory, _jacobian_factory = _basis()
+    jacobian_states = []
+
+    def unused_factory(_objective):
+        raise AssertionError("legacy Jacobian factory must not be used")
+
+    def step_factory(objective, inventory, top_u, lower_u, memory, seconds):
+        jacobian_states.append(
+            (
+                inventory.copy(),
+                float(top_u),
+                lower_u.copy(),
+                memory.copy(),
+                float(seconds),
+            )
+        )
+        return lambda point, state_id: np.eye(np.asarray(point).size)
+
+    result = run_controlled_terminal_trajectory(
+        objective_factory,
+        unused_factory,
+        step_jacobian_factory=step_factory,
+        initial_inventory_lbmol=np.ones((2, 2)),
+        initial_top_internal_energy_BTU=10.0,
+        initial_lower_internal_energy_BTU=np.ones(2),
+        initial_controller_memory=np.zeros(2),
+        initial_coordinates=np.zeros(3),
+        lower_bounds=np.full(3, -10.0),
+        upper_bounds=np.full(3, 10.0),
+        step_seconds=1.0,
+        duration_seconds=3.0,
+        settings=ModifiedNewtonSettings(),
+        name="step-hook",
+    )
+
+    assert result.completed
+    assert len(jacobian_states) == 3
+    assert np.array_equal(jacobian_states[0][0], seen[0][0])
+    assert np.array_equal(jacobian_states[1][0], seen[1][0])
+    assert jacobian_states[1][1] == jacobian_states[0][1] + 1.0
+    assert np.allclose(jacobian_states[1][3], jacobian_states[0][3] - 0.01)
+    assert all(item[4] == 1.0 for item in jacobian_states)
+
+
 def test_dd134_trajectory_stops_at_first_failed_root():
     seen, objective_factory, _jacobian_factory = _basis()
 

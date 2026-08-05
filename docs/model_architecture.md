@@ -1272,3 +1272,15 @@ controller direction. First-step reproduction and coarse/refined endpoint
 agreement are explicit gates. The absolute provider ceiling is 80,000 calls.
 The contract is frozen but unexecuted; execution requires separate user
 authorization.
+
+2026-08-05 controlled-terminal short-trajectory result: DD-134 demonstrates
+that the one-frozen-Jacobian rule is efficient but not robust over repeated
+steps. The coarse path fails its seventh root at `t=7 s` with residual
+`5.091822e-8`; the refined path fails its sixth root at `t=3 s` with residual
+`1.579973e-8`. In both cases, the fixed-fraction line search cannot accept a
+further correction. All completed states remain physical, conservative,
+pressure ordered, correctly directed, full rank, and well inside the call and
+wall limits. Coarse/refined states at the shared `t=3 s` point agree within the
+frozen trajectory tolerances. Therefore DD-134 identifies numerical
+globalization loss near the residual floor, not model or grid divergence. The
+one-frozen-Jacobian controlled-trajectory path is stopped without retry.

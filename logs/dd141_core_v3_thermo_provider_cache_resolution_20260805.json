@@ -1,0 +1,151 @@
+{
+  "schema_id": "dd141-core-v3-thermo-provider-cache-resolution-result-v1",
+  "contract_commit": "ab5a9ceb5eafd1a7a6ee89dff3a09f8610ba92e8",
+  "contract_payload_sha256": "402e35310709c3f19e3a6d3640f6c5ecc78f64411eabf816c1e50f5d3bad8cb5",
+  "classification": "rounded_property_cache_alias_confirmed",
+  "decision": "authorize_exact_state_property_cache_key_correction",
+  "records": {
+    "temperature": {
+      "forward": {
+        "values": [
+          272.0004,
+          272.0004
+        ],
+        "cache_keys": [
+          "(100.0, 200.0, (0.5, 0.3, 0.2))"
+        ],
+        "cache_size": 1,
+        "cache_hits": 1,
+        "cache_misses": 1
+      },
+      "reverse": {
+        "values": [
+          272.00049,
+          272.00049
+        ],
+        "cache_keys": [
+          "(100.0, 200.0, (0.5, 0.3, 0.2))"
+        ],
+        "cache_size": 1,
+        "cache_hits": 1,
+        "cache_misses": 1
+      }
+    },
+    "pressure": {
+      "forward": {
+        "values": [
+          272.00000400000005,
+          272.00000400000005
+        ],
+        "cache_keys": [
+          "(100.0, 200.0, (0.5, 0.3, 0.2))"
+        ],
+        "cache_size": 1,
+        "cache_hits": 1,
+        "cache_misses": 1
+      },
+      "reverse": {
+        "values": [
+          272.0000049,
+          272.0000049
+        ],
+        "cache_keys": [
+          "(100.0, 200.0, (0.5, 0.3, 0.2))"
+        ],
+        "cache_size": 1,
+        "cache_hits": 1,
+        "cache_misses": 1
+      }
+    },
+    "composition": {
+      "forward": {
+        "values": [
+          272.0,
+          272.0
+        ],
+        "cache_keys": [
+          "(100.0, 200.0, (0.5, 0.3, 0.2))"
+        ],
+        "cache_size": 1,
+        "cache_hits": 1,
+        "cache_misses": 1
+      },
+      "reverse": {
+        "values": [
+          271.9999994,
+          271.9999994
+        ],
+        "cache_keys": [
+          "(100.0, 200.0, (0.5, 0.3, 0.2))"
+        ],
+        "cache_size": 1,
+        "cache_hits": 1,
+        "cache_misses": 1
+      }
+    },
+    "heat_capacity_temperature": {
+      "forward": {
+        "values": [
+          [
+            100.0004,
+            -100.0004
+          ],
+          [
+            100.0004,
+            -100.0004
+          ]
+        ],
+        "cache_size": 1,
+        "cache_hits": 1,
+        "cache_misses": 1
+      },
+      "reverse": {
+        "values": [
+          [
+            100.00049,
+            -100.00049
+          ],
+          [
+            100.00049,
+            -100.00049
+          ]
+        ],
+        "cache_size": 1,
+        "cache_hits": 1,
+        "cache_misses": 1
+      }
+    }
+  },
+  "temperature_perturbations_F": [
+    0.001,
+    0.0005
+  ],
+  "pressure_perturbations_psia": [
+    0.0001,
+    5e-05
+  ],
+  "dd140_inverse_step_ratios": {
+    "coarse": 1.9999999999999998,
+    "refined": 2.0021000628417824
+  },
+  "gates": {
+    "temperature_density_cache_alias": true,
+    "pressure_density_cache_alias": true,
+    "composition_density_cache_alias": true,
+    "heat_capacity_cache_alias": true,
+    "jacobian_perturbations_reach_or_fall_below_cache_resolution": true,
+    "dd140_inverse_step_signature": true,
+    "zero_dwsim_property_calls": true,
+    "no_residual_jacobian_solve_or_state_advance": true
+  },
+  "pass": true,
+  "live_property_evaluation_attempted": false,
+  "dwsim_property_calls": 0,
+  "residual_evaluation_attempted": false,
+  "jacobian_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "audit_executed_once": true
+}

@@ -1261,3 +1261,14 @@ limit. The adjudication uses zero provider or model evaluations and preserves
 both source classifications. This validates the one-Jacobian modified-Newton
 endpoint as physically equivalent and authorizes only a separately frozen
 short controlled-trajectory contract; no trajectory has occurred.
+
+2026-08-05 controlled-terminal short-trajectory contract: DD-134 freezes the
+first bounded trajectory after DD-133. It retains the exact DD-132 physical
+state and dual-level disturbance and compares `10 x 1.0 s` against
+`20 x 0.5 s` over 10 seconds. Every root uses the one-Jacobian modified-Newton
+kernel; every step is gated for closure, rank, conditioning, physicality,
+pressure order, conservation, exact discrete kinematics, and commanded
+controller direction. First-step reproduction and coarse/refined endpoint
+agreement are explicit gates. The absolute provider ceiling is 80,000 calls.
+The contract is frozen but unexecuted; execution requires separate user
+authorization.

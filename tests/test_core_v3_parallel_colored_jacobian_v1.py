@@ -1,6 +1,13 @@
 import numpy as np
 import pytest
 
+from dynamic_distillation.core_v3.captured_modified_newton_v1 import (
+    solve_captured_modified_newton,
+)
+from dynamic_distillation.core_v3.colored_jacobian_v1 import (
+    colored_central_difference_jacobian,
+)
+from dynamic_distillation.core_v3.modified_newton_v1 import ModifiedNewtonSettings
 from dynamic_distillation.core_v3.parallel_colored_jacobian_v1 import (
     ColoredCentralDifferenceResult,
     assemble_colored_central_difference_jacobian,
@@ -87,3 +94,74 @@ def test_parallel_colored_tasks_validate_step_and_shape():
             step=1.0e-5,
             state_id="fixture",
         )
+
+
+def test_parallel_assembly_is_captured_solver_equivalent():
+    matrix = np.asarray(((3.0, 1.0), (1.0, 2.0)))
+    target = np.asarray((1.0, -0.5))
+    pattern = matrix != 0.0
+
+    class Evaluation:
+        def __init__(self, point):
+            self.solve_coordinates = np.asarray(point, dtype=float)
+            self.scaled = matrix @ self.solve_coordinates - target
+
+    def objective(point, _state_id):
+        return Evaluation(point)
+
+    def parallel_builder(point, state_id):
+        tasks, _groups = build_colored_central_difference_tasks(
+            point,
+            pattern=pattern,
+            step=1.0e-5,
+            state_id=state_id,
+        )
+        results = [
+            ColoredCentralDifferenceResult(
+                order=task.order,
+                residual=tuple(objective(task.coordinates, task.state_id).scaled),
+            )
+            for task in reversed(tasks)
+        ]
+        return assemble_colored_central_difference_jacobian(
+            tasks,
+            results,
+            pattern=pattern,
+            step=1.0e-5,
+        )
+
+    def serial_builder(point, state_id):
+        assembled, _groups = colored_central_difference_jacobian(
+            lambda trial, trial_id: objective(trial, trial_id).scaled,
+            point,
+            pattern=pattern,
+            step=1.0e-5,
+            state_id=state_id,
+        )
+        return assembled
+
+    settings = ModifiedNewtonSettings(
+        residual_tolerance=1.0e-12,
+        max_iterations=3,
+        line_search_fractions=(1.0, 0.5, 0.25, 0.125),
+        armijo_fraction=1.0e-4,
+        condition_limit=1.0e8,
+    )
+    serial = solve_captured_modified_newton(
+        objective,
+        serial_builder,
+        (0.0, 0.0),
+        settings,
+        name="serial",
+    )
+    parallel = solve_captured_modified_newton(
+        objective,
+        parallel_builder,
+        (0.0, 0.0),
+        settings,
+        name="parallel",
+    )
+    assert serial.success and parallel.success
+    assert np.array_equal(serial.frozen_jacobian, parallel.frozen_jacobian)
+    assert np.array_equal(serial.final_coordinates, parallel.final_coordinates)
+    assert np.array_equal(serial.final_residual, parallel.final_residual)

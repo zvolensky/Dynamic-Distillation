@@ -1237,3 +1237,16 @@ residual, the absolute worst-case three-root budget is 7,673 calls, below the
 8,000 gate. DD-131 makes zero live provider or column calls. This authorizes
 one frozen live efficiency proof that must reproduce DD-130's saved physical
 endpoints; it does not authorize a trajectory.
+
+2026-08-05 controlled-terminal modified-Newton live result: DD-132 demonstrates
+the intended computational improvement. Each of the three moving roots uses
+one 21-color Jacobian, one LU factorization, and two residual-only corrections;
+all roots close below `1.77e-9`. Provider calls fall from 24,165 to 3,809
+(`84.2%`) and wall time to `2.281 s`. Every physical, controller-direction,
+refinement, kinematic, pressure, conservation, and provider gate passes. The
+formal campaign fails only because the half2 transformed bottom-to-stripping
+vapor-flow coordinate differs from DD-130 by `1.017993e-7`, versus the frozen
+`<1e-7` limit. The associated physical endpoints pass and the next coordinate
+difference is below the limit. Preserve the no-retry stop. A static physical-
+equivalence adjudication may be considered only under separate authorization;
+no controlled trajectory is authorized.

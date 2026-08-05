@@ -1202,3 +1202,12 @@ energy, and two PI memories all satisfy their discrete kinematics. This is the
 first evidence that the controlled Core V3 DAE can preserve its accepted
 steady state without an artificial startup transient. It authorizes one
 separately frozen moving-step test, not a trajectory.
+
+2026-08-05 controlled-terminal moving-step status: DD-129 does not produce a
+scientific result. Its three frozen solve paths reach final result assembly,
+where JSON serialization rejects a NumPy boolean in the controller-direction
+gate. The numerical metrics are not retained, so no claim is made about moving
+step convergence, refinement, direction, or rank. This is a reporting-interface
+abort rather than a model failure. DD-128 remains the accepted stationary
+first-step boundary. No retry or trajectory is authorized without an explicit,
+separately frozen JSON-coercion-only successor.

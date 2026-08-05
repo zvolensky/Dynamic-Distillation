@@ -1,0 +1,22 @@
+{
+  "schema_id": "dd129-core-v3-controlled-terminal-moving-step-abort-v1",
+  "contract_commit": "d5c9fcb71171930964af4106e744a8a24a0bb041",
+  "contract_payload_sha256": "af91f1b674e404d774b8706fbcad161f67a12c068c7e68917fb00f44c7c9d325",
+  "classification": "dd129_aborted_during_result_serialization",
+  "decision": "stop_before_any_retry_or_trajectory",
+  "scientific_gate_result": null,
+  "execution_reached_final_result_assembly": true,
+  "result_metrics_retained": false,
+  "failure_type": "reporting_interface",
+  "failure": {
+    "exception": "TypeError",
+    "message": "Object of type bool is not JSON serializable",
+    "field": "gates.controller_direction",
+    "mechanism": "numpy.bool_ was stored in the result gate dictionary and passed to the standard JSON encoder"
+  },
+  "result_file_created_by_campaign": false,
+  "retry_attempted": false,
+  "changed_disturbance_attempted": false,
+  "dynamic_integration_attempted": false,
+  "moving_step_scientifically_classified": false
+}

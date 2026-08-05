@@ -1,0 +1,117 @@
+{
+  "schema_id": "dd133-core-v3-dd132-physical-equivalence-adjudication-contract-v1",
+  "preparation_base_commit": "c0373e3774de2db5b1ddda2f98914498d8127fbf",
+  "governance_exception": {
+    "authorized_by_user": true,
+    "authorization_date": "2026-08-05",
+    "reason": "DD-132 passed every scientific and physical gate but narrowly missed one transformed-coordinate reproduction limit",
+    "scope": "statically compare the saved DD-130 and DD-132 physical endpoints; preserve both classifications and all source evidence"
+  },
+  "sources": {
+    "logs/dd130_core_v3_controlled_terminal_moving_step_jsonfix_contract_20260805.json": "163d79a65da065fdad90c7fc74c309ff3defb99ce0eb6464c5f35aaa071c05ab",
+    "logs/dd130_core_v3_controlled_terminal_moving_step_jsonfix_20260805.json": "7740be5e3c4b9d68b7967d29b3cc5706a54381e4d658de7fd3ba8d92d11f2257",
+    "logs/dd132_core_v3_modified_newton_live_efficiency_contract_20260805.json": "bf7a08ba34e43de10dd6b6a338ccc1541ae3887ecfcc355a97d30f4987bc61ea",
+    "logs/dd132_core_v3_modified_newton_live_efficiency_20260805.json": "7f423e16ff7a76c40ca582255f7bc95f25c73bada34f0934403c8cae05d1d47f"
+  },
+  "dd130_failed_gates": [
+    "calls"
+  ],
+  "dd132_failed_gates": [
+    "endpoint_reproduction"
+  ],
+  "dd130_replaceable_gates": [
+    "calls"
+  ],
+  "dd132_replaceable_gates": [
+    "endpoint_reproduction"
+  ],
+  "preserved_dd130_gates": {
+    "solver_success": true,
+    "residual": true,
+    "rank": true,
+    "condition": true,
+    "spectrum": true,
+    "structure": true,
+    "controller_direction": true,
+    "movement_signal": true,
+    "refinement": true,
+    "discrete_kinematics": true,
+    "pressure_order": true,
+    "physical": true,
+    "conservation": true,
+    "provider": true,
+    "wall": true,
+    "no_retry_or_trajectory": true
+  },
+  "preserved_dd132_gates": {
+    "solver_success": true,
+    "residual": true,
+    "single_jacobian_factorization": true,
+    "controller_direction": true,
+    "movement_signal": true,
+    "refinement": true,
+    "discrete_kinematics": true,
+    "pressure_order": true,
+    "physical": true,
+    "conservation": true,
+    "provider": true,
+    "calls": true,
+    "wall": true,
+    "no_rebuild_fallback_retry_or_trajectory": true
+  },
+  "physical_equivalence_limits": {
+    "inventory_relative_difference": 2e-07,
+    "liquid_holdup_relative_difference": 2e-07,
+    "liquid_composition_abs_difference": 2e-07,
+    "component_rate_scaled_difference": 2e-06,
+    "top_internal_energy_relative_difference": 2e-07,
+    "lower_internal_energy_relative_difference": 2e-07,
+    "lower_energy_rate_scaled_difference": 2e-07,
+    "controller_memory_abs_difference": 2e-07,
+    "controller_rate_abs_difference_per_sec": 2e-07,
+    "level_fraction_abs_difference": 2e-07,
+    "temperature_abs_difference_F": 5e-05,
+    "vapor_composition_abs_difference": 2e-07,
+    "liquid_flow_relative_difference": 2e-07,
+    "vapor_flow_relative_difference": 2e-07,
+    "bubble_composition_abs_difference": 2e-07,
+    "pressure_abs_difference_psia": 2e-06,
+    "distillate_relative_difference": 1e-07,
+    "bottoms_relative_difference": 1e-07,
+    "condenser_duty_scaled_difference": 2e-07
+  },
+  "comparison_outcomes": [
+    "coarse",
+    "half1",
+    "half2"
+  ],
+  "comparison_basis": [
+    "component inventories, total liquid holdups, and liquid compositions",
+    "component rates, stored energies, and lower-volume energy rates",
+    "controller memories, controller rates, levels, and product flows",
+    "temperatures, vapor and bubble compositions, liquid and vapor flows",
+    "ordered pressure profile and condenser duty"
+  ],
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/dd132_physical_equivalence_adjudication_v1.py": "472ae9345f128eb10e54a19a6c0f15d11307f8bcac9afdaa15b7e11f7a20ae8b",
+    "tests/test_core_v3_dd132_physical_equivalence_adjudication_v1.py": "766506ed6335f02c87fd6e93d6d5dc5a147c3d85c579db99aed9eb6330eab698",
+    "tools/adjudicate_core_v3_dd132_physical_equivalence.py": "eab45abf04f97920fdc8faf36994cc07deb3a8e05b75c8ef7787caeb71bbb7a6"
+  },
+  "hard_stops": [
+    "a DD-130 or DD-132 source artifact hash changes",
+    "a failed source gate lies outside calls or endpoint_reproduction respectively",
+    "an inherited source gate is changed or false",
+    "a physical-equivalence metric reaches or exceeds its frozen limit",
+    "a decoded endpoint is nonphysical or a stored product disagrees with its coordinate",
+    "a property call, residual, Jacobian, solve, initializer, timestep, or dynamics is attempted",
+    "a source classification or numerical result is modified"
+  ],
+  "live_property_evaluation_attempted": false,
+  "residual_or_jacobian_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "initializer_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "adjudication_executed": false,
+  "contract_payload_sha256": "0374e6d554d71ec3e3bd68a25d4053c6c283c13319d638697baa1a6147a26d75"
+}

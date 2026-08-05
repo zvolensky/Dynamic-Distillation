@@ -5,12 +5,14 @@ from scipy.sparse.csgraph import structural_rank
 from dynamic_distillation.core_v3.controlled_terminal_implicit_step_v1 import (
     controlled_terminal_step_pattern,
     evaluate_controlled_terminal_backward_euler_residual,
+    solve_controlled_terminal_backward_euler_step,
 )
 from dynamic_distillation.core_v3.controlled_terminal_zero_time_v1 import (
     TerminalLevelSetpoints,
     terminal_level_fractions,
 )
 from dynamic_distillation.core_v3.provider_call_audit_v1 import ProviderCallAudit
+from dynamic_distillation.core_v3.implicit_step_v1 import ImplicitStepSettings
 from test_core_v3_controlled_terminal_zero_time_v1 import _contract
 from test_core_v3_conserved_nu_pressure_numerical_v1 import _nu_basis
 from test_core_v3_dynamic_dae_numerical_audit_v1 import _scales
@@ -130,3 +132,22 @@ def test_dd128_component_and_energy_kinematics_are_exact():
         result.base.endpoint_lower_internal_energy_BTU - storage[1:],
         step_hours * result.base.internal_energy_rate_BTUph[1:],
     )
+
+
+def test_controlled_step_outcome_retains_solver_endpoint_jacobian():
+    _, _, _, _, contract, _, _, _, point, levels = _basis()
+
+    def objective(candidate, _state_id):
+        return _evaluate(candidate, np.zeros(2), levels)
+
+    outcome = solve_controlled_terminal_backward_euler_step(
+        contract,
+        objective,
+        point,
+        ImplicitStepSettings(max_nfev=2, jacobian_mode="colored"),
+        name="controlled_step_jacobian_test",
+    )
+
+    assert outcome.nfev > 0
+    assert outcome.final_jacobian.shape == (50, 50)
+    assert np.all(np.isfinite(outcome.final_jacobian))

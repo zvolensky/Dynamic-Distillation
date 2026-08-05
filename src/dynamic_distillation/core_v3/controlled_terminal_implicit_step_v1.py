@@ -63,6 +63,7 @@ class ControlledTerminalImplicitStepOutcome:
     njev: int | None
     wall_clock_sec: float
     final_coordinates: np.ndarray
+    final_jacobian: np.ndarray
     final_scaled_residual_inf_norm: float
     evaluation: ControlledTerminalBackwardEulerEvaluation
 
@@ -284,6 +285,7 @@ def solve_controlled_terminal_backward_euler_step(
         njev=None if result.njev is None else int(result.njev),
         wall_clock_sec=float(elapsed),
         final_coordinates=np.asarray(result.x, dtype=float),
+        final_jacobian=np.asarray(result.jac, dtype=float),
         final_scaled_residual_inf_norm=float(np.max(np.abs(endpoint.scaled))),
         evaluation=endpoint,
     )

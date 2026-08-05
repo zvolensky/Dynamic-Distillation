@@ -1,0 +1,64 @@
+{
+  "schema_id": "dd139-core-v3-dd138-rate-coordinate-adjudication-result-v1",
+  "contract_commit": "6555da8eb58a6a7e8ebc752223a720921d68dc91",
+  "contract_payload_sha256": "495c52948a3e6d77b769158947d39868a289e080bea80967367a3923a2a5bceb",
+  "classification": "dd138_rate_coordinate_adjudication_passed",
+  "decision": "authorize_frozen_jacobian_repeatability_audit_contract",
+  "source_classification_preserved": "audit_invalid",
+  "source_decision_preserved": "stop_pending_capture_integrity_review",
+  "records": {
+    "coarse": {
+      "component_coordinate_count": 15,
+      "mapping_max_abs": 0.0,
+      "component_mapping_max_abs": 0.0,
+      "noncomponent_identity_max_abs": 0.0,
+      "nominal_to_actual_coordinate_max_abs": 3.92260868296683e-09,
+      "source_residual_identity_max_abs": 0.0,
+      "source_success": false,
+      "source_final_residual_inf_norm": 5.0918931618378675e-08,
+      "source_jacobian_rank": 50,
+      "source_jacobian_condition": 208433.53135916634
+    },
+    "refined": {
+      "component_coordinate_count": 15,
+      "mapping_max_abs": 0.0,
+      "component_mapping_max_abs": 0.0,
+      "noncomponent_identity_max_abs": 0.0,
+      "nominal_to_actual_coordinate_max_abs": 1.9463174485718354e-09,
+      "source_residual_identity_max_abs": 0.0,
+      "source_success": true,
+      "source_final_residual_inf_norm": 1.6865141689008723e-10,
+      "source_jacobian_rank": 50,
+      "source_jacobian_condition": 728666.6781132547
+    }
+  },
+  "inherited_gates": {
+    "capture_complete": true,
+    "rank": true,
+    "condition": true,
+    "pressure_order": true,
+    "physical": true,
+    "conservation": true,
+    "provider": true,
+    "calls": true,
+    "wall": true,
+    "no_fresh_jacobian_retry_or_state_advance": true
+  },
+  "gates": {
+    "source_classification_preserved": true,
+    "inherited_gates": true,
+    "exponential_mapping": true,
+    "noncomponent_identity": true,
+    "residual_identity": true,
+    "zero_model_calls": true
+  },
+  "pass": true,
+  "live_property_evaluation_attempted": false,
+  "residual_evaluation_attempted": false,
+  "jacobian_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "adjudication_executed_once": true
+}

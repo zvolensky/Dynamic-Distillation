@@ -1250,3 +1250,14 @@ vapor-flow coordinate differs from DD-130 by `1.017993e-7`, versus the frozen
 difference is below the limit. Preserve the no-retry stop. A static physical-
 equivalence adjudication may be considered only under separate authorization;
 no controlled trajectory is authorized.
+
+2026-08-05 controlled-terminal physical-equivalence result: DD-133 statically
+decodes the immutable DD-130 and DD-132 coarse, half1, and half2 endpoints into
+actual inventories, compositions, rates, temperatures, hydraulic and vapor
+flows, pressure, condenser duty, controller states, levels, and products. All
+57 physical comparisons pass. The disputed half2 bottom-to-stripping vapor
+flow differs by `1.017993196e-7` relative, below the frozen `<2e-7` physical
+limit. The adjudication uses zero provider or model evaluations and preserves
+both source classifications. This validates the one-Jacobian modified-Newton
+endpoint as physically equivalent and authorizes only a separately frozen
+short controlled-trajectory contract; no trajectory has occurred.

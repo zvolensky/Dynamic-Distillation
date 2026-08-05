@@ -1,0 +1,101 @@
+{
+  "schema_id": "dd131-core-v3-modified-newton-efficiency-result-v1",
+  "contract_commit": "9b20ee376899950b7666c818816a7bea38068eac",
+  "contract_payload_sha256": "364972de27ec5b3b22a73946ee12a4fd3d8051f3c6ed33030cd348f5557e3754",
+  "classification": "dd131_passed",
+  "decision": "authorize_frozen_modified_newton_live_efficiency_contract",
+  "three_component": {
+    "shape": [
+      50,
+      50
+    ],
+    "rank": 50,
+    "colors": 21
+  },
+  "two_component": {
+    "shape": [
+      40,
+      40
+    ],
+    "rank": 40,
+    "colors": 17
+  },
+  "linear_fixture": {
+    "success": true,
+    "message": "modified Newton converged",
+    "iterations": 1,
+    "residual_evaluations": 2,
+    "jacobian_evaluations": 1,
+    "linear_solves": 1,
+    "accepted_steps": 1,
+    "rejected_line_search_steps": 0,
+    "rejected_bound_steps": 0,
+    "initial_coordinates": [
+      0.0,
+      0.0
+    ],
+    "final_coordinates": [
+      0.09090909090909091,
+      0.6363636363636364
+    ],
+    "initial_residual_inf_norm": 2.0,
+    "final_residual_inf_norm": 0.0,
+    "jacobian": null,
+    "jacobian_rank": 2,
+    "jacobian_condition": 1.938748901931751,
+    "final_evaluation": null
+  },
+  "nonlinear_fixture": {
+    "success": true,
+    "message": "modified Newton converged",
+    "iterations": 8,
+    "residual_evaluations": 9,
+    "jacobian_evaluations": 1,
+    "linear_solves": 8,
+    "accepted_steps": 8,
+    "rejected_line_search_steps": 0,
+    "rejected_bound_steps": 0,
+    "initial_coordinates": [
+      0.0
+    ],
+    "final_coordinates": [
+      0.9544511467454155
+    ],
+    "initial_residual_inf_norm": 1.0,
+    "final_residual_inf_norm": 3.6784024715075248e-09,
+    "jacobian": null,
+    "jacobian_rank": 1,
+    "jacobian_condition": 1.0,
+    "final_evaluation": null
+  },
+  "measured_provider_ledger": {
+    "total_calls": 24165,
+    "jacobian_calls": 23520,
+    "residual_calls": 644,
+    "preparation_calls": 1,
+    "calls_per_complete_residual": 28,
+    "coarse_jacobian_builds": 7,
+    "half1_jacobian_builds": 7,
+    "half2_jacobian_builds": 5
+  },
+  "projected_provider_call_ceiling": 7673,
+  "gates": {
+    "source_efficiency_only_stop": true,
+    "measured_ledger_exact": true,
+    "three_component_structure": true,
+    "two_component_structure": true,
+    "linear_fixture": true,
+    "nonlinear_fixture": true,
+    "single_factorization_design": true,
+    "no_rebuild_or_fallback": true,
+    "projected_call_ceiling": true,
+    "no_live_column_work": true
+  },
+  "pass": true,
+  "live_provider_calls": 0,
+  "column_residual_evaluations": 0,
+  "column_nonlinear_solves": 0,
+  "timesteps": 0,
+  "dynamic_integration_attempted": false,
+  "audit_executed_once": true
+}

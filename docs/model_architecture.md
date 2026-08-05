@@ -1225,3 +1225,15 @@ from 19 colored Jacobian rebuilds, while every full residual needs only 28
 calls. Controlled trajectories remain stopped. Future work should design and
 freeze Jacobian reuse or modified Newton behavior rather than alter physics,
 controller tuning, provider packets, or the accepted moving response.
+
+2026-08-05 controlled-terminal solver-efficiency architecture: DD-131 replaces
+the repeated-Jacobian trust-region pattern prospectively, without rerunning the
+column. The modified-Newton kernel builds and LU-factorizes one 21-color
+Jacobian per root, then uses residual-only corrections with fixed backtracking.
+It rejects bound violations without evaluating, clipping, or projecting them;
+there is no rebuild or fallback. The controlled structure remains rank `50/50`
+for three components and `40/40` for two. Using DD-130's measured 28 calls per
+residual, the absolute worst-case three-root budget is 7,673 calls, below the
+8,000 gate. DD-131 makes zero live provider or column calls. This authorizes
+one frozen live efficiency proof that must reproduce DD-130's saved physical
+endpoints; it does not authorize a trajectory.

@@ -1,0 +1,67 @@
+{
+  "schema_id": "dd137-core-v3-captured-modified-newton-contract-v1",
+  "preparation_base_commit": "ed39b509ae050743ae5462256167dccec3e03e08",
+  "sources": {
+    "logs/dd136_core_v3_dd134_residual_replay_contract_20260805.json": "69dc9b9cabaa7706594be39de87464b7fcd948706eb74bd9da5aabf97e50e648",
+    "logs/dd136_core_v3_dd134_residual_replay_20260805.json": "68a3084aabbf6976c78011d11261089a37e2fb14e3e28affe82ca5f3fe69362c"
+  },
+  "source_classification": "deterministic_replay_dd134_artifact_incomplete",
+  "algorithm": {
+    "residual_tolerance": 1e-08,
+    "max_iterations": 12,
+    "line_search_fractions": [
+      1.0,
+      0.5,
+      0.25,
+      0.125
+    ],
+    "armijo_fraction": 0.0001,
+    "condition_limit": 100000000.0,
+    "jacobian_builds_per_root": 1,
+    "factorizations_per_root": 1,
+    "jacobian_rebuild_or_fallback": false,
+    "bound_handling": "reject trial without evaluation; never clip or project",
+    "acceptance_norm": "scaled residual infinity norm"
+  },
+  "fixtures": {
+    "full_rank_linear_dimension": 50,
+    "line_search_failure_dimension": 1,
+    "shared_buffer_alias_dimension": 1,
+    "bounded_boundary_dimension": 1,
+    "rank_failure_dimension": 2
+  },
+  "capture_requirements": [
+    "immutable independent copies of initial/final coordinates and residuals",
+    "immutable frozen Jacobian with rank and condition",
+    "immutable coordinates, residual, correction, and trial vectors per iteration",
+    "fraction, state id, bounds status, Armijo limit, residual norm, and acceptance per trial",
+    "final solver residual versus retained evaluation residual identity metric",
+    "final solver coordinates versus retained evaluation coordinates identity metric",
+    "explicit detection of a deliberately shared and mutated evaluation buffer"
+  ],
+  "identity_limit": 0.0,
+  "alias_detection_minimum": 0.1,
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/captured_modified_newton_v1.py": "52e79a11d5a14f5bb028e63542f4b94d2232440c63ba56158fbfb7cb0e195013",
+    "src/dynamic_distillation/core_v3/modified_newton_v1.py": "a63135605705ab0566759d21c05df9be2f5e578359d00872643df9e5e466e397",
+    "tests/test_core_v3_captured_modified_newton_v1.py": "19d817acdece5fd0430f69477aa59c54d35005635f102332515088b67ed8efb3",
+    "tools/audit_core_v3_captured_modified_newton.py": "c67f60425fab5c2634b91aba5751cbc1d84b15548586540e8249e871f6fcb313"
+  },
+  "hard_stops": [
+    "a DD-136 source or DD-137 implementation hash changes",
+    "the historical modified_newton_v1 implementation is edited rather than versioned",
+    "a captured array remains writeable or aliases later objective output",
+    "a line-search fraction, bounds rejection, state id, residual, correction, Armijo decision, rank, condition, or counter is omitted",
+    "the shared-buffer fixture is not detected by both final identity metrics",
+    "a live property, column residual/Jacobian, nonlinear column solve, state advance, timestep, or trajectory is attempted"
+  ],
+  "live_property_evaluation_attempted": false,
+  "live_column_residual_attempted": false,
+  "live_column_jacobian_attempted": false,
+  "nonlinear_column_solve_attempted": false,
+  "state_advance_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "audit_executed": false,
+  "contract_payload_sha256": "0a7a3ffc57a976d1e4d875e69acaec7f855a59d63c62ee6a10d321d622c9074b"
+}

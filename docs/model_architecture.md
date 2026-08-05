@@ -1211,3 +1211,17 @@ step convergence, refinement, direction, or rank. This is a reporting-interface
 abort rather than a model failure. DD-128 remains the accepted stationary
 first-step boundary. No retry or trajectory is authorized without an explicit,
 separately frozen JSON-coercion-only successor.
+
+2026-08-05 controlled-terminal first motion: DD-130 successfully preserves the
+exact DD-129 scientific contract while correcting only JSON boolean reporting.
+The physical result is coherent: `D` falls by `0.02365%`, `B` falls by
+`0.41957%`, controller memory rates are negative, and the drum/sump accumulate
+`0.735/20.309 lbmol/h` after both level setpoints rise by `0.1%`. All three
+implicit roots close below `4.85e-13`; refined endpoints pass; both Jacobians
+retain rank `50/50` and condition near `2.09e5`; all physical and conservation
+gates pass. The campaign nevertheless fails its frozen efficiency gate at
+24,165 versus fewer than 16,000 DWSIM calls. The ledger shows 23,520 calls are
+from 19 colored Jacobian rebuilds, while every full residual needs only 28
+calls. Controlled trajectories remain stopped. Future work should design and
+freeze Jacobian reuse or modified Newton behavior rather than alter physics,
+controller tuning, provider packets, or the accepted moving response.

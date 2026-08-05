@@ -1190,3 +1190,15 @@ ownership all pass. This proves the live controlled-terminal leading system is
 numerically usable at the accepted root. It does not prove a timestep or
 trajectory; one separately frozen implicit root-hold step is the only
 authorized successor.
+
+2026-08-05 controlled-terminal stationary first step: DD-128 passes the first
+actual time-discretization gate. One `1.0 s` backward-Euler root and two
+successive `0.5 s` roots close below `6.90e-13`; both endpoint Jacobians retain
+rank `50/50` with worst condition `2.084358e5`. The accepted state remains
+stationary to machine scale: inventory motion is `2.55e-12` relative,
+product-rate drift is `2.25e-13`, and the largest coarse/refined discrepancy is
+`2.82e-11`. The 15 component inventories, four lower energies, derived top
+energy, and two PI memories all satisfy their discrete kinematics. This is the
+first evidence that the controlled Core V3 DAE can preserve its accepted
+steady state without an artificial startup transient. It authorizes one
+separately frozen moving-step test, not a trajectory.

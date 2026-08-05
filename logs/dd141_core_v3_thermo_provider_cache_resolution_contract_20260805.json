@@ -1,0 +1,78 @@
+{
+  "schema_id": "dd141-core-v3-thermo-provider-cache-resolution-contract-v1",
+  "preparation_base_commit": "9b44f0e32d03c1a5d23871c274b5f170bbfb1ab6",
+  "sources": {
+    "logs/dd134_core_v3_modified_newton_short_controlled_trajectory_contract_20260805.json": "c23fb23924f8492415e3d553a26bfbbd22ac4bd81ee7378c0bcb21a5119459ae",
+    "logs/dd140_core_v3_dd138_jacobian_repeatability_contract_20260805.json": "b4b150619292616bcccc69aaefb60c5ab19c40471ea4c5acbe4ec17e5b585a14",
+    "logs/dd140_core_v3_dd138_jacobian_repeatability_20260805.json": "d9990d672592a71caf0f774ca0b2633968a56fad768ce15739188c2ec709e6ef"
+  },
+  "jacobian_steps": [
+    1e-05,
+    5e-06
+  ],
+  "temperature_perturbations_F": [
+    0.001,
+    0.0005
+  ],
+  "pressure_perturbations_psia": [
+    0.0001,
+    5e-05
+  ],
+  "legacy_cache_resolution": {
+    "temperature_decimal_places": 3,
+    "pressure_decimal_places": 3,
+    "composition_decimal_places": 8
+  },
+  "synthetic_alias_probes": {
+    "temperature_F": [
+      100.0004,
+      100.00049
+    ],
+    "pressure_psia": [
+      200.0004,
+      200.00049
+    ],
+    "composition_low": [
+      0.5,
+      0.3,
+      0.2
+    ],
+    "composition_high": [
+      0.500000004,
+      0.299999998,
+      0.199999998
+    ]
+  },
+  "dd140_inverse_step_ratio_bounds": [
+    1.9,
+    2.1
+  ],
+  "required_cache_misses_per_two_alias_queries": 1,
+  "required_cache_hits_per_two_alias_queries": 1,
+  "property_call_limit": 0,
+  "implementation_sha256": {
+    "src/dynamic_distillation/thermo_provider_v1.py": "86c66fb8e37d2f8dbfc63f568141d0c809d618c99af98df8eea99659ead00f5c",
+    "tests/test_core_v3_thermo_provider_cache_resolution_v1.py": "8714fd8c766b47733cb1cb29958471c0ba9b6bd02226b63608b5e55441c82d4d",
+    "tools/audit_core_v3_thermo_provider_cache_resolution.py": "bfbc65dc1018fbfcc58b6b6eaec86671554ccf486799402be5298f4b94087665"
+  },
+  "classification_rules": {
+    "rounded_property_cache_alias_confirmed": "distinct synthetic states collide, retain the first result, reverse with query order, and DD-140 error scales inversely with its finite-difference step",
+    "cache_alias_not_confirmed": "one or more frozen cache-alias observations fail",
+    "audit_invalid": "a source, implementation, schema, or zero-DWSIM gate fails"
+  },
+  "hard_stops": [
+    "a DD-134/DD-140 source or DD-141 implementation hash changes",
+    "a real DWSIM/backend property call occurs",
+    "production cache behavior is changed during adjudication",
+    "a residual, Jacobian, nonlinear solve, correction, state advance, timestep, trajectory, retry, fallback, clipping, or projection is attempted"
+  ],
+  "live_property_evaluation_attempted": false,
+  "residual_evaluation_attempted": false,
+  "jacobian_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "audit_executed": false,
+  "contract_payload_sha256": "402e35310709c3f19e3a6d3640f6c5ecc78f64411eabf816c1e50f5d3bad8cb5"
+}

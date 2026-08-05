@@ -1178,3 +1178,15 @@ fraction. The accepted stationary outputs reproduce exactly at
 `D=2255.740878` and `B=4887.233122 lbmol/h`. All 57 provider calls pass. This
 is a development interface preflight, not a Jacobian or timestep result. It
 authorizes one separately frozen live `50 x 50` Jacobian audit.
+
+2026-08-05 controlled-terminal numerical leading system: DD-127 executes once
+from frozen contract commit `ce7c1be` and passes every gate. The stationary
+50-row residual remains `3.09e-11`, all four controller rows and repeated-call
+differences are zero, and both central-difference Jacobians have rank `50/50`.
+The worst condition is `2.498329e6`, spectrum change is `9.46e-5`, and the
+graph-colored matrix matches the full canonical matrix exactly. Geometry-based
+levels, stationary product outputs, pressure, conservation, and direct DWSIM
+ownership all pass. This proves the live controlled-terminal leading system is
+numerically usable at the accepted root. It does not prove a timestep or
+trajectory; one separately frozen implicit root-hold step is the only
+authorized successor.

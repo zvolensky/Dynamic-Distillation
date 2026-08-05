@@ -110,6 +110,18 @@ class ThermoProviderV1:
             # Not fatal for many backends; leave it as a no-op.
             pass
 
+    @staticmethod
+    def _property_cache_key(
+        T_F: float,
+        P_psia: float,
+        composition: Sequence[float],
+    ) -> tuple[float, float, tuple[float, ...]]:
+        return (
+            float(T_F),
+            float(P_psia),
+            tuple(float(value) for value in composition),
+        )
+
     def set_debug_trace_context(self, context: Optional[str]) -> None:
         self.debug_trace_context = str(context or "")
         if hasattr(backend, "set_debug_trace_context"):
@@ -305,11 +317,7 @@ class ThermoProviderV1:
         Nc = len(self.component_ids_dwsim)
         z_norm = self._normalize_z(z, Nc)
 
-        key = (
-            round(float(T_F), 3),
-            round(float(P_psia), 3),
-            tuple(float(f"{v:.8f}") for v in z_norm.tolist()),
-        )
+        key = self._property_cache_key(T_F, P_psia, z_norm)
         if key in self._cp_cache:
             self._record_call_counter("cp_cache_hits", 1)
             return self._cp_cache[key]
@@ -328,11 +336,7 @@ class ThermoProviderV1:
         x_norm = self._normalize_z(x, Nc)
 
         # Cache by (T,P,x) to avoid repeated backend calls.
-        key = (
-            round(float(T_F), 3),
-            round(float(P_psia), 3),
-            tuple(float(f"{v:.8f}") for v in x_norm.tolist()),
-        )
+        key = self._property_cache_key(T_F, P_psia, x_norm)
         if key in self._rhoL_cache:
             self._record_call_counter("rhoL_cache_hits", 1)
             return self._rhoL_cache[key]

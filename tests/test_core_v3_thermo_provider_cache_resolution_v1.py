@@ -19,20 +19,20 @@ def _provider(monkeypatch):
     return provider
 
 
-def test_density_cache_aliases_distinct_temperatures_and_retains_first_value(monkeypatch):
+def test_density_cache_distinguishes_nearby_temperatures(monkeypatch):
     provider = _provider(monkeypatch)
     composition = [0.5, 0.3, 0.2]
 
     first = provider.liquid_density_lbmol_ft3(100.00040, 200.0, composition)
     second = provider.liquid_density_lbmol_ft3(100.00049, 200.0, composition)
 
-    assert first == second
+    assert first != second
     counters = provider.get_call_counters()["uncategorized"]
-    assert counters["rhoL_cache_misses"] == 1
-    assert counters["rhoL_cache_hits"] == 1
+    assert counters["rhoL_cache_misses"] == 2
+    assert counters.get("rhoL_cache_hits", 0) == 0
 
 
-def test_density_cache_alias_is_query_order_dependent(monkeypatch):
+def test_density_cache_is_query_order_independent(monkeypatch):
     composition = [0.5, 0.3, 0.2]
     forward = _provider(monkeypatch)
     low_then_high = (
@@ -45,12 +45,11 @@ def test_density_cache_alias_is_query_order_dependent(monkeypatch):
         reverse.liquid_density_lbmol_ft3(100.00040, 200.0, composition),
     )
 
-    assert low_then_high[0] == low_then_high[1]
-    assert high_then_low[0] == high_then_low[1]
-    assert low_then_high[0] != high_then_low[0]
+    assert low_then_high[0] != low_then_high[1]
+    assert high_then_low == tuple(reversed(low_then_high))
 
 
-def test_cp_cache_has_the_same_temperature_alias(monkeypatch):
+def test_cp_cache_distinguishes_nearby_temperatures(monkeypatch):
     provider = _provider(monkeypatch)
     monkeypatch.setattr(
         provider,
@@ -65,5 +64,20 @@ def test_cp_cache_has_the_same_temperature_alias(monkeypatch):
         100.00049, 200.0, [0.5, 0.3, 0.2]
     )
 
+    assert first != second
+    counters = provider.get_call_counters()["uncategorized"]
+    assert counters["cp_cache_misses"] == 2
+    assert counters.get("cp_cache_hits", 0) == 0
+
+
+def test_exact_repeated_property_state_still_hits_cache(monkeypatch):
+    provider = _provider(monkeypatch)
+    state = (100.00049, 200.00049, [0.5, 0.3, 0.2])
+
+    first = provider.liquid_density_lbmol_ft3(*state)
+    second = provider.liquid_density_lbmol_ft3(*state)
+
     assert first == second
-    assert provider.get_call_counters()["uncategorized"]["cp_cache_hits"] == 1
+    counters = provider.get_call_counters()["uncategorized"]
+    assert counters["rhoL_cache_misses"] == 1
+    assert counters["rhoL_cache_hits"] == 1

@@ -8,7 +8,8 @@ or dependency on a Core V2 residual implementation.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, Sequence
+import re
+from typing import Iterable, Mapping, Sequence
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -110,6 +111,8 @@ class BalanceContribution:
 class ProviderGovernedRegistry:
     architecture_name: str
     architecture_version: str
+    provider_identity: str
+    interface_provider_identities: tuple[tuple[str, str], ...]
     component_names: tuple[str, ...]
     unknowns: tuple[Unknown, ...]
     residuals: tuple[Residual, ...]
@@ -193,11 +196,30 @@ def _phase_state_dependencies(
     )
 
 
-def _provider_authorities() -> tuple[ProviderAuthority, ...]:
+def _validated_provider_identity(provider_identity: str) -> str:
+    identity = str(provider_identity).strip().lower()
+    if not re.fullmatch(r"[a-z][a-z0-9_-]*", identity):
+        raise ValueError("provider_identity must be a simple lowercase identifier")
+    return identity
+
+
+def _provider_authorities(
+    provider_identity: str,
+    interface_provider_identities: Mapping[str, str] | None = None,
+) -> tuple[ProviderAuthority, ...]:
+    identity = _validated_provider_identity(provider_identity)
+    identities = {
+        str(interface): _validated_provider_identity(value)
+        for interface, value in dict(interface_provider_identities or {}).items()
+    }
+
+    def path(interface: str) -> str:
+        return f"{identities.get(interface, identity)}.{interface}"
+
     return (
         ProviderAuthority(
             "stage_fugacity_equilibrium",
-            "dwsim.direct_imposed_phase_fugacity",
+            path("direct_imposed_phase_fugacity"),
             "governing_equation",
             "declared liquid x and vapor y at stage T/P",
             ("full_phase_equilibrium",),
@@ -205,7 +227,7 @@ def _provider_authorities() -> tuple[ProviderAuthority, ...]:
         ),
         ProviderAuthority(
             "condenser_bubble_equilibrium",
-            "dwsim.direct_imposed_phase_fugacity",
+            path("direct_imposed_phase_fugacity"),
             "governing_equation",
             "drum liquid x and incipient vapor y at drum T/P",
             ("condenser_bubble_fugacity",),
@@ -213,7 +235,7 @@ def _provider_authorities() -> tuple[ProviderAuthority, ...]:
         ),
         ProviderAuthority(
             "phase_enthalpy",
-            "dwsim.declared_phase_enthalpy",
+            path("declared_phase_enthalpy"),
             "governing_balance",
             "declared phase composition, T, and P",
             ("energy_balance",),
@@ -221,7 +243,7 @@ def _provider_authorities() -> tuple[ProviderAuthority, ...]:
         ),
         ProviderAuthority(
             "liquid_density",
-            "dwsim.declared_liquid_density",
+            path("declared_liquid_density"),
             "hydraulic_geometry",
             "declared liquid x at stage T/P",
             ("francis_hydraulics",),
@@ -229,7 +251,7 @@ def _provider_authorities() -> tuple[ProviderAuthority, ...]:
         ),
         ProviderAuthority(
             "bubble_temperature_and_incipient_vapor",
-            "dwsim.direct_imposed_phase_fugacity",
+            path("direct_imposed_phase_fugacity"),
             "governing_state",
             "fixed pressure and declared liquid x",
             ("condenser_bubble_fugacity",),
@@ -237,7 +259,7 @@ def _provider_authorities() -> tuple[ProviderAuthority, ...]:
         ),
         ProviderAuthority(
             "stable_phase",
-            "dwsim.tp_flash",
+            path("tp_flash"),
             "diagnostic_gate",
             "overall composition z at declared T/P",
             (),
@@ -245,7 +267,7 @@ def _provider_authorities() -> tuple[ProviderAuthority, ...]:
         ),
         ProviderAuthority(
             "vapor_fraction",
-            "dwsim.tp_flash",
+            path("tp_flash"),
             "diagnostic_gate",
             "overall composition z",
             (),
@@ -253,7 +275,7 @@ def _provider_authorities() -> tuple[ProviderAuthority, ...]:
         ),
         ProviderAuthority(
             "flash_x_y_K",
-            "dwsim.tp_flash",
+            path("tp_flash"),
             "flash_basis_diagnostic",
             "K_flash = y_flash/x_flash",
             (),
@@ -261,7 +283,7 @@ def _provider_authorities() -> tuple[ProviderAuthority, ...]:
         ),
         ProviderAuthority(
             "lever_rule_closure",
-            "dwsim.tp_flash",
+            path("tp_flash"),
             "diagnostic_gate",
             "z = (1-beta)*x_flash + beta*y_flash",
             (),
@@ -341,9 +363,24 @@ def _acceptance_rules() -> tuple[ProspectiveAcceptanceRule, ...]:
 
 def build_provider_governed_registry(
     component_names: Sequence[str],
+    *,
+    provider_identity: str = "dwsim",
+    interface_provider_identities: Mapping[str, str] | None = None,
 ) -> ProviderGovernedRegistry:
     """Build the provider-tagged five-volume steady structural ledger."""
     components = _validated_components(component_names)
+    identity = _validated_provider_identity(provider_identity)
+    interface_identities = tuple(
+        sorted(
+            (
+                str(interface),
+                _validated_provider_identity(value),
+            )
+            for interface, value in dict(
+                interface_provider_identities or {}
+            ).items()
+        )
+    )
     unknowns: list[Unknown] = []
     residuals: list[Residual] = []
     contributions: list[BalanceContribution] = []
@@ -554,11 +591,15 @@ def build_provider_governed_registry(
     return ProviderGovernedRegistry(
         architecture_name=ARCHITECTURE_NAME,
         architecture_version=ARCHITECTURE_VERSION,
+        provider_identity=identity,
+        interface_provider_identities=interface_identities,
         component_names=components,
         unknowns=tuple(unknowns),
         residuals=tuple(residuals),
         external_parameters=tuple(external_parameters),
-        provider_authorities=_provider_authorities(),
+        provider_authorities=_provider_authorities(
+            identity, dict(interface_identities)
+        ),
         acceptance_rules=_acceptance_rules(),
         contributions=tuple(contributions),
         interface_fallback_permitted=False,

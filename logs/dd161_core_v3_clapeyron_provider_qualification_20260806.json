@@ -1,0 +1,122 @@
+{
+  "schema_id": "dd161-core-v3-clapeyron-provider-qualification-v1",
+  "classification": "clapeyron_fugacity_authority_qualified_only",
+  "decision": "authorize_fugacity_acceleration_design_only",
+  "source_contract": "logs\\dd160_core_v3_memoized_captured_multiminute_trajectory_contract_20260806.json",
+  "components": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "parameter_alignment": "DWSIM PR Tc/Pc/Mw/acentric-factor/kij",
+  "startup_seconds": {
+    "dwsim_parameter_alignment": 10.098336000024574,
+    "clapeyron_model_build": 14.334919799992349
+  },
+  "molecular_weights": {
+    "dwsim_lbm_lbmol": [
+      44.09562,
+      58.1222,
+      72.14878
+    ],
+    "clapeyron_lbm_lbmol": [
+      44.09562,
+      58.1222,
+      72.14878000000002
+    ],
+    "max_abs_delta": 1.4210854715202004e-14
+  },
+  "fixed_state_comparisons": [
+    {
+      "role": "reflux_drum",
+      "temperature_F": 133.7132934933822,
+      "pressure_psia": 218.44,
+      "max_abs_fugacity_liquid_delta": 6.44103369820126e-05,
+      "max_abs_fugacity_vapor_delta": 1.8452435224247665e-07,
+      "liquid_enthalpy_delta_BTU_lbmol": 1774.4429169327586,
+      "vapor_enthalpy_delta_BTU_lbmol": 1775.2323307732183,
+      "latent_enthalpy_delta_BTU_lbmol": 0.7894138404599289,
+      "liquid_density_relative_delta": 0.0423386102238186,
+      "vapor_z_relative_delta": -0.0036601293415144936
+    },
+    {
+      "role": "rectifying_tray",
+      "temperature_F": 154.422168391021,
+      "pressure_psia": 222.377,
+      "max_abs_fugacity_liquid_delta": 6.183311012342152e-05,
+      "max_abs_fugacity_vapor_delta": 9.98636220383986e-08,
+      "liquid_enthalpy_delta_BTU_lbmol": 1313.115042214149,
+      "vapor_enthalpy_delta_BTU_lbmol": 1344.6340697037676,
+      "latent_enthalpy_delta_BTU_lbmol": 31.519027489618566,
+      "liquid_density_relative_delta": 0.05367293247611776,
+      "vapor_z_relative_delta": -0.003595316548185011
+    },
+    {
+      "role": "feed_tray",
+      "temperature_F": 173.9246438396751,
+      "pressure_psia": 226.896,
+      "max_abs_fugacity_liquid_delta": 5.608675267310126e-05,
+      "max_abs_fugacity_vapor_delta": 5.743168651761721e-08,
+      "liquid_enthalpy_delta_BTU_lbmol": 825.5943320335073,
+      "vapor_enthalpy_delta_BTU_lbmol": 917.3295853269606,
+      "latent_enthalpy_delta_BTU_lbmol": 91.73525329345284,
+      "liquid_density_relative_delta": 0.060638893237453945,
+      "vapor_z_relative_delta": -0.0035139069129198415
+    },
+    {
+      "role": "stripping_tray",
+      "temperature_F": 184.82401274924234,
+      "pressure_psia": 229.478,
+      "max_abs_fugacity_liquid_delta": 5.3515414007221374e-05,
+      "max_abs_fugacity_vapor_delta": 9.30312696878488e-08,
+      "liquid_enthalpy_delta_BTU_lbmol": 535.4697997964922,
+      "vapor_enthalpy_delta_BTU_lbmol": 595.460222953873,
+      "latent_enthalpy_delta_BTU_lbmol": 59.990423157380974,
+      "liquid_density_relative_delta": 0.06282442622307335,
+      "vapor_z_relative_delta": -0.003541959002408806
+    },
+    {
+      "role": "combined_reboiler_sump",
+      "temperature_F": 199.7404893839464,
+      "pressure_psia": 232.06,
+      "max_abs_fugacity_liquid_delta": 5.458386252887859e-05,
+      "max_abs_fugacity_vapor_delta": 1.2132745896842323e-07,
+      "liquid_enthalpy_delta_BTU_lbmol": 107.70077782323642,
+      "vapor_enthalpy_delta_BTU_lbmol": 280.6472640250754,
+      "latent_enthalpy_delta_BTU_lbmol": 172.94648620183852,
+      "liquid_density_relative_delta": 0.07444671159845669,
+      "vapor_z_relative_delta": -0.0033960261754850465
+    }
+  ],
+  "worst": {
+    "fugacity_liquid_max_abs_delta": 6.44103369820126e-05,
+    "fugacity_vapor_max_abs_delta": 1.8452435224247665e-07,
+    "liquid_density_max_abs_relative_delta": 0.07444671159845669,
+    "latent_enthalpy_max_abs_delta_BTU_lbmol": 172.94648620183852,
+    "repeat_max_abs_delta": 0.0
+  },
+  "warm_property_packet_benchmark": {
+    "packet_count": 50,
+    "calls_per_packet": 28,
+    "dwsim_seconds": 1.1170911000226624,
+    "clapeyron_seconds": 0.12090129998978227,
+    "speedup": 9.239694694077492,
+    "neighboring_temperature_offset_F": 0.0001
+  },
+  "gates": {
+    "provider_contract_complete": true,
+    "clapeyron_registry_pass": true,
+    "molecular_weight_match": true,
+    "forced_fugacity_match": true,
+    "repeatability": true,
+    "meaningful_warm_packet_speedup": true,
+    "liquid_density_drop_in_match": false,
+    "caloric_drop_in_match": false,
+    "no_solve_or_dynamics": true
+  },
+  "full_drop_in_authorized": false,
+  "fugacity_acceleration_design_authorized": true,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false
+}

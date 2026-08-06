@@ -37,6 +37,45 @@ def test_dd091_registry_scales_as_ten_c_plus_ten():
         assert audit.pass_gate
 
 
+def test_provider_registry_can_explicitly_assign_clapeyron_authority():
+    registry = build_provider_governed_registry(
+        ("Propane", "n-Butane", "n-Pentane"),
+        provider_identity="clapeyron",
+    )
+    audit = audit_provider_governed_registry(registry)
+
+    assert registry.provider_identity == "clapeyron"
+    assert all(
+        authority.provider_path.startswith(("clapeyron.", "independent."))
+        for authority in registry.provider_authorities
+    )
+    assert audit.structural_rank == 40
+    assert audit.pass_gate
+
+
+def test_provider_registry_records_property_level_hybrid_authority():
+    registry = build_provider_governed_registry(
+        ("Propane", "n-Butane", "n-Pentane"),
+        provider_identity="dwsim",
+        interface_provider_identities={
+            "direct_imposed_phase_fugacity": "clapeyron"
+        },
+    )
+    authority = {
+        item.quantity: item.provider_path for item in registry.provider_authorities
+    }
+
+    assert registry.interface_provider_identities == (
+        ("direct_imposed_phase_fugacity", "clapeyron"),
+    )
+    assert authority["stage_fugacity_equilibrium"] == (
+        "clapeyron.direct_imposed_phase_fugacity"
+    )
+    assert authority["phase_enthalpy"] == "dwsim.declared_phase_enthalpy"
+    assert authority["liquid_density"] == "dwsim.declared_liquid_density"
+    assert audit_provider_governed_registry(registry).pass_gate
+
+
 def test_dd091_physical_ownership_is_unique_and_conservative():
     registry = _registry()
     audit = audit_provider_governed_registry(registry)

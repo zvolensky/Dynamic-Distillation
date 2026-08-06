@@ -149,3 +149,65 @@ def test_dd102_component_molecular_weights_are_preparation_only():
             state_id="dd102",
             evaluation_kind="residual",
         )
+
+
+def test_provider_audit_can_explicitly_authorize_clapeyron():
+    audit = ProviderCallAudit(provider_identity="clapeyron")
+    provider = _Provider()
+
+    values = audit.direct_phase_fugacity(
+        provider,
+        phase="liquid",
+        temperature_F=180.0,
+        pressure_psia=225.0,
+        composition=[0.6, 0.3, 0.1],
+        quantity="stage_fugacity_equilibrium",
+        caller="phase_equilibrium[feed_tray]",
+        state_id="qualification",
+        evaluation_kind="residual",
+    )
+
+    assert np.allclose(values, 1.0)
+    assert audit.report()["provider_identity"] == "clapeyron"
+    assert audit.records[0].provider_interface == (
+        "clapeyron.direct_imposed_phase_fugacity"
+    )
+    assert audit.report()["pass"]
+
+
+def test_provider_audit_records_property_level_hybrid_ownership():
+    audit = ProviderCallAudit(
+        provider_identity="dwsim",
+        interface_provider_identities={
+            "direct_imposed_phase_fugacity": "clapeyron"
+        },
+    )
+    provider = _Provider()
+
+    audit.direct_phase_fugacity(
+        provider,
+        phase="vapor",
+        temperature_F=180.0,
+        pressure_psia=225.0,
+        composition=[0.6, 0.3, 0.1],
+        quantity="stage_fugacity_equilibrium",
+        caller="phase_equilibrium[feed_tray]",
+        state_id="hybrid",
+        evaluation_kind="jacobian",
+    )
+    audit.phase_enthalpy(
+        provider,
+        phase="vapor",
+        temperature_F=180.0,
+        pressure_psia=225.0,
+        composition=[0.6, 0.3, 0.1],
+        caller="energy_balance[feed_tray]",
+        state_id="hybrid",
+        evaluation_kind="jacobian",
+    )
+
+    assert [record.provider_interface for record in audit.records] == [
+        "clapeyron.direct_imposed_phase_fugacity",
+        "dwsim.declared_phase_enthalpy",
+    ]
+    assert audit.report()["pass"]

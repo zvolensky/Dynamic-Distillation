@@ -1,0 +1,56 @@
+{
+  "schema_id": "dd162-core-v3-hybrid-fugacity-benchmark-contract-v1",
+  "preparation_base_commit": "4cc89f108152446e540b29c965670da2ea998907",
+  "sources": {
+    "logs/dd160_core_v3_memoized_captured_multiminute_trajectory_contract_20260806.json": "acbc2744c22ee142c0d5f0f99e644829dadd79e8055d0222d00d3f3166b7d2bd",
+    "logs/dd161_core_v3_clapeyron_provider_qualification_20260806.json": "c8df2ae80c46499ff80675ea177e0c81055849a5e308ffdd9e9d15649d300acd"
+  },
+  "provider_routing": {
+    "direct_imposed_phase_fugacity": "clapeyron",
+    "phase_enthalpy": "dwsim",
+    "liquid_density": "dwsim",
+    "vapor_compressibility_factor": "dwsim",
+    "component_molecular_weights": "dwsim",
+    "tp_flash_diagnostic": "dwsim"
+  },
+  "state": "exact DD-160 accepted zero-time controlled-terminal state",
+  "residual_rows": 50,
+  "solve_coordinates": 50,
+  "jacobian_steps": [
+    1e-05,
+    5e-06
+  ],
+  "timing_repeats": 3,
+  "residual_difference_limit": 0.0002,
+  "matrix_relative_frobenius_limit": 0.01,
+  "singular_spectrum_relative_limit": 0.05,
+  "within_provider_step_change_limit": 0.001,
+  "condition_ratio_minimum": 0.5,
+  "condition_ratio_maximum": 2.0,
+  "required_rank": 50,
+  "minimum_warm_matrix_speedup": 1.25,
+  "wall_clock_limit_sec": 180.0,
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/hybrid_thermo_provider_v1.py": "ba94aea7ebad423150e8a67e32f780e1b28ee99ebee5456f744c49a4be5cd10c",
+    "src/dynamic_distillation/core_v3/provider_call_audit_v1.py": "a9388ba6d51d5237526cbf8279450740e4bd410c021ec0c3322a0ad6b7f09813",
+    "src/dynamic_distillation/core_v3/provider_governed_registry_v1.py": "d0c14272975a9df07f51f71910e806b7441e4c6e81028bfde6176ce62d0d0173",
+    "src/dynamic_distillation/thermo_clapeyron_provider_v1.py": "5f69f8dd48625b85f37b210081a7d926fda21f8ed15592fb9821c9637c084786",
+    "src/dynamic_distillation/core_v3/controlled_terminal_zero_time_v1.py": "a61e770f7686f50e02f4b9073386c7f2e55938d436350ad54e5771c1ab9a1547",
+    "src/dynamic_distillation/core_v3/colored_jacobian_v1.py": "d30f8439d26ca8859318c3091cca034320b6e147dd00afba4940abb6ecb541f9",
+    "tools/benchmark_core_v3_hybrid_fugacity.py": "85645cb44c287deca1c1b71f8b72dc2c74f77a14810024aa5b61c6ecc9b51566"
+  },
+  "hard_stops": [
+    "a DD-160/DD-161 source or DD-162 implementation hash changes",
+    "any property is routed differently from the declared hybrid table",
+    "a requested imposed phase falls back to stable-phase evaluation",
+    "either Jacobian loses rank or exceeds the frozen stability limits",
+    "hybrid warm matrix speedup is below 1.25x",
+    "a nonlinear solve, timestep, state acceptance, or trajectory occurs"
+  ],
+  "live_property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "d28261a1315daf9bcc908dae773def80b8d6ec995df6cb905157c61dc54a472f"
+}

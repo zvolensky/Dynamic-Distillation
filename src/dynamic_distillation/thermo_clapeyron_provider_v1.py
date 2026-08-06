@@ -15,6 +15,7 @@ This first version keeps the adapter intentionally conservative:
 - TP flash via `tp_flash(model, p, T, n)`
 - batch TP flash via provider-managed scalar loop
 - phase enthalpy / Cp / liquid density helpers
+- direct imposed-phase fugacity coefficients and component molecular weights
 - bubble-point temperature and vapor Z-factor helpers
 
 The implementation is deliberately narrow and defensive so the factory can
@@ -40,6 +41,7 @@ _K_OFFSET_FROM_F = 459.67
 _J_PER_BTU = 1055.05585262
 _MOL_PER_LBMOL = 453.59237
 _M3_PER_FT3 = 0.028316846592
+_KG_PER_MOL_TO_LBM_PER_LBMOL = 1000.0
 
 _J_PER_MOL_TO_BTU_PER_LBMOL = _MOL_PER_LBMOL / _J_PER_BTU
 _J_PER_MOLK_TO_BTU_PER_LBMOLF = _J_PER_MOL_TO_BTU_PER_LBMOL * _K_PER_F_DELTA
@@ -136,6 +138,10 @@ class ThermoClapeyronProviderV1:
         self._liquid_density_cache: "OrderedDict[tuple[Any, ...], Optional[float]]" = OrderedDict()
         self._module = None
         self._model = None
+        self.provider_identity = "clapeyron"
+        self._jl_forced_phase_fugacity_helper = None
+        self._jl_component_mw_helper = None
+        self._component_mw_cache: Optional[np.ndarray] = None
         self._jl_tp_flash2_batch_full_helper = None
         self._jl_tp_flash2_batch_no_cp_helper = None
         # Keep the Julia tp_flash2 batch helper as an experimental seam until
@@ -358,7 +364,6 @@ ddii_tp_flash2_batch_no_cp
             {"phase": str(phase_name)},
             {"phase": str(phase_name).lower()},
             {"phase": "vapour" if str(phase_name).lower() == "vapor" else str(phase_name).lower()},
-            {},
         )
         last_exc = None
         for extra_kwargs in attempts:
@@ -373,6 +378,60 @@ ddii_tp_flash2_batch_no_cp
         if last_exc is not None:
             raise last_exc
         raise RuntimeError(f"Could not evaluate {fn_name!r} for phase {phase_name!r}")
+
+    @staticmethod
+    def _normalized_forced_phase(phase: str) -> str:
+        normalized = str(phase or "").strip().lower()
+        if normalized in {"liquid", "liq", "l"}:
+            return "liquid"
+        if normalized in {"vapor", "vapour", "vap", "v"}:
+            return "vapor"
+        raise ValueError(
+            "Clapeyron imposed-phase properties require phase='liquid' or 'vapor'"
+        )
+
+    def _get_julia_forced_phase_fugacity_helper(self):
+        if self._jl_forced_phase_fugacity_helper is not None:
+            return self._jl_forced_phase_fugacity_helper
+        module = self._load_module()
+        jl = getattr(module, "jl", None)
+        if jl is None or not callable(getattr(jl, "seval", None)):
+            return None
+        helper = jl.seval(
+            r'''
+(model, p, T, z, phase_name) -> begin
+    phase = phase_name == "liquid" ? :liquid :
+            phase_name == "vapor" ? :vapor :
+            throw(ArgumentError("phase must be liquid or vapor"))
+    Clapeyron.fugacity_coefficient(model, p, T, z; phase=phase)
+end
+'''
+        )
+        self._jl_forced_phase_fugacity_helper = helper
+        return helper
+
+    def _get_julia_component_mw_helper(self):
+        if self._jl_component_mw_helper is not None:
+            return self._jl_component_mw_helper
+        module = self._load_module()
+        jl = getattr(module, "jl", None)
+        if jl is None or not callable(getattr(jl, "seval", None)):
+            return None
+        helper = jl.seval(
+            r'''
+(model, ncomponents) -> begin
+    values = Vector{Float64}(undef, ncomponents)
+    for i in 1:ncomponents
+        basis = zeros(Float64, ncomponents)
+        basis[i] = 1.0
+        values[i] = Clapeyron.molecular_weight(model, basis)
+    end
+    values
+end
+'''
+        )
+        self._jl_component_mw_helper = helper
+        return helper
 
     def _phase_z_factor(self, comp: np.ndarray, *, phase_name: str, p_pa: float, T_K: float) -> Optional[float]:
         try:
@@ -1112,6 +1171,80 @@ ddii_tp_flash2_batch_no_cp
             p_pa=_psia_to_pa(float(P_psia)),
             T_K=_f_to_k(float(T_F)),
         )
+
+    def phase_fugacity_coefficients(
+        self,
+        phase: str,
+        T_F: float,
+        P_psia: float,
+        comp: Sequence[float],
+    ) -> np.ndarray:
+        phase_name = self._normalized_forced_phase(phase)
+        comp_norm = _normalize_comp(comp, len(self.component_names_excel))
+        p_pa = _psia_to_pa(float(P_psia))
+        T_K = _f_to_k(float(T_F))
+        self._record_call_counter("forced_phase_fugacity_requests", 1)
+        t0 = time.perf_counter()
+        helper = self._get_julia_forced_phase_fugacity_helper()
+        if helper is not None:
+            raw = helper(
+                self._build_model(),
+                p_pa,
+                T_K,
+                comp_norm,
+                phase_name,
+            )
+        else:
+            # This fallback supports simple Python shims and tests, but still
+            # requires an explicit phase. It must never call the stable root.
+            raw = self._call_module_fn(
+                "fugacity_coefficient",
+                self._build_model(),
+                p_pa,
+                T_K,
+                comp_norm,
+                phase=phase_name,
+            )
+        self._record_call_counter(
+            "forced_phase_fugacity_wall_sec",
+            float(time.perf_counter() - t0),
+        )
+        values = np.asarray(raw, dtype=float).reshape((-1,))
+        if values.size != len(self.component_names_excel):
+            raise RuntimeError(
+                "Clapeyron imposed-phase fugacity result does not match component count"
+            )
+        if np.any(~np.isfinite(values)) or np.any(values <= 0.0):
+            raise RuntimeError(
+                "Clapeyron imposed-phase fugacity returned non-physical values"
+            )
+        return values.copy()
+
+    def component_mw_lbm_per_lbmol(self) -> np.ndarray:
+        if self._component_mw_cache is not None:
+            return self._component_mw_cache.copy()
+        n_components = len(self.component_names_excel)
+        model = self._build_model()
+        helper = self._get_julia_component_mw_helper()
+        if helper is not None:
+            values = np.asarray(helper(model, n_components), dtype=float).reshape((-1,))
+        else:
+            values = np.empty(n_components, dtype=float)
+            for index in range(n_components):
+                basis = np.zeros(n_components, dtype=float)
+                basis[index] = 1.0
+                values[index] = float(
+                    self._call_module_fn("molecular_weight", model, basis)
+                )
+        if values.size != n_components:
+            raise RuntimeError("Clapeyron molecular-weight result does not match component count")
+        values *= _KG_PER_MOL_TO_LBM_PER_LBMOL
+        if np.any(~np.isfinite(values)) or np.any(values <= 0.0):
+            raise RuntimeError("Clapeyron returned non-physical molecular weights")
+        # Clapeyron reports kg/mol; multiplying by 1000 gives the numerically
+        # equivalent conventional engineering unit lbm/lbmol.
+        self._component_mw_cache = values.copy()
+        return values.copy()
 
     def vapor_z_factor_F_psia(
         self,

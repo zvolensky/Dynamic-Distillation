@@ -16,6 +16,8 @@ def _install_fake_pyclapeyron(monkeypatch) -> ModuleType:
     mod._enthalpy_calls = 0
     mod._cp_calls = 0
     mod._zfactor_calls = 0
+    mod._fugacity_calls = []
+    mod._mw_calls = 0
 
     def PR(components, **kwargs):
         return {
@@ -57,6 +59,20 @@ def _install_fake_pyclapeyron(monkeypatch) -> ModuleType:
         mod._volume_calls += 1
         return 1.0e-4 if str(phase).lower().startswith("liq") else 2.0e-2
 
+    def fugacity_coefficient(model, p, T, z, phase=None):
+        _ = (model, p, T, z)
+        mod._fugacity_calls.append(phase)
+        if phase == "liquid":
+            return np.array([1.25, 0.55], dtype=float)
+        if phase == "vapor":
+            return np.array([0.85, 0.72], dtype=float)
+        raise AssertionError("forced phase was not supplied")
+
+    def molecular_weight(model, z):
+        _ = model
+        mod._mw_calls += 1
+        return float(np.dot(np.asarray(z, dtype=float), [0.010, 0.020]))
+
     def bubble_temperature(model, p, x):
         _ = (model, p, x)
         return (350.0, 0.0, 0.0, np.array([0.2, 0.8], dtype=float))
@@ -68,9 +84,52 @@ def _install_fake_pyclapeyron(monkeypatch) -> ModuleType:
     mod.enthalpy = enthalpy
     mod.isobaric_heat_capacity = isobaric_heat_capacity
     mod.volume = volume
+    mod.fugacity_coefficient = fugacity_coefficient
+    mod.molecular_weight = molecular_weight
     mod.bubble_temperature = bubble_temperature
     monkeypatch.setitem(sys.modules, "pyclapeyron", mod)
     return mod
+
+
+def test_clapeyron_provider_exposes_forced_phase_fugacity_and_molecular_weights(
+    monkeypatch,
+):
+    mod = _install_fake_pyclapeyron(monkeypatch)
+    provider = ThermoClapeyronProviderV1(
+        component_names_excel=["A", "B"],
+        component_ids_dwsim=["A", "B"],
+        model_name="PR",
+    )
+
+    phi_l = provider.phase_fugacity_coefficients(
+        "liquid", 180.0, 225.0, [0.4, 0.6]
+    )
+    phi_v = provider.phase_fugacity_coefficients(
+        "vapor", 180.0, 225.0, [0.7, 0.3]
+    )
+    mw0 = provider.component_mw_lbm_per_lbmol()
+    mw1 = provider.component_mw_lbm_per_lbmol()
+
+    assert np.allclose(phi_l, [1.25, 0.55])
+    assert np.allclose(phi_v, [0.85, 0.72])
+    assert mod._fugacity_calls == ["liquid", "vapor"]
+    assert np.allclose(mw0, [10.0, 20.0])
+    assert np.allclose(mw1, mw0)
+    assert mod._mw_calls == 2
+    assert provider.provider_identity == "clapeyron"
+    counters = provider.get_call_counters()["uncategorized"]
+    assert counters["forced_phase_fugacity_requests"] == 2
+
+
+def test_clapeyron_provider_rejects_unforced_fugacity_phase(monkeypatch):
+    _install_fake_pyclapeyron(monkeypatch)
+    provider = ThermoClapeyronProviderV1(
+        component_names_excel=["A", "B"],
+        component_ids_dwsim=["A", "B"],
+    )
+
+    with pytest.raises(ValueError, match="liquid.*vapor"):
+        provider.phase_fugacity_coefficients("unknown", 180.0, 225.0, [0.5, 0.5])
 
 
 def test_clapeyron_provider_flash_and_scalar_helpers(monkeypatch):

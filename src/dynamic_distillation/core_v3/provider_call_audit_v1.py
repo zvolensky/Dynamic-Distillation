@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import Any, Sequence
+import re
+from typing import Any, Mapping, Sequence
 
 import numpy as np
 
@@ -23,9 +24,39 @@ class ProviderCallRecord:
 class ProviderCallAudit:
     """Record and enforce provider ownership without fallback."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        provider_identity: str = "dwsim",
+        *,
+        interface_provider_identities: Mapping[str, str] | None = None,
+    ) -> None:
+        identity = str(provider_identity).strip().lower()
+        if not re.fullmatch(r"[a-z][a-z0-9_-]*", identity):
+            raise ValueError("provider_identity must be a simple lowercase identifier")
+        self.provider_identity = identity
+        self.interface_provider_identities = {
+            str(interface): self._validated_identity(value)
+            for interface, value in dict(interface_provider_identities or {}).items()
+        }
         self._records: list[ProviderCallRecord] = []
         self.fallback_attempted = False
+
+    @staticmethod
+    def _validated_identity(value: str) -> str:
+        identity = str(value).strip().lower()
+        if not re.fullmatch(r"[a-z][a-z0-9_-]*", identity):
+            raise ValueError("provider identity must be a simple lowercase identifier")
+        return identity
+
+    def _provider_path(self, interface: str) -> str:
+        identity = self.interface_provider_identities.get(
+            str(interface), self.provider_identity
+        )
+        return f"{identity}.{interface}"
+
+    @property
+    def _provider_label(self) -> str:
+        return self.provider_identity.upper()
 
     @property
     def records(self) -> tuple[ProviderCallRecord, ...]:
@@ -71,7 +102,7 @@ class ProviderCallAudit:
             raise RuntimeError(f"unauthorized direct-fugacity quantity {quantity!r}")
         self._record(
             quantity=quantity,
-            provider_interface="dwsim.direct_imposed_phase_fugacity",
+            provider_interface=self._provider_path("direct_imposed_phase_fugacity"),
             caller=caller,
             state_id=state_id,
             evaluation_kind=evaluation_kind,
@@ -84,7 +115,9 @@ class ProviderCallAudit:
         )
         result = np.asarray(values, dtype=float).reshape((-1,))
         if np.any(~np.isfinite(result)) or np.any(result <= 0.0):
-            raise RuntimeError("DWSIM direct fugacity returned non-physical values")
+            raise RuntimeError(
+                f"{self._provider_label} direct fugacity returned non-physical values"
+            )
         return result
 
     def phase_enthalpy(
@@ -101,7 +134,7 @@ class ProviderCallAudit:
     ) -> float:
         self._record(
             quantity="phase_enthalpy",
-            provider_interface="dwsim.declared_phase_enthalpy",
+            provider_interface=self._provider_path("declared_phase_enthalpy"),
             caller=caller,
             state_id=state_id,
             evaluation_kind=evaluation_kind,
@@ -115,7 +148,7 @@ class ProviderCallAudit:
             )
         )
         if not np.isfinite(result):
-            raise RuntimeError("DWSIM phase enthalpy is non-finite")
+            raise RuntimeError(f"{self._provider_label} phase enthalpy is non-finite")
         return result
 
     def liquid_density(
@@ -131,7 +164,7 @@ class ProviderCallAudit:
     ) -> float:
         self._record(
             quantity="liquid_density",
-            provider_interface="dwsim.declared_liquid_density",
+            provider_interface=self._provider_path("declared_liquid_density"),
             caller=caller,
             state_id=state_id,
             evaluation_kind=evaluation_kind,
@@ -142,7 +175,9 @@ class ProviderCallAudit:
             list(composition),
         )
         if result is None or not np.isfinite(float(result)) or float(result) <= 0.0:
-            raise RuntimeError("DWSIM liquid density is unavailable or non-physical")
+            raise RuntimeError(
+                f"{self._provider_label} liquid density is unavailable or non-physical"
+            )
         return float(result)
 
     def vapor_compressibility_factor(
@@ -158,7 +193,9 @@ class ProviderCallAudit:
     ) -> float:
         self._record(
             quantity="vapor_compressibility_factor",
-            provider_interface="dwsim.declared_vapor_compressibility_factor",
+            provider_interface=self._provider_path(
+                "declared_vapor_compressibility_factor"
+            ),
             caller=caller,
             state_id=state_id,
             evaluation_kind=evaluation_kind,
@@ -170,7 +207,7 @@ class ProviderCallAudit:
         )
         if result is None or not np.isfinite(float(result)) or float(result) <= 0.0:
             raise RuntimeError(
-                "DWSIM vapor compressibility factor is unavailable or non-physical"
+                f"{self._provider_label} vapor compressibility factor is unavailable or non-physical"
             )
         return float(result)
 
@@ -188,7 +225,9 @@ class ProviderCallAudit:
             )
         self._record(
             quantity="component_molecular_weights",
-            provider_interface="dwsim.declared_component_molecular_weights",
+            provider_interface=self._provider_path(
+                "declared_component_molecular_weights"
+            ),
             caller=caller,
             state_id=state_id,
             evaluation_kind=evaluation_kind,
@@ -197,7 +236,7 @@ class ProviderCallAudit:
         values = np.asarray(result, dtype=float).reshape((-1,))
         if values.size < 2 or np.any(~np.isfinite(values)) or np.any(values <= 0.0):
             raise RuntimeError(
-                "DWSIM component molecular weights are unavailable or non-physical"
+                f"{self._provider_label} component molecular weights are unavailable or non-physical"
             )
         return values
 
@@ -219,7 +258,7 @@ class ProviderCallAudit:
             )
         self._record(
             quantity="flash_x_y_K",
-            provider_interface="dwsim.tp_flash",
+            provider_interface=self._provider_path("tp_flash"),
             caller=caller,
             state_id=state_id,
             evaluation_kind=evaluation_kind,
@@ -230,7 +269,9 @@ class ProviderCallAudit:
             list(overall_composition),
         )
         if not isinstance(raw, (tuple, list)) or len(raw) not in {5, 6}:
-            raise RuntimeError("DWSIM TP flash returned an unexpected payload")
+            raise RuntimeError(
+                f"{self._provider_label} TP flash returned an unexpected payload"
+            )
         x = np.asarray(raw[0], dtype=float).reshape((-1,))
         y = np.asarray(raw[1], dtype=float).reshape((-1,))
         K = np.asarray(raw[2], dtype=float).reshape((-1,))
@@ -242,7 +283,7 @@ class ProviderCallAudit:
             or np.any(~np.isfinite(K))
             or np.any(K <= 0.0)
         ):
-            raise RuntimeError("DWSIM TP flash returned invalid phase data")
+            raise RuntimeError(f"{self._provider_label} TP flash returned invalid phase data")
         return x, y, K
 
     def independent_phase_fugacity(
@@ -314,7 +355,7 @@ class ProviderCallAudit:
         for index, record in enumerate(self._records):
             prefix = f"call[{index}] {record.caller}"
             if (
-                record.provider_interface == "dwsim.tp_flash"
+                record.provider_interface == self._provider_path("tp_flash")
                 and record.evaluation_kind != "diagnostic"
             ):
                 violations.append(f"{prefix}: TP flash outside diagnostics")
@@ -325,10 +366,10 @@ class ProviderCallAudit:
                 violations.append(f"{prefix}: independent PR outside validation")
             if record.evaluation_kind in GOVERNING_EVALUATION_KINDS:
                 permitted = {
-                    "dwsim.direct_imposed_phase_fugacity",
-                    "dwsim.declared_phase_enthalpy",
-                    "dwsim.declared_liquid_density",
-                    "dwsim.declared_vapor_compressibility_factor",
+                    self._provider_path("direct_imposed_phase_fugacity"),
+                    self._provider_path("declared_phase_enthalpy"),
+                    self._provider_path("declared_liquid_density"),
+                    self._provider_path("declared_vapor_compressibility_factor"),
                 }
                 if record.provider_interface not in permitted:
                     violations.append(
@@ -342,6 +383,10 @@ class ProviderCallAudit:
     def report(self) -> dict[str, Any]:
         violations = self.violations()
         return {
+            "provider_identity": self.provider_identity,
+            "interface_provider_identities": dict(
+                sorted(self.interface_provider_identities.items())
+            ),
             "total_calls": len(self._records),
             "grouped_records": self.grouped_records(),
             "violations": list(violations),

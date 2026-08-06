@@ -47,6 +47,18 @@ class _Provider:
         self.calls.append(("category", category))
         yield
 
+    def get_exact_state_memoization_stats(self):
+        offset = 10 if self.name == "fugacity" else 20
+        return {
+            "enabled": True,
+            "hits": 4 * offset,
+            "misses": 4,
+            "families": {
+                name: {"hits": offset, "misses": 1, "entries": offset + 1}
+                for name in ("fugacity", "enthalpy", "density", "vapor_z")
+            },
+        }
+
 
 def test_hybrid_routes_only_fugacity_to_fugacity_provider():
     fugacity = _Provider("fugacity")
@@ -85,3 +97,20 @@ def test_hybrid_rejects_mismatched_component_order():
             fugacity_provider=_Provider("fugacity", ("A", "B")),
             bulk_provider=_Provider("bulk", ("B", "A")),
         )
+
+
+def test_hybrid_aggregates_memoization_stats_by_property_owner():
+    provider = HybridThermoProviderV1(
+        fugacity_provider=_Provider("fugacity"),
+        bulk_provider=_Provider("bulk"),
+    )
+
+    stats = provider.get_exact_state_memoization_stats()
+
+    assert stats["enabled"]
+    assert stats["hits"] == 70
+    assert stats["misses"] == 4
+    assert stats["families"]["fugacity"]["hits"] == 10
+    assert stats["families"]["enthalpy"]["hits"] == 20
+    assert stats["families"]["density"]["hits"] == 20
+    assert stats["families"]["vapor_z"]["hits"] == 20

@@ -119,6 +119,23 @@ class HybridThermoProviderV1:
             if callable(setter):
                 setter(bool(enabled), clear=bool(clear))
 
+    def get_exact_state_memoization_stats(self) -> dict[str, Any]:
+        fugacity = self.fugacity_provider.get_exact_state_memoization_stats()
+        bulk = self.bulk_provider.get_exact_state_memoization_stats()
+        families = {
+            "fugacity": dict(fugacity["families"]["fugacity"]),
+            **{
+                name: dict(bulk["families"][name])
+                for name in ("enthalpy", "density", "vapor_z")
+            },
+        }
+        return {
+            "enabled": bool(fugacity["enabled"] and bulk["enabled"]),
+            "hits": int(sum(item["hits"] for item in families.values())),
+            "misses": int(sum(item["misses"] for item in families.values())),
+            "families": families,
+        }
+
     def __getattr__(self, name: str) -> Any:
         # Optional non-governing compatibility helpers remain bulk-provider
         # owned. Governing methods above are explicit and cannot fall through.

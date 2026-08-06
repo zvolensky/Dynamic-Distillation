@@ -1,0 +1,43 @@
+{
+  "schema_id": "dd152-core-v3-multiminute-timing-audit-contract-v1",
+  "preparation_base_commit": "7750a8a396ce71cba2a0f9e73c3ff0b58229bd49",
+  "sources": {
+    "logs/dd150_core_v3_parallel_captured_longer_trajectory_20260805.json": "73dde77492349d765a1cbb3dd5f283f2fb0321180599f9c62428d5099424674f",
+    "logs/dd151_core_v3_parallel_captured_multiminute_trajectory_contract_20260805.json": "15fcecc5296f6418884bc85b3ee19e85d7fa754eef8b417dc79fd78e99eb4302",
+    "logs/dd151_core_v3_parallel_captured_multiminute_trajectory_20260805.json": "c3e505eedf3f318a54ff051e961ae0724791564dcfd1bcf61f30e2159adacc29",
+    "src/dynamic_distillation/thermo_provider_v1.py": "339a05a4eeacdbb0e63db164fdfea3885595e5ccef7b9722e43e530b1928f1df",
+    "tools/run_core_v3_parallel_captured_short_trajectory.py": "4a4aaab1757054bdb4ef621f08fac5e65b1c5580b53dfd4cb2c0047d92c21344"
+  },
+  "audit": {
+    "model_or_provider_calls_allowed": 0,
+    "expected_dd150_roots": 180,
+    "expected_dd151_roots": 900,
+    "coarse_roots_per_60s_window": 60,
+    "refined_roots_per_60s_window": 120,
+    "expected_dd151_tasks": 37800,
+    "expected_dd151_worker_calls": 1058400,
+    "attribution_majority_fraction": 0.6,
+    "history_ratio_threshold": 1.25,
+    "history_correlation_threshold": 0.5,
+    "provider_cache_limit": 2000,
+    "provider_cache_eviction": "clear entire cache after insertion beyond limit",
+    "analysis_wall_limit_sec": 120.0
+  },
+  "implementation_sha256": {
+    "tests/test_core_v3_multiminute_timing_audit.py": "afc257ad2a9d24d87381bcb9fefa248a7c78ae1052a53d2e9437dfc6e4842a81",
+    "tools/audit_core_v3_multiminute_timing.py": "c1407327fcc90de09dd251c87c92ae88aed375d7cea5adfba8293b2ad28868e6"
+  },
+  "hard_stops": [
+    "a DD-150/DD-151 result, provider source, parallel source, or DD-152 implementation hash changes",
+    "any DWSIM, provider, residual, Jacobian, solver, correction, state advance, timestep, or trajectory call occurs",
+    "saved root, task, worker-call, prefix-equivalence, or scientific-gate integrity does not reproduce",
+    "timing decomposition does not telescope to saved total wall time",
+    "the audit exceeds 120 seconds"
+  ],
+  "live_property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "afe9bf3c4b6f0f9586812684296dc113ab791435363230c307fc7f0d65eb465b"
+}

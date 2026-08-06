@@ -28,6 +28,8 @@ def _residual(evaluation: Any) -> np.ndarray:
 def _evaluation_coordinates(evaluation: Any, shape: tuple[int, ...]) -> np.ndarray | None:
     values = getattr(evaluation, "solve_coordinates", None)
     if values is None:
+        values = getattr(evaluation, "coordinates", None)
+    if values is None:
         return None
     point = np.asarray(values, dtype=float).reshape((-1,))
     if point.shape != shape or np.any(~np.isfinite(point)):

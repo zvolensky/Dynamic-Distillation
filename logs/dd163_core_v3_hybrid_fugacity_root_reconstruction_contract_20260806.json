@@ -1,0 +1,70 @@
+{
+  "schema_id": "dd163-core-v3-hybrid-fugacity-root-contract-v1",
+  "preparation_base_commit": "0b207b0219deaa97cb9d61cbdcf2f6dfd4bf0867",
+  "sources": {
+    "logs/dd160_core_v3_memoized_captured_multiminute_trajectory_contract_20260806.json": "acbc2744c22ee142c0d5f0f99e644829dadd79e8055d0222d00d3f3166b7d2bd",
+    "logs/dd162_core_v3_hybrid_fugacity_benchmark_contract_20260806.json": "805227c2dabd8bd6d7fbe150d4368d74c8f02f1e4963e502e529f1c4c75d6475",
+    "logs/dd162_core_v3_hybrid_fugacity_benchmark_20260806.json": "85ca30f39690c609e22d79036b4a371941dd3968c3e13f8cd6d676c8d4e8069d"
+  },
+  "state": "exact DD-160 accepted controlled-terminal zero-time root",
+  "provider_routing": {
+    "direct_imposed_phase_fugacity": "clapeyron",
+    "all_bulk_properties_and_tp_flash": "dwsim"
+  },
+  "algorithm": {
+    "residual_tolerance": 1e-08,
+    "max_iterations": 12,
+    "line_search_fractions": [
+      1.0,
+      0.5,
+      0.25,
+      0.125
+    ],
+    "armijo_fraction": 0.0001,
+    "condition_limit": 100000000.0
+  },
+  "jacobian_step": 1e-05,
+  "required_rank": 50,
+  "endpoint_condition_limit": 100000000.0,
+  "residual_limit": 1e-08,
+  "identity_limit": 1e-14,
+  "component_conservation_limit": 1e-12,
+  "energy_conservation_limit": 1e-12,
+  "engineering_equivalence_limits": {
+    "temperature_F_max_abs": 0.25,
+    "liquid_mole_fraction_max_abs": 0.0005,
+    "vapor_mole_fraction_max_abs": 0.0005,
+    "bubble_vapor_mole_fraction_max_abs": 0.0005,
+    "pressure_psia_max_abs": 0.05,
+    "liquid_flow_max_relative": 0.005,
+    "vapor_flow_max_relative": 0.005,
+    "product_flow_max_relative": 0.005,
+    "condenser_duty_max_relative": 0.005,
+    "level_fraction_max_abs": 0.001
+  },
+  "provider_call_limit": 12000,
+  "wall_clock_limit_sec": 180.0,
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/captured_modified_newton_v1.py": "a3c7bb10243d0a226f716f9046eaad9e199a5df958de0d61825c4f319d5498a3",
+    "src/dynamic_distillation/core_v3/colored_jacobian_v1.py": "d30f8439d26ca8859318c3091cca034320b6e147dd00afba4940abb6ecb541f9",
+    "src/dynamic_distillation/core_v3/controlled_terminal_zero_time_v1.py": "a61e770f7686f50e02f4b9073386c7f2e55938d436350ad54e5771c1ab9a1547",
+    "src/dynamic_distillation/core_v3/hybrid_thermo_provider_v1.py": "ba94aea7ebad423150e8a67e32f780e1b28ee99ebee5456f744c49a4be5cd10c",
+    "src/dynamic_distillation/core_v3/provider_call_audit_v1.py": "a9388ba6d51d5237526cbf8279450740e4bd410c021ec0c3322a0ad6b7f09813",
+    "src/dynamic_distillation/thermo_clapeyron_provider_v1.py": "5f69f8dd48625b85f37b210081a7d926fda21f8ed15592fb9821c9637c084786",
+    "tools/run_core_v3_hybrid_fugacity_root_reconstruction.py": "21c96c34b646d1119f4d4e13913d972e6d02e83ea0c91875ab45ec37f44b7e79"
+  },
+  "hard_stops": [
+    "a source or DD-163 implementation hash changes",
+    "the single frozen-Jacobian solve does not converge without retry",
+    "the endpoint loses rank, exceeds the condition limit, or violates physicality",
+    "the reconstructed state exceeds any frozen engineering-equivalence limit",
+    "provider ownership fails or imposed-phase fugacity falls back",
+    "any clipping, projection, fresh-Jacobian retry, timestep, or trajectory occurs"
+  ],
+  "live_property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "cb6cd3c6c1295a0088e7c18989fbb143a541e3bc302e1fec2b797340a5d8ce22"
+}

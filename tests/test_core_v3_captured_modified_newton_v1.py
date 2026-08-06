@@ -47,6 +47,23 @@ def test_captured_solver_records_success_identity():
     assert capture.trials[0].state_id == "success:iteration_1:line_0"
 
 
+def test_captured_solver_accepts_coordinates_alias_for_identity():
+    def objective(point, _state_id):
+        values = np.asarray(point, dtype=float)
+        return SimpleNamespace(scaled=values.copy(), coordinates=values.copy())
+
+    result = solve_captured_modified_newton(
+        objective,
+        lambda _point, _state_id: np.eye(2),
+        [1.0, -2.0],
+        SETTINGS,
+        name="coordinates_alias",
+    )
+
+    assert result.success
+    assert result.final_coordinates_vs_evaluation_max_abs == 0.0
+
+
 def test_captured_solver_records_complete_line_search_failure():
     result = solve_captured_modified_newton(
         _linear_objective,

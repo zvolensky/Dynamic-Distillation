@@ -1,0 +1,297 @@
+{
+  "schema_id": "dd154-core-v3-pool-renewal-cadence-result-v1",
+  "contract_commit": "2950f3dba625529fae61ef6cf09935f848fe12f0",
+  "contract_payload_sha256": "a45f55bc28be6d02f9cc6280af899b358be27fe557ca4bee1dae1e69268ec8bd",
+  "classification": "cadence_model_invalid",
+  "decision": "retain_persistent_pool_without_trajectory_extension",
+  "measured_inputs": {
+    "fresh_matrix_sec": {
+      "coarse": 0.22970245000033174,
+      "refined": 0.22504999999364372
+    },
+    "aging_slope_sec_per_root": {
+      "coarse": 0.00020092703787977738,
+      "refined": 0.0003034287786587193
+    },
+    "pool_lifecycle_overhead_sec": 12.713884800007994,
+    "fixed_non_jacobian_sec": 60.215190699964296,
+    "calibration_sec": 81.32468527129419
+  },
+  "scenarios": {
+    "low": {
+      "slope_scale": 0.75,
+      "projections": [
+        {
+          "cadence_roots": 60,
+          "pool_count": 15,
+          "jacobian_sec": 209.30240524690703,
+          "pool_lifecycle_sec": 190.7082720001199,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 541.5505532182854
+        },
+        {
+          "cadence_roots": 120,
+          "pool_count": 8,
+          "jacobian_sec": 214.48369976335064,
+          "pool_lifecycle_sec": 101.71107840006395,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 457.73465413467306
+        },
+        {
+          "cadence_roots": 180,
+          "pool_count": 5,
+          "jacobian_sec": 220.48425198217257,
+          "pool_lifecycle_sec": 63.56942400003997,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 425.59355195347104
+        },
+        {
+          "cadence_roots": 240,
+          "pool_count": 4,
+          "jacobian_sec": 224.84628879623767,
+          "pool_lifecycle_sec": 50.85553920003198,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 417.2417039675281
+        },
+        {
+          "cadence_roots": 300,
+          "pool_count": 3,
+          "jacobian_sec": 231.11258931723216,
+          "pool_lifecycle_sec": 38.14165440002398,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 410.7941196885146
+        },
+        {
+          "cadence_roots": 360,
+          "pool_count": 3,
+          "jacobian_sec": 233.57036242436772,
+          "pool_lifecycle_sec": 38.14165440002398,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 413.2518927956502
+        },
+        {
+          "cadence_roots": 450,
+          "pool_count": 2,
+          "jacobian_sec": 246.47367123682974,
+          "pool_lifecycle_sec": 25.42776960001599,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 413.4413168081042
+        },
+        {
+          "cadence_roots": 900,
+          "pool_count": 1,
+          "jacobian_sec": 292.5569169956228,
+          "pool_lifecycle_sec": 12.713884800007994,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 446.8106777668893
+        }
+      ],
+      "selected": {
+        "cadence_roots": 300,
+        "pool_count": 3,
+        "jacobian_sec": 231.11258931723216,
+        "pool_lifecycle_sec": 38.14165440002398,
+        "fixed_non_jacobian_sec": 60.215190699964296,
+        "calibration_sec": 81.32468527129419,
+        "projected_total_sec": 410.7941196885146
+      }
+    },
+    "nominal": {
+      "slope_scale": 1.0,
+      "projections": [
+        {
+          "cadence_roots": 60,
+          "pool_count": 15,
+          "jacobian_sec": 211.08962866378133,
+          "pool_lifecycle_sec": 190.7082720001199,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 543.3377766351598
+        },
+        {
+          "cadence_roots": 120,
+          "pool_count": 8,
+          "jacobian_sec": 217.99802135237252,
+          "pool_lifecycle_sec": 101.71107840006395,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 461.24897572369497
+        },
+        {
+          "cadence_roots": 180,
+          "pool_count": 5,
+          "jacobian_sec": 225.99875764413525,
+          "pool_lifecycle_sec": 63.56942400003997,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 431.1080576154337
+        },
+        {
+          "cadence_roots": 240,
+          "pool_count": 4,
+          "jacobian_sec": 231.81480672955522,
+          "pool_lifecycle_sec": 50.85553920003198,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 424.2102219008457
+        },
+        {
+          "cadence_roots": 300,
+          "pool_count": 3,
+          "jacobian_sec": 240.16987409088094,
+          "pool_lifecycle_sec": 38.14165440002398,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 419.85140446216343
+        },
+        {
+          "cadence_roots": 360,
+          "pool_count": 3,
+          "jacobian_sec": 243.44690490039508,
+          "pool_lifecycle_sec": 38.14165440002398,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 423.1284352716776
+        },
+        {
+          "cadence_roots": 450,
+          "pool_count": 2,
+          "jacobian_sec": 260.65131665034454,
+          "pool_lifecycle_sec": 25.42776960001599,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 427.61896222161903
+        },
+        {
+          "cadence_roots": 900,
+          "pool_count": 1,
+          "jacobian_sec": 322.09564432873515,
+          "pool_lifecycle_sec": 12.713884800007994,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 476.3494051000016
+        }
+      ],
+      "selected": {
+        "cadence_roots": 300,
+        "pool_count": 3,
+        "jacobian_sec": 240.16987409088094,
+        "pool_lifecycle_sec": 38.14165440002398,
+        "fixed_non_jacobian_sec": 60.215190699964296,
+        "calibration_sec": 81.32468527129419,
+        "projected_total_sec": 419.85140446216343
+      }
+    },
+    "high": {
+      "slope_scale": 1.25,
+      "projections": [
+        {
+          "cadence_roots": 60,
+          "pool_count": 15,
+          "jacobian_sec": 212.87685208065483,
+          "pool_lifecycle_sec": 190.7082720001199,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 545.1250000520332
+        },
+        {
+          "cadence_roots": 120,
+          "pool_count": 8,
+          "jacobian_sec": 221.51234294139402,
+          "pool_lifecycle_sec": 101.71107840006395,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 464.7632973127165
+        },
+        {
+          "cadence_roots": 180,
+          "pool_count": 5,
+          "jacobian_sec": 231.51326330609737,
+          "pool_lifecycle_sec": 63.56942400003997,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 436.62256327739584
+        },
+        {
+          "cadence_roots": 240,
+          "pool_count": 4,
+          "jacobian_sec": 238.78332466287236,
+          "pool_lifecycle_sec": 50.85553920003198,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 431.1787398341628
+        },
+        {
+          "cadence_roots": 300,
+          "pool_count": 3,
+          "jacobian_sec": 249.22715886452963,
+          "pool_lifecycle_sec": 38.14165440002398,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 428.9086892358121
+        },
+        {
+          "cadence_roots": 360,
+          "pool_count": 3,
+          "jacobian_sec": 253.32344737642228,
+          "pool_lifecycle_sec": 38.14165440002398,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 433.00497774770474
+        },
+        {
+          "cadence_roots": 450,
+          "pool_count": 2,
+          "jacobian_sec": 274.828962063859,
+          "pool_lifecycle_sec": 25.42776960001599,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 441.7966076351335
+        },
+        {
+          "cadence_roots": 900,
+          "pool_count": 1,
+          "jacobian_sec": 351.6343716618474,
+          "pool_lifecycle_sec": 12.713884800007994,
+          "fixed_non_jacobian_sec": 60.215190699964296,
+          "calibration_sec": 81.32468527129419,
+          "projected_total_sec": 505.88813243311387
+        }
+      ],
+      "selected": {
+        "cadence_roots": 300,
+        "pool_count": 3,
+        "jacobian_sec": 249.22715886452963,
+        "pool_lifecycle_sec": 38.14165440002398,
+        "fixed_non_jacobian_sec": 60.215190699964296,
+        "calibration_sec": 81.32468527129419,
+        "projected_total_sec": 428.9086892358121
+      }
+    }
+  },
+  "selected_cadence_roots": 300,
+  "selected_projected_total_sec": 419.85140446216343,
+  "baseline_projected_total_sec": 476.3494051000016,
+  "projected_improvement_fraction": 0.11860621643051567,
+  "analysis_wall_sec": 0.962143400014611,
+  "model_or_provider_calls": 0,
+  "gates": {
+    "source_integrity": true,
+    "baseline_calibration": true,
+    "interior_selection": true,
+    "meaningful_improvement": false,
+    "uncertainty_bounded": true,
+    "zero_model_calls": true,
+    "wall": true
+  },
+  "pass": false,
+  "campaign_executed_once": true
+}

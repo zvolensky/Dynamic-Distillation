@@ -1,0 +1,1121 @@
+{
+  "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\sandbox\\mini8\\input\\distillation_column_template_8stage.xlsx",
+  "workbook_sha256": "d1442928feb89bded76737614c0751e62bd4383a900b3c56bc243178080ca904",
+  "property_package": "pr",
+  "source_mapping": {
+    "component_names": [
+      "n-Propane",
+      "n-Butane",
+      "n-Pentane"
+    ],
+    "component_ids_dwsim": [
+      "Propane",
+      "N-butane",
+      "N-pentane"
+    ],
+    "source_stage_1based": [
+      1,
+      3,
+      5,
+      6,
+      8
+    ],
+    "roles": [
+      "reflux_drum",
+      "rectifying_tray",
+      "feed_tray",
+      "stripping_tray",
+      "combined_reboiler_sump"
+    ],
+    "liquid_moles_lbmol": [
+      1388.9,
+      32.51477868945729,
+      51.06214131827053,
+      62.53531141217334,
+      794.0
+    ],
+    "liquid_mole_fraction": [
+      [
+        0.9056677282091148,
+        0.09432647169262584,
+        5.800098259390512e-06
+      ],
+      [
+        0.4705840235292012,
+        0.5287740264387013,
+        0.0006419500320975016
+      ],
+      [
+        0.3099600619920124,
+        0.6059141211828242,
+        0.08412581682516336
+      ],
+      [
+        0.1857739628452074,
+        0.7244838551032289,
+        0.08974218205156358
+      ],
+      [
+        0.04716609528339047,
+        0.7861699213830079,
+        0.16666398333360166
+      ]
+    ],
+    "temperature_F": [
+      117.932,
+      156.578,
+      179.654,
+      196.124,
+      220.712
+    ],
+    "pressure_psia": [
+      218.44,
+      222.377,
+      226.896,
+      229.478,
+      232.06
+    ],
+    "vapor_mole_fraction": [
+      [
+        0.6667965000973751,
+        0.3330182497636873,
+        0.0001852501389376042
+      ],
+      [
+        0.505565949443405,
+        0.4633579536642047,
+        0.031076096892390315
+      ],
+      [
+        0.33077706615541325,
+        0.6299941259988252,
+        0.03922880784576157
+      ],
+      [
+        0.09453580945358095,
+        0.813861081386108,
+        0.09160310916031092
+      ]
+    ],
+    "liquid_flow_reference_lbmolph": [
+      5258.48,
+      12372.2,
+      12584.8
+    ],
+    "vapor_flow_reference_lbmolph": [
+      8036.48,
+      7744.25,
+      7457.64,
+      7710.72
+    ],
+    "reflux_lbmolph": 5952.48,
+    "feed_component_lbmolph": [
+      2380.99,
+      3968.32,
+      793.664
+    ],
+    "feed_temperature_F": 174.999,
+    "feed_pressure_psia": 232.06,
+    "reboiler_duty_BTUph": 54706000.0,
+    "terminal_liquid_targets_lbmol": [
+      1388.9,
+      794.0
+    ],
+    "hydraulic_geometry": [
+      {
+        "active_area_ft2": 169.47285339961908,
+        "tray_spacing_ft": 1.5,
+        "weir_height_in": 1.65625,
+        "weir_length_ft": 9.0,
+        "hydraulic_c_factor": 0.9623640652877183
+      },
+      {
+        "active_area_ft2": 169.47285339961908,
+        "tray_spacing_ft": 1.5,
+        "weir_height_in": 1.65625,
+        "weir_length_ft": 9.0,
+        "hydraulic_c_factor": 0.9623640652877183
+      },
+      {
+        "active_area_ft2": 194.60007084451445,
+        "tray_spacing_ft": 1.5,
+        "weir_height_in": 1.98125,
+        "weir_length_ft": 9.0,
+        "hydraulic_c_factor": 0.9637984277177879
+      }
+    ],
+    "distillate_reference_lbmolph": 2380.99,
+    "bottoms_reference_lbmolph": 4761.98,
+    "seed_mapping_used_flash_or_column_closure": false
+  },
+  "operating_spec": {
+    "feed_enthalpy_BTUph": -36661427.88636613,
+    "temperature_scale_F": 100.0
+  },
+  "reference": {
+    "liquid_moles_lbmol": [
+      1388.9,
+      32.51477868945729,
+      51.06214131827053,
+      62.53531141217334,
+      794.0
+    ],
+    "liquid_mole_fraction": [
+      [
+        0.9056677282091148,
+        0.09432647169262584,
+        5.800098259390512e-06
+      ],
+      [
+        0.4705840235292012,
+        0.5287740264387013,
+        0.0006419500320975016
+      ],
+      [
+        0.3099600619920124,
+        0.6059141211828242,
+        0.08412581682516336
+      ],
+      [
+        0.1857739628452074,
+        0.7244838551032289,
+        0.08974218205156358
+      ],
+      [
+        0.04716609528339047,
+        0.7861699213830079,
+        0.16666398333360166
+      ]
+    ],
+    "temperature_F": [
+      117.8163848922668,
+      156.578,
+      179.654,
+      196.124,
+      220.712
+    ],
+    "vapor_mole_fraction": [
+      [
+        0.6667965000973751,
+        0.3330182497636873,
+        0.0001852501389376042
+      ],
+      [
+        0.505565949443405,
+        0.4633579536642047,
+        0.031076096892390315
+      ],
+      [
+        0.33077706615541325,
+        0.6299941259988252,
+        0.03922880784576157
+      ],
+      [
+        0.09453580945358095,
+        0.813861081386108,
+        0.09160310916031092
+      ]
+    ],
+    "hydraulic_liquid_flow_lbmolph": [
+      5258.48,
+      12372.2,
+      12584.8
+    ],
+    "vapor_flow_lbmolph": [
+      8036.48,
+      7744.25,
+      7457.64,
+      7710.72
+    ],
+    "distillate_lbmolph": 2380.99,
+    "bottoms_lbmolph": 4761.98,
+    "bubble_vapor_mole_fraction": [
+      0.9586891509551994,
+      0.04130955157691591,
+      1.2974678846972106e-06
+    ],
+    "condenser_duty_reference_BTUph": -55003568.3093669,
+    "condenser_duty_scale_BTUph": 55003568.3093669
+  },
+  "accepted_root_state": {
+    "liquid_moles_lbmol": [
+      1388.9,
+      32.859247230734894,
+      45.855669127371364,
+      54.42493263178373,
+      794.0
+    ],
+    "liquid_mole_fraction": [
+      [
+        0.7030012030418334,
+        0.28360552678435397,
+        0.013393270173812711
+      ],
+      [
+        0.500234826457136,
+        0.45842005716232237,
+        0.041345116380541766
+      ],
+      [
+        0.34929780421393525,
+        0.563707077730216,
+        0.0869951180558488
+      ],
+      [
+        0.27195005494847735,
+        0.6235574802453254,
+        0.10449246480619716
+      ],
+      [
+        0.18087968457704215,
+        0.6677097000786985,
+        0.15141061534425931
+      ]
+    ],
+    "temperature_F": [
+      133.7132934933822,
+      154.422168391021,
+      173.9246438396751,
+      184.82401274924234,
+      199.7404893839464
+    ],
+    "vapor_mole_fraction": [
+      [
+        0.7030012030418334,
+        0.28360552678435397,
+        0.013393270173812711
+      ],
+      [
+        0.555053577033583,
+        0.4111582068529066,
+        0.03378821611351037
+      ],
+      [
+        0.45940364730893357,
+        0.4957138211705346,
+        0.04488253152053189
+      ],
+      [
+        0.3313479200012716,
+        0.5947605445927329,
+        0.07389153540599559
+      ]
+    ],
+    "hydraulic_liquid_flow_lbmolph": [
+      5628.901332493138,
+      12792.976432937698,
+      12811.305678733066
+    ],
+    "vapor_flow_lbmolph": [
+      7753.997711307092,
+      7735.668465511723,
+      7714.567365067163,
+      8038.146032574027
+    ],
+    "distillate_lbmolph": 2085.666032574026,
+    "bottoms_lbmolph": 5057.307967425973,
+    "bubble_vapor_mole_fraction": [
+      0.8512769482354178,
+      0.14519622244218774,
+      0.0035268293223943664
+    ],
+    "condenser_duty_BTUph": -52515728.24408221
+  },
+  "initializer_numerical": {
+    "inventory_reference_lbmol": [
+      [
+        976.3983709048025,
+        393.89971615078923,
+        18.601912944408475
+      ],
+      [
+        16.437339835978797,
+        15.063337993824373,
+        1.3585694009317288
+      ],
+      [
+        16.017284536951557,
+        25.849165241154196,
+        3.9892193492656127
+      ],
+      [
+        14.800863419780764,
+        33.93707385439665,
+        5.686995357606313
+      ],
+      [
+        143.61846955417147,
+        530.1615018624866,
+        120.2200285833419
+      ]
+    ],
+    "lower_internal_energy_reference_BTU": [
+      -183174.44444428265,
+      -237839.8917786003,
+      -267535.07776364515,
+      -3588444.9210354243
+    ],
+    "lower_internal_energy_scale_BTU": [
+      183174.44444428265,
+      237839.8917786003,
+      267535.07776364515,
+      3588444.9210354243
+    ],
+    "component_total_targets_lbmol": [
+      1167.2723282516852,
+      998.910795102651,
+      149.85672563555403
+    ],
+    "stored_energy_target_BTU": -12410310.266236339,
+    "terminal_total_targets_lbmol": [
+      1388.9,
+      794.0
+    ],
+    "objective_center": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.15896908601115395,
+      -0.02155831608979,
+      -0.0572935616032491,
+      -0.11299987250757644,
+      -0.20971510616053596,
+      -4.227926918722444,
+      -4.4414136299197295,
+      0.0097129795407229,
+      -0.20319497251104562,
+      0.19384730206109307,
+      -0.37434900389959314,
+      1.4690571761290705,
+      -0.0987638775712634,
+      0.06807226629807987,
+      0.03344428392177267,
+      0.017838300709256297,
+      -0.03578263229258527,
+      -0.001108731339443669,
+      0.03387139685113803,
+      0.041586895207681954,
+      -8.026569322661443,
+      -6.650747613731818,
+      0.045230521250764225,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "objective_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "lower_bounds": [
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -2.995732273553991,
+      -5.0,
+      -5.0,
+      -5.0,
+      -5.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -10.0,
+      -0.07816384892266796,
+      -0.46578,
+      -0.6965399999999999,
+      -0.86124,
+      -1.1071199999999999,
+      -31.214384096604803,
+      -30.52009648712003,
+      -25.81509048847613,
+      -25.727911868189736,
+      -25.157884191138283,
+      -25.802150054352623,
+      -23.05736441457657,
+      -25.21017540558861,
+      -2.3025850929940455,
+      -2.3025850929940455,
+      -2.3025850929940455,
+      -2.3025850929940455,
+      -2.3025850929940455,
+      -2.3025850929940455,
+      -2.3025850929940455,
+      -36.53875850825574,
+      -33.39428537092577,
+      -2.0000000000000004,
+      -0.3936000000000007,
+      -0.8454999999999984,
+      -1.1037000000000006,
+      -1.3618999999999999
+    ],
+    "upper_bounds": [
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      2.995732273553991,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      10.0,
+      1.421836151077332,
+      1.03422,
+      0.8034600000000001,
+      0.63876,
+      0.3928800000000001,
+      14.83731776287611,
+      15.531605372360886,
+      20.236611371004784,
+      20.32378999129118,
+      20.89381766834263,
+      20.24955180512829,
+      22.994337444904346,
+      20.841526453892303,
+      1.6094379124341003,
+      1.6094379124341003,
+      1.6094379124341003,
+      1.6094379124341003,
+      1.6094379124341003,
+      1.6094379124341003,
+      1.6094379124341003,
+      9.512943351225172,
+      12.657416488555139,
+      0.8999999999999999,
+      2.262299999999999,
+      1.8104000000000013,
+      1.5521999999999991,
+      1.2939999999999998
+    ]
+  },
+  "top_storage_gradient_BTU_lbmol": [
+    -6063.887529982552,
+    -5336.817562839207,
+    -5933.53498475494
+  ],
+  "energy_rate_scales_BTUph": [
+    55003568.3093669,
+    55003568.3093669,
+    55003568.3093669,
+    55003568.3093669
+  ],
+  "storage_scales_BTU": [
+    183174.44444428265,
+    237839.8917786003,
+    267535.07776364515,
+    3588444.9210354243
+  ],
+  "fixed_steady_residual_scales": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    12584.8,
+    12584.8,
+    12584.8,
+    55003568.3093669,
+    12584.8,
+    12584.8,
+    12584.8,
+    55003568.3093669,
+    12584.8,
+    12584.8,
+    12584.8,
+    55003568.3093669,
+    12584.8,
+    12584.8,
+    12584.8,
+    55003568.3093669,
+    12584.8,
+    12584.8,
+    12584.8,
+    55003568.3093669,
+    5258.48,
+    12372.2,
+    12584.8,
+    1388.9,
+    794.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "pressure_reference_psia": [
+    218.44,
+    222.377,
+    226.896,
+    229.478,
+    232.06
+  ],
+  "pressure_coordinate_scale_psia": 10.0,
+  "pressure_residual_scale_psia": 1.0,
+  "dry_tray_pressure_drop_coefficient": 40.0,
+  "pressure_link_geometry": [
+    {
+      "active_area_ft2": 194.60007084451445,
+      "tray_area_ft2": 259.46676112601926,
+      "weir_height_in": 1.98125,
+      "include_liquid_head": false
+    },
+    {
+      "active_area_ft2": 194.60007084451445,
+      "tray_area_ft2": 259.46676112601926,
+      "weir_height_in": 1.98125,
+      "include_liquid_head": true
+    },
+    {
+      "active_area_ft2": 169.47285339961908,
+      "tray_area_ft2": 225.96380453282543,
+      "weir_height_in": 1.65625,
+      "include_liquid_head": true
+    },
+    {
+      "active_area_ft2": 169.47285339961908,
+      "tray_area_ft2": 225.96380453282543,
+      "weir_height_in": 1.65625,
+      "include_liquid_head": true
+    }
+  ],
+  "geometry": {
+    "drum_diameter_ft": 12.1,
+    "drum_tangent_length_ft": 36.3,
+    "drum_head_shape": "two_hemispherical",
+    "sump_diameter_ft": 18.1759,
+    "sump_height_ft": 12.0
+  },
+  "controllers": {
+    "drum_kc": 0.5,
+    "drum_ti_sec": 120.0,
+    "sump_kc": 8.0,
+    "sump_ti_sec": 120.0,
+    "product_rate_ratio_bounds": [
+      0.25,
+      2.0
+    ]
+  },
+  "inventory_lbmol": [
+    [
+      962.2757310149924,
+      407.5295853202717,
+      19.09468366473596
+    ],
+    [
+      15.97852286321881,
+      15.447357713115618,
+      1.388220517818767
+    ],
+    [
+      15.430498659308427,
+      26.188178264789855,
+      4.039087266105965
+    ],
+    [
+      13.991852504652309,
+      34.42565910028189,
+      5.7949803518819625
+    ],
+    [
+      132.9181169801583,
+      537.1783121329975,
+      123.90357088684429
+    ]
+  ],
+  "lower_internal_energy_BTU": [
+    -184138.80065091423,
+    -241736.56760240093,
+    -274159.5642703429,
+    -3735389.1141071836
+  ],
+  "controller_memory": [
+    0.07839022364115941,
+    -0.034207999836850085
+  ],
+  "zero_time_coordinates": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.167505458384242,
+    -0.024043129710207875,
+    -0.07883466230876825,
+    -0.14093604061529544,
+    -0.24661160829810286,
+    -4.268642088738161,
+    -4.433541979468911,
+    -0.01639033067783803,
+    -0.19180682216881859,
+    0.1489443955192387,
+    -0.3650107285196841,
+    1.3991257868024711,
+    -0.09810733586176436,
+    0.06463946060295794,
+    0.01755335665702025,
+    -0.0025689660921100243,
+    -0.047290337883947174,
+    -0.005203457777174413,
+    0.053228333095820306,
+    0.06252462971637442,
+    -8.069408302045915,
+    -6.643618839522081,
+    0.024273022442611755,
+    -0.3884142551219767,
+    -0.8326170590760403,
+    -1.083850168808116,
+    -1.3398516886884888,
+    0.07839022364115941,
+    -0.034207999836850085
+  ],
+  "expected_distillate_lbmolph": 2255.7408779296543,
+  "expected_bottoms_lbmolph": 4887.233122070343,
+  "original_level_setpoints": {
+    "drum_fraction": 0.4692884263369592,
+    "sump_fraction": 0.5249566359186797
+  },
+  "moved_level_setpoints": {
+    "drum_fraction": 0.46975771476329614,
+    "sump_fraction": 0.5254815925545984
+  },
+  "setpoint_multiplier": 1.001,
+  "disturbance_definition": "raise both terminal geometry-based level setpoints by 0.1 percent relative at t=0; change no physical state, feed, duty, thermo, tuning, or equation",
+  "component_rate_scale_lbmolph": 12584.8,
+  "residual_limit": 1e-08,
+  "component_conservation_limit": 1e-12,
+  "energy_conservation_limit": 1e-10,
+  "discrete_kinematic_limit": 1e-12,
+  "saved_dd132_first_step": {
+    "name": "coarse",
+    "success": true,
+    "message": "modified Newton converged",
+    "iterations": 2,
+    "residual_evaluations": 3,
+    "jacobian_evaluations": 1,
+    "linear_solves": 2,
+    "rejected_line_search_steps": 0,
+    "rejected_bound_steps": 0,
+    "residual_inf_norm": 2.675052277448619e-10,
+    "jacobian_rank": 50,
+    "jacobian_condition": 208435.75982193588,
+    "final_coordinates": [
+      4.033062019321957e-05,
+      1.72652881241421e-05,
+      8.123431017836704e-07,
+      -2.4443244505546838e-06,
+      1.6978739206434873e-06,
+      2.930204592482911e-07,
+      -1.550611191280403e-06,
+      1.367316751838267e-06,
+      1.8287529966609353e-07,
+      -1.891331516798749e-06,
+      1.5612631832345063e-06,
+      4.5138439333922845e-07,
+      0.00026769546849416943,
+      0.00109288552440157,
+      0.0002531024310400952,
+      1.4721355963833792e-06,
+      1.0749481796359816e-06,
+      1.5366907081618877e-06,
+      -0.0017297496513324325,
+      -1.955153752094959e-06,
+      -3.474794359534108e-05,
+      0.1675054586771204,
+      -0.024042878032852114,
+      -0.07883450952328433,
+      -0.14093585952251278,
+      -0.24661156923971456,
+      -4.2686434349908104,
+      -4.433542357342417,
+      -0.016390898203237567,
+      -0.19180682094940973,
+      0.14894358278615566,
+      -0.3650108678914836,
+      1.3991256642868706,
+      -0.09810737383937025,
+      0.06463945966587425,
+      0.01755340125062082,
+      -0.0025688914944868744,
+      -0.04726447847589978,
+      -0.005177975364188023,
+      0.05325322156352546,
+      0.06254917439001592,
+      -8.069408304319866,
+      -6.643618840162067,
+      0.024248092625513126,
+      -0.38841411708650014,
+      -0.8326167828708139,
+      -1.0838497851006224,
+      -1.3398511913141997,
+      0.07815365003715592,
+      -0.038412501011886355
+    ],
+    "inventory_lbmol": [
+      [
+        962.2758720018886,
+        407.5296456758867,
+        19.094686504507138
+      ],
+      [
+        15.978514318405999,
+        15.44736364850668,
+        1.3882215421535549
+      ],
+      [
+        15.430493238717235,
+        26.18818304462581,
+        4.039087905397424
+      ],
+      [
+        13.991845892979184,
+        34.425664558111464,
+        5.794981929821709
+      ],
+      [
+        132.9190527873225,
+        537.1821326315132,
+        123.90445567985735
+      ]
+    ],
+    "top_internal_energy_BTU": -8123075.091047075,
+    "lower_internal_energy_BTU": [
+      -184138.77815849456,
+      -241736.55117851603,
+      -274159.54079160054,
+      -3735415.5425524907
+    ],
+    "controller_memory": [
+      0.07838826848740732,
+      -0.03424274778044543
+    ],
+    "level_fraction": [
+      0.46928847786287253,
+      0.5249603734172568
+    ],
+    "distillate_lbmolph": 2255.2072922990915,
+    "bottoms_lbmolph": 4866.727882026189
+  },
+  "algorithm": {
+    "residual_tolerance": 1e-08,
+    "max_iterations": 12,
+    "line_search_fractions": [
+      1.0,
+      0.5,
+      0.25,
+      0.125
+    ],
+    "armijo_fraction": 0.0001,
+    "condition_limit": 100000000.0,
+    "jacobian_builds_per_root": 1,
+    "factorizations_per_root": 1,
+    "jacobian_rebuild_or_fallback": false,
+    "bound_handling": "reject trial without evaluation; never clip or project",
+    "acceptance_norm": "scaled residual infinity norm"
+  },
+  "jacobian_step": 1e-05,
+  "step_pattern_shape": [
+    50,
+    50
+  ],
+  "step_color_count": 21,
+  "required_rank": 50,
+  "trajectory_grid": {
+    "duration_seconds": 60.0,
+    "coarse_step_seconds": 1.0,
+    "coarse_steps": 60,
+    "refined_step_seconds": 0.5,
+    "refined_steps": 120
+  },
+  "first_step_reproduction_limits": {
+    "inventory": 2e-07,
+    "energy": 2e-07,
+    "memory": 2e-07,
+    "level": 2e-07,
+    "product": 1e-07
+  },
+  "endpoint_refinement_limits": {
+    "inventory": 5e-06,
+    "energy": 5e-06,
+    "memory": 5e-06,
+    "coordinates": 0.0005,
+    "product": 1e-05,
+    "level": 1e-06
+  },
+  "minimum_endpoint_product_change_relative": 0.0001,
+  "provider_call_limit": 240000,
+  "wall_clock_limit_sec": 180.0,
+  "solver_evidence": "DD-137 captured modified Newton",
+  "capture_residual_identity_limit": 0.0,
+  "accepted_matrix_sha256": "60ecd6351eb92dc07cb3e164ec0c6db314388013695ed739169409e8318a006f",
+  "accepted_matrix_rank": 50,
+  "accepted_matrix_condition": 208432.05502284644,
+  "benchmark": {
+    "state": "DD-146 first coarse root start",
+    "step_seconds": 1.0,
+    "jacobian_step": 1e-05,
+    "color_count": 21,
+    "tasks_per_matrix": 42,
+    "provider_calls_per_task": 28,
+    "provider_calls_per_matrix": 1176,
+    "worker_counts": [
+      1,
+      2,
+      4
+    ],
+    "schedule": [
+      [
+        1,
+        2,
+        4
+      ],
+      [
+        4,
+        2,
+        1
+      ],
+      [
+        2,
+        1,
+        4
+      ]
+    ],
+    "repeats_per_worker_count": 3,
+    "fresh_pool_per_repeat": true,
+    "spawn_context": true,
+    "startup_ping_delay_sec": 0.25,
+    "matrix_absolute_limit": 1e-10,
+    "matrix_relative_frobenius_limit": 1e-10,
+    "singular_spectrum_relative_limit": 1e-08,
+    "condition_limit": 100000000.0,
+    "four_worker_time_ratio_limit": 0.6,
+    "four_worker_speedup_minimum": 1.6666666666666667,
+    "projected_dd146_wall_limit_sec": 75.0,
+    "dd146_wall_clock_sec": 116.25932599999942,
+    "dd146_jacobian_provider_call_fraction": 0.954179720074827,
+    "benchmark_wall_limit_sec": 300.0
+  },
+  "schema_id": "dd164-core-v3-clapeyron-jacobian-dwsim-root-contract-v1",
+  "preparation_base_commit": "3849e7e3e11f7a7389ef7454babed2dc67837f6f",
+  "sources": {
+    "logs/dd148_core_v3_parallel_captured_first_root_contract_20260805.json": "a581dca4f04c5abf661b3a2ca9063306137c0630eeffadbdcf3181e0f1fe5ee8",
+    "logs/dd148_core_v3_parallel_captured_first_root_20260805.json": "32bbe7d5c5b6cdacedabb3c5235e4ac5bab8cad1d6e626529c4c86045dfcf5ce",
+    "logs/dd162_core_v3_hybrid_fugacity_benchmark_20260806.json": "85ca30f39690c609e22d79036b4a371941dd3968c3e13f8cd6d676c8d4e8069d",
+    "logs/dd163_core_v3_hybrid_fugacity_root_reconstruction_20260806.json": "e7b375e924378d5b0f7e01f183d29654c8ccc3407db0c4592589ebf353d5efe8"
+  },
+  "source_contract_payload_sha256": "d1034f6ca862c35cc1fef0e21ee093bfc78f6baa8326c31b62b1ce9123fb89ac",
+  "architecture": {
+    "governing_residual": "dwsim",
+    "line_search_and_acceptance": "dwsim",
+    "endpoint_audit": "dwsim",
+    "frozen_jacobian_approximation": "clapeyron-fugacity/dwsim-bulk",
+    "state_acceptance_or_advance": false
+  },
+  "comparison": {
+    "root": "exact DD-148/DD-146 first coarse moving root",
+    "matrix_relative_frobenius_limit": 0.01,
+    "required_rank": 50,
+    "condition_limit": 100000000.0,
+    "residual_limit": 1e-08,
+    "accepted_root_coordinate_max_abs": 1e-06,
+    "accepted_root_residual_max_abs": 1e-08,
+    "minimum_warm_matrix_speedup": 1.1,
+    "provider_call_limit_per_path": 5000,
+    "wall_clock_limit_sec": 180.0
+  },
+  "implementation_sha256": {
+    "src/dynamic_distillation/core_v3/captured_modified_newton_v1.py": "a3c7bb10243d0a226f716f9046eaad9e199a5df958de0d61825c4f319d5498a3",
+    "src/dynamic_distillation/core_v3/colored_jacobian_v1.py": "d30f8439d26ca8859318c3091cca034320b6e147dd00afba4940abb6ecb541f9",
+    "src/dynamic_distillation/core_v3/controlled_terminal_implicit_step_v1.py": "4f6eca3982b168566e6970fadea7884df6827628c1f8729e8d0951c004242dbd",
+    "src/dynamic_distillation/core_v3/hybrid_thermo_provider_v1.py": "ba94aea7ebad423150e8a67e32f780e1b28ee99ebee5456f744c49a4be5cd10c",
+    "src/dynamic_distillation/core_v3/provider_call_audit_v1.py": "a9388ba6d51d5237526cbf8279450740e4bd410c021ec0c3322a0ad6b7f09813",
+    "src/dynamic_distillation/thermo_clapeyron_provider_v1.py": "5f69f8dd48625b85f37b210081a7d926fda21f8ed15592fb9821c9637c084786",
+    "tools/run_core_v3_clapeyron_jacobian_dwsim_root.py": "a9602005291eadc96adb2f3323bc9acb5d4c9ed57c49e4a9de4daecff12bb49f"
+  },
+  "hard_stops": [
+    "a DD-148/DD-162/DD-163 source or DD-164 implementation hash changes",
+    "any root residual, line-search trial, acceptance test, or endpoint audit uses Clapeyron",
+    "the hybrid matrix loses rank, exceeds condition, or differs beyond the frozen limit",
+    "the unchanged captured solver fails or the root misses accepted DD-148 evidence",
+    "warm hybrid matrix speedup is below 1.10x",
+    "a retry, fresh Jacobian, fallback, clipping, projection, state acceptance, timestep, or trajectory occurs"
+  ],
+  "live_property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "b39f3f26fe6833550c7633a0eaf7c9fcc2929c4d2ba7d0d5839ceeb0a4264a17"
+}

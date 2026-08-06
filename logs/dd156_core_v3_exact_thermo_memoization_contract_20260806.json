@@ -1,0 +1,57 @@
+{
+  "schema_id": "dd156-core-v3-exact-thermo-memoization-contract-v1",
+  "preparation_base_commit": "00e1a6a25663003ff3a1cfcd9daa9356c7b21928",
+  "sources": {
+    "logs/dd151_core_v3_parallel_captured_multiminute_trajectory_contract_20260805.json": "15fcecc5296f6418884bc85b3ee19e85d7fa754eef8b417dc79fd78e99eb4302",
+    "logs/dd151_core_v3_parallel_captured_multiminute_trajectory_20260805.json": "c3e505eedf3f318a54ff051e961ae0724791564dcfd1bcf61f30e2159adacc29",
+    "logs/dd153_core_v3_worker_lifetime_efficiency_probe_20260806.json": "f41e581680aa46333ce415aaddaba2e40809b1ae49f05deb6455c0fc60658f86",
+    "logs/dd155_core_v3_inworker_reset_efficiency_20260806.json": "d57b0b71c671e0e5b4d3f1142b6242463e878ae13033cf8f52855036d731e18d"
+  },
+  "benchmark": {
+    "path": "coarse",
+    "root_index": 180,
+    "stage_order": [
+      "uncached",
+      "memo_cold",
+      "memo_warm"
+    ],
+    "worker_count": 4,
+    "spawn_context": true,
+    "startup_ping_delay_sec": 0.25,
+    "control_occupancy_delay_sec": 0.25,
+    "expected_pools": 1,
+    "expected_matrices": 3,
+    "tasks_per_matrix": 42,
+    "logical_provider_calls_per_task": 28,
+    "expected_logical_provider_calls": 3528,
+    "expected_startup_provider_calls": 116,
+    "matrix_absolute_limit": 1e-10,
+    "fresh_reference_ratio_minimum": 0.65,
+    "fresh_reference_ratio_maximum": 1.35,
+    "warm_speedup_minimum": 1.5,
+    "warm_hit_fraction_minimum": 0.5,
+    "wall_limit_sec": 60.0
+  },
+  "implementation_sha256": {
+    "src/dynamic_distillation/thermo_provider_v1.py": "339a05a4eeacdbb0e63db164fdfea3885595e5ccef7b9722e43e530b1928f1df",
+    "src/dynamic_distillation/core_v3/parallel_colored_jacobian_v1.py": "8459e9deb6ce1be25d409a0b7d1d224e67b7ed153946cc58fd7b6740c59fc76b",
+    "tests/test_core_v3_exact_thermo_memoization.py": "449a83434d81d4b813ed38dd64aae400a8f9bebbadd0a2b1a4d104152eedfae1",
+    "tools/benchmark_core_v3_exact_thermo_memoization.py": "7cd94d89100ee0cef3ce665c466695a0e4878fd2e6706b232b33641437d936c5",
+    "tools/run_core_v3_parallel_captured_short_trajectory.py": "4a4aaab1757054bdb4ef621f08fac5e65b1c5580b53dfd4cb2c0047d92c21344"
+  },
+  "hard_stops": [
+    "a DD-151/DD-153/DD-155 result, source, or DD-156 implementation hash changes",
+    "the saved root, single pool, three-stage order, exact keys, or thresholds change",
+    "the wrapper rounds, normalizes approximately, interpolates, or reuses a non-identical state",
+    "any reconstructed matrix differs from DD-151 beyond 1e-10",
+    "task, logical-call, process-ownership, cache-accounting, speed, or wall integrity fails",
+    "diagnostic memoization is represented as a production implementation",
+    "a nonlinear solve, correction, state acceptance, timestep, trajectory, retry, clipping, projection, or fallback occurs"
+  ],
+  "live_property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "d1092cfb8d6cac10993fafed274d7a903d5ba55a5b858d6d5c62dab1ef56eed2"
+}

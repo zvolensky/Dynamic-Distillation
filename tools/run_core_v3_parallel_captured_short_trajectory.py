@@ -224,6 +224,63 @@ def _compare(left: Any, right: Any) -> tuple[float, bool]:
     return max(item[0] for item in comparisons), all(item[1] for item in comparisons)
 
 
+def _reference_pair(
+    actual: list[Any],
+    reference: list[Any],
+    *,
+    prefix_count: int | None,
+) -> tuple[list[Any], list[Any]]:
+    count = len(reference) if prefix_count is None else int(prefix_count)
+    if count <= 0 or count > len(actual) or count > len(reference):
+        raise ValueError("reference prefix count is outside the available evidence")
+    return actual[:count], reference[:count]
+
+
+def _compact_capture_record(item: Mapping[str, Any]) -> dict[str, Any]:
+    capture = item["capture"]
+    return {
+        "index": int(item["index"]),
+        "time_seconds": float(item["time_seconds"]),
+        "capture_sha256": _hash(item),
+        "success": bool(capture["success"]),
+        "iterations": int(capture["iterations"]),
+        "residual_evaluations": int(capture["residual_evaluations"]),
+        "jacobian_evaluations": int(capture["jacobian_evaluations"]),
+        "linear_solves": int(capture["linear_solves"]),
+        "rejected_line_search_steps": int(
+            capture["rejected_line_search_steps"]
+        ),
+        "rejected_bound_steps": int(capture["rejected_bound_steps"]),
+        "final_residual_inf_norm": float(capture["final_residual_inf_norm"]),
+        "jacobian_rank": int(capture["jacobian_rank"]),
+        "jacobian_condition": float(capture["jacobian_condition"]),
+        "residual_identity_max_abs": float(
+            capture["final_residual_vs_evaluation_max_abs"]
+        ),
+        "all_capture_arrays_read_only": bool(
+            capture["all_capture_arrays_read_only"]
+        ),
+    }
+
+
+def _compact_parallel_record(item: Mapping[str, Any]) -> dict[str, Any]:
+    calls = [int(value) for value in item["per_task_provider_calls"]]
+    return {
+        "state_id": str(item["state_id"]),
+        "step_seconds": float(item["step_seconds"]),
+        "wall_clock_sec": float(item["wall_clock_sec"]),
+        "color_count": int(item["color_count"]),
+        "task_count": int(item["task_count"]),
+        "task_process_ids": [int(value) for value in item["task_process_ids"]],
+        "provider_calls": int(item["provider_calls"]),
+        "per_task_provider_calls_min": min(calls),
+        "per_task_provider_calls_max": max(calls),
+        "per_task_provider_calls_sha256": hashlib.sha256(
+            json.dumps(calls, separators=(",", ":")).encode()
+        ).hexdigest(),
+    }
+
+
 def prepare() -> dict[str, Any]:
     prior_contract = _load(DD144_CONTRACT)
     prior_result = _load(DD144_RESULT)
@@ -487,18 +544,32 @@ def execute() -> dict[str, Any]:
     total_wall = time.perf_counter() - total_started
 
     accepted_captures = accepted["captured_trajectory_evidence"]
+    prefix_steps = parallel_contract.get("reference_prefix_steps")
     capture_differences = {}
     capture_metadata = {}
     for name, items in captures.items():
-        difference, metadata_equal = _compare(items, accepted_captures[name])
+        short_name = name.rsplit(":", 1)[-1]
+        actual_view, reference_view = _reference_pair(
+            items,
+            accepted_captures[name],
+            prefix_count=(
+                None if prefix_steps is None else int(prefix_steps[short_name])
+            ),
+        )
+        difference, metadata_equal = _compare(actual_view, reference_view)
         capture_differences[name] = float(difference)
         capture_metadata[name] = bool(metadata_equal)
     trajectory_differences = {}
     trajectory_metadata = {}
     for short_name in ("coarse", "refined"):
-        difference, metadata_equal = _compare(
-            result["trajectories"][short_name], accepted["trajectories"][short_name]
+        actual_view, reference_view = _reference_pair(
+            result["trajectories"][short_name],
+            accepted["trajectories"][short_name],
+            prefix_count=(
+                None if prefix_steps is None else int(prefix_steps[short_name])
+            ),
         )
+        difference, metadata_equal = _compare(actual_view, reference_view)
         trajectory_differences[short_name] = float(difference)
         trajectory_metadata[short_name] = bool(metadata_equal)
 
@@ -518,6 +589,13 @@ def execute() -> dict[str, Any]:
         ),
         "complete_root_capture": roots == parallel_contract["expected_roots"]
         and sum(len(items) for items in captures.values()) == roots,
+        "immutable_capture": all(
+            item["capture"]["all_capture_arrays_read_only"]
+            and item["capture"]["final_residual_vs_evaluation_max_abs"] == 0.0
+            and item["capture"]["jacobian_evaluations"] == 1
+            for items in captures.values()
+            for item in items
+        ),
         "exact_task_count": tasks == parallel_contract["expected_tasks"]
         and all(
             item["task_count"] == parallel_contract["tasks_per_root"]
@@ -547,6 +625,21 @@ def execute() -> dict[str, Any]:
         ),
     }
     passed = all(parallel_gates.values())
+    compact_success = bool(parallel_contract.get("compact_success_capture", False))
+    compacted = bool(passed and compact_success)
+    persisted_captures = (
+        {
+            name: [_compact_capture_record(item) for item in items]
+            for name, items in captures.items()
+        }
+        if compacted
+        else captures
+    )
+    persisted_evidence = (
+        [_compact_parallel_record(item) for item in evidence]
+        if compacted
+        else evidence
+    )
     result.update(
         {
             "schema_id": RESULT_SCHEMA,
@@ -561,8 +654,16 @@ def execute() -> dict[str, Any]:
                 else "retain_serial_captured_trajectory_path"
             ),
             "source_dd134_gates": source_gates,
-            "captured_trajectory_evidence": captures,
-            "parallel_jacobian_evidence": evidence,
+            "captured_trajectory_evidence": persisted_captures,
+            "parallel_jacobian_evidence": persisted_evidence,
+            "capture_storage": (
+                "compact_sha256_per_root" if compacted else "full_replay"
+            ),
+            "full_capture_retained_on_failure": bool(not passed),
+            "reference_scope": (
+                "complete_trajectory" if prefix_steps is None else "frozen_prefix"
+            ),
+            "reference_prefix_steps": prefix_steps,
             "worker_process_ids": process_ids,
             "worker_startup_provider_calls": ping_records,
             "pool_startup_wall_sec": float(startup_wall),

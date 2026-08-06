@@ -169,6 +169,8 @@ def _worker_evaluate(payload: Mapping[str, Any]) -> dict[str, Any]:
     call_audit = _WORKER_CONTEXT["call_audit"]
     provider = _WORKER_CONTEXT["provider"]
     memo_epoch = payload.get("thermo_memo_epoch")
+    if memo_epoch is None and _WORKER_CONTEXT.get("auto_thermo_memoization", False):
+        memo_epoch = str(task.state_id).split(":color_", 1)[0]
     if memo_epoch is not None and _WORKER_CONTEXT.get("thermo_memo_epoch") != memo_epoch:
         provider.set_exact_state_memoization(True, clear=True)
         _WORKER_CONTEXT["thermo_memo_epoch"] = memo_epoch
@@ -519,6 +521,14 @@ def execute() -> dict[str, Any]:
                             "per_task_provider_calls": [
                                 int(item["provider_calls"]) for item in raw
                             ],
+                            "thermo_memo_hits": sum(
+                                int(item.get("thermo_memo_delta", {}).get("hits", 0))
+                                for item in raw
+                            ),
+                            "thermo_memo_misses": sum(
+                                int(item.get("thermo_memo_delta", {}).get("misses", 0))
+                                for item in raw
+                            ),
                         }
                     )
                     return matrix

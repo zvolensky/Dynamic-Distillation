@@ -1,0 +1,49 @@
+{
+  "schema_id": "dd154-core-v3-pool-renewal-cadence-contract-v1",
+  "preparation_base_commit": "f0a53ce564d24d4c479fc9b7a42947172f281b32",
+  "sources": {
+    "logs/dd151_core_v3_parallel_captured_multiminute_trajectory_20260805.json": "c3e505eedf3f318a54ff051e961ae0724791564dcfd1bcf61f30e2159adacc29",
+    "logs/dd152_core_v3_multiminute_timing_audit_20260806.json": "82636f34808dc1fc1187e8d5f7d7a1926c85d389644a2fcfba790055dcde41b4",
+    "logs/dd153_core_v3_worker_lifetime_efficiency_probe_20260806.json": "f41e581680aa46333ce415aaddaba2e40809b1ae49f05deb6455c0fc60658f86"
+  },
+  "benchmark": {
+    "candidate_cadences_roots": [
+      60,
+      120,
+      180,
+      240,
+      300,
+      360,
+      450,
+      900
+    ],
+    "coarse_roots": 300,
+    "refined_roots": 600,
+    "baseline_cadence_roots": 900,
+    "slope_scale_nominal": 1.0,
+    "slope_scale_low": 0.75,
+    "slope_scale_high": 1.25,
+    "minimum_projected_improvement_fraction": 0.2,
+    "selected_cadence_minimum_roots": 120,
+    "selected_cadence_maximum_roots": 450,
+    "analysis_wall_limit_sec": 120.0,
+    "model_or_provider_calls_allowed": 0
+  },
+  "implementation_sha256": {
+    "tests/test_core_v3_pool_renewal_cadence.py": "240562ce35b2bea0ac622a50cfafa15468562ead92a102854c562f6177ca6eb3",
+    "tools/benchmark_core_v3_pool_renewal_cadence.py": "8d9f04cc43caaf321081e6457bc2d6c008dfb8113987aacc04a3e8c44c23892e"
+  },
+  "hard_stops": [
+    "a DD-151/DD-152/DD-153 result or DD-154 implementation hash changes",
+    "the frozen candidate set, projection equation, slope uncertainty, or selection rule changes",
+    "saved decomposition does not telescope or the cadence-900 model cannot be calibrated exactly to DD-151",
+    "any DWSIM, provider, residual, Jacobian, solve, correction, state advance, timestep, or trajectory call occurs",
+    "the audit exceeds 120 seconds"
+  ],
+  "live_property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "a45f55bc28be6d02f9cc6280af899b358be27fe557ca4bee1dae1e69268ec8bd"
+}

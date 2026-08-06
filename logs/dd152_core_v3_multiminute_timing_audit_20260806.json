@@ -1,0 +1,343 @@
+{
+  "schema_id": "dd152-core-v3-multiminute-timing-audit-result-v1",
+  "contract_commit": "addd248d9212b979fe27246888fbf7e07e7f6584",
+  "contract_payload_sha256": "afe9bf3c4b6f0f9586812684296dc113ab791435363230c307fc7f0d65eb465b",
+  "classification": "jacobian_dominated",
+  "decision": "authorize_separately_frozen_persistent_pool_state_efficiency_probe",
+  "paths": {
+    "dd150": {
+      "coarse": {
+        "jacobian": {
+          "count": 60,
+          "sum_sec": 13.228731999974116,
+          "mean_sec": 0.22047886666623526,
+          "median_sec": 0.21658429999661166,
+          "p95_sec": 0.24236931001069023,
+          "max_sec": 0.29005890000553336
+        },
+        "windows": [
+          {
+            "window": 1,
+            "root_start": 1,
+            "root_end": 60,
+            "count": 60,
+            "sum_sec": 13.228731999974116,
+            "mean_sec": 0.22047886666623526,
+            "median_sec": 0.21658429999661166,
+            "p95_sec": 0.24236931001069023,
+            "max_sec": 0.29005890000553336
+          }
+        ],
+        "trend": {
+          "slope_sec_per_root": 0.0005261100806583196,
+          "intercept_sec": 0.2049586192868148,
+          "pearson_root_order": 0.5971391513082464
+        },
+        "first_to_last_window_mean_ratio": 1.0,
+        "solver_iterations": {
+          "count": 60,
+          "sum_sec": 61.0,
+          "mean_sec": 1.0166666666666666,
+          "median_sec": 1.0,
+          "p95_sec": 1.0,
+          "max_sec": 2.0
+        },
+        "residual_evaluations": {
+          "count": 60,
+          "sum_sec": 121.0,
+          "mean_sec": 2.0166666666666666,
+          "median_sec": 2.0,
+          "p95_sec": 2.0,
+          "max_sec": 3.0
+        }
+      },
+      "refined": {
+        "jacobian": {
+          "count": 120,
+          "sum_sec": 27.29895760009822,
+          "mean_sec": 0.22749131333415182,
+          "median_sec": 0.2245011999984854,
+          "p95_sec": 0.24861820500154863,
+          "max_sec": 0.28836299999966286
+        },
+        "windows": [
+          {
+            "window": 1,
+            "root_start": 1,
+            "root_end": 120,
+            "count": 120,
+            "sum_sec": 27.29895760009822,
+            "mean_sec": 0.22749131333415182,
+            "median_sec": 0.2245011999984854,
+            "p95_sec": 0.24861820500154863,
+            "max_sec": 0.28836299999966286
+          }
+        ],
+        "trend": {
+          "slope_sec_per_root": 0.00020143208902482539,
+          "intercept_sec": 0.21550610403717474,
+          "pearson_root_order": 0.49944688890429506
+        },
+        "first_to_last_window_mean_ratio": 1.0,
+        "solver_iterations": {
+          "count": 120,
+          "sum_sec": 121.0,
+          "mean_sec": 1.0083333333333333,
+          "median_sec": 1.0,
+          "p95_sec": 1.0,
+          "max_sec": 2.0
+        },
+        "residual_evaluations": {
+          "count": 120,
+          "sum_sec": 241.0,
+          "mean_sec": 2.0083333333333333,
+          "median_sec": 2.0,
+          "p95_sec": 2.0,
+          "max_sec": 3.0
+        }
+      }
+    },
+    "dd151": {
+      "coarse": {
+        "jacobian": {
+          "count": 300,
+          "sum_sec": 100.89937709993683,
+          "mean_sec": 0.33633125699978944,
+          "median_sec": 0.33230504999664845,
+          "p95_sec": 0.37409075999239577,
+          "max_sec": 0.41652389999944717
+        },
+        "windows": [
+          {
+            "window": 1,
+            "root_start": 1,
+            "root_end": 60,
+            "count": 60,
+            "sum_sec": 19.024994999956107,
+            "mean_sec": 0.31708324999926846,
+            "median_sec": 0.31669274999876507,
+            "p95_sec": 0.3359965100011323,
+            "max_sec": 0.36276409999118187
+          },
+          {
+            "window": 2,
+            "root_start": 61,
+            "root_end": 120,
+            "count": 60,
+            "sum_sec": 19.286977499970817,
+            "mean_sec": 0.32144962499951363,
+            "median_sec": 0.32140675000846386,
+            "p95_sec": 0.33645688500182586,
+            "max_sec": 0.41652389999944717
+          },
+          {
+            "window": 3,
+            "root_start": 121,
+            "root_end": 180,
+            "count": 60,
+            "sum_sec": 19.803613400014,
+            "mean_sec": 0.33006022333356666,
+            "median_sec": 0.33032059999823105,
+            "p95_sec": 0.3424367799903848,
+            "max_sec": 0.3604048999986844
+          },
+          {
+            "window": 4,
+            "root_start": 181,
+            "root_end": 240,
+            "count": 60,
+            "sum_sec": 20.957642200024566,
+            "mean_sec": 0.3492940366670761,
+            "median_sec": 0.34680695000861306,
+            "p95_sec": 0.3644078050041571,
+            "max_sec": 0.3747587999969255
+          },
+          {
+            "window": 5,
+            "root_start": 241,
+            "root_end": 300,
+            "count": 60,
+            "sum_sec": 21.826148999971338,
+            "mean_sec": 0.3637691499995223,
+            "median_sec": 0.3632417499975418,
+            "p95_sec": 0.38416307999941635,
+            "max_sec": 0.3862930999894161
+          }
+        ],
+        "trend": {
+          "slope_sec_per_root": 0.00020092703787977738,
+          "intercept_sec": 0.30629266483676276,
+          "pearson_root_order": 0.8048532651678729
+        },
+        "first_to_last_window_mean_ratio": 1.147235465766046,
+        "solver_iterations": {
+          "count": 300,
+          "sum_sec": 301.0,
+          "mean_sec": 1.0033333333333334,
+          "median_sec": 1.0,
+          "p95_sec": 1.0,
+          "max_sec": 2.0
+        },
+        "residual_evaluations": {
+          "count": 300,
+          "sum_sec": 601.0,
+          "mean_sec": 2.0033333333333334,
+          "median_sec": 2.0,
+          "p95_sec": 2.0,
+          "max_sec": 3.0
+        }
+      },
+      "refined": {
+        "jacobian": {
+          "count": 600,
+          "sum_sec": 279.26819840009557,
+          "mean_sec": 0.4654469973334926,
+          "median_sec": 0.46601105000445386,
+          "p95_sec": 0.55053301999651,
+          "max_sec": 0.6631931000010809
+        },
+        "windows": [
+          {
+            "window": 1,
+            "root_start": 1,
+            "root_end": 120,
+            "count": 120,
+            "sum_sec": 46.71160130004864,
+            "mean_sec": 0.38926334416707203,
+            "median_sec": 0.3893250999972224,
+            "p95_sec": 0.41366511499581976,
+            "max_sec": 0.4298547999933362
+          },
+          {
+            "window": 2,
+            "root_start": 121,
+            "root_end": 240,
+            "count": 120,
+            "sum_sec": 51.64949489988794,
+            "mean_sec": 0.43041245749906615,
+            "median_sec": 0.4315232000008109,
+            "p95_sec": 0.4556417900021188,
+            "max_sec": 0.46935620000294875
+          },
+          {
+            "window": 3,
+            "root_start": 241,
+            "root_end": 360,
+            "count": 120,
+            "sum_sec": 56.19817030010745,
+            "mean_sec": 0.46831808583422874,
+            "median_sec": 0.4676213999991887,
+            "p95_sec": 0.49803066499953275,
+            "max_sec": 0.5319274000066798
+          },
+          {
+            "window": 4,
+            "root_start": 361,
+            "root_end": 480,
+            "count": 120,
+            "sum_sec": 60.58591399998113,
+            "mean_sec": 0.5048826166665095,
+            "median_sec": 0.5026574500006973,
+            "p95_sec": 0.5416945600016333,
+            "max_sec": 0.6631931000010809
+          },
+          {
+            "window": 5,
+            "root_start": 481,
+            "root_end": 600,
+            "count": 120,
+            "sum_sec": 64.12301790007041,
+            "mean_sec": 0.5343584825005867,
+            "median_sec": 0.533709600000293,
+            "p95_sec": 0.5593102500031819,
+            "max_sec": 0.5783178999990923
+          }
+        ],
+        "trend": {
+          "slope_sec_per_root": 0.0003034287786587193,
+          "intercept_sec": 0.3745700781252061,
+          "pearson_root_order": 0.9534076491367928
+        },
+        "first_to_last_window_mean_ratio": 1.372742875761864,
+        "solver_iterations": {
+          "count": 600,
+          "sum_sec": 601.0,
+          "mean_sec": 1.0016666666666667,
+          "median_sec": 1.0,
+          "p95_sec": 1.0,
+          "max_sec": 2.0
+        },
+        "residual_evaluations": {
+          "count": 600,
+          "sum_sec": 1201.0,
+          "mean_sec": 2.0016666666666665,
+          "median_sec": 2.0,
+          "p95_sec": 2.0,
+          "max_sec": 3.0
+        }
+      }
+    }
+  },
+  "decomposition": {
+    "dd150": {
+      "roots": 180.0,
+      "jacobian_sec": 40.527689600072335,
+      "trajectory_non_jacobian_sec": 7.250296299927868,
+      "outside_trajectory_sec": 18.817809800006216,
+      "total_sec": 66.59579570000642,
+      "jacobian_sec_per_root": 0.22515383111151296,
+      "trajectory_non_jacobian_sec_per_root": 0.04027942388848815
+    },
+    "dd151": {
+      "roots": 900.0,
+      "jacobian_sec": 380.1675755000324,
+      "trajectory_non_jacobian_sec": 60.215190699964296,
+      "outside_trajectory_sec": 35.96663890000491,
+      "total_sec": 476.3494051000016,
+      "jacobian_sec_per_root": 0.42240841722225825,
+      "trajectory_non_jacobian_sec_per_root": 0.06690576744440477
+    }
+  },
+  "five_x_dd150_excess": {
+    "total_sec": 143.3704265999695,
+    "jacobian_sec": 177.52912749967072,
+    "trajectory_non_jacobian_sec": 23.963709200324956,
+    "outside_trajectory_sec": -58.12241010002617,
+    "telescoping_error_sec": 0.0,
+    "positive_attribution_fraction": {
+      "jacobian_sec": 0.8810691754962747,
+      "trajectory_non_jacobian_sec": 0.11893082450372525,
+      "outside_trajectory_sec": 0.0
+    }
+  },
+  "history_dependent_paths": {
+    "coarse": false,
+    "refined": true
+  },
+  "history_dependent": true,
+  "cache_backend_inference": "timing_is_history_dependent_and_consistent_with_persistent_provider_or_backend_state; wholesale_cache_clears_are_a_specific_candidate, not proven causality",
+  "provider_cache_facts": {
+    "density_limit": 2000,
+    "heat_capacity_limit": 2000,
+    "eviction": "clear entire cache after insertion beyond limit"
+  },
+  "recommended_probe": {
+    "scope": "saved-state Jacobian timing only; no nonlinear solve or state acceptance",
+    "comparison": "one persistent pool versus precommitted periodic fresh-pool boundaries",
+    "science_gate": "all matrices bit-for-bit equal to saved DD-151 matrices or reconstructed hashes",
+    "purpose": "separate worker lifetime/backend state from physical-state cost before any trajectory rerun"
+  },
+  "analysis_wall_sec": 1.1178676999988966,
+  "model_or_provider_calls": 0,
+  "gates": {
+    "source_result_integrity": true,
+    "root_counts": true,
+    "work_counts": true,
+    "prefix_and_science": true,
+    "decomposition_telescopes": true,
+    "zero_model_calls": true,
+    "wall": true
+  },
+  "pass": true,
+  "campaign_executed_once": true
+}

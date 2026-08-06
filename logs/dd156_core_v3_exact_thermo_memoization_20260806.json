@@ -1,0 +1,358 @@
+{
+  "schema_id": "dd156-core-v3-exact-thermo-memoization-result-v1",
+  "contract_commit": "37ffd8bd8593e926221941b17f0142131edfd81b",
+  "contract_payload_sha256": "d1092cfb8d6cac10993fafed274d7a903d5ba55a5b858d6d5c62dab1ef56eed2",
+  "classification": "exact_thermo_memoization_effective",
+  "decision": "authorize_bounded_production_memoization_and_saved_state_proof",
+  "fresh_reference_wall_sec": 0.22970245000033174,
+  "fresh_baseline_ratio": 0.8275976160286531,
+  "startup_wall_sec": 5.766257400013274,
+  "pool_lifetime_sec": 12.436759300006088,
+  "analysis_wall_sec": 12.436762899975292,
+  "matrix_records": [
+    {
+      "stage": "uncached",
+      "repeat": 1,
+      "root_index": 180,
+      "wall_sec": 0.19010120001621544,
+      "color_count": 21,
+      "task_count": 42,
+      "provider_calls": 1176,
+      "per_task_provider_calls": [
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28
+      ],
+      "process_ids": [
+        1396,
+        6720,
+        28124,
+        28632
+      ],
+      "saved_matrix_sha256": "82074204c40f66aa866685830dfb97c5d4ffb0eb01798d047a19b97a5acf49b7",
+      "matrix_sha256": "82074204c40f66aa866685830dfb97c5d4ffb0eb01798d047a19b97a5acf49b7",
+      "matrix_max_abs_difference": 0.0
+    },
+    {
+      "stage": "memo_cold",
+      "repeat": 1,
+      "root_index": 180,
+      "wall_sec": 0.08332979999249801,
+      "color_count": 21,
+      "task_count": 42,
+      "provider_calls": 1176,
+      "per_task_provider_calls": [
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28
+      ],
+      "process_ids": [
+        1396,
+        6720,
+        28124,
+        28632
+      ],
+      "saved_matrix_sha256": "82074204c40f66aa866685830dfb97c5d4ffb0eb01798d047a19b97a5acf49b7",
+      "matrix_sha256": "82074204c40f66aa866685830dfb97c5d4ffb0eb01798d047a19b97a5acf49b7",
+      "matrix_max_abs_difference": 0.0
+    },
+    {
+      "stage": "memo_warm",
+      "repeat": 1,
+      "root_index": 180,
+      "wall_sec": 0.0619353000074625,
+      "color_count": 21,
+      "task_count": 42,
+      "provider_calls": 1176,
+      "per_task_provider_calls": [
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28
+      ],
+      "process_ids": [
+        1396,
+        6720,
+        28124,
+        28632
+      ],
+      "saved_matrix_sha256": "82074204c40f66aa866685830dfb97c5d4ffb0eb01798d047a19b97a5acf49b7",
+      "matrix_sha256": "82074204c40f66aa866685830dfb97c5d4ffb0eb01798d047a19b97a5acf49b7",
+      "matrix_max_abs_difference": 0.0
+    }
+  ],
+  "counter_records": {
+    "uncached": {
+      "methods": {
+        "fugacity": {
+          "hits": 0,
+          "misses": 420,
+          "cache_entries": 0
+        },
+        "enthalpy": {
+          "hits": 0,
+          "misses": 378,
+          "cache_entries": 0
+        },
+        "density": {
+          "hits": 0,
+          "misses": 210,
+          "cache_entries": 0
+        },
+        "vapor_z": {
+          "hits": 0,
+          "misses": 168,
+          "cache_entries": 0
+        },
+        "molecular_weight": {
+          "hits": 0,
+          "misses": 0,
+          "cache_entries": 0
+        }
+      },
+      "hits": 0,
+      "misses": 1176,
+      "calls": 1176,
+      "hit_fraction": 0.0,
+      "process_ids": [
+        1396,
+        6720,
+        28124,
+        28632
+      ]
+    },
+    "memo_cold": {
+      "methods": {
+        "fugacity": {
+          "hits": 294,
+          "misses": 126,
+          "cache_entries": 126
+        },
+        "enthalpy": {
+          "hits": 262,
+          "misses": 116,
+          "cache_entries": 116
+        },
+        "density": {
+          "hits": 142,
+          "misses": 68,
+          "cache_entries": 68
+        },
+        "vapor_z": {
+          "hits": 120,
+          "misses": 48,
+          "cache_entries": 48
+        },
+        "molecular_weight": {
+          "hits": 0,
+          "misses": 0,
+          "cache_entries": 0
+        }
+      },
+      "hits": 818,
+      "misses": 358,
+      "calls": 1176,
+      "hit_fraction": 0.6955782312925171,
+      "process_ids": [
+        1396,
+        6720,
+        28124,
+        28632
+      ]
+    },
+    "memo_warm": {
+      "methods": {
+        "fugacity": {
+          "hits": 351,
+          "misses": 69,
+          "cache_entries": 195
+        },
+        "enthalpy": {
+          "hits": 314,
+          "misses": 64,
+          "cache_entries": 180
+        },
+        "density": {
+          "hits": 170,
+          "misses": 40,
+          "cache_entries": 108
+        },
+        "vapor_z": {
+          "hits": 144,
+          "misses": 24,
+          "cache_entries": 72
+        },
+        "molecular_weight": {
+          "hits": 0,
+          "misses": 0,
+          "cache_entries": 0
+        }
+      },
+      "hits": 979,
+      "misses": 197,
+      "calls": 1176,
+      "hit_fraction": 0.8324829931972789,
+      "process_ids": [
+        1396,
+        6720,
+        28124,
+        28632
+      ]
+    }
+  },
+  "control_process_ids": [
+    1396,
+    6720,
+    28124,
+    28632
+  ],
+  "worker_process_ids": [
+    1396,
+    6720,
+    28124,
+    28632
+  ],
+  "diagnosis": {
+    "speedup": 3.069351403695637,
+    "speedup_pass": true,
+    "hit_fraction": 0.8324829931972789,
+    "hit_fraction_pass": true,
+    "memoization_effective": true
+  },
+  "logical_provider_calls": 3528,
+  "startup_provider_calls": 116,
+  "state_advanced": false,
+  "nonlinear_solve_attempted": false,
+  "trajectory_attempted": false,
+  "retry_attempted": false,
+  "gates": {
+    "source_integrity": true,
+    "single_pool": true,
+    "exact_matrix_task_and_logical_calls": true,
+    "cache_accounting": true,
+    "startup_calls": true,
+    "worker_ownership": true,
+    "matrix_reproduction": true,
+    "fresh_baseline_representative": true,
+    "memoization_effective": true,
+    "wall": true
+  },
+  "pass": true,
+  "campaign_executed_once": true
+}

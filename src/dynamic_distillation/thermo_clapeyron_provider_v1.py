@@ -142,6 +142,11 @@ class ThermoClapeyronProviderV1:
         self._jl_forced_phase_fugacity_helper = None
         self._jl_component_mw_helper = None
         self._component_mw_cache: Optional[np.ndarray] = None
+        self._exact_state_memo_enabled = False
+        self._exact_state_memo_max = 2000
+        self._phase_fugacity_exact_cache: dict[tuple[Any, ...], np.ndarray] = {}
+        self._exact_state_memo_hits: Dict[str, int] = defaultdict(int)
+        self._exact_state_memo_misses: Dict[str, int] = defaultdict(int)
         self._jl_tp_flash2_batch_full_helper = None
         self._jl_tp_flash2_batch_no_cp_helper = None
         # Keep the Julia tp_flash2 batch helper as an experimental seam until
@@ -300,6 +305,41 @@ ddii_tp_flash2_batch_no_cp
         self._thermo_call_category_stack = []
         self._flash_cache.clear()
         self._liquid_density_cache.clear()
+
+    def set_exact_state_memoization(self, enabled: bool, *, clear: bool = True) -> None:
+        """Enable exact-key imposed-phase fugacity memoization for one caller scope."""
+        self._exact_state_memo_enabled = bool(enabled)
+        if clear:
+            self.clear_exact_state_memoization()
+
+    def clear_exact_state_memoization(self) -> None:
+        self._phase_fugacity_exact_cache.clear()
+        self._exact_state_memo_hits = defaultdict(int)
+        self._exact_state_memo_misses = defaultdict(int)
+
+    def get_exact_state_memoization_stats(self) -> Dict[str, Any]:
+        families = {
+            "fugacity": {
+                "hits": int(self._exact_state_memo_hits["fugacity"]),
+                "misses": int(self._exact_state_memo_misses["fugacity"]),
+                "entries": len(self._phase_fugacity_exact_cache),
+            },
+            **{
+                name: {"hits": 0, "misses": 0, "entries": 0}
+                for name in ("enthalpy", "density", "vapor_z")
+            },
+        }
+        return {
+            "enabled": bool(self._exact_state_memo_enabled),
+            "hits": int(families["fugacity"]["hits"]),
+            "misses": int(families["fugacity"]["misses"]),
+            "families": families,
+        }
+
+    def _store_exact_fugacity(self, key: tuple[Any, ...], values: np.ndarray) -> None:
+        if len(self._phase_fugacity_exact_cache) >= self._exact_state_memo_max:
+            self._phase_fugacity_exact_cache.clear()
+        self._phase_fugacity_exact_cache[key] = values.copy()
 
     def get_call_counters(self) -> Dict[str, Dict[str, float | int]]:
         out: Dict[str, Dict[str, float | int]] = {}
@@ -1181,9 +1221,20 @@ end
     ) -> np.ndarray:
         phase_name = self._normalized_forced_phase(phase)
         comp_norm = _normalize_comp(comp, len(self.component_names_excel))
+        memo_key = (
+            phase_name,
+            float(T_F),
+            float(P_psia),
+            tuple(float(value) for value in comp_norm),
+        )
+        self._record_call_counter("forced_phase_fugacity_requests", 1)
+        if self._exact_state_memo_enabled and memo_key in self._phase_fugacity_exact_cache:
+            self._exact_state_memo_hits["fugacity"] += 1
+            return self._phase_fugacity_exact_cache[memo_key].copy()
+        if self._exact_state_memo_enabled:
+            self._exact_state_memo_misses["fugacity"] += 1
         p_pa = _psia_to_pa(float(P_psia))
         T_K = _f_to_k(float(T_F))
-        self._record_call_counter("forced_phase_fugacity_requests", 1)
         t0 = time.perf_counter()
         helper = self._get_julia_forced_phase_fugacity_helper()
         if helper is not None:
@@ -1218,6 +1269,8 @@ end
             raise RuntimeError(
                 "Clapeyron imposed-phase fugacity returned non-physical values"
             )
+        if self._exact_state_memo_enabled:
+            self._store_exact_fugacity(memo_key, values)
         return values.copy()
 
     def component_mw_lbm_per_lbmol(self) -> np.ndarray:

@@ -1,0 +1,17 @@
+{
+  "schema_id": "dd165-core-v3-hybrid-jacobian-memoized-short-trajectory-abort-v1",
+  "contract_commit": "1a76faa",
+  "classification": "integration_aborted_before_scientific_result",
+  "decision": "authorize_exact_memoization_api_correction_and_separately_frozen_successor",
+  "exception_type": "AttributeError",
+  "exception_message": "ThermoClapeyronProviderV1 has no get_exact_state_memoization_stats",
+  "failure_location": "first coarse-root worker Jacobian memoization accounting",
+  "scientific_result_serialized": false,
+  "newton_correction_attempted": false,
+  "root_accepted": false,
+  "state_advanced": false,
+  "fallback_attempted": false,
+  "retry_attempted": false,
+  "campaign_executed_once": true,
+  "pass": false
+}

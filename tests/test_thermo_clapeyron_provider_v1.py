@@ -132,6 +132,37 @@ def test_clapeyron_provider_rejects_unforced_fugacity_phase(monkeypatch):
         provider.phase_fugacity_coefficients("unknown", 180.0, 225.0, [0.5, 0.5])
 
 
+def test_clapeyron_provider_exact_fugacity_memoization(monkeypatch):
+    mod = _install_fake_pyclapeyron(monkeypatch)
+    provider = ThermoClapeyronProviderV1(
+        component_names_excel=["A", "B"],
+        component_ids_dwsim=["A", "B"],
+    )
+    provider.set_exact_state_memoization(True, clear=True)
+
+    first = provider.phase_fugacity_coefficients(
+        "liquid", 180.0, 225.0, [0.4, 0.6]
+    )
+    repeated = provider.phase_fugacity_coefficients(
+        "liquid", 180.0, 225.0, [0.4, 0.6]
+    )
+    neighboring = provider.phase_fugacity_coefficients(
+        "liquid", 180.000001, 225.0, [0.4, 0.6]
+    )
+    stats = provider.get_exact_state_memoization_stats()
+
+    assert np.array_equal(first, repeated)
+    assert np.array_equal(first, neighboring)
+    assert mod._fugacity_calls == ["liquid", "liquid"]
+    assert stats["enabled"]
+    assert stats["hits"] == 1
+    assert stats["misses"] == 2
+    assert stats["families"]["fugacity"]["entries"] == 2
+
+    provider.set_exact_state_memoization(False, clear=True)
+    assert not provider.get_exact_state_memoization_stats()["enabled"]
+
+
 def test_clapeyron_provider_flash_and_scalar_helpers(monkeypatch):
     mod = _install_fake_pyclapeyron(monkeypatch)
     provider = ThermoClapeyronProviderV1(

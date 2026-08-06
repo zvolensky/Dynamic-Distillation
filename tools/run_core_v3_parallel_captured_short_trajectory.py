@@ -167,6 +167,16 @@ def _worker_evaluate(payload: Mapping[str, Any]) -> dict[str, Any]:
         raise RuntimeError("DD-149 worker context was not initialized")
     task: ColoredCentralDifferenceTask = payload["task"]
     call_audit = _WORKER_CONTEXT["call_audit"]
+    provider = _WORKER_CONTEXT["provider"]
+    memo_epoch = payload.get("thermo_memo_epoch")
+    if memo_epoch is not None and _WORKER_CONTEXT.get("thermo_memo_epoch") != memo_epoch:
+        provider.set_exact_state_memoization(True, clear=True)
+        _WORKER_CONTEXT["thermo_memo_epoch"] = memo_epoch
+    memo_before = (
+        provider.get_exact_state_memoization_stats()
+        if memo_epoch is not None
+        else None
+    )
     before = len(call_audit.records)
     started = time.perf_counter()
     evaluation = evaluate_controlled_terminal_backward_euler_residual(
@@ -174,7 +184,7 @@ def _worker_evaluate(payload: Mapping[str, Any]) -> dict[str, Any]:
         _WORKER_CONTEXT["spec"],
         _WORKER_CONTEXT["reference"],
         _WORKER_CONTEXT["template"],
-        _WORKER_CONTEXT["provider"],
+        provider,
         call_audit,
         previous_inventory_lbmol=np.asarray(
             payload["previous_inventory_lbmol"], dtype=float
@@ -195,13 +205,20 @@ def _worker_evaluate(payload: Mapping[str, Any]) -> dict[str, Any]:
     )
     elapsed = time.perf_counter() - started
     after = len(call_audit.records)
-    return {
+    result = {
         "order": int(task.order),
         "residual": [float(value) for value in evaluation.scaled],
         "process_id": int(os.getpid()),
         "provider_calls": int(after - before),
         "wall_clock_sec": float(elapsed),
     }
+    if memo_before is not None:
+        memo_after = provider.get_exact_state_memoization_stats()
+        result["thermo_memo_delta"] = {
+            "hits": int(memo_after["hits"] - memo_before["hits"]),
+            "misses": int(memo_after["misses"] - memo_before["misses"]),
+        }
+    return result
 
 
 def _compare(left: Any, right: Any) -> tuple[float, bool]:

@@ -1,0 +1,62 @@
+{
+  "schema_id": "dd157-core-v3-production-exact-memoization-contract-v1",
+  "preparation_base_commit": "dfb0339879e0c5a6234028d299e821c0ecc9b5ae",
+  "sources": {
+    "logs/dd151_core_v3_parallel_captured_multiminute_trajectory_contract_20260805.json": "15fcecc5296f6418884bc85b3ee19e85d7fa754eef8b417dc79fd78e99eb4302",
+    "logs/dd151_core_v3_parallel_captured_multiminute_trajectory_20260805.json": "c3e505eedf3f318a54ff051e961ae0724791564dcfd1bcf61f30e2159adacc29",
+    "logs/dd153_core_v3_worker_lifetime_efficiency_probe_20260806.json": "f41e581680aa46333ce415aaddaba2e40809b1ae49f05deb6455c0fc60658f86",
+    "logs/dd156_core_v3_exact_thermo_memoization_20260806.json": "240fa6337b967e3d8e644a7a6025e36609da71fc1971d39200534ed209e3c2b2"
+  },
+  "proof": {
+    "states": [
+      {
+        "path": "coarse",
+        "root_index": 180
+      },
+      {
+        "path": "refined",
+        "root_index": 360
+      }
+    ],
+    "mode_order": [
+      "uncached",
+      "memoized"
+    ],
+    "worker_count": 4,
+    "spawn_context": true,
+    "startup_ping_delay_sec": 0.25,
+    "expected_pools": 1,
+    "expected_matrices": 4,
+    "tasks_per_matrix": 42,
+    "logical_provider_calls_per_task": 28,
+    "expected_logical_provider_calls": 4704,
+    "expected_startup_provider_calls": 116,
+    "expected_memo_calls_per_matrix": 1176,
+    "matrix_absolute_limit": 1e-10,
+    "fresh_reference_ratio_minimum": 0.65,
+    "fresh_reference_ratio_maximum": 1.5,
+    "speedup_minimum_each_path": 1.5,
+    "hit_fraction_minimum_each_path": 0.6,
+    "wall_limit_sec": 60.0
+  },
+  "implementation_sha256": {
+    "src/dynamic_distillation/thermo_provider_v1.py": "eea3c49face28f20941bae5c714ee519b8ef1e91a57543af1f381d93b525d9eb",
+    "tests/test_core_v3_exact_thermo_memoization_production.py": "e19acb29caad68be8346b0f2d6990247c7c0903de2b19e8764bc9d1de0c7bcf2",
+    "tools/prove_core_v3_production_exact_memoization.py": "adefa46e375ea8a8038bfd6c1fefb9a03eff354f399e6441fca1ffcaa19f99d2",
+    "tools/run_core_v3_parallel_captured_short_trajectory.py": "4214529da075e34483ccfa97741dcb25f8a6768732a28a8461751c54d0dfaed1"
+  },
+  "hard_stops": [
+    "a DD-151/DD-153/DD-156 result, source, or DD-157 implementation hash changes",
+    "a state, mode, process, task, exact key, memo epoch, or threshold changes",
+    "memoization is enabled without a unique per-Jacobian epoch",
+    "any reconstructed matrix differs from DD-151 beyond 1e-10",
+    "call, cache, ownership, representativeness, speed, or wall integrity fails",
+    "a nonlinear solve, correction, state acceptance, timestep, trajectory, retry, clipping, projection, or fallback occurs"
+  ],
+  "live_property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "2d6ca789f7104609bab2f775a6bb34d09b8d2578739b637dcf724cfd0406fb30"
+}

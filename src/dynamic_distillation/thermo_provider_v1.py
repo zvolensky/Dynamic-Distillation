@@ -88,6 +88,13 @@ class ThermoProviderV1:
         self._cp_cache: dict[tuple, tuple[Optional[float], Optional[float]]] = {}
         self._cp_cache_max = 2000
         self._mw_components_cache: Optional[np.ndarray] = None
+        self._exact_state_memo_enabled = False
+        self._exact_state_memo_max = 4096
+        self._phase_fugacity_cache: dict[tuple, np.ndarray] = {}
+        self._phase_enthalpy_cache: dict[tuple, float] = {}
+        self._vapor_z_cache: dict[tuple, Optional[float]] = {}
+        self._exact_state_memo_hits: Dict[str, int] = defaultdict(int)
+        self._exact_state_memo_misses: Dict[str, int] = defaultdict(int)
         self.debug_trace_hook = None
         self.debug_trace_context = ""
         self._thermo_call_category_stack: list[str] = []
@@ -126,6 +133,49 @@ class ThermoProviderV1:
         self.debug_trace_context = str(context or "")
         if hasattr(backend, "set_debug_trace_context"):
             backend.set_debug_trace_context(self.debug_trace_context)
+
+    def set_exact_state_memoization(self, enabled: bool, *, clear: bool = True) -> None:
+        """Enable exact-key property memoization for a caller-owned scope."""
+        self._exact_state_memo_enabled = bool(enabled)
+        if clear:
+            self.clear_exact_state_memoization()
+
+    def clear_exact_state_memoization(self) -> None:
+        """Clear scoped property entries and counters without changing backend state."""
+        self._phase_fugacity_cache.clear()
+        self._phase_enthalpy_cache.clear()
+        self._vapor_z_cache.clear()
+        self._rhoL_cache.clear()
+        self._exact_state_memo_hits = defaultdict(int)
+        self._exact_state_memo_misses = defaultdict(int)
+
+    def get_exact_state_memoization_stats(self) -> Dict[str, Dict[str, int] | int | bool]:
+        families = ("fugacity", "enthalpy", "density", "vapor_z")
+        entries = {
+            "fugacity": len(self._phase_fugacity_cache),
+            "enthalpy": len(self._phase_enthalpy_cache),
+            "density": len(self._rhoL_cache),
+            "vapor_z": len(self._vapor_z_cache),
+        }
+        by_family = {
+            name: {
+                "hits": int(self._exact_state_memo_hits[name]),
+                "misses": int(self._exact_state_memo_misses[name]),
+                "entries": int(entries[name]),
+            }
+            for name in families
+        }
+        return {
+            "enabled": bool(self._exact_state_memo_enabled),
+            "hits": int(sum(item["hits"] for item in by_family.values())),
+            "misses": int(sum(item["misses"] for item in by_family.values())),
+            "families": by_family,
+        }
+
+    def _exact_state_memo_store(self, cache: dict, key: tuple, value: object) -> None:
+        if len(cache) >= self._exact_state_memo_max:
+            cache.clear()
+        cache[key] = value
 
     def reset_call_counters(self) -> None:
         self._thermo_call_counters = defaultdict(dict)
@@ -338,8 +388,12 @@ class ThermoProviderV1:
         # Cache by (T,P,x) to avoid repeated backend calls.
         key = self._property_cache_key(T_F, P_psia, x_norm)
         if key in self._rhoL_cache:
+            if self._exact_state_memo_enabled:
+                self._exact_state_memo_hits["density"] += 1
             self._record_call_counter("rhoL_cache_hits", 1)
             return self._rhoL_cache[key]
+        if self._exact_state_memo_enabled:
+            self._exact_state_memo_misses["density"] += 1
         self._record_call_counter("rhoL_cache_misses", 1)
         self._record_call_counter("rhoL_requests", 1)
 
@@ -367,8 +421,14 @@ class ThermoProviderV1:
         self.configure_backend()
         Nc = len(self.component_ids_dwsim)
         comp_norm = self._normalize_z(comp, Nc)
+        key = (str(phase), *self._property_cache_key(T_F, P_psia, comp_norm))
+        if self._exact_state_memo_enabled and key in self._phase_enthalpy_cache:
+            self._exact_state_memo_hits["enthalpy"] += 1
+            return float(self._phase_enthalpy_cache[key])
+        if self._exact_state_memo_enabled:
+            self._exact_state_memo_misses["enthalpy"] += 1
         with backend.silence_console(self.silence_backend_console):
-            return float(
+            value = float(
                 backend.phase_enthalpy_BTU_lbmol(
                     float(T_F),
                     float(P_psia),
@@ -376,6 +436,9 @@ class ThermoProviderV1:
                     str(phase),
                 )
             )
+        if self._exact_state_memo_enabled:
+            self._exact_state_memo_store(self._phase_enthalpy_cache, key, value)
+        return value
 
     def phase_fugacity_coefficients(
         self,
@@ -389,6 +452,12 @@ class ThermoProviderV1:
         Nc = len(self.component_ids_dwsim)
         comp_norm = self._normalize_z(comp, Nc)
         self._record_call_counter("fugacity_requests", 1)
+        key = (str(phase), *self._property_cache_key(T_F, P_psia, comp_norm))
+        if self._exact_state_memo_enabled and key in self._phase_fugacity_cache:
+            self._exact_state_memo_hits["fugacity"] += 1
+            return self._phase_fugacity_cache[key].copy()
+        if self._exact_state_memo_enabled:
+            self._exact_state_memo_misses["fugacity"] += 1
         t0 = time.perf_counter()
         with backend.silence_console(self.silence_backend_console):
             values = backend.phase_fugacity_coefficients(
@@ -406,7 +475,9 @@ class ThermoProviderV1:
             raise RuntimeError(
                 "thermo backend returned non-physical fugacity coefficients"
             )
-        return phi
+        if self._exact_state_memo_enabled:
+            self._exact_state_memo_store(self._phase_fugacity_cache, key, phi.copy())
+        return phi.copy()
 
     def vapor_z_factor_F_psia(
         self,
@@ -418,15 +489,26 @@ class ThermoProviderV1:
         self.configure_backend()
         Nc = len(self.component_ids_dwsim)
         y_norm = self._normalize_z(y, Nc)
+        key = self._property_cache_key(T_F, P_psia, y_norm)
+        if self._exact_state_memo_enabled and key in self._vapor_z_cache:
+            self._exact_state_memo_hits["vapor_z"] += 1
+            return self._vapor_z_cache[key]
+        if self._exact_state_memo_enabled:
+            self._exact_state_memo_misses["vapor_z"] += 1
         with backend.silence_console(self.silence_backend_console):
             zfac = backend.vapor_z_factor_F_psia(float(T_F), float(P_psia), y_norm)
         if zfac is None:
+            if self._exact_state_memo_enabled:
+                self._exact_state_memo_store(self._vapor_z_cache, key, None)
             return None
         try:
             zf = float(zfac)
         except Exception:
             return None
-        return zf if np.isfinite(zf) and zf > 0.0 else None
+        value = zf if np.isfinite(zf) and zf > 0.0 else None
+        if self._exact_state_memo_enabled:
+            self._exact_state_memo_store(self._vapor_z_cache, key, value)
+        return value
 
     def component_mw_lbm_per_lbmol(self) -> Optional[np.ndarray]:
         """Return component molecular weights (lbm/lbmol) from backend, cached."""

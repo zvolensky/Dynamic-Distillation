@@ -12,10 +12,8 @@ from dynamic_distillation.core_v3.provider_call_audit_v1 import (
     ProviderCallAudit,
 )
 from dynamic_distillation.core_v3.provider_governed_registry_v1 import (
-    EQUILIBRIUM_VOLUME_IDS,
-    HYDRAULIC_VOLUME_IDS,
-    VAPOR_LINKS,
-    VOLUME_IDS,
+    DEFAULT_TOPOLOGY,
+    ColumnTopology,
     build_provider_governed_registry,
 )
 
@@ -46,6 +44,7 @@ class OperatingSpec:
     terminal_liquid_targets_lbmol: np.ndarray
     hydraulic_geometry: tuple[HydraulicGeometry, ...]
     temperature_scale_F: float = 100.0
+    topology: ColumnTopology = DEFAULT_TOPOLOGY
 
 
 @dataclass(frozen=True)
@@ -303,30 +302,36 @@ def coordinate_layout(spec: OperatingSpec) -> CoordinateLayout:
         raise ValueError("Core V3 requires at least two components")
     names: list[str] = []
     start = len(names)
-    names.extend(f"log_NL[{volume}]" for volume in VOLUME_IDS)
+    topology = spec.topology
+    volumes = topology.volume_ids
+    names.extend(f"log_NL[{volume}]" for volume in volumes)
     liquid_moles = slice(start, len(names))
     start = len(names)
-    for volume in VOLUME_IDS:
+    for volume in volumes:
         names.extend(
             f"x_alr[{volume},{component}]"
             for component in spec.component_names[:-1]
         )
     liquid_alr = slice(start, len(names))
     start = len(names)
-    names.extend(f"T[{volume}]" for volume in VOLUME_IDS)
+    names.extend(f"T[{volume}]" for volume in volumes)
     temperature = slice(start, len(names))
     start = len(names)
-    for volume in EQUILIBRIUM_VOLUME_IDS:
+    for volume in topology.equilibrium_volume_ids:
         names.extend(
             f"y_alr[{volume},{component}]"
             for component in spec.component_names[:-1]
         )
     vapor_alr = slice(start, len(names))
     start = len(names)
-    names.extend(f"log_L[{volume}]" for volume in HYDRAULIC_VOLUME_IDS)
+    names.extend(
+        f"log_L[{volume}]" for volume in topology.hydraulic_volume_ids
+    )
     liquid_flows = slice(start, len(names))
     start = len(names)
-    names.extend(f"log_{symbol}" for _source, _destination, symbol in VAPOR_LINKS)
+    names.extend(
+        f"log_{symbol}" for _source, _destination, symbol in topology.vapor_links
+    )
     vapor_flows = slice(start, len(names))
     distillate = len(names)
     names.append("log_D")
@@ -334,13 +339,13 @@ def coordinate_layout(spec: OperatingSpec) -> CoordinateLayout:
     names.append("log_B")
     start = len(names)
     names.extend(
-        f"y_bubble_alr[reflux_drum,{component}]"
+        f"y_bubble_alr[{topology.top_volume},{component}]"
         for component in spec.component_names[:-1]
     )
     bubble_alr = slice(start, len(names))
     condenser_duty = len(names)
     names.append("q_Q_C")
-    expected = 10 * len(spec.component_names) + 10
+    expected = 2 * len(volumes) * (len(spec.component_names) + 1)
     if len(names) != expected:
         raise RuntimeError(f"Core V3 coordinate count {len(names)} != {expected}")
     return CoordinateLayout(
@@ -368,23 +373,24 @@ def decode_coordinates(
     if point.shape != (len(layout.names),):
         raise ValueError(f"expected {len(layout.names)} coordinates")
     independent = len(spec.component_names) - 1
+    topology = spec.topology
     liquid_x = np.empty(
-        (len(VOLUME_IDS), len(spec.component_names)),
+        (len(topology.volume_ids), len(spec.component_names)),
         dtype=float,
     )
     liquid_offsets = point[layout.liquid_alr].reshape(
-        (len(VOLUME_IDS), independent)
+        (len(topology.volume_ids), independent)
     )
     for index, values in enumerate(reference.liquid_mole_fraction):
         liquid_x[index] = composition_from_alr(
             alr_coordinates(values) + liquid_offsets[index]
         )
     vapor_y = np.empty(
-        (len(EQUILIBRIUM_VOLUME_IDS), len(spec.component_names)),
+        (len(topology.equilibrium_volume_ids), len(spec.component_names)),
         dtype=float,
     )
     vapor_offsets = point[layout.vapor_alr].reshape(
-        (len(EQUILIBRIUM_VOLUME_IDS), independent)
+        (len(topology.equilibrium_volume_ids), independent)
     )
     for index, values in enumerate(reference.vapor_mole_fraction):
         vapor_y[index] = composition_from_alr(
@@ -495,7 +501,9 @@ def _coordinate_dependency_name(name: str) -> str | None:
 
 
 def residual_rows(spec: OperatingSpec) -> tuple[ResidualRow, ...]:
-    registry = build_provider_governed_registry(spec.component_names)
+    registry = build_provider_governed_registry(
+        spec.component_names, topology=spec.topology
+    )
     rows: list[ResidualRow] = []
     for entry in registry.residuals:
         dependencies = tuple(
@@ -614,7 +622,11 @@ def _evaluate_properties(
     state_id: str,
     evaluation_kind: str,
 ) -> tuple[LiveProperties, np.ndarray, np.ndarray]:
-    volume_count = len(VOLUME_IDS)
+    topology = spec.topology
+    volumes = topology.volume_ids
+    equilibrium_volumes = topology.equilibrium_volume_ids
+    hydraulic_volumes = topology.hydraulic_volume_ids
+    volume_count = len(volumes)
     h_liquid = np.empty(volume_count, dtype=float)
     h_vapor = np.full(volume_count, np.nan, dtype=float)
     density = np.full(volume_count, np.nan, dtype=float)
@@ -622,7 +634,7 @@ def _evaluate_properties(
     height = np.full(volume_count, np.nan, dtype=float)
     head = np.full(volume_count, np.nan, dtype=float)
     stage_equilibrium: list[float] = []
-    for index, volume in enumerate(VOLUME_IDS):
+    for index, volume in enumerate(volumes):
         h_liquid[index] = call_audit.phase_enthalpy(
             provider,
             phase="liquid",
@@ -642,8 +654,8 @@ def _evaluate_properties(
             state_id=state_id,
             evaluation_kind=evaluation_kind,
         )
-        if volume in EQUILIBRIUM_VOLUME_IDS:
-            vapor_index = EQUILIBRIUM_VOLUME_IDS.index(volume)
+        if volume in equilibrium_volumes:
+            vapor_index = equilibrium_volumes.index(volume)
             stage_equilibrium.extend(
                 _fugacity_residual(
                     provider,
@@ -668,8 +680,8 @@ def _evaluate_properties(
                 state_id=state_id,
                 evaluation_kind=evaluation_kind,
             )
-        if volume in HYDRAULIC_VOLUME_IDS:
-            hydraulic_index = HYDRAULIC_VOLUME_IDS.index(volume)
+        if volume in hydraulic_volumes:
+            hydraulic_index = hydraulic_volumes.index(volume)
             francis[index], height[index], head[index] = _francis_flow(
                 liquid_moles_lbmol=float(state.liquid_moles_lbmol[index]),
                 density_lbmol_ft3=float(density[index]),
@@ -683,7 +695,7 @@ def _evaluate_properties(
         liquid_x=state.liquid_mole_fraction[0],
         vapor_y=state.bubble_vapor_mole_fraction,
         quantity="condenser_bubble_equilibrium",
-        caller="condenser_bubble_fugacity[reflux_drum]",
+        caller=f"condenser_bubble_fugacity[{topology.top_volume}]",
         state_id=state_id,
         evaluation_kind=evaluation_kind,
     )
@@ -705,35 +717,50 @@ def _component_balances(
     spec: OperatingSpec,
     state: PhysicalState,
 ) -> np.ndarray:
+    topology = spec.topology
+    volumes = topology.volume_ids
+    volume_index = {volume: index for index, volume in enumerate(volumes)}
+    vapor_index = {
+        volume: index
+        for index, volume in enumerate(topology.equilibrium_volume_ids)
+    }
+    hydraulic_index = {
+        volume: index
+        for index, volume in enumerate(topology.hydraulic_volume_ids)
+    }
     x = state.liquid_mole_fraction
-    y_rect, y_feed, y_strip, y_bottom = state.vapor_mole_fraction
-    l_rect, l_feed, l_strip = state.hydraulic_liquid_flow_lbmolph
-    v_bottom_strip, v_strip_feed, v_feed_rect, v_rect_drum = (
-        state.vapor_flow_lbmolph
+    balances = np.zeros((len(volumes), len(spec.component_names)), dtype=float)
+    for source, destination, symbol in topology.liquid_links:
+        source_index = volume_index[source]
+        flow = (
+            float(spec.reflux_lbmolph)
+            if symbol == "R"
+            else float(
+                state.hydraulic_liquid_flow_lbmolph[hydraulic_index[source]]
+            )
+        )
+        transport = flow * x[source_index]
+        balances[source_index] -= transport
+        balances[volume_index[destination]] += transport
+    for link_index, (source, destination, _symbol) in enumerate(
+        topology.vapor_links
+    ):
+        transport = (
+            float(state.vapor_flow_lbmolph[link_index])
+            * state.vapor_mole_fraction[vapor_index[source]]
+        )
+        balances[volume_index[source]] -= transport
+        balances[volume_index[destination]] += transport
+    balances[volume_index[topology.feed_volume]] += np.asarray(
+        spec.feed_component_lbmolph, dtype=float
     )
-    reflux = float(spec.reflux_lbmolph)
-    d = float(state.distillate_lbmolph)
-    b = float(state.bottoms_lbmolph)
-    return np.asarray(
-        (
-            v_rect_drum * y_rect - (reflux + d) * x[0],
-            reflux * x[0]
-            + v_feed_rect * y_feed
-            - l_rect * x[1]
-            - v_rect_drum * y_rect,
-            l_rect * x[1]
-            + v_strip_feed * y_strip
-            + np.asarray(spec.feed_component_lbmolph, dtype=float)
-            - l_feed * x[2]
-            - v_feed_rect * y_feed,
-            l_feed * x[2]
-            + v_bottom_strip * y_bottom
-            - l_strip * x[3]
-            - v_strip_feed * y_strip,
-            l_strip * x[3] - b * x[4] - v_bottom_strip * y_bottom,
-        ),
-        dtype=float,
+    balances[volume_index[topology.top_volume]] -= (
+        float(state.distillate_lbmolph) * x[volume_index[topology.top_volume]]
     )
+    balances[volume_index[topology.bottom_volume]] -= (
+        float(state.bottoms_lbmolph) * x[volume_index[topology.bottom_volume]]
+    )
+    return balances
 
 
 def _energy_balances(
@@ -741,40 +768,48 @@ def _energy_balances(
     state: PhysicalState,
     properties: LiveProperties,
 ) -> np.ndarray:
+    topology = spec.topology
+    volumes = topology.volume_ids
+    volume_index = {volume: index for index, volume in enumerate(volumes)}
+    hydraulic_index = {
+        volume: index
+        for index, volume in enumerate(topology.hydraulic_volume_ids)
+    }
     h_l = properties.liquid_enthalpy_BTU_lbmol
     h_v = properties.vapor_enthalpy_BTU_lbmol
-    l_rect, l_feed, l_strip = state.hydraulic_liquid_flow_lbmolph
-    v_bottom_strip, v_strip_feed, v_feed_rect, v_rect_drum = (
-        state.vapor_flow_lbmolph
+    balances = np.zeros(len(volumes), dtype=float)
+    for source, destination, symbol in topology.liquid_links:
+        source_index = volume_index[source]
+        flow = (
+            float(spec.reflux_lbmolph)
+            if symbol == "R"
+            else float(
+                state.hydraulic_liquid_flow_lbmolph[hydraulic_index[source]]
+            )
+        )
+        transport = flow * h_l[source_index]
+        balances[source_index] -= transport
+        balances[volume_index[destination]] += transport
+    for link_index, (source, destination, _symbol) in enumerate(
+        topology.vapor_links
+    ):
+        source_index = volume_index[source]
+        transport = float(state.vapor_flow_lbmolph[link_index]) * h_v[source_index]
+        balances[source_index] -= transport
+        balances[volume_index[destination]] += transport
+    balances[volume_index[topology.feed_volume]] += float(
+        spec.feed_enthalpy_BTUph
     )
-    reflux = float(spec.reflux_lbmolph)
-    d = float(state.distillate_lbmolph)
-    b = float(state.bottoms_lbmolph)
-    return np.asarray(
-        (
-            v_rect_drum * h_v[1]
-            + state.condenser_duty_BTUph
-            - (reflux + d) * h_l[0],
-            reflux * h_l[0]
-            + v_feed_rect * h_v[2]
-            - l_rect * h_l[1]
-            - v_rect_drum * h_v[1],
-            l_rect * h_l[1]
-            + v_strip_feed * h_v[3]
-            + float(spec.feed_enthalpy_BTUph)
-            - l_feed * h_l[2]
-            - v_feed_rect * h_v[2],
-            l_feed * h_l[2]
-            + v_bottom_strip * h_v[4]
-            - l_strip * h_l[3]
-            - v_strip_feed * h_v[3],
-            l_strip * h_l[3]
-            + float(spec.reboiler_duty_BTUph)
-            - b * h_l[4]
-            - v_bottom_strip * h_v[4],
-        ),
-        dtype=float,
+    balances[volume_index[topology.top_volume]] += (
+        float(state.condenser_duty_BTUph)
+        - float(state.distillate_lbmolph) * h_l[volume_index[topology.top_volume]]
     )
+    balances[volume_index[topology.bottom_volume]] += (
+        float(spec.reboiler_duty_BTUph)
+        - float(state.bottoms_lbmolph)
+        * h_l[volume_index[topology.bottom_volume]]
+    )
+    return balances
 
 
 def evaluate_residual(
@@ -804,8 +839,8 @@ def evaluate_residual(
     francis = np.asarray(
         [
             state.hydraulic_liquid_flow_lbmolph[index]
-            - properties.francis_flow_lbmolph[VOLUME_IDS.index(volume)]
-            for index, volume in enumerate(HYDRAULIC_VOLUME_IDS)
+            - properties.francis_flow_lbmolph[spec.topology.volume_ids.index(volume)]
+            for index, volume in enumerate(spec.topology.hydraulic_volume_ids)
         ],
         dtype=float,
     )
@@ -817,7 +852,7 @@ def evaluate_residual(
         dtype=float,
     )
     balance_values: list[float] = []
-    for index in range(len(VOLUME_IDS)):
+    for index in range(len(spec.topology.volume_ids)):
         balance_values.extend(float(value) for value in component[index])
         balance_values.append(float(energy[index]))
     raw = np.concatenate(
@@ -831,8 +866,9 @@ def evaluate_residual(
     )
     rows = residual_rows(spec)
     scales = np.asarray(fixed_scales, dtype=float).reshape((-1,))
-    if raw.shape != (40,) or scales.shape != raw.shape or len(rows) != 40:
-        raise RuntimeError("Core V3 live residual is not 40 x 40")
+    expected = len(coordinate_layout(spec).names)
+    if raw.shape != (expected,) or scales.shape != raw.shape or len(rows) != expected:
+        raise RuntimeError(f"Core V3 live residual is not {expected} x {expected}")
     if np.any(~np.isfinite(scales)) or np.any(scales <= 0.0):
         raise ValueError("Core V3 residual scales are invalid")
     component_external = (
@@ -914,8 +950,9 @@ def audit_numerical_jacobian(
         state_id=state_id,
         evaluation_kind="jacobian",
     )
-    matrix = np.empty((40, 40), dtype=float)
-    for column in range(40):
+    dimension = point.size
+    matrix = np.empty((dimension, dimension), dtype=float)
+    for column in range(dimension):
         delta = np.zeros_like(point)
         delta[column] = float(step)
         plus = evaluate_residual(
@@ -961,7 +998,7 @@ def audit_numerical_jacobian(
     )
     bubble_columns = np.asarray(
         (
-            layout.names.index("T[reflux_drum]"),
+            layout.names.index(f"T[{spec.topology.top_volume}]"),
             *range(layout.bubble_alr.start, layout.bubble_alr.stop),
         ),
         dtype=int,

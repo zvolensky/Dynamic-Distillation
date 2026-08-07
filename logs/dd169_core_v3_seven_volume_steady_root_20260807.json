@@ -1,0 +1,1763 @@
+{
+  "schema_id": "dd169-core-v3-seven-volume-steady-root-result-v1",
+  "classification": "seven_volume_stationary_root_passed",
+  "decision": "authorize_structural_seven_volume_dynamic_dae_contract",
+  "contract_commit": "87470e186a3519334e4119bbccb07853ec34d5c7",
+  "contract_payload_sha256": "3d29f3ac64a5ff3c9df2941323024d425213fc96053746b238c13ac14967a836",
+  "starts": {
+    "source_mapped_seed": {
+      "name": "source_mapped_seed",
+      "success_flag": true,
+      "status": 1,
+      "termination_reason": "`gtol` termination condition is satisfied.",
+      "nfev": 50,
+      "njev": 43,
+      "wall_clock_sec": 21.5322848999931,
+      "initial_coordinates": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "final_coordinates": [
+        0.0,
+        -0.06538889759767817,
+        0.03402316473001655,
+        -0.11606613654657533,
+        -0.14036997178953728,
+        -0.14639759997052743,
+        7.585865257231412e-17,
+        -7.064218669688726,
+        -6.075236901375706,
+        -6.830001074257053,
+        -5.87991328988585,
+        -1.0395713319967366,
+        -1.5538416295497925,
+        0.05355952463086567,
+        -0.06945604018236336,
+        0.35698987678827276,
+        -0.18048100432746597,
+        0.5196542684691733,
+        -0.25118885577972666,
+        1.088181425765772,
+        -0.055133533041925975,
+        0.09771308367343687,
+        0.17364436092235813,
+        -0.10794211972719883,
+        -0.04126980357348313,
+        -0.12353423469017487,
+        -0.13254518363368842,
+        -0.14177649631042105,
+        -7.06421866955505,
+        -6.075236901242045,
+        -1.1142870723339926,
+        -1.6601011880098588,
+        -0.0291107293946685,
+        -0.16987340528210484,
+        0.32168479840321995,
+        -0.2545086326881093,
+        0.5015683663444837,
+        -0.3121260143620664,
+        1.091319888853913,
+        -0.09728763846144695,
+        -0.018077161109764785,
+        0.04708405213111798,
+        0.020382070122639918,
+        0.009152733160522158,
+        -0.0010848357738234837,
+        -0.0266875573889212,
+        -0.0172657482775041,
+        -0.005089363444665542,
+        0.02633762914407403,
+        0.03037070378384661,
+        -0.019391000315081505,
+        -0.0695802815238092,
+        0.03305580439218175,
+        -7.081381330825577,
+        -6.07972796189229,
+        -0.035539879796827
+      ],
+      "initial_block_norms": {
+        "full_phase_equilibrium": 0.1995479230778995,
+        "component_balance": 0.21501076650023632,
+        "energy_balance": 0.11522886277894182,
+        "francis_hydraulics": 0.3978625262838295,
+        "terminal_amount_specification": 0.0,
+        "condenser_bubble_fugacity": 1.7763568394002489e-15
+      },
+      "final_block_norms": {
+        "full_phase_equilibrium": 4.884981308350677e-15,
+        "component_balance": 4.979842051603418e-13,
+        "energy_balance": 8.639750788165016e-15,
+        "francis_hydraulics": 8.552772513478993e-16,
+        "terminal_amount_specification": 0.0,
+        "condenser_bubble_fugacity": 8.881784197001213e-15
+      },
+      "movement_by_coordinate_family": {
+        "liquid_moles": 0.14639759997052743,
+        "liquid_composition": 7.064218669688726,
+        "temperature": 0.17364436092235813,
+        "column_vapor_composition": 7.06421866955505,
+        "liquid_flow": 0.04708405213111798,
+        "vapor_flow": 0.03037070378384661,
+        "products": 0.0695802815238092,
+        "bubble_vapor_composition": 7.081381330825577,
+        "condenser_duty": 0.035539879796827
+      },
+      "minimum_transformed_bound_distance": 0.17587693259610626,
+      "active_bound_indices": [],
+      "liquid_heights_ft": [
+        0.3682979295444267,
+        0.3488094348969194,
+        0.5192218462081083,
+        0.5535349611923776,
+        0.5625545854532159
+      ],
+      "tray_spacings_ft": [
+        5.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5
+      ],
+      "residence_times_sec": [
+        611.7429975275661,
+        23.002342475762287,
+        21.17832166973491,
+        12.962712499098643,
+        15.404393851853413,
+        15.125518399898718,
+        580.736981198277
+      ],
+      "scaled_residual_inf_norm": 4.979842051603418e-13,
+      "raw_residual_inf_norm": 4.7264620661735535e-07,
+      "component_telescoping_relative_error": 1.4324303196518429e-16,
+      "energy_telescoping_relative_error": 1.4470518561458646e-16,
+      "state": {
+        "liquid_moles_lbmol": [
+          1388.9,
+          35.77513002010347,
+          31.977581149473647,
+          45.466564591428785,
+          54.34547796582608,
+          53.5563693437,
+          794.0
+        ],
+        "liquid_mole_fraction": [
+          [
+            0.77669950995555,
+            0.2174838702539126,
+            0.005816619790537378
+          ],
+          [
+            0.5943449118628853,
+            0.3858156034433147,
+            0.019839484693799998
+          ],
+          [
+            0.4401780592590279,
+            0.5142595412128319,
+            0.04556239952814012
+          ],
+          [
+            0.3349188230334344,
+            0.5789218088305854,
+            0.0861593681359801
+          ],
+          [
+            0.2765174360056443,
+            0.6300075438637733,
+            0.09347502013058225
+          ],
+          [
+            0.20694708860395145,
+            0.6812147527364175,
+            0.111838158659631
+          ],
+          [
+            0.1332739778381735,
+            0.7081030784476307,
+            0.15862294371419586
+          ]
+        ],
+        "temperature_F": [
+          127.58769325961063,
+          144.0804360922358,
+          161.67778802728012,
+          175.52701964265168,
+          183.7705765309825,
+          193.79548163663117,
+          206.5343503689579
+        ],
+        "vapor_mole_fraction": [
+          [
+            0.7766995099561564,
+            0.21748387025407911,
+            0.005816619789764376
+          ],
+          [
+            0.6461355187632254,
+            0.3380076363645933,
+            0.015856844872181232
+          ],
+          [
+            0.5377920997138081,
+            0.42817447207202813,
+            0.03403342821416365
+          ],
+          [
+            0.4637323770691695,
+            0.49639900276474225,
+            0.039868620166088255
+          ],
+          [
+            0.3671580598632162,
+            0.5805907812015818,
+            0.052251158935202
+          ],
+          [
+            0.25328931761251905,
+            0.6643013234700998,
+            0.08240935891738105
+          ]
+        ],
+        "hydraulic_liquid_flow_lbmolph": [
+          5599.015326725085,
+          5435.713647820237,
+          12626.95848114544,
+          12700.51405842461,
+          12746.864242260353
+        ],
+        "vapor_flow_lbmolph": [
+          7824.842582641003,
+          7778.492398805479,
+          7704.936821526572,
+          7656.665988201805,
+          7819.967667107838,
+          8173.432340385469
+        ],
+        "distillate_lbmolph": 2220.9523403917524,
+        "bottoms_lbmolph": 4922.021659619566,
+        "bubble_vapor_mole_fraction": [
+          0.8937081264455548,
+          0.10485301087772603,
+          0.0014388626767192069
+        ],
+        "condenser_duty_BTUph": -51776179.05679604
+      },
+      "jacobians": [
+        {
+          "step": 1e-05,
+          "rank": 56,
+          "condition": 3513.0282885554707,
+          "singular_values": [
+            3.7652664636406112,
+            3.0925808590723673,
+            2.980954007988549,
+            2.8656556147845147,
+            2.523017808085847,
+            2.5164842539514334,
+            2.203819631027613,
+            2.147905386185922,
+            2.0639916833428784,
+            1.9224113672792875,
+            1.8195767499041322,
+            1.7079750727635825,
+            1.5600193224335084,
+            1.4754095337351405,
+            1.4604445443216643,
+            1.398770560554233,
+            1.3952851206705095,
+            1.344367500447861,
+            1.2909401502058164,
+            1.221750058418789,
+            1.1941294263799778,
+            1.0334299908931073,
+            1.0000000000167304,
+            1.000000000004527,
+            0.9749245787662467,
+            0.9617274816740057,
+            0.9433074989248011,
+            0.8881754359649466,
+            0.8468718833957745,
+            0.7932617633541793,
+            0.7174197103325443,
+            0.6666115725573408,
+            0.6485746837059673,
+            0.6283175720664274,
+            0.6000790996492005,
+            0.5727165091793686,
+            0.5031238988686267,
+            0.4605168496077178,
+            0.44170127861710323,
+            0.4206747099086003,
+            0.40089674667270875,
+            0.358001051633799,
+            0.24574193339082695,
+            0.2290791210899804,
+            0.1672172596918524,
+            0.13965132770401975,
+            0.1160810913798057,
+            0.07861675316308774,
+            0.06071569390417508,
+            0.043178997933261305,
+            0.04036736044637243,
+            0.021848957935702858,
+            0.016300624944330946,
+            0.009007352161604493,
+            0.004231236900545437,
+            0.0010718007810830521
+          ],
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "bubble_rank": 3,
+          "bubble_singular_values": [
+            2.2342270816834158,
+            0.8196783190213109,
+            0.45094639500562117
+          ],
+          "bubble_zero_rows": [],
+          "bubble_zero_columns": []
+        },
+        {
+          "step": 5e-06,
+          "rank": 56,
+          "condition": 3513.0282913862475,
+          "singular_values": [
+            3.765266463545987,
+            3.092580858910972,
+            2.9809540078884864,
+            2.865655614680142,
+            2.5230178082186856,
+            2.5164842538617953,
+            2.203819631020541,
+            2.147905386182338,
+            2.063991683327693,
+            1.9224113673745766,
+            1.8195767499191893,
+            1.7079750728315835,
+            1.560019322405471,
+            1.475409533758422,
+            1.4604445443435123,
+            1.398770560539765,
+            1.3952851206983183,
+            1.3443675004651825,
+            1.2909401501193434,
+            1.2217500583834096,
+            1.1941294263376216,
+            1.0334299908692584,
+            1.000000000004527,
+            0.9999999999952531,
+            0.9749245787093285,
+            0.9617274817178444,
+            0.9433074989325363,
+            0.8881754359681463,
+            0.8468718834212424,
+            0.7932617633448061,
+            0.717419710380068,
+            0.6666115725365303,
+            0.6485746837462641,
+            0.6283175720643585,
+            0.6000790997072429,
+            0.5727165091833734,
+            0.5031238988600198,
+            0.46051684964567013,
+            0.44170127863435926,
+            0.42067470991686834,
+            0.4008967466433891,
+            0.35800105164928286,
+            0.245741933403846,
+            0.22907912107036146,
+            0.16721725969223122,
+            0.13965132771393626,
+            0.11608109137609693,
+            0.07861675315867235,
+            0.06071569389782466,
+            0.043178997933237345,
+            0.04036736044489845,
+            0.021848957946224802,
+            0.016300624944396918,
+            0.009007352165976593,
+            0.004231236899371295,
+            0.0010718007801924663
+          ],
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "bubble_rank": 3,
+          "bubble_singular_values": [
+            2.234227081796111,
+            0.819678319105426,
+            0.4509463950297437
+          ],
+          "bubble_zero_rows": [],
+          "bubble_zero_columns": []
+        }
+      ],
+      "provider_provenance": {
+        "provider_identity": "dwsim",
+        "interface_provider_identities": {},
+        "total_calls": 173196,
+        "grouped_records": [
+          {
+            "quantity": "condenser_bubble_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "condenser_bubble_fugacity[reflux_drum]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "condenser_bubble_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "condenser_bubble_fugacity[reflux_drum]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[combined_reboiler_sump]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5042
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[combined_reboiler_sump]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 52
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[feed_tray]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5042
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[feed_tray]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 52
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[rectifying_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5042
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[rectifying_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 52
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[rectifying_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5042
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[rectifying_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 52
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[reflux_drum]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5042
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[reflux_drum]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 52
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[stripping_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5042
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[stripping_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 52
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[stripping_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5042
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[stripping_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 52
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[combined_reboiler_sump]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[combined_reboiler_sump]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[feed_tray]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[feed_tray]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[rectifying_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[rectifying_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[rectifying_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[rectifying_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[reflux_drum]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5042
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[reflux_drum]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 52
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[stripping_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[stripping_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[stripping_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[stripping_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[feed_tray]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[feed_tray]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[rectifying_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[rectifying_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[rectifying_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[rectifying_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[stripping_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[stripping_volume_1]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[stripping_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10084
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[stripping_volume_2]",
+            "state_id": "source_mapped_seed",
+            "evaluation_kind": "residual",
+            "count": 104
+          }
+        ],
+        "violations": [],
+        "fallback_attempted": false,
+        "pass": true
+      }
+    },
+    "independent_smooth_topology_seed": {
+      "name": "independent_smooth_topology_seed",
+      "success_flag": true,
+      "status": 1,
+      "termination_reason": "`gtol` termination condition is satisfied.",
+      "nfev": 51,
+      "njev": 45,
+      "wall_clock_sec": 22.395044699980645,
+      "initial_coordinates": [
+        0.0,
+        0.09186848917697758,
+        0.10110663333762936,
+        -0.008871232068674913,
+        -0.15492474935400855,
+        -0.19096517490197026,
+        0.0,
+        -2.96078361005622,
+        -2.3044172252670636,
+        -2.840186996964169,
+        -2.41449419432276,
+        2.4737623631586128,
+        1.4964970522966787,
+        2.86913071270338,
+        2.5404386430574935,
+        1.837501362664499,
+        1.4672242935347697,
+        0.8611655174049018,
+        0.5386086563719812,
+        0.611056436347742,
+        0.08630850704837845,
+        0.053386314903339095,
+        0.12698513652167392,
+        -0.16797989078266112,
+        -0.07720491808699592,
+        -0.07930994539133081,
+        -0.025974972695665316,
+        0.0,
+        -3.1042413609620443,
+        -2.627748961582687,
+        2.36170051609236,
+        1.3648165476526,
+        2.732173732549672,
+        2.4018534004115097,
+        1.7291998371817279,
+        1.3489850642634984,
+        0.7597717615849815,
+        0.4325509546620685,
+        0.5335574138098214,
+        0.005672888765392514,
+        0.5218072892080562,
+        0.5871291636149178,
+        -0.3764315903456959,
+        -0.47002692672422824,
+        -0.4636711411049335,
+        0.013489709846317258,
+        -0.04718019913921762,
+        -0.060141523487878185,
+        0.020337817711727022,
+        0.07931196334073229,
+        0.024877063583066013,
+        0.3220840591601088,
+        -0.21072047132465727,
+        -2.971161106629463,
+        -2.307990395738079,
+        -0.1401713652319602
+      ],
+      "final_coordinates": [
+        0.0,
+        -0.06538889759724661,
+        0.034023164730028733,
+        -0.11606613654666693,
+        -0.14036997178960986,
+        -0.14639759997055732,
+        -1.282082715418885e-17,
+        -7.064218669456722,
+        -6.075236901144166,
+        -6.830001074158297,
+        -5.879913289787365,
+        -1.039571331957334,
+        -1.5538416295102917,
+        0.053559524640571995,
+        -0.06945604017243287,
+        0.3569898767978295,
+        -0.18048100431740302,
+        0.5196542684783824,
+        -0.25118885576969757,
+        1.088181425774564,
+        -0.05513353303197746,
+        0.09771308367220281,
+        0.17364436092066113,
+        -0.10794211972862391,
+        -0.04126980357408011,
+        -0.12353423469074547,
+        -0.1325451836342953,
+        -0.14177649631124967,
+        -7.064218669456722,
+        -6.075236901144166,
+        -1.1142870722948532,
+        -1.6601011879707996,
+        -0.029110729385056804,
+        -0.16987340527235054,
+        0.3216847984126644,
+        -0.25450863267823187,
+        0.5015683663535695,
+        -0.31212601435224013,
+        1.0913198888625881,
+        -0.09728763845172812,
+        -0.018077161110138386,
+        0.04708405213009019,
+        0.02038207012213831,
+        0.009152733160011558,
+        -0.0010848357743144755,
+        -0.026687557388584915,
+        -0.017265748277223325,
+        -0.00508936344439613,
+        0.026337629144384988,
+        0.030370703784446604,
+        -0.019391000314583767,
+        -0.06958028152480641,
+        0.033055804390331865,
+        -7.081381330594004,
+        -6.079727961661266,
+        -0.03553987979598377
+      ],
+      "initial_block_norms": {
+        "full_phase_equilibrium": 0.0690511519692218,
+        "component_balance": 0.3176987306616721,
+        "energy_balance": 0.7431818860477221,
+        "francis_hydraulics": 0.6128333121736289,
+        "terminal_amount_specification": 0.0,
+        "condenser_bubble_fugacity": 2.664535259100372e-15
+      },
+      "final_block_norms": {
+        "full_phase_equilibrium": 5.5511151231257985e-15,
+        "component_balance": 1.7818276069747903e-16,
+        "energy_balance": 1.3619311587255197e-15,
+        "francis_hydraulics": 3.1905657692673525e-16,
+        "terminal_amount_specification": 0.0,
+        "condenser_bubble_fugacity": 2.664535259100372e-15
+      },
+      "movement_by_coordinate_family": {
+        "liquid_moles": 0.15725738677422418,
+        "liquid_composition": 4.1034350594005025,
+        "temperature": 0.14177649631124967,
+        "column_vapor_composition": 3.959977308494678,
+        "liquid_flow": 0.5400451114848277,
+        "vapor_flow": 0.055052160043482054,
+        "products": 0.3916643406849152,
+        "bubble_vapor_composition": 4.110220223964541,
+        "condenser_duty": 0.10463148543597642
+      },
+      "minimum_transformed_bound_distance": 0.1758769325948722,
+      "active_bound_indices": [],
+      "liquid_heights_ft": [
+        0.3682979295442562,
+        0.3488094348966746,
+        0.519221846207904,
+        0.5535349611921645,
+        0.5625545854529853
+      ],
+      "tray_spacings_ft": [
+        5.0,
+        1.5,
+        1.5,
+        1.5,
+        1.5
+      ],
+      "residence_times_sec": [
+        611.7429975277319,
+        23.002342475780804,
+        21.178321669756937,
+        12.962712499103958,
+        15.404393851860162,
+        15.125518399905694,
+        580.7369811993512
+      ],
+      "scaled_residual_inf_norm": 5.5511151231257985e-15,
+      "raw_residual_inf_norm": 7.450580596923828e-08,
+      "component_telescoping_relative_error": 2.8648606393036857e-16,
+      "energy_telescoping_relative_error": 7.660862767831048e-17,
+      "state": {
+        "liquid_moles_lbmol": [
+          1388.9,
+          35.7751300201189,
+          31.977581149474037,
+          45.46656459142462,
+          54.34547796582213,
+          53.5563693436984,
+          794.0
+        ],
+        "liquid_mole_fraction": [
+          [
+            0.7766995099566766,
+            0.2174838702541272,
+            0.005816619789196337
+          ],
+          [
+            0.5943449118641121,
+            0.3858156034440062,
+            0.01983948469188167
+          ],
+          [
+            0.440178059259796,
+            0.5142595412137797,
+            0.04556239952642434
+          ],
+          [
+            0.334918823033671,
+            0.5789218088311243,
+            0.08615936813520467
+          ],
+          [
+            0.27651743600580314,
+            0.6300075438644542,
+            0.09347502012974263
+          ],
+          [
+            0.20694708860404895,
+            0.6812147527372971,
+            0.11183815865865378
+          ],
+          [
+            0.1332739778382502,
+            0.7081030784488572,
+            0.15862294371289257
+          ]
+        ],
+        "temperature_F": [
+          127.58769325948722,
+          144.08043609206612,
+          161.6777880271376,
+          175.527019642592,
+          183.77057653092544,
+          193.79548163657049,
+          206.534350368875
+        ],
+        "vapor_mole_fraction": [
+          [
+            0.7766995099566766,
+            0.2174838702541272,
+            0.005816619789196337
+          ],
+          [
+            0.6461355187636441,
+            0.3380076363647851,
+            0.015856844871570876
+          ],
+          [
+            0.5377920997139513,
+            0.4281744720722031,
+            0.03403342821384559
+          ],
+          [
+            0.4637323770692444,
+            0.49639900276503734,
+            0.039868620165718155
+          ],
+          [
+            0.3671580598632327,
+            0.5805907812020378,
+            0.0522511589347296
+          ],
+          [
+            0.25328931761252454,
+            0.6643013234708076,
+            0.08240935891666791
+          ]
+        ],
+        "hydraulic_liquid_flow_lbmolph": [
+          5599.015326722993,
+          5435.71364781465,
+          12626.958481139109,
+          12700.514058418123,
+          12746.864242254094
+        ],
+        "vapor_flow_lbmolph": [
+          7824.842582643635,
+          7778.492398807663,
+          7704.936821528648,
+          7656.665988204186,
+          7819.967667112529,
+          8173.432340389537
+        ],
+        "distillate_lbmolph": 2220.9523403895378,
+        "bottoms_lbmolph": 4922.021659610461,
+        "bubble_vapor_mole_fraction": [
+          0.8937081264459041,
+          0.10485301087770947,
+          0.0014388626763865678
+        ],
+        "condenser_duty_BTUph": -51776179.0567499
+      },
+      "jacobians": [
+        {
+          "step": 1e-05,
+          "rank": 56,
+          "condition": 3513.0282896772223,
+          "singular_values": [
+            3.7652664636697026,
+            3.092580859103867,
+            2.98095400796698,
+            2.865655614796171,
+            2.523017808006223,
+            2.5164842539492587,
+            2.2038196310004676,
+            2.1479053862048523,
+            2.063991683338096,
+            1.922411367270584,
+            1.819576749885528,
+            1.7079750728445868,
+            1.5600193224463998,
+            1.4754095336645399,
+            1.4604445443278893,
+            1.398770560591884,
+            1.3952851207420809,
+            1.3443675004633493,
+            1.2909401502238347,
+            1.221750058383328,
+            1.1941294263036955,
+            1.033429990890013,
+            1.0000000000167317,
+            1.000000000004527,
+            0.9749245787597042,
+            0.9617274817107021,
+            0.9433074989744494,
+            0.88817543597073,
+            0.8468718834123318,
+            0.7932617633311735,
+            0.7174197103220427,
+            0.6666115725152357,
+            0.6485746836778615,
+            0.6283175720335993,
+            0.600079099685172,
+            0.5727165091434339,
+            0.5031238988589936,
+            0.46051684958595895,
+            0.44170127860544095,
+            0.42067470991579303,
+            0.4008967466532951,
+            0.3580010516358826,
+            0.2457419333905333,
+            0.22907912109172185,
+            0.16721725968905465,
+            0.13965132770709818,
+            0.11608109137852402,
+            0.07861675315653831,
+            0.06071569389889963,
+            0.04317899793218716,
+            0.04036736044438719,
+            0.0218489579298742,
+            0.016300624943822114,
+            0.009007352161912447,
+            0.004231236899439455,
+            0.0010718007807490944
+          ],
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "bubble_rank": 3,
+          "bubble_singular_values": [
+            2.2342270815860186,
+            0.819678318966113,
+            0.45094639501981704
+          ],
+          "bubble_zero_rows": [],
+          "bubble_zero_columns": []
+        },
+        {
+          "step": 5e-06,
+          "rank": 56,
+          "condition": 3513.0282920179134,
+          "singular_values": [
+            3.765266463536275,
+            3.0925808590053316,
+            2.98095400795545,
+            2.8656556146946888,
+            2.523017808324758,
+            2.516484253912446,
+            2.203819631259435,
+            2.1479053862477584,
+            2.0639916834208916,
+            1.922411367390469,
+            1.819576749975821,
+            1.7079750729052654,
+            1.5600193224062753,
+            1.475409533812948,
+            1.4604445442987923,
+            1.3987705605832392,
+            1.3952851207437353,
+            1.3443675004892812,
+            1.2909401503070708,
+            1.2217500584559593,
+            1.1941294263417905,
+            1.0334299908839084,
+            1.0000000000095708,
+            1.000000000004527,
+            0.9749245787085997,
+            0.9617274816971875,
+            0.9433074989525775,
+            0.888175435965901,
+            0.8468718834181411,
+            0.7932617633581002,
+            0.7174197103259579,
+            0.6666115725278458,
+            0.6485746837630642,
+            0.6283175720615266,
+            0.6000790997428972,
+            0.5727165092030527,
+            0.5031238989088296,
+            0.4605168496639157,
+            0.44170127864677405,
+            0.4206747099151957,
+            0.4008967466573541,
+            0.3580010516507937,
+            0.2457419333913584,
+            0.22907912108370418,
+            0.1672172596859978,
+            0.13965132770410701,
+            0.11608109137836259,
+            0.07861675316051243,
+            0.0607156939034721,
+            0.04317899793127805,
+            0.04036736044753263,
+            0.021848957923686733,
+            0.01630062494409235,
+            0.00900735216229372,
+            0.004231236899372434,
+            0.001071800779996985
+          ],
+          "zero_rows": [],
+          "zero_columns": [],
+          "unexpected_couplings": [],
+          "bubble_rank": 3,
+          "bubble_singular_values": [
+            2.2342270819456265,
+            0.8196783190199903,
+            0.45094639507257916
+          ],
+          "bubble_zero_rows": [],
+          "bubble_zero_columns": []
+        }
+      ],
+      "provider_provenance": {
+        "provider_identity": "dwsim",
+        "interface_provider_identities": {},
+        "total_calls": 180846,
+        "grouped_records": [
+          {
+            "quantity": "condenser_bubble_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "condenser_bubble_fugacity[reflux_drum]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "condenser_bubble_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "condenser_bubble_fugacity[reflux_drum]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[combined_reboiler_sump]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5266
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[combined_reboiler_sump]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 53
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[feed_tray]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5266
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[feed_tray]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 53
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[rectifying_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5266
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[rectifying_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 53
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[rectifying_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5266
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[rectifying_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 53
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[reflux_drum]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5266
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[reflux_drum]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 53
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[stripping_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5266
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[stripping_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 53
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[stripping_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5266
+          },
+          {
+            "quantity": "liquid_density",
+            "provider_interface": "dwsim.declared_liquid_density",
+            "caller": "internal_energy_storage[stripping_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 53
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[combined_reboiler_sump]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[combined_reboiler_sump]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[feed_tray]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[feed_tray]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[rectifying_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[rectifying_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[rectifying_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[rectifying_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[reflux_drum]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 5266
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[reflux_drum]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 53
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[stripping_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[stripping_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[stripping_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "phase_enthalpy",
+            "provider_interface": "dwsim.declared_phase_enthalpy",
+            "caller": "energy_balance[stripping_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[feed_tray]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[feed_tray]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[rectifying_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[rectifying_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[rectifying_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[rectifying_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[stripping_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[stripping_volume_1]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[stripping_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "jacobian",
+            "count": 10532
+          },
+          {
+            "quantity": "stage_fugacity_equilibrium",
+            "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+            "caller": "full_phase_equilibrium[stripping_volume_2]",
+            "state_id": "independent_smooth_topology_seed",
+            "evaluation_kind": "residual",
+            "count": 106
+          }
+        ],
+        "violations": [],
+        "fallback_attempted": false,
+        "pass": true
+      }
+    }
+  },
+  "endpoint_diagnostics": {
+    "source_mapped_seed": {
+      "spectrum_relative_change": 8.309247370616555e-10,
+      "physical_pass": true,
+      "jacobian_pass": true,
+      "tp_flash": {
+        "flash_x": [
+          0.7766301081924961,
+          0.21755067505887057,
+          0.005819216748633378
+        ],
+        "flash_y": [
+          0.893678426929872,
+          0.10488221016947231,
+          0.0014393629006556779
+        ],
+        "flash_K": [
+          1.1507130840057056,
+          0.4821047332585409,
+          0.24734650088325152
+        ],
+        "vapor_fraction": 0.0005929325923261786,
+        "stable_vapor": false,
+        "flash_Kx_identity_max_abs": 0.0,
+        "lever_rule_closure_max_abs": 2.4424906541753444e-15
+      },
+      "tp_flash_pass": true,
+      "independent_pr_temperature_difference_F": 3.7503520530890455e-05,
+      "independent_pr_vapor_max_abs": 3.2233267166503765e-09,
+      "independent_pr_pass": true,
+      "pass": true
+    },
+    "independent_smooth_topology_seed": {
+      "spectrum_relative_change": 7.017251178381253e-10,
+      "physical_pass": true,
+      "jacobian_pass": true,
+      "tp_flash": {
+        "flash_x": [
+          0.7766301081936282,
+          0.2175506750590803,
+          0.005819216747291543
+        ],
+        "flash_y": [
+          0.8936784269302235,
+          0.10488221016945365,
+          0.0014393629003228946
+        ],
+        "flash_K": [
+          1.1507130840044808,
+          0.4821047332579904,
+          0.24734650088309942
+        ],
+        "vapor_fraction": 0.0005929325923261786,
+        "stable_vapor": false,
+        "flash_Kx_identity_max_abs": 0.0,
+        "lever_rule_closure_max_abs": 7.549516567451064e-15
+      },
+      "tp_flash_pass": true,
+      "independent_pr_temperature_difference_F": 3.750352088616182e-05,
+      "independent_pr_vapor_max_abs": 3.2233274938064937e-09,
+      "independent_pr_pass": true,
+      "pass": true
+    }
+  },
+  "start_passes": {
+    "source_mapped_seed": true,
+    "independent_smooth_topology_seed": true
+  },
+  "pairwise_physical_root_agreement": {
+    "source_mapped_seed__vs__independent_smooth_topology_seed": 1.9183266086741924e-12
+  },
+  "common_root_pass": true,
+  "exact_state_memoization": {
+    "source_mapped_seed": {
+      "enabled": true,
+      "hits": 162499,
+      "misses": 10697,
+      "families": {
+        "fugacity": {
+          "hits": 66906,
+          "misses": 4410,
+          "entries": 314
+        },
+        "enthalpy": {
+          "hits": 62140,
+          "misses": 4082,
+          "entries": 4082
+        },
+        "density": {
+          "hits": 33453,
+          "misses": 2205,
+          "entries": 204
+        },
+        "vapor_z": {
+          "hits": 0,
+          "misses": 0,
+          "entries": 0
+        }
+      }
+    },
+    "independent_smooth_topology_seed": {
+      "enabled": true,
+      "hits": 169693,
+      "misses": 11153,
+      "families": {
+        "fugacity": {
+          "hits": 69874,
+          "misses": 4592,
+          "entries": 496
+        },
+        "enthalpy": {
+          "hits": 64882,
+          "misses": 4265,
+          "entries": 169
+        },
+        "density": {
+          "hits": 34937,
+          "misses": 2296,
+          "entries": 295
+        },
+        "vapor_z": {
+          "hits": 0,
+          "misses": 0,
+          "entries": 0
+        }
+      }
+    }
+  },
+  "diagnostic_provider_provenance": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {},
+    "total_calls": 62,
+    "grouped_records": [
+      {
+        "quantity": "flash_x_y_K",
+        "provider_interface": "dwsim.tp_flash",
+        "caller": "condenser_phase_diagnostic",
+        "state_id": "independent_smooth_topology_seed",
+        "evaluation_kind": "diagnostic",
+        "count": 1
+      },
+      {
+        "quantity": "flash_x_y_K",
+        "provider_interface": "dwsim.tp_flash",
+        "caller": "condenser_phase_diagnostic",
+        "state_id": "source_mapped_seed",
+        "evaluation_kind": "diagnostic",
+        "count": 1
+      },
+      {
+        "quantity": "independent_pr_bubble",
+        "provider_interface": "independent.parameter_aligned_peng_robinson",
+        "caller": "local_bubble_seed",
+        "state_id": "independent_smooth_topology_seed",
+        "evaluation_kind": "validation",
+        "count": 30
+      },
+      {
+        "quantity": "independent_pr_bubble",
+        "provider_interface": "independent.parameter_aligned_peng_robinson",
+        "caller": "local_bubble_seed",
+        "state_id": "source_mapped_seed",
+        "evaluation_kind": "validation",
+        "count": 30
+      }
+    ],
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true
+  },
+  "logical_provider_calls": 354104,
+  "wall_clock_sec": 49.4355981000117,
+  "campaign_pass": true,
+  "campaign_executed_once": true,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false
+}

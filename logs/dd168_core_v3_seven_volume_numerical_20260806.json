@@ -1,0 +1,632 @@
+{
+  "schema_id": "dd168-core-v3-seven-volume-numerical-result-v1",
+  "classification": "seven_volume_live_numerical_gate_passed",
+  "decision": "authorize_one_frozen_seven_volume_stationary_root_campaign",
+  "contract_commit": "55682508505f15a1d0f4e6605e532d376473b2bb",
+  "contract_payload_sha256": "705dc02b92a4fcc8f272db0f0b6d1637b251e5d9b7a59aab57e7c6a667de5870",
+  "unknown_count": 56,
+  "residual_count": 56,
+  "structural_rank": 56,
+  "scaled_residual_inf_norm_diagnostic": 0.3978625262838295,
+  "dominant_residuals": [
+    {
+      "name": "francis_hydraulics[stripping_volume_1]",
+      "block": "francis_hydraulics",
+      "raw": -5007.020320776737,
+      "scaled": -0.3978625262838295
+    },
+    {
+      "name": "francis_hydraulics[feed_tray]",
+      "block": "francis_hydraulics",
+      "raw": -3737.28302591823,
+      "scaled": -0.3020710161424993
+    },
+    {
+      "name": "component_balance[rectifying_volume_1,n-Propane]",
+      "block": "component_balance",
+      "raw": -2743.6878880795657,
+      "scaled": -0.21501076650023632
+    },
+    {
+      "name": "component_balance[rectifying_volume_2,n-Propane]",
+      "block": "component_balance",
+      "raw": 2623.561141578998,
+      "scaled": 0.20559696110550346
+    },
+    {
+      "name": "phase_fugacity[rectifying_volume_1,n-Pentane]",
+      "block": "full_phase_equilibrium",
+      "raw": -0.1995479230778995,
+      "scaled": -0.1995479230778995
+    },
+    {
+      "name": "component_balance[rectifying_volume_2,n-Butane]",
+      "block": "component_balance",
+      "raw": -2373.001677725321,
+      "scaled": -0.1859617166554594
+    },
+    {
+      "name": "component_balance[rectifying_volume_1,n-Butane]",
+      "block": "component_balance",
+      "raw": 2215.7973323354454,
+      "scaled": 0.1736423027212806
+    },
+    {
+      "name": "phase_fugacity[rectifying_volume_2,n-Pentane]",
+      "block": "full_phase_equilibrium",
+      "raw": -0.13663716613953997,
+      "scaled": -0.13663716613953997
+    },
+    {
+      "name": "francis_hydraulics[stripping_volume_2]",
+      "block": "francis_hydraulics",
+      "raw": -1588.4609761040483,
+      "scaled": -0.1244807084332402
+    },
+    {
+      "name": "energy_balance[rectifying_volume_1]",
+      "block": "energy_balance",
+      "raw": 6303710.167184791,
+      "scaled": 0.11522886277894182
+    }
+  ],
+  "jacobians": [
+    {
+      "step": 1e-05,
+      "rank": 56,
+      "condition": 2937783.454601459,
+      "singular_values": [
+        3.834019669981496,
+        3.1802277667420915,
+        3.112200926831298,
+        2.9629722214706113,
+        2.7913731765261227,
+        2.7725994528216154,
+        2.5291451071864235,
+        2.5158724202679625,
+        2.3254728212280322,
+        2.0684501295558104,
+        1.934115733538973,
+        1.7942167640169155,
+        1.7199996865101599,
+        1.5482831076404382,
+        1.5138155041557695,
+        1.4480310701161025,
+        1.4194644021564136,
+        1.3209299456341987,
+        1.223691395128133,
+        1.1460678365609764,
+        1.1396781555738489,
+        1.0453452712032265,
+        1.0000000000167308,
+        1.000000000004527,
+        0.9666777786733047,
+        0.9608878126201137,
+        0.9441834180715774,
+        0.884475366292362,
+        0.8712194850184167,
+        0.7628136040345397,
+        0.7070513980163601,
+        0.6557358541693556,
+        0.6473338398780288,
+        0.6213839584910672,
+        0.5824577133041339,
+        0.5320956778520601,
+        0.47065292541793463,
+        0.43112715701929943,
+        0.4260101426221579,
+        0.39251446604066287,
+        0.3502316383429101,
+        0.26210280858071333,
+        0.23011939364258127,
+        0.16597639326658473,
+        0.14251894246896185,
+        0.10720486683366855,
+        0.08751662746231907,
+        0.07048144187899327,
+        0.06949098675131674,
+        0.0403467649078193,
+        0.023392607850196725,
+        0.013150102336289634,
+        0.008651061972643374,
+        0.0031526898546636074,
+        5.99264118875586e-06,
+        1.3050722523391776e-06
+      ],
+      "zero_rows": [],
+      "zero_columns": [],
+      "unexpected_couplings": [],
+      "bubble_rank": 3,
+      "bubble_singular_values": [
+        2.3921835941172285,
+        0.7992133841381218,
+        0.44679345118159525
+      ],
+      "bubble_zero_rows": [],
+      "bubble_zero_columns": []
+    },
+    {
+      "step": 5e-06,
+      "rank": 56,
+      "condition": 2937783.766880404,
+      "singular_values": [
+        3.83401966966838,
+        3.1802277666322794,
+        3.112200926678671,
+        2.962972221283141,
+        2.791373176541223,
+        2.7725994533088825,
+        2.5291451071782114,
+        2.515872420392219,
+        2.3254728211789852,
+        2.0684501295330637,
+        1.9341157334129795,
+        1.7942167638497541,
+        1.7199996864459206,
+        1.5482831075783283,
+        1.5138155041321948,
+        1.4480310701157098,
+        1.4194644020881477,
+        1.3209299455516654,
+        1.2236913951023995,
+        1.1460678365789143,
+        1.139678155623567,
+        1.045345271231478,
+        1.0000000000095706,
+        1.000000000004527,
+        0.9666777786328996,
+        0.9608878125945685,
+        0.9441834180372544,
+        0.8844753663020988,
+        0.8712194850088011,
+        0.7628136040175905,
+        0.7070513980425737,
+        0.6557358541933923,
+        0.6473338398808038,
+        0.6213839585145523,
+        0.5824577133244819,
+        0.5320956779245977,
+        0.4706529254665182,
+        0.4311271570186973,
+        0.4260101426292079,
+        0.3925144660570852,
+        0.3502316383961484,
+        0.2621028085721534,
+        0.23011939363061912,
+        0.16597639326977734,
+        0.1425189424614899,
+        0.10720486683131197,
+        0.08751662746226455,
+        0.07048144187684431,
+        0.06949098675009704,
+        0.04034676490835541,
+        0.02339260784238313,
+        0.013150102347634089,
+        0.008651061970453811,
+        0.0031526898542016384,
+        5.992641721514396e-06,
+        1.3050721135067328e-06
+      ],
+      "zero_rows": [],
+      "zero_columns": [],
+      "unexpected_couplings": [],
+      "bubble_rank": 3,
+      "bubble_singular_values": [
+        2.3921835946337975,
+        0.7992133841774676,
+        0.44679345116173175
+      ],
+      "bubble_zero_rows": [],
+      "bubble_zero_columns": []
+    }
+  ],
+  "spectrum_relative_change": 1.063791253999922e-07,
+  "bubble_residual_inf_norm": 1.7763568394002489e-15,
+  "component_telescoping_relative_error": 1.1459442557214742e-16,
+  "energy_telescoping_relative_error": 3.4048278968137995e-17,
+  "physical_pass": true,
+  "conservation_pass": true,
+  "numerical_jacobian_pass": true,
+  "tp_flash_diagnostic": {
+    "flash_x": [
+      0.9056440777407726,
+      0.09435012015235743,
+      5.802106870030717e-06
+    ],
+    "flash_y": [
+      0.9586794066977445,
+      0.04131929543287068,
+      1.297869384822109e-06
+    ],
+    "flash_K": [
+      1.0585608963394033,
+      0.43793580088873135,
+      0.22368932766921576
+    ],
+    "vapor_fraction": 0.0004459379965737753,
+    "stable_vapor": false,
+    "flash_Kx_identity_max_abs": 0.0,
+    "lever_rule_closure_max_abs": 6.661338147750939e-16
+  },
+  "tp_flash_pass": true,
+  "independent_pr_validation": {
+    "temperature_difference_F": 3.609036824059331e-05,
+    "vapor_max_abs": 1.3267787979387435e-09,
+    "pass": true
+  },
+  "ownership": {
+    "q_c_residual_rows_zero_based": [
+      21
+    ],
+    "drum_energy_row_zero_based": 21,
+    "registry_pass": true
+  },
+  "provider_provenance": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {},
+    "total_calls": 7749,
+    "grouped_records": [
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "condenser_bubble_fugacity[reflux_drum]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "condenser_bubble_fugacity[reflux_drum]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "flash_x_y_K",
+        "provider_interface": "dwsim.tp_flash",
+        "caller": "condenser_phase_diagnostic",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "diagnostic",
+        "count": 1
+      },
+      {
+        "quantity": "independent_pr_bubble",
+        "provider_interface": "independent.parameter_aligned_peng_robinson",
+        "caller": "local_bubble_seed",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "validation",
+        "count": 30
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[combined_reboiler_sump]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 226
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[combined_reboiler_sump]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[feed_tray]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 226
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[feed_tray]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[rectifying_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 226
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[rectifying_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[rectifying_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 226
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[rectifying_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[reflux_drum]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 226
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[reflux_drum]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[stripping_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 226
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[stripping_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[stripping_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 226
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "dwsim.declared_liquid_density",
+        "caller": "internal_energy_storage[stripping_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[combined_reboiler_sump]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[combined_reboiler_sump]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[feed_tray]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[feed_tray]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[rectifying_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[rectifying_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[rectifying_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[rectifying_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[reflux_drum]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 226
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[reflux_drum]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[stripping_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[stripping_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[stripping_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "energy_balance[stripping_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[combined_reboiler_sump]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[feed_tray]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[feed_tray]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[rectifying_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[rectifying_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[rectifying_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[rectifying_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[stripping_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[stripping_volume_1]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[stripping_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "jacobian",
+        "count": 452
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "full_phase_equilibrium[stripping_volume_2]",
+        "state_id": "canonical_seven_volume_state",
+        "evaluation_kind": "residual",
+        "count": 2
+      }
+    ],
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true
+  },
+  "provider_call_count": 7749,
+  "wall_clock_sec": 6.082130700000562,
+  "full_column_nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "pass_gate": true
+}

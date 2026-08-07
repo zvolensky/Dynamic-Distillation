@@ -21,45 +21,106 @@ ARCHITECTURE_NAME = (
 )
 ARCHITECTURE_VERSION = "core-v3-provider-governed-v1"
 
-VOLUME_IDS = (
-    "reflux_drum",
-    "rectifying_tray",
-    "feed_tray",
-    "stripping_tray",
-    "combined_reboiler_sump",
-)
-EQUILIBRIUM_VOLUME_IDS = VOLUME_IDS[1:]
-HYDRAULIC_VOLUME_IDS = VOLUME_IDS[1:4]
-TERMINAL_VOLUME_IDS = (VOLUME_IDS[0], VOLUME_IDS[-1])
+@dataclass(frozen=True)
+class ColumnTopology:
+    volume_ids: tuple[str, ...]
+    equilibrium_volume_ids: tuple[str, ...]
+    hydraulic_volume_ids: tuple[str, ...]
+    terminal_volume_ids: tuple[str, str]
+    liquid_links: tuple[tuple[str, str, str], ...]
+    vapor_links: tuple[tuple[str, str, str], ...]
+    top_volume: str
+    feed_volume: str
+    bottom_volume: str
 
-LIQUID_LINKS = (
-    ("reflux_drum", "rectifying_tray", "R"),
-    ("rectifying_tray", "feed_tray", "L[rectifying_tray]"),
-    ("feed_tray", "stripping_tray", "L[feed_tray]"),
-    ("stripping_tray", "combined_reboiler_sump", "L[stripping_tray]"),
-)
-VAPOR_LINKS = (
-    (
-        "combined_reboiler_sump",
-        "stripping_tray",
-        "V[combined_reboiler_sump->stripping_tray]",
-    ),
-    (
-        "stripping_tray",
-        "feed_tray",
-        "V[stripping_tray->feed_tray]",
-    ),
-    (
-        "feed_tray",
-        "rectifying_tray",
-        "V[feed_tray->rectifying_tray]",
-    ),
-    (
-        "rectifying_tray",
-        "reflux_drum",
-        "V[rectifying_tray->reflux_drum]",
-    ),
-)
+
+def _section_volume_ids(section: str, count: int) -> tuple[str, ...]:
+    if count < 1:
+        raise ValueError(f"{section} section requires at least one volume")
+    if count == 1:
+        return (f"{section}_tray",)
+    return tuple(f"{section}_volume_{index}" for index in range(1, count + 1))
+
+
+def build_column_topology(
+    *,
+    rectifying_volume_count: int = 1,
+    stripping_volume_count: int = 1,
+) -> ColumnTopology:
+    """Build a generic terminal/interior/feed column topology."""
+    top = "reflux_drum"
+    feed = "feed_tray"
+    bottom = "combined_reboiler_sump"
+    rectifying = _section_volume_ids("rectifying", rectifying_volume_count)
+    stripping = _section_volume_ids("stripping", stripping_volume_count)
+    volumes = (top, *rectifying, feed, *stripping, bottom)
+    liquid_links = tuple(
+        (
+            source,
+            destination,
+            "R" if source == top else f"L[{source}]",
+        )
+        for source, destination in zip(volumes[:-1], volumes[1:], strict=True)
+    )
+    vapor_links = tuple(
+        (
+            source,
+            destination,
+            f"V[{source}->{destination}]",
+        )
+        for source, destination in zip(
+            reversed(volumes[1:]), reversed(volumes[:-1]), strict=True
+        )
+    )
+    return ColumnTopology(
+        volume_ids=volumes,
+        equilibrium_volume_ids=volumes[1:],
+        hydraulic_volume_ids=volumes[1:-1],
+        terminal_volume_ids=(top, bottom),
+        liquid_links=liquid_links,
+        vapor_links=vapor_links,
+        top_volume=top,
+        feed_volume=feed,
+        bottom_volume=bottom,
+    )
+
+
+def _validated_topology(topology: ColumnTopology) -> ColumnTopology:
+    volumes = topology.volume_ids
+    if len(volumes) < 5 or len(set(volumes)) != len(volumes):
+        raise ValueError("column topology requires at least five unique volumes")
+    if (
+        topology.top_volume != volumes[0]
+        or topology.bottom_volume != volumes[-1]
+        or topology.feed_volume not in volumes[1:-1]
+        or topology.equilibrium_volume_ids != volumes[1:]
+        or topology.hydraulic_volume_ids != volumes[1:-1]
+        or topology.terminal_volume_ids != (volumes[0], volumes[-1])
+    ):
+        raise ValueError("column topology volume ownership is inconsistent")
+    expected_liquid_pairs = tuple(zip(volumes[:-1], volumes[1:], strict=True))
+    expected_vapor_pairs = tuple(
+        zip(reversed(volumes[1:]), reversed(volumes[:-1]), strict=True)
+    )
+    if tuple(link[:2] for link in topology.liquid_links) != expected_liquid_pairs:
+        raise ValueError("liquid links must connect every adjacent volume downward")
+    if tuple(link[:2] for link in topology.vapor_links) != expected_vapor_pairs:
+        raise ValueError("vapor links must connect every adjacent volume upward")
+    symbols = tuple(
+        symbol for _, _, symbol in (*topology.liquid_links, *topology.vapor_links)
+    )
+    if len(symbols) != len(set(symbols)):
+        raise ValueError("internal flow symbols must be unique")
+    return topology
+
+
+DEFAULT_TOPOLOGY = build_column_topology()
+VOLUME_IDS = DEFAULT_TOPOLOGY.volume_ids
+EQUILIBRIUM_VOLUME_IDS = DEFAULT_TOPOLOGY.equilibrium_volume_ids
+HYDRAULIC_VOLUME_IDS = DEFAULT_TOPOLOGY.hydraulic_volume_ids
+TERMINAL_VOLUME_IDS = DEFAULT_TOPOLOGY.terminal_volume_ids
+LIQUID_LINKS = DEFAULT_TOPOLOGY.liquid_links
+VAPOR_LINKS = DEFAULT_TOPOLOGY.vapor_links
 
 NO_FALLBACK = "fail explicitly; do not substitute another provider interface"
 
@@ -114,6 +175,7 @@ class ProviderGovernedRegistry:
     provider_identity: str
     interface_provider_identities: tuple[tuple[str, str], ...]
     component_names: tuple[str, ...]
+    topology: ColumnTopology
     unknowns: tuple[Unknown, ...]
     residuals: tuple[Residual, ...]
     external_parameters: tuple[str, ...]
@@ -366,9 +428,19 @@ def build_provider_governed_registry(
     *,
     provider_identity: str = "dwsim",
     interface_provider_identities: Mapping[str, str] | None = None,
+    topology: ColumnTopology | None = None,
 ) -> ProviderGovernedRegistry:
-    """Build the provider-tagged five-volume steady structural ledger."""
+    """Build a provider-tagged steady structural ledger."""
     components = _validated_components(component_names)
+    topology = _validated_topology(
+        DEFAULT_TOPOLOGY if topology is None else topology
+    )
+    volumes = topology.volume_ids
+    equilibrium_volumes = topology.equilibrium_volume_ids
+    hydraulic_volumes = topology.hydraulic_volume_ids
+    terminal_volumes = topology.terminal_volume_ids
+    liquid_links = topology.liquid_links
+    vapor_links = topology.vapor_links
     identity = _validated_provider_identity(provider_identity)
     interface_identities = tuple(
         sorted(
@@ -385,30 +457,30 @@ def build_provider_governed_registry(
     residuals: list[Residual] = []
     contributions: list[BalanceContribution] = []
 
-    for volume in VOLUME_IDS:
+    for volume in volumes:
         unknowns.append(Unknown(f"NL[{volume}]", "liquid_amount", volume))
         unknowns.extend(
             Unknown(name, "liquid_composition", volume)
             for name in _coordinates(components, "x", volume)
         )
         unknowns.append(Unknown(f"T[{volume}]", "temperature", volume))
-    for volume in EQUILIBRIUM_VOLUME_IDS:
+    for volume in equilibrium_volumes:
         unknowns.extend(
             Unknown(name, "vapor_composition", volume)
             for name in _coordinates(components, "y", volume)
         )
-    for volume in HYDRAULIC_VOLUME_IDS:
+    for volume in hydraulic_volumes:
         unknowns.append(
             Unknown(f"L[{volume}]", "francis_liquid_flow", "francis_hydraulics")
         )
-    for _source, _destination, symbol in VAPOR_LINKS:
+    for _source, _destination, symbol in vapor_links:
         unknowns.append(
             Unknown(symbol, "energy_owned_vapor_flow", "energy_balances")
         )
     unknowns.extend(
         (
-            Unknown("D", "terminal_product_flow", "reflux_drum"),
-            Unknown("B", "terminal_product_flow", "combined_reboiler_sump"),
+            Unknown("D", "terminal_product_flow", topology.top_volume),
+            Unknown("B", "terminal_product_flow", topology.bottom_volume),
         )
     )
     unknowns.extend(
@@ -417,7 +489,7 @@ def build_provider_governed_registry(
             "condenser_incipient_vapor",
             "total_condenser_reflux_drum_boundary",
         )
-        for name in _coordinates(components, "y_bubble", "reflux_drum")
+        for name in _coordinates(components, "y_bubble", topology.top_volume)
     )
     unknowns.append(
         Unknown(
@@ -427,7 +499,7 @@ def build_provider_governed_registry(
         )
     )
 
-    for volume in EQUILIBRIUM_VOLUME_IDS:
+    for volume in equilibrium_volumes:
         dependencies = (
             f"T[{volume}]",
             f"P[{volume}]",
@@ -447,12 +519,12 @@ def build_provider_governed_registry(
 
     internal_links = tuple(
         (source, destination, symbol, "liquid")
-        for source, destination, symbol in LIQUID_LINKS
+        for source, destination, symbol in liquid_links
     ) + tuple(
         (source, destination, symbol, "vapor")
-        for source, destination, symbol in VAPOR_LINKS
+        for source, destination, symbol in vapor_links
     )
-    for volume in VOLUME_IDS:
+    for volume in volumes:
         for component in components:
             dependencies: list[str] = []
             for source, destination, symbol, phase in internal_links:
@@ -469,13 +541,13 @@ def build_provider_governed_registry(
                         -1 if volume == source else 1,
                     )
                 )
-            if volume == "feed_tray":
+            if volume == topology.feed_volume:
                 dependencies.append(f"F_component[{component}]")
-            if volume == "reflux_drum":
+            if volume == topology.top_volume:
                 dependencies.extend(
                     ("D", *_coordinates(components, "x", volume))
                 )
-            if volume == "combined_reboiler_sump":
+            if volume == topology.bottom_volume:
                 dependencies.extend(
                     ("B", *_coordinates(components, "x", volume))
                 )
@@ -504,9 +576,9 @@ def build_provider_governed_registry(
                     -1 if volume == source else 1,
                 )
             )
-        if volume == "feed_tray":
+        if volume == topology.feed_volume:
             energy_dependencies.append("H_feed")
-        if volume == "reflux_drum":
+        if volume == topology.top_volume:
             energy_dependencies.extend(
                 (
                     "D",
@@ -514,7 +586,7 @@ def build_provider_governed_registry(
                     *_phase_state_dependencies(components, "liquid", volume),
                 )
             )
-        if volume == "combined_reboiler_sump":
+        if volume == topology.bottom_volume:
             energy_dependencies.extend(
                 (
                     "B",
@@ -532,7 +604,7 @@ def build_provider_governed_registry(
             )
         )
 
-    for volume in HYDRAULIC_VOLUME_IDS:
+    for volume in hydraulic_volumes:
         residuals.append(
             Residual(
                 f"francis_hydraulics[{volume}]",
@@ -549,7 +621,7 @@ def build_provider_governed_registry(
                 ("liquid_density",),
             )
         )
-    for volume in TERMINAL_VOLUME_IDS:
+    for volume in terminal_volumes:
         residuals.append(
             Residual(
                 f"terminal_amount[{volume}]",
@@ -560,10 +632,10 @@ def build_provider_governed_registry(
         )
 
     bubble_dependencies = (
-        "T[reflux_drum]",
-        "P[reflux_drum]",
-        *_coordinates(components, "x", "reflux_drum"),
-        *_coordinates(components, "y_bubble", "reflux_drum"),
+        f"T[{topology.top_volume}]",
+        f"P[{topology.top_volume}]",
+        *_coordinates(components, "x", topology.top_volume),
+        *_coordinates(components, "y_bubble", topology.top_volume),
     )
     residuals.extend(
         Residual(
@@ -580,13 +652,13 @@ def build_provider_governed_registry(
     )
 
     external_parameters = (
-        *(f"P[{volume}]" for volume in VOLUME_IDS),
+        *(f"P[{volume}]" for volume in volumes),
         "R",
         *(f"F_component[{component}]" for component in components),
         "H_feed",
         "Q_R",
-        *(f"francis_geometry[{volume}]" for volume in HYDRAULIC_VOLUME_IDS),
-        *(f"NL_target[{volume}]" for volume in TERMINAL_VOLUME_IDS),
+        *(f"francis_geometry[{volume}]" for volume in hydraulic_volumes),
+        *(f"NL_target[{volume}]" for volume in terminal_volumes),
     )
     return ProviderGovernedRegistry(
         architecture_name=ARCHITECTURE_NAME,
@@ -594,6 +666,7 @@ def build_provider_governed_registry(
         provider_identity=identity,
         interface_provider_identities=interface_identities,
         component_names=components,
+        topology=topology,
         unknowns=tuple(unknowns),
         residuals=tuple(residuals),
         external_parameters=tuple(external_parameters),
@@ -716,7 +789,10 @@ def audit_provider_governed_registry(
     row_nonzero = np.asarray(pattern.getnnz(axis=1)).reshape((-1,))
     column_nonzero = np.asarray(pattern.getnnz(axis=0)).reshape((-1,))
     rank = int(structural_rank(pattern))
-    expected = 10 * len(registry.component_names) + 10
+    topology = registry.topology
+    expected = 2 * len(topology.volume_ids) * (
+        len(registry.component_names) + 1
+    )
 
     known_dependencies = set(unknown_names) | set(registry.external_parameters)
     dependencies = tuple(
@@ -824,7 +900,8 @@ def audit_provider_governed_registry(
     )
 
     internal_symbols = tuple(
-        symbol for _, _, symbol in (*LIQUID_LINKS, *VAPOR_LINKS)
+        symbol
+        for _, _, symbol in (*topology.liquid_links, *topology.vapor_links)
     )
     component_conservation = _conservation_passes(
         registry.contributions,
@@ -892,10 +969,10 @@ def audit_provider_governed_registry(
         and not authority_fallbacks
         and "Q_C" not in registry.external_parameters
         and q_c_count == 1
-        and vapor_count == len(VAPOR_LINKS)
-        and liquid_count == len(HYDRAULIC_VOLUME_IDS)
+        and vapor_count == len(topology.vapor_links)
+        and liquid_count == len(topology.hydraulic_volume_ids)
         and full_fugacity_count
-        == len(EQUILIBRIUM_VOLUME_IDS) * len(registry.component_names)
+        == len(topology.equilibrium_volume_ids) * len(registry.component_names)
         and bubble_count == len(registry.component_names)
         and component_conservation
         and energy_conservation
@@ -954,6 +1031,8 @@ def audit_provider_governed_registry(
 __all__ = [
     "ARCHITECTURE_NAME",
     "ARCHITECTURE_VERSION",
+    "ColumnTopology",
+    "DEFAULT_TOPOLOGY",
     "EQUILIBRIUM_VOLUME_IDS",
     "HYDRAULIC_VOLUME_IDS",
     "LIQUID_LINKS",
@@ -969,5 +1048,6 @@ __all__ = [
     "Residual",
     "Unknown",
     "audit_provider_governed_registry",
+    "build_column_topology",
     "build_provider_governed_registry",
 ]

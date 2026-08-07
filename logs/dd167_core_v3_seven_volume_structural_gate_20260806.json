@@ -1,0 +1,157 @@
+{
+  "schema_id": "dd167-core-v3-seven-volume-structural-gate-v1",
+  "generated_utc": "2026-08-07T00:49:07.822651+00:00",
+  "classification": "seven_volume_structural_gate_passed",
+  "decision": "authorize_one_frozen_live_dwsim_residual_and_jacobian_audit",
+  "scope": "structural_only",
+  "component_names": [
+    "Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "topology": {
+    "volume_ids": [
+      "reflux_drum",
+      "rectifying_volume_1",
+      "rectifying_volume_2",
+      "feed_tray",
+      "stripping_volume_1",
+      "stripping_volume_2",
+      "combined_reboiler_sump"
+    ],
+    "equilibrium_volume_ids": [
+      "rectifying_volume_1",
+      "rectifying_volume_2",
+      "feed_tray",
+      "stripping_volume_1",
+      "stripping_volume_2",
+      "combined_reboiler_sump"
+    ],
+    "hydraulic_volume_ids": [
+      "rectifying_volume_1",
+      "rectifying_volume_2",
+      "feed_tray",
+      "stripping_volume_1",
+      "stripping_volume_2"
+    ],
+    "terminal_volume_ids": [
+      "reflux_drum",
+      "combined_reboiler_sump"
+    ],
+    "liquid_links": [
+      [
+        "reflux_drum",
+        "rectifying_volume_1",
+        "R"
+      ],
+      [
+        "rectifying_volume_1",
+        "rectifying_volume_2",
+        "L[rectifying_volume_1]"
+      ],
+      [
+        "rectifying_volume_2",
+        "feed_tray",
+        "L[rectifying_volume_2]"
+      ],
+      [
+        "feed_tray",
+        "stripping_volume_1",
+        "L[feed_tray]"
+      ],
+      [
+        "stripping_volume_1",
+        "stripping_volume_2",
+        "L[stripping_volume_1]"
+      ],
+      [
+        "stripping_volume_2",
+        "combined_reboiler_sump",
+        "L[stripping_volume_2]"
+      ]
+    ],
+    "vapor_links": [
+      [
+        "combined_reboiler_sump",
+        "stripping_volume_2",
+        "V[combined_reboiler_sump->stripping_volume_2]"
+      ],
+      [
+        "stripping_volume_2",
+        "stripping_volume_1",
+        "V[stripping_volume_2->stripping_volume_1]"
+      ],
+      [
+        "stripping_volume_1",
+        "feed_tray",
+        "V[stripping_volume_1->feed_tray]"
+      ],
+      [
+        "feed_tray",
+        "rectifying_volume_2",
+        "V[feed_tray->rectifying_volume_2]"
+      ],
+      [
+        "rectifying_volume_2",
+        "rectifying_volume_1",
+        "V[rectifying_volume_2->rectifying_volume_1]"
+      ],
+      [
+        "rectifying_volume_1",
+        "reflux_drum",
+        "V[rectifying_volume_1->reflux_drum]"
+      ]
+    ],
+    "top_volume": "reflux_drum",
+    "feed_volume": "feed_tray",
+    "bottom_volume": "combined_reboiler_sump"
+  },
+  "equation_block_counts": {
+    "component_balance": 21,
+    "condenser_bubble_fugacity": 3,
+    "energy_balance": 7,
+    "francis_hydraulics": 5,
+    "full_phase_equilibrium": 18,
+    "terminal_amount_specification": 2
+  },
+  "audit": {
+    "unknown_count": 56,
+    "residual_count": 56,
+    "expected_count": 56,
+    "structural_rank": 56,
+    "structural_nullity": 0,
+    "zero_unknown_columns": [],
+    "zero_residual_rows": [],
+    "unregistered_dependencies": [],
+    "unregistered_property_quantities": [],
+    "imported_profile_dependencies": [],
+    "governing_tp_flash_uses": [],
+    "production_independent_pr_uses": [],
+    "mixed_basis_dependencies": [],
+    "unauthorized_property_uses": [],
+    "duplicate_authority_quantities": [],
+    "authority_fallbacks": [],
+    "fixed_condenser_duty_parameter_present": false,
+    "condenser_duty_unknown_count": 1,
+    "vapor_unknown_count": 6,
+    "francis_liquid_unknown_count": 5,
+    "full_fugacity_row_count": 18,
+    "condenser_bubble_row_count": 3,
+    "component_conservation_passed": true,
+    "energy_conservation_passed": true,
+    "prospective_acceptance_contract_passed": true,
+    "historical_acceptance_imported": false,
+    "core_v2_residual_owner_imported": false,
+    "live_property_evaluation_attempted": false,
+    "nonlinear_solve_attempted": false,
+    "dynamic_integration_attempted": false,
+    "pass_gate": true
+  },
+  "execution_prohibitions": {
+    "live_property_evaluation_attempted": false,
+    "nonlinear_solve_attempted": false,
+    "timestep_attempted": false,
+    "dynamic_integration_attempted": false
+  },
+  "next_gate": "one separately frozen live-DWSIM numerical residual and Jacobian audit; no root solve or dynamics"
+}

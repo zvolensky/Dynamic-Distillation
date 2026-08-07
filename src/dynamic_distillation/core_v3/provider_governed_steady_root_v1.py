@@ -12,10 +12,6 @@ from scipy.optimize import least_squares
 from dynamic_distillation.core_v3.provider_call_audit_v1 import (
     ProviderCallAudit,
 )
-from dynamic_distillation.core_v3.provider_governed_registry_v1 import (
-    HYDRAULIC_VOLUME_IDS,
-    VOLUME_IDS,
-)
 from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
     BubbleSolveSettings,
     NumericalReference,
@@ -203,8 +199,8 @@ def physical_bounds(
     ) / duty_scale
 
     if (
-        lower.shape != (40,)
-        or upper.shape != (40,)
+        lower.shape != (len(layout.names),)
+        or upper.shape != (len(layout.names),)
         or np.any(~np.isfinite(lower))
         or np.any(~np.isfinite(upper))
         or np.any(lower >= upper)
@@ -256,8 +252,10 @@ def independent_smooth_start(
     *,
     bubble_settings: BubbleSolveSettings = BubbleSolveSettings(),
 ) -> tuple[np.ndarray, dict[str, Any]]:
-    """Construct a fully distinct five-volume seed without balance solving."""
-    state_id = "independent_smooth_five_volume_seed"
+    """Construct a fully distinct smooth seed without balance solving."""
+    state_id = "independent_smooth_topology_seed"
+    topology = spec.topology
+    volumes = topology.volume_ids
     feed_x = normalize_composition(spec.feed_component_lbmolph)
     canonical_x = np.asarray(reference.liquid_mole_fraction, dtype=float)
     top_alr = (
@@ -270,7 +268,7 @@ def independent_smooth_start(
         + 0.28 * alr_coordinates(feed_x)
         + np.linspace(-0.05, 0.07, len(spec.component_names) - 1)
     )
-    position = np.linspace(0.0, 1.0, len(VOLUME_IDS))
+    position = np.linspace(0.0, 1.0, len(volumes))
     liquid_x = np.asarray(
         [
             normalize_composition(
@@ -321,9 +319,9 @@ def independent_smooth_start(
                 pressure_psia=float(spec.pressure_psia[index]),
                 liquid_x=liquid_x[index],
                 state_id=state_id,
-                caller=f"independent_column_vapor_guess[{VOLUME_IDS[index]}]",
+                caller=f"independent_column_vapor_guess[{volumes[index]}]",
             )
-            for index in range(1, len(VOLUME_IDS))
+            for index in range(1, len(volumes))
         ],
         dtype=float,
     )
@@ -331,13 +329,23 @@ def independent_smooth_start(
     liquid_moles = np.asarray(reference.liquid_moles_lbmol, dtype=float).copy()
     liquid_moles[0] = float(spec.terminal_liquid_targets_lbmol[0])
     liquid_moles[-1] = float(spec.terminal_liquid_targets_lbmol[1])
-    liquid_moles[1:-1] *= np.asarray([0.82, 1.12, 0.91])
+    interior_count = len(topology.hydraulic_volume_ids)
+    liquid_moles[1:-1] *= 0.97 + 0.15 * np.sin(
+        np.arange(1, interior_count + 1, dtype=float)
+    )
     liquid_flows = np.exp(
         np.mean(np.log(reference.hydraulic_liquid_flow_lbmolph))
-    ) * np.asarray([0.88, 1.06, 0.95])
+    ) * (
+        0.97
+        + 0.10 * np.sin(np.arange(1, interior_count + 1, dtype=float) + 0.4)
+    )
+    vapor_count = len(topology.vapor_links)
     vapor_flows = np.exp(
         np.mean(np.log(reference.vapor_flow_lbmolph))
-    ) * np.asarray([0.91, 1.04, 0.97, 1.08])
+    ) * (
+        1.01
+        + 0.08 * np.cos(np.arange(1, vapor_count + 1, dtype=float) + 0.2)
+    )
     feed_total = float(np.sum(spec.feed_component_lbmolph))
     distillate = 0.46 * feed_total
     bottoms = 0.54 * feed_total
@@ -386,7 +394,7 @@ def independent_smooth_start(
     point = encode_state(spec, reference, state)
     metadata = {
         "construction": (
-            "fully distinct five-volume smooth ALR profile; deterministic "
+            "fully distinct topology-scaled smooth ALR profile; deterministic "
             "positive amounts and flows; local direct-fugacity drum bubble; "
             "independent condenser-energy duty reconstruction"
         ),
@@ -469,9 +477,12 @@ def prepare_campaign(
         "deterministic_dd092_perturbation": _vector(perturbation),
         "independent_smooth_five_volume_seed": independent,
     }
+    dimension = len(coordinate_layout(spec).names)
     for name, point in starts.items():
-        if point.shape != (40,):
-            raise RuntimeError(f"Core V3 start {name!r} is not length 40")
+        if point.shape != (dimension,):
+            raise RuntimeError(
+                f"Core V3 start {name!r} is not length {dimension}"
+            )
         if np.any(point <= lower) or np.any(point >= upper):
             raise RuntimeError(f"Core V3 start {name!r} is outside bounds")
     scales = physical_vector_and_scales(spec, reference, starts[
@@ -501,9 +512,10 @@ def central_difference_jacobian(
     step: float,
 ) -> np.ndarray:
     point = _vector(coordinates)
-    matrix = np.empty((40, 40), dtype=float)
-    for column in range(40):
-        delta = np.zeros(40, dtype=float)
+    dimension = point.size
+    matrix = np.empty((dimension, dimension), dtype=float)
+    for column in range(dimension):
+        delta = np.zeros(dimension, dtype=float)
         delta[column] = float(step)
         plus = evaluate_residual(
             spec,
@@ -658,12 +670,13 @@ def execute_start(
     ]
     distance = np.minimum(result.x - lower, upper - result.x)
     state = endpoint.state
+    topology = spec.topology
     heights = np.asarray(
         [
             endpoint.properties.liquid_height_ft[
-                VOLUME_IDS.index(volume)
+                topology.volume_ids.index(volume)
             ]
-            for volume in HYDRAULIC_VOLUME_IDS
+            for volume in topology.hydraulic_volume_ids
         ],
         dtype=float,
     )
@@ -678,13 +691,14 @@ def execute_start(
         (
             state.liquid_moles_lbmol[0]
             / (float(spec.reflux_lbmolph) + state.distillate_lbmolph),
-            state.liquid_moles_lbmol[1]
-            / state.hydraulic_liquid_flow_lbmolph[0],
-            state.liquid_moles_lbmol[2]
-            / state.hydraulic_liquid_flow_lbmolph[1],
-            state.liquid_moles_lbmol[3]
-            / state.hydraulic_liquid_flow_lbmolph[2],
-            state.liquid_moles_lbmol[4] / state.bottoms_lbmolph,
+            *(
+                state.liquid_moles_lbmol[
+                    topology.volume_ids.index(volume)
+                ]
+                / state.hydraulic_liquid_flow_lbmolph[index]
+                for index, volume in enumerate(topology.hydraulic_volume_ids)
+            ),
+            state.liquid_moles_lbmol[-1] / state.bottoms_lbmolph,
         ),
         dtype=float,
     )

@@ -1,0 +1,597 @@
+{
+  "schema_id": "dd172-core-v3-seven-volume-stationary-step-result-v1",
+  "classification": "seven_volume_stationary_implicit_step_passed",
+  "decision": "authorize_one_frozen_moving_step_contract",
+  "contract_commit": "ed8cbdefb34085e773833a0fb3ba4b38b728250b",
+  "contract_payload_sha256": "1b7851ea5ae6cf10c82135a5b8f6b9bb52a02392cbaec1f12da72b8a62e1dd8e",
+  "wall_clock_sec": 4.447479199996451,
+  "steps": {
+    "full": {
+      "success": true,
+      "status": 3,
+      "message": "`xtol` termination condition is satisfied.",
+      "nfev": 2,
+      "njev": 2,
+      "wall_clock_sec": 0.6004057999962242,
+      "residual_inf_norm": 1.0051051951394335e-13,
+      "jacobian_rank": 54,
+      "jacobian_condition": 224674.970872236,
+      "component_rate_max_abs_lbmolph": 6.439648814193788e-09,
+      "energy_storage_rate_max_abs_BTUph": 7.711350917816162e-05,
+      "relative_inventory_movement": 1.0280072465134513e-12,
+      "algebraic_movement": 1.385204451143096e-12,
+      "component_kinematic_identity": 0.0,
+      "energy_kinematic_identity": 0.0,
+      "maximum_equilibrium_residual": 3.219646771412959e-15,
+      "component_conservation_relative_error": 6.324179861262887e-15,
+      "energy_conservation_relative_error": 6.872645109718654e-14,
+      "inventory_lbmol": [
+        [
+          1078.7579493772619,
+          302.0633473956588,
+          8.078703227075577
+        ],
+        [
+          21.262766498682403,
+          13.802603376969268,
+          0.7097601444518179
+        ],
+        [
+          14.075829610173676,
+          16.444776211024394,
+          1.4569753282754976
+        ],
+        [
+          15.227608300335064,
+          26.32158581458253,
+          3.917370476511125
+        ],
+        [
+          15.027472225611573,
+          34.23806109335281,
+          5.079944646861652
+        ],
+        [
+          11.083334711876747,
+          36.4833888999288,
+          5.989645731894472
+        ],
+        [
+          105.81953840350997,
+          562.2338442874193,
+          125.94661730907157
+        ]
+      ],
+      "rate_coordinates": [
+        [
+          -4.490205569576471e-13,
+          -1.2829158770218488e-13,
+          -5.046469875628913e-13
+        ],
+        [
+          2.1047838607389708e-13,
+          1.0022780289233194e-15,
+          -2.0584285019012673e-13
+        ],
+        [
+          8.218679837171219e-14,
+          -7.015946202463236e-15,
+          -9.671982979110033e-14
+        ],
+        [
+          3.157175791108456e-14,
+          -1.904328254954307e-14,
+          -2.9817771360468757e-14
+        ],
+        [
+          3.006834086769958e-14,
+          -2.4054672694159665e-14,
+          -1.5535309448311452e-14
+        ],
+        [
+          3.207289692554622e-14,
+          -1.4031892404926472e-14,
+          -1.3029614376003153e-14
+        ],
+        [
+          6.013668173539917e-14,
+          1.6036448462773112e-13,
+          1.603644846277311e-14
+        ]
+      ],
+      "algebraic_coordinates": [
+        0.0977130836734351,
+        0.1736443609223351,
+        -0.1079421197272134,
+        -0.04126980357348814,
+        -0.12353423469017816,
+        -0.1325451836336905,
+        -0.14177649631041955,
+        -7.064218669553986,
+        -6.075236901241022,
+        -1.114287072333733,
+        -1.6601011880096257,
+        -0.029110729394633633,
+        -0.16987340528208011,
+        0.32168479840323994,
+        -0.25450863268810114,
+        0.5015683663445033,
+        -0.31212601436206033,
+        1.0913198888539155,
+        -0.09728763846144593,
+        -0.01807716110978215,
+        0.04708405213110319,
+        0.02038207012263561,
+        0.009152733160519797,
+        -0.001084835773824209,
+        -0.026687557389347454,
+        -0.017265748277969707,
+        -0.005089363445156113,
+        0.026337629143547786,
+        0.030370703783213906,
+        -0.01939100031601539,
+        -7.081381330825347,
+        -6.079727961892066,
+        -0.035539879795441855
+      ],
+      "temperature_F": [
+        127.58769325961045,
+        144.0804360922335,
+        161.67778802727867,
+        175.52701964265117,
+        183.77057653098217,
+        193.79548163663097,
+        206.53435036895803
+      ],
+      "physical": {
+        "positive_inventory": true,
+        "positive_liquid_composition": true,
+        "positive_vapor_composition": true,
+        "positive_flows": true,
+        "ordered_temperature": true,
+        "ordered_pressure": true,
+        "negative_condenser_duty": true,
+        "hydraulic_height_below_spacing": true,
+        "all_finite": true
+      },
+      "physical_pass": true
+    },
+    "half1": {
+      "success": true,
+      "status": 3,
+      "message": "`xtol` termination condition is satisfied.",
+      "nfev": 2,
+      "njev": 2,
+      "wall_clock_sec": 0.5319889000093099,
+      "residual_inf_norm": 3.8106833821140043e-13,
+      "jacobian_rank": 54,
+      "jacobian_condition": 897402.6847710585,
+      "component_rate_max_abs_lbmolph": 8.185452315956354e-09,
+      "energy_storage_rate_max_abs_BTUph": 0.00010058283805847168,
+      "relative_inventory_movement": 5.319921858478771e-13,
+      "algebraic_movement": 1.562548701539157e-12,
+      "component_kinematic_identity": 0.0,
+      "energy_kinematic_identity": 0.0,
+      "maximum_equilibrium_residual": 2.8865798640254027e-15,
+      "component_conservation_relative_error": 6.888557407205713e-14,
+      "energy_conservation_relative_error": 2.591244270870142e-13,
+      "inventory_lbmol": [
+        [
+          1078.7579493772623,
+          302.0633473956589,
+          8.078703227076472
+        ],
+        [
+          21.26276649868212,
+          13.802603376969218,
+          0.70976014445217
+        ],
+        [
+          14.075829610173585,
+          16.44477621102437,
+          1.4569753282756635
+        ],
+        [
+          15.227608300335037,
+          26.32158581458253,
+          3.9173704765111768
+        ],
+        [
+          15.027472225611563,
+          34.23806109335281,
+          5.079944646861675
+        ],
+        [
+          11.083334711876743,
+          36.4833888999288,
+          5.989645731894482
+        ],
+        [
+          105.81953840350997,
+          562.2338442874193,
+          125.94661730907157
+        ]
+      ],
+      "rate_coordinates": [
+        [
+          -6.414579385109245e-13,
+          -1.9243738155327732e-13,
+          -5.041458485484296e-13
+        ],
+        [
+          2.605922875200631e-13,
+          -2.6059228752006307e-14,
+          -2.130467235230131e-13
+        ],
+        [
+          1.132574172683351e-13,
+          -2.8063784809852945e-14,
+          -9.98519486314857e-14
+        ],
+        [
+          4.810934538831933e-14,
+          -3.808656509908614e-14,
+          -3.0318910374930415e-14
+        ],
+        [
+          5.412301356185925e-14,
+          -4.810934538831933e-14,
+          -1.804100452061975e-14
+        ],
+        [
+          6.214123779324581e-14,
+          -2.8063784809852945e-14,
+          -2.004556057846639e-14
+        ],
+        [
+          1.2027336347079833e-13,
+          3.2072896925546223e-13,
+          3.207289692554622e-14
+        ]
+      ],
+      "algebraic_coordinates": [
+        0.09771308367343566,
+        0.17364436092234553,
+        -0.10794211972720787,
+        -0.041269803573486794,
+        -0.1235342346901776,
+        -0.13254518363369033,
+        -0.14177649631041953,
+        -7.064218669554494,
+        -6.075236901241518,
+        -1.1142870723338527,
+        -1.6601011880097398,
+        -0.02911072939464864,
+        -0.16987340528209313,
+        0.3216847984032345,
+        -0.2545086326881055,
+        0.5015683663445013,
+        -0.3121260143620622,
+        1.0913198888539153,
+        -0.09728763846144602,
+        -0.018077161109771554,
+        0.04708405213111097,
+        0.0203820701226373,
+        0.009152733160520619,
+        -0.0010848357738237706,
+        -0.026687557389746194,
+        -0.0172657482783841,
+        -0.005089363445570019,
+        0.026337629143138745,
+        0.03037070378280357,
+        -0.019391000316442274,
+        -7.081381330825457,
+        -6.079727961892176,
+        -0.03553987979526451
+      ],
+      "temperature_F": [
+        127.5876932596105,
+        144.08043609223455,
+        161.67778802727923,
+        175.5270196426513,
+        183.77057653098223,
+        193.79548163663097,
+        206.53435036895803
+      ],
+      "physical": {
+        "positive_inventory": true,
+        "positive_liquid_composition": true,
+        "positive_vapor_composition": true,
+        "positive_flows": true,
+        "ordered_temperature": true,
+        "ordered_pressure": true,
+        "negative_condenser_duty": true,
+        "hydraulic_height_below_spacing": true,
+        "all_finite": true
+      },
+      "physical_pass": true
+    },
+    "half2": {
+      "success": true,
+      "status": 3,
+      "message": "`xtol` termination condition is satisfied.",
+      "nfev": 2,
+      "njev": 2,
+      "wall_clock_sec": 0.4852146999910474,
+      "residual_inf_norm": 2.951304820958201e-13,
+      "jacobian_rank": 54,
+      "jacobian_condition": 897402.6853257555,
+      "component_rate_max_abs_lbmolph": 6.420464160328265e-09,
+      "energy_storage_rate_max_abs_BTUph": 5.364418029785156e-05,
+      "relative_inventory_movement": 1.0383311172179382e-12,
+      "algebraic_movement": 1.0738077094174514e-12,
+      "component_kinematic_identity": 0.0,
+      "energy_kinematic_identity": 0.0,
+      "maximum_equilibrium_residual": 5.662137425588314e-15,
+      "component_conservation_relative_error": 1.17760096578578e-13,
+      "energy_conservation_relative_error": 6.016330893669983e-13,
+      "inventory_lbmol": [
+        [
+          1078.7579493772619,
+          302.0633473956588,
+          8.07870322707558
+        ],
+        [
+          21.26276649868241,
+          13.80260337696928,
+          0.7097601444518106
+        ],
+        [
+          14.075829610173676,
+          16.444776211024404,
+          1.4569753282755014
+        ],
+        [
+          15.227608300335074,
+          26.321585814582555,
+          3.9173704765111284
+        ],
+        [
+          15.027472225611561,
+          34.23806109335281,
+          5.079944646861654
+        ],
+        [
+          11.08333471187675,
+          36.483388899928855,
+          5.9896457318944805
+        ],
+        [
+          105.81953840350992,
+          562.2338442874192,
+          125.94661730907154
+        ]
+      ],
+      "rate_coordinates": [
+        [
+          -2.5658317540436977e-13,
+          -6.414579385109244e-14,
+          -5.031435705195064e-13
+        ],
+        [
+          1.6437359674342438e-13,
+          3.507973101231618e-14,
+          -2.0277337372654907e-13
+        ],
+        [
+          5.111617947508929e-14,
+          2.004556057846639e-14,
+          -9.14578701392529e-14
+        ],
+        [
+          2.104783860738971e-14,
+          1.4031892404926472e-14,
+          -2.7312076288160455e-14
+        ],
+        [
+          -1.0022780289233194e-15,
+          0.0,
+          -1.1526197332618173e-14
+        ],
+        [
+          4.0091121156932776e-15,
+          3.207289692554622e-14,
+          -1.0022780289233194e-15
+        ],
+        [
+          -2.4054672694159665e-14,
+          -6.414579385109244e-14,
+          -1.603644846277311e-14
+        ]
+      ],
+      "algebraic_coordinates": [
+        0.09771308367343443,
+        0.17364436092233612,
+        -0.10794211972721238,
+        -0.04126980357348669,
+        -0.12353423469017823,
+        -0.13254518363368803,
+        -0.14177649631041986,
+        -7.064218669553976,
+        -6.07523690124101,
+        -1.1142870723337355,
+        -1.6601011880096286,
+        -0.029110729394632426,
+        -0.169873405282079,
+        0.32168479840324,
+        -0.2545086326881,
+        0.5015683663445031,
+        -0.31212601436205967,
+        1.0913198888539153,
+        -0.09728763846144597,
+        -0.018077161109780013,
+        0.047084052131104726,
+        0.02038207012263765,
+        0.00915273316051902,
+        -0.001084835773819814,
+        -0.026687557388775842,
+        -0.017265748277455133,
+        -0.0050893634446273674,
+        0.02633762914403703,
+        0.03037070378368896,
+        -0.01939100031554798,
+        -7.081381330825348,
+        -6.07972796189207,
+        -0.035539879796101216
+      ],
+      "temperature_F": [
+        127.58769325961038,
+        144.0804360922336,
+        161.67778802727878,
+        175.52701964265134,
+        183.77057653098217,
+        193.79548163663122,
+        206.534350368958
+      ],
+      "physical": {
+        "positive_inventory": true,
+        "positive_liquid_composition": true,
+        "positive_vapor_composition": true,
+        "positive_flows": true,
+        "ordered_temperature": true,
+        "ordered_pressure": true,
+        "negative_condenser_duty": true,
+        "hydraulic_height_below_spacing": true,
+        "all_finite": true
+      },
+      "physical_pass": true
+    }
+  },
+  "refinement": {
+    "relative_inventory_difference": 1.0323870704486882e-14,
+    "rate_coordinate_difference": 2.2451027847882356e-13,
+    "algebraic_coordinate_difference": 6.593614543248805e-13
+  },
+  "worst_condition": 897402.6853257555,
+  "exact_state_memoization": {
+    "enabled": true,
+    "hits": 6077,
+    "misses": 1267,
+    "families": {
+      "fugacity": {
+        "hits": 2528,
+        "misses": 496,
+        "entries": 496
+      },
+      "enthalpy": {
+        "hits": 2340,
+        "misses": 468,
+        "entries": 468
+      },
+      "density": {
+        "hits": 1209,
+        "misses": 303,
+        "entries": 303
+      },
+      "vapor_z": {
+        "hits": 0,
+        "misses": 0,
+        "entries": 0
+      }
+    }
+  },
+  "provider": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {},
+    "total_calls": 7344,
+    "counts": [
+      {
+        "provider_interface": "dwsim.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "count": 1428
+      },
+      {
+        "provider_interface": "dwsim.declared_liquid_density",
+        "evaluation_kind": "residual",
+        "count": 84
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "count": 2652
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "residual",
+        "count": 156
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "count": 2856
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "count": 168
+      }
+    ],
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true
+  },
+  "step_gates": {
+    "full": {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "stationary_rate": true,
+      "stationary_inventory": true,
+      "stationary_algebraic": true,
+      "equilibrium": true,
+      "component_conservation": true,
+      "energy_conservation": true,
+      "component_kinematics": true,
+      "energy_kinematics": true,
+      "physical": true
+    },
+    "half1": {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "stationary_rate": true,
+      "stationary_inventory": true,
+      "stationary_algebraic": true,
+      "equilibrium": true,
+      "component_conservation": true,
+      "energy_conservation": true,
+      "component_kinematics": true,
+      "energy_kinematics": true,
+      "physical": true
+    },
+    "half2": {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "stationary_rate": true,
+      "stationary_inventory": true,
+      "stationary_algebraic": true,
+      "equilibrium": true,
+      "component_conservation": true,
+      "energy_conservation": true,
+      "component_kinematics": true,
+      "energy_kinematics": true,
+      "physical": true
+    }
+  },
+  "refinement_gates": {
+    "inventory": true,
+    "rate": true,
+    "algebraic": true
+  },
+  "campaign_gates": {
+    "steps": true,
+    "refinement": true,
+    "provider": true,
+    "provider_calls": true,
+    "wall_clock": true
+  },
+  "pass_gate": true,
+  "campaign_executed_once": true,
+  "disturbance_attempted": false,
+  "controller_attempted": false,
+  "trajectory_attempted": false
+}

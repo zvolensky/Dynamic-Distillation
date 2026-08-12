@@ -1316,3 +1316,15 @@ The seven-volume architecture is therefore ready for one stationary implicit
 root-hold step. This authorizes neither a disturbance nor a trajectory: the
 first timestep must prove that backward Euler preserves the accepted root and
 that one full step agrees with two half steps before moving dynamics begin.
+
+DD-172 supplies that proof. One `1.0 s` backward-Euler root and two successive
+`0.5 s` roots all close below `3.82e-13`, retain rank `54`, remain physical and
+conservative, and move component inventory by no more than `1.04e-12`
+relative. The full and refined endpoints agree at `1.03e-14` relative
+inventory. Topology-generated colored Jacobians plus exact-state memoization
+complete all three roots in `4.447 s` with `7,344` logical property calls.
+
+The architecture is now authorized for one small open-loop moving-step proof.
+That next gate must introduce one predeclared physical input change and verify
+direction, refinement, rank, conservation, and physicality before any
+multi-step trajectory or controller is considered.

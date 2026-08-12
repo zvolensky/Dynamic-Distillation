@@ -14,11 +14,8 @@ from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import structural_rank
 
 from .provider_governed_registry_v1 import (
-    EQUILIBRIUM_VOLUME_IDS,
-    HYDRAULIC_VOLUME_IDS,
-    LIQUID_LINKS,
-    VAPOR_LINKS,
-    VOLUME_IDS,
+    ColumnTopology,
+    DEFAULT_TOPOLOGY,
 )
 
 
@@ -45,11 +42,13 @@ class DAERow:
 @dataclass(frozen=True)
 class DynamicDAEContract:
     component_names: tuple[str, ...]
+    topology: ColumnTopology
     state_coordinates: tuple[str, ...]
     derivative_variables: tuple[SolveVariable, ...]
     algebraic_variables: tuple[SolveVariable, ...]
     rows: tuple[DAERow, ...]
     fixed_parameters: tuple[str, ...]
+    product_flow_parameters: tuple[str, str]
     accepted_root_artifact: str
     internal_energy_storage: str
     index_claim: str
@@ -121,35 +120,52 @@ def _inventory_coordinates(
 
 def build_dynamic_dae_contract(
     component_names: Sequence[str],
+    *,
+    topology: ColumnTopology | None = None,
+    accepted_root_artifact: str = (
+        "logs/dd094_core_v3_steady_root_20260725.json"
+    ),
+    product_flow_parameters: tuple[str, str] = (
+        "D_dd094_root",
+        "B_dd094_root",
+    ),
 ) -> DynamicDAEContract:
     components = _validate_components(component_names)
+    topology = DEFAULT_TOPOLOGY if topology is None else topology
+    if len(product_flow_parameters) != 2 or not all(product_flow_parameters):
+        raise ValueError("top and bottom product-flow parameters are required")
+    volume_ids = topology.volume_ids
+    equilibrium_volume_ids = topology.equilibrium_volume_ids
+    hydraulic_volume_ids = topology.hydraulic_volume_ids
+    liquid_links = topology.liquid_links
+    vapor_links = topology.vapor_links
     states = tuple(
         name
-        for volume in VOLUME_IDS
+        for volume in volume_ids
         for name in _inventory_coordinates(components, volume)
     )
     derivatives = tuple(
         SolveVariable(f"d{name}/dt", "component_inventory_rate", volume)
-        for volume in VOLUME_IDS
+        for volume in volume_ids
         for name in _inventory_coordinates(components, volume)
     )
 
     temperatures = tuple(
         SolveVariable(f"T[{volume}]", "temperature", volume)
-        for volume in VOLUME_IDS
+        for volume in volume_ids
     )
     stage_vapor = tuple(
         SolveVariable(name, "equilibrium_vapor_composition", volume)
-        for volume in EQUILIBRIUM_VOLUME_IDS
+        for volume in equilibrium_volume_ids
         for name in _independent_coordinates(components, "y", volume)
     )
     liquid_flows = tuple(
         SolveVariable(f"L[{volume}]", "francis_liquid_flow", volume)
-        for volume in HYDRAULIC_VOLUME_IDS
+        for volume in hydraulic_volume_ids
     )
     vapor_flows = tuple(
         SolveVariable(symbol, "energy_owned_vapor_flow", source)
-        for source, _destination, symbol in VAPOR_LINKS
+        for source, _destination, symbol in vapor_links
     )
     bubble_vapor = tuple(
         SolveVariable(
@@ -158,7 +174,7 @@ def build_dynamic_dae_contract(
             "total_condenser_reflux_drum_boundary",
         )
         for name in _independent_coordinates(
-            components, "y_bubble", "reflux_drum"
+            components, "y_bubble", topology.top_volume
         )
     )
     condenser_duty = (
@@ -179,76 +195,74 @@ def build_dynamic_dae_contract(
 
     all_stage_y = {
         volume: _independent_coordinates(components, "y", volume)
-        for volume in EQUILIBRIUM_VOLUME_IDS
+        for volume in equilibrium_volume_ids
     }
     derivative_by_volume = {
         volume: tuple(
             f"d{name}/dt" for name in _inventory_coordinates(components, volume)
         )
-        for volume in VOLUME_IDS
+        for volume in volume_ids
     }
-    l_rect, l_feed, l_strip = (entry.name for entry in liquid_flows)
-    v_bottom, v_strip, v_feed, v_rect = (entry.name for entry in vapor_flows)
+    internal_links = (*liquid_links, *vapor_links)
+    solved_flow_symbols = {
+        variable.name for variable in (*liquid_flows, *vapor_flows)
+    }
     flow_dependencies = {
-        "reflux_drum": (v_rect,),
-        "rectifying_tray": (l_rect, v_feed, v_rect),
-        "feed_tray": (l_rect, l_feed, v_strip, v_feed),
-        "stripping_tray": (l_feed, l_strip, v_bottom, v_strip),
-        "combined_reboiler_sump": (l_strip, v_bottom),
+        volume: tuple(
+            symbol
+            for source, destination, symbol in internal_links
+            if volume in (source, destination) and symbol in solved_flow_symbols
+        )
+        for volume in volume_ids
     }
     vapor_composition_dependencies = {
-        "reflux_drum": all_stage_y["rectifying_tray"],
-        "rectifying_tray": (
-            *all_stage_y["feed_tray"],
-            *all_stage_y["rectifying_tray"],
-        ),
-        "feed_tray": (
-            *all_stage_y["stripping_tray"],
-            *all_stage_y["feed_tray"],
-        ),
-        "stripping_tray": (
-            *all_stage_y["combined_reboiler_sump"],
-            *all_stage_y["stripping_tray"],
-        ),
-        "combined_reboiler_sump": all_stage_y[
-            "combined_reboiler_sump"
-        ],
+        volume: tuple(
+            coordinate
+            for source, destination, _symbol in vapor_links
+            if volume in (source, destination)
+            for coordinate in all_stage_y[source]
+        )
+        for volume in volume_ids
+    }
+    liquid_source_volumes = {
+        volume: {
+            source
+            for source, destination, _symbol in liquid_links
+            if volume in (source, destination)
+        }
+        for volume in volume_ids
     }
     state_volume_dependencies = {
-        "reflux_drum": ("reflux_drum",),
-        "rectifying_tray": ("reflux_drum", "rectifying_tray"),
-        "feed_tray": ("rectifying_tray", "feed_tray"),
-        "stripping_tray": ("feed_tray", "stripping_tray"),
-        "combined_reboiler_sump": (
-            "stripping_tray",
-            "combined_reboiler_sump",
-        ),
+        volume: tuple(
+            candidate
+            for candidate in volume_ids
+            if candidate in liquid_source_volumes[volume]
+            or (
+                volume == topology.bottom_volume
+                and candidate == topology.bottom_volume
+            )
+        )
+        for volume in volume_ids
+    }
+    energy_source_volumes = {
+        volume: {
+            source
+            for source, destination, _symbol in internal_links
+            if volume in (source, destination)
+        }
+        for volume in volume_ids
     }
     energy_temperature_dependencies = {
-        "reflux_drum": ("T[reflux_drum]", "T[rectifying_tray]"),
-        "rectifying_tray": (
-            "T[reflux_drum]",
-            "T[rectifying_tray]",
-            "T[feed_tray]",
-        ),
-        "feed_tray": (
-            "T[rectifying_tray]",
-            "T[feed_tray]",
-            "T[stripping_tray]",
-        ),
-        "stripping_tray": (
-            "T[feed_tray]",
-            "T[stripping_tray]",
-            "T[combined_reboiler_sump]",
-        ),
-        "combined_reboiler_sump": (
-            "T[stripping_tray]",
-            "T[combined_reboiler_sump]",
-        ),
+        volume: tuple(
+            f"T[{candidate}]"
+            for candidate in volume_ids
+            if candidate in energy_source_volumes[volume]
+        )
+        for volume in volume_ids
     }
     rows: list[DAERow] = []
 
-    for volume in VOLUME_IDS:
+    for volume in volume_ids:
         balance_states = tuple(
             state
             for dependency_volume in state_volume_dependencies[volume]
@@ -270,12 +284,12 @@ def build_dynamic_dae_contract(
                 )
             )
 
-    for volume in VOLUME_IDS:
+    for volume in volume_ids:
         dependencies = [*derivative_by_volume[volume]]
         dependencies.extend(energy_temperature_dependencies[volume])
         dependencies.extend(vapor_composition_dependencies[volume])
         dependencies.extend(flow_dependencies[volume])
-        if volume == "reflux_drum":
+        if volume == topology.top_volume:
             dependencies.append("Q_C")
         rows.append(
             DAERow(
@@ -293,7 +307,7 @@ def build_dynamic_dae_contract(
             )
         )
 
-    for volume in EQUILIBRIUM_VOLUME_IDS:
+    for volume in equilibrium_volume_ids:
         dependencies = (f"T[{volume}]", *all_stage_y[volume])
         for component in components:
             rows.append(
@@ -306,7 +320,7 @@ def build_dynamic_dae_contract(
                 )
             )
 
-    for volume in HYDRAULIC_VOLUME_IDS:
+    for volume in hydraulic_volume_ids:
         rows.append(
             DAERow(
                 f"francis_hydraulics[{volume}]",
@@ -324,13 +338,14 @@ def build_dynamic_dae_contract(
                 f"condenser_bubble_fugacity[{component}]",
                 "condenser_bubble_fugacity",
                 "total_condenser_reflux_drum_boundary",
-                ("T[reflux_drum]", *bubble_names),
-                _inventory_coordinates(components, "reflux_drum"),
+                (f"T[{topology.top_volume}]", *bubble_names),
+                _inventory_coordinates(components, topology.top_volume),
             )
         )
 
     return DynamicDAEContract(
         component_names=components,
+        topology=topology,
         state_coordinates=states,
         derivative_variables=derivatives,
         algebraic_variables=algebraic,
@@ -339,12 +354,12 @@ def build_dynamic_dae_contract(
             "ordered_pressure_profile",
             "feed_rate_composition_enthalpy",
             "R",
-            "D_dd094_root",
-            "B_dd094_root",
+            *product_flow_parameters,
             "Q_R",
             "hydraulic_geometry",
         ),
-        accepted_root_artifact="logs/dd094_core_v3_steady_root_20260725.json",
+        product_flow_parameters=product_flow_parameters,
+        accepted_root_artifact=accepted_root_artifact,
         internal_energy_storage=(
             "U[j]=NL[j]*uL(T[j],P[j],x[j]); dU[j]/dt is assembled by "
             "the provider-consistent chain rule against dN[j,k]/dt"
@@ -408,7 +423,12 @@ def audit_dynamic_dae_contract(
         if not count
     )
     rank = int(structural_rank(matrix))
-    expected = 10 * len(contract.component_names) + 8
+    expected = (
+        2
+        * len(contract.topology.volume_ids)
+        * (len(contract.component_names) + 1)
+        - 2
+    )
     independent_u = tuple(
         name for name in contract.state_coordinates if name.startswith("U[")
     )
@@ -431,11 +451,13 @@ def audit_dynamic_dae_contract(
             if "profile" in dependency.lower()
         )
     )
-    fixed_product_parameters = {
-        "D_dd094_root",
-        "B_dd094_root",
-    }.issubset(contract.fixed_parameters)
-    internal_links = (*LIQUID_LINKS, *VAPOR_LINKS)
+    fixed_product_parameters = set(contract.product_flow_parameters).issubset(
+        contract.fixed_parameters
+    )
+    internal_links = (
+        *contract.topology.liquid_links,
+        *contract.topology.vapor_links,
+    )
     stream_coefficients = {
         symbol: (-1, 1) for _source, _destination, symbol in internal_links
     }
@@ -472,7 +494,9 @@ def audit_dynamic_dae_contract(
         and bool(contract.accepted_root_artifact)
         and preparation_only
     )
-    count = lambda block: sum(row.block == block for row in contract.rows)
+    def count(block: str) -> int:
+        return sum(row.block == block for row in contract.rows)
+
     return DynamicDAEAudit(
         component_count=len(contract.component_names),
         state_coordinate_count=len(contract.state_coordinates),

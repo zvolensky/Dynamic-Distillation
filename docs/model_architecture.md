@@ -1284,3 +1284,21 @@ wall limits. Coarse/refined states at the shared `t=3 s` point agree within the
 frozen trajectory tolerances. Therefore DD-134 identifies numerical
 globalization loss near the residual floor, not model or grid divergence. The
 one-frozen-Jacobian controlled-trajectory path is stopped without retry.
+
+## Seven-Volume Core V3 Dynamic Boundary
+
+DD-170 generalizes the conserved Core V3 dynamic DAE ledger from the default
+five-volume topology to the accepted DD-169 seven-volume topology. Component
+inventories are the only differential states. Temperatures, phase
+compositions, five Francis liquid flows, six energy-owned vapor flows, and
+condenser duty are algebraic. Internal energy is derived from inventory and
+temperature through provider-consistent properties rather than introduced as
+an independent state.
+
+For three components, the resulting dynamic solve ledger is `54 x 54` and has
+full structural rank. Its adjacency dependencies are generated from topology
+links, so interior volume count can change without named-stage equation code.
+The accepted DD-169 product rates remain fixed open-loop inputs for this first
+contract. DD-170 is structural only: a live leading-Jacobian and consistent-
+derivative audit is the next gate, and dynamic integration is not yet
+authorized.

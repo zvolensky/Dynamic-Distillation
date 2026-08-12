@@ -1,0 +1,93 @@
+{
+  "schema_id": "dd179-core-v3-duration-scaled-response-contract-v1",
+  "preparation_base_commit": "54c622e4595ac54192779b15d1730ad15a1494a1",
+  "dd178_contract_path": "logs/dd178_core_v3_seven_volume_physical_modest_trajectory_contract_20260812.json",
+  "dd178_contract_sha256": "3522f5457b53dd4772d234e34084f0ded258fab681b4315da3f8b9c8c35695a9",
+  "dd178_result_path": "logs/dd178_core_v3_seven_volume_physical_modest_trajectory_20260812.json",
+  "dd178_result_sha256": "fb791be6289b2d7b86738831d501a6093f14ab40c1ebd1e04ab59d214a05e36d",
+  "duration_seconds": 10.0,
+  "inherited_absolute_ceiling_lbmol": 0.01,
+  "response": {
+    "coarse": {
+      "component_inventory_change_lbmol": [
+        0.006613266377136995,
+        0.01102344152279322,
+        0.002204886514409865
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0066132663766068816,
+        0.01102344152197263,
+        0.002204886514422353
+      ],
+      "component_inventory_identity_max_abs_lbmol": 8.205901236291169e-13,
+      "total_inventory_change_lbmol": 0.01984159441434008,
+      "expected_total_inventory_change_lbmol": 0.019841594413001862
+    },
+    "refined": {
+      "component_inventory_change_lbmol": [
+        0.006613313509253871,
+        0.011023415147356275,
+        0.0022048657567483865
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.00661331350902041,
+        0.01102341514732533,
+        0.0022048657566560935
+      ],
+      "component_inventory_identity_max_abs_lbmol": 2.334608201204347e-13,
+      "total_inventory_change_lbmol": 0.019841594413358532,
+      "expected_total_inventory_change_lbmol": 0.01984159441300183
+    }
+  },
+  "response_gates": {
+    "coarse": {
+      "positive": true,
+      "detectable": true,
+      "bounded": false,
+      "global_component_identity": true,
+      "monotone": true
+    },
+    "refined": {
+      "positive": true,
+      "detectable": true,
+      "bounded": false,
+      "global_component_identity": true,
+      "monotone": true
+    }
+  },
+  "campaign_gates": {
+    "coarse_complete": true,
+    "refined_complete": true,
+    "response": false,
+    "shared_time_refinement": true,
+    "legacy_ratio_diagnostic_only": true,
+    "provider": true,
+    "provider_calls": true,
+    "wall_clock": true
+  },
+  "limits": {
+    "relative_actual_expected_response_error": 1e-06,
+    "cross_grid_total_response_difference_lbmol": 1e-09,
+    "global_component_inventory_identity_lbmol": 1e-06
+  },
+  "prospective_policy": {
+    "response_scale": "integrated_external_flow_over_contract_duration",
+    "absolute_duration_independent_response_ceiling": false,
+    "positive_and_monotone_required": true
+  },
+  "interpretation_rules": [
+    "DD-178 remains formally failed regardless of adjudication",
+    "a pass may authorize only a separately frozen longer trajectory contract",
+    "no model, provider, solver, or endpoint regeneration is permitted"
+  ],
+  "implementation_sha256": {
+    "tools/adjudicate_core_v3_seven_volume_modest_response.py": "bd2a9f098809787b6e863a2f13f8a470f57b2f0dfb01a1e27c8821d74533abd5",
+    "tests/test_core_v3_seven_volume_modest_response_adjudication.py": "fa9a201a0e078a488dc76c8a35551aec58b567051aee576161c89c8fc782e67e"
+  },
+  "model_calls_attempted": false,
+  "provider_calls_attempted": false,
+  "solver_calls_attempted": false,
+  "endpoint_regeneration_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "4efb868d72a42d1327580ec4a8602ff10c2ca99b510a62626bd20e5a9df17463"
+}

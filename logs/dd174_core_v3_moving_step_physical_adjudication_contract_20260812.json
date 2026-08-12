@@ -1,0 +1,195 @@
+{
+  "schema_id": "dd174-core-v3-moving-step-physical-adjudication-contract-v1",
+  "preparation_base_commit": "d9d1383922fa580ee4ad0bbd1fcf90f9ac792959",
+  "dd173_contract_path": "logs/dd173_core_v3_seven_volume_moving_step_contract_20260812.json",
+  "dd173_contract_sha256": "d4402ee4e628d056d2368affc3edca688db1e100edc56617ad95eef2665ccfd1",
+  "dd173_result_path": "logs/dd173_core_v3_seven_volume_moving_step_20260812.json",
+  "dd173_result_sha256": "7934e5f063173966a046044ff4976171150a393203d87e2f9e185f16c15b2baa",
+  "component_names": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "volume_roles": [
+    "reflux_drum",
+    "rectifying_volume_1",
+    "rectifying_volume_2",
+    "feed_tray",
+    "stripping_volume_1",
+    "stripping_volume_2",
+    "combined_reboiler_sump"
+  ],
+  "initial_inventory_lbmol": [
+    [
+      1078.7579493772635,
+      302.06334739565926,
+      8.078703227077366
+    ],
+    [
+      21.262766498681657,
+      13.802603376969264,
+      0.7097601444525475
+    ],
+    [
+      14.075829610173384,
+      16.44477621102442,
+      1.4569753282758404
+    ],
+    [
+      15.227608300334952,
+      26.321585814582598,
+      3.9173704765112305
+    ],
+    [
+      15.027472225611467,
+      34.2380610933529,
+      5.079944646861707
+    ],
+    [
+      11.083334711876633,
+      36.48338889992885,
+      5.989645731894518
+    ],
+    [
+      105.81953840350975,
+      562.2338442874187,
+      125.94661730907151
+    ]
+  ],
+  "full_inventory_lbmol": [
+    [
+      1078.7579500386923,
+      302.06334758535434,
+      8.078703232574409
+    ],
+    [
+      21.26276638671888,
+      13.802603424479033,
+      0.7097601698006157
+    ],
+    [
+      14.07582950659133,
+      16.44477507413106,
+      1.456976116947212
+    ],
+    [
+      15.228180142739978,
+      26.322535432316005,
+      3.917563330729475
+    ],
+    [
+      15.027551721583555,
+      34.238195223237966,
+      5.079968296176723
+    ],
+    [
+      11.083343340968058,
+      36.48340589697132,
+      5.989648468096157
+    ],
+    [
+      105.81953937547777,
+      562.2338467539929,
+      125.946617712394
+    ]
+  ],
+  "refined_inventory_lbmol": [
+    [
+      1078.7579502652434,
+      302.06334765081806,
+      8.078703234095606
+    ],
+    [
+      21.26276633344506,
+      13.802603474666212,
+      0.7097601646114335
+    ],
+    [
+      14.075829459198108,
+      16.444775359374155,
+      1.4569759590752545
+    ],
+    [
+      15.22819902885869,
+      26.322568185831866,
+      3.9175692967277684
+    ],
+    [
+      15.027536997857613,
+      34.238170828648336,
+      5.0799639071096845
+    ],
+    [
+      11.08333967166229,
+      36.48339870542376,
+      5.989647309045661
+    ],
+    [
+      105.8195387571251,
+      562.2338451853791,
+      125.94661745577658
+    ]
+  ],
+  "inherited_dd173_refinement": {
+    "relative_inventory_difference": 1.5229599368718284e-06,
+    "rate_coordinate_difference": 2.4391528236718233e-06,
+    "algebraic_coordinate_difference": 2.5980971921288343e-06,
+    "total_inventory_difference_lbmol": 5.74651437545981e-13
+  },
+  "inherited_dd173_response": {
+    "full": {
+      "component_inventory_change_lbmol": [
+        0.0006613853206136611,
+        0.0011023115466173294,
+        0.00022046257387120516
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0006613853208254265,
+        0.0011023115466261718,
+        0.0002204625738484525
+      ],
+      "component_inventory_identity_max_abs_lbmol": 2.117653925479135e-13,
+      "total_inventory_change_lbmol": 0.0019841594411021957,
+      "expected_total_inventory_change_lbmol": 0.001984159441300051
+    },
+    "refined": {
+      "component_inventory_change_lbmol": [
+        0.0006613859389403842,
+        0.0011023112054751039,
+        0.00022046229726135902
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0006613859387703119,
+        0.0011023112052921155,
+        0.00022046229723773398
+      ],
+      "component_inventory_identity_max_abs_lbmol": 1.8298839006558598e-13,
+      "total_inventory_change_lbmol": 0.001984159441676847,
+      "expected_total_inventory_change_lbmol": 0.0019841594413001614
+    }
+  },
+  "limits": {
+    "maximum_absolute_component_difference_lbmol": 0.0001,
+    "maximum_state_relative_difference_with_1_lbmol_floor": 1e-05,
+    "maximum_volume_holdup_relative_component_difference": 1e-06,
+    "component_difference_l1_lbmol": 0.0002,
+    "absolute_signed_total_inventory_difference_lbmol": 1e-09,
+    "inherited_total_inventory_refinement_lbmol": 1e-06,
+    "inherited_global_component_identity_lbmol": 1e-06
+  },
+  "implementation_sha256": {
+    "tools/adjudicate_core_v3_seven_volume_moving_step.py": "88feafd75741efd4b14e130db3b12811e0e2bc3acce98460c0eaf4943e95e582",
+    "tests/test_core_v3_seven_volume_moving_step_adjudication.py": "a1d1611d3351db8ab98d6238a41752a63be8402d485d0f7dd2ccedefd67dcd4a"
+  },
+  "interpretation_rules": [
+    "DD-173 remains formally failed regardless of adjudication",
+    "a pass may authorize only a smaller-timestep moving proof contract",
+    "a fail stops the moving dynamic path",
+    "no model, provider, solver, or endpoint regeneration is permitted"
+  ],
+  "model_calls_attempted": false,
+  "provider_calls_attempted": false,
+  "solver_calls_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "ba89677f68ff6b2adbb71804ece402fff1f388ffffe6262a4c6a21b52e175281"
+}

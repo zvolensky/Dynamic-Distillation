@@ -1356,3 +1356,16 @@ DD-173 remains formally failed, and no trajectory is authorized. The
 architecture is authorized only for one separately frozen moving proof using
 the unchanged disturbance and solver at a smaller grid: one `0.25 s` step
 versus two successive `0.125 s` steps.
+
+DD-175 executes that smaller-grid proof. All three roots remain full-rank,
+physical, conservative, and tightly closed. Every DD-174 physical-scale gate
+passes, and the strict relative-inventory discrepancy falls by `12.99x`, from
+`1.522960e-6` to `1.172326e-7`. The remaining absolute component difference
+is only `2.535865e-6 lbmol`, while total accumulation agrees within
+`8.13e-14 lbmol`.
+
+The retained `<1e-7` relative-inventory gate nevertheless misses by `17.2%`.
+Because the DD-175 contract made any failed gate a hard stop, this moving-step
+campaign ends without a trajectory or another tuned grid. The numerical
+evidence supports timestep convergence; the stop reflects the precommitted
+authorization rule, not rank loss, conservation failure, or dynamic blowup.

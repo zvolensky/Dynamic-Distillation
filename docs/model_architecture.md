@@ -1383,3 +1383,17 @@ in force. Under this prospective policy, the immutable DD-175 evidence is
 sufficient to draft one separately frozen short open-loop trajectory using
 the `0.25 s` and `0.125 s` grids. No trajectory or controller is authorized
 until that new contract is committed.
+
+DD-177 supplies the first accepted seven-volume moving trajectory under that
+policy. The `8 x 0.25 s` and `16 x 0.125 s` paths both complete the two-second
+horizon. All 24 roots retain rank `54`, close below `4.15e-12`, remain
+physical and conservative, and use DWSIM PR without fallback. Positive total
+accumulation is `0.003968318883 lbmol` on both grids.
+
+Every shared-time comparison passes. Worst absolute component and
+volume-holdup-relative differences are `1.558675e-5 lbmol` and
+`3.428178e-7`; rate and algebraic differences remain near `1.2e-6`. The old
+unfloored diagnostic reaches `7.258663e-7`, demonstrating that it would have
+rejected a coherent trajectory for the same trace-component scaling reason.
+One separately frozen modest open-loop extension is now authorized.
+Controllers remain outside the seven-volume dynamic boundary.

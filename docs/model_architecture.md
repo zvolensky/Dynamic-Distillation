@@ -1328,3 +1328,18 @@ The architecture is now authorized for one small open-loop moving-step proof.
 That next gate must introduce one predeclared physical input change and verify
 direction, refinement, rank, conservation, and physicality before any
 multi-step trajectory or controller is considered.
+
+DD-173 performs that first moving gate with a `+0.1%` feed-rate and feed-
+enthalpy step. Every nonlinear, rank, physical, conservation, direction, and
+global-response check passes. Both discretizations accumulate
+`0.00198415944 lbmol` over one second and agree in total inventory within
+`5.75e-13 lbmol`. The formal campaign nevertheless stops because one local
+component's full/refined relative inventory difference is `1.522960e-6`, above
+the frozen `1e-7` limit; the corresponding absolute difference is only
+`5.9660e-6 lbmol`.
+
+This is a refinement-metric failure, not evidence of a divergent or
+nonconservative response. It does not authorize a trajectory. The only
+defensible successor is a zero-call physical-scale adjudication of the saved
+endpoints before deciding whether a separately frozen smaller-timestep moving
+proof is warranted.

@@ -24,9 +24,6 @@ from dynamic_distillation.core_v3.dynamic_dae_numerical_audit_v1 import (
 from dynamic_distillation.core_v3.provider_call_audit_v1 import (
     ProviderCallAudit,
 )
-from dynamic_distillation.core_v3.provider_governed_registry_v1 import (
-    VOLUME_IDS,
-)
 from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
     NumericalReference,
     OperatingSpec,
@@ -106,11 +103,14 @@ def component_rate_scales(
         ],
         dtype=int,
     )
-    expected = len(VOLUME_IDS) * len(evaluation.physical_state.liquid_mole_fraction[0])
+    volume_count = len(contract.topology.volume_ids)
+    expected = volume_count * len(
+        evaluation.physical_state.liquid_mole_fraction[0]
+    )
     if indices.size != expected:
         raise RuntimeError("component-rate scale count does not match inventory")
     scales = np.asarray(evaluation.scales[indices], dtype=float).reshape(
-        (len(VOLUME_IDS), -1)
+        (volume_count, -1)
     )
     if np.any(~np.isfinite(scales)) or np.any(scales <= 0.0):
         raise ValueError("component-rate scales must be positive and finite")
@@ -128,7 +128,7 @@ def saturated_storage_vector(
     evaluation_kind: str,
 ) -> tuple[np.ndarray, float]:
     inventory = np.asarray(inventory_lbmol, dtype=float)
-    expected = (len(VOLUME_IDS), len(spec.component_names))
+    expected = (len(spec.topology.volume_ids), len(spec.component_names))
     if inventory.shape != expected or np.any(inventory <= 0.0):
         raise ValueError("storage inventory must be positive with model shape")
     vapor_guesses = (
@@ -138,9 +138,9 @@ def saturated_storage_vector(
             for row in np.asarray(state.vapor_mole_fraction, dtype=float)
         ),
     )
-    storage = np.empty(len(VOLUME_IDS), dtype=float)
+    storage = np.empty(len(spec.topology.volume_ids), dtype=float)
     maximum_bubble = 0.0
-    for volume_index, volume in enumerate(VOLUME_IDS):
+    for volume_index, volume in enumerate(spec.topology.volume_ids):
         total = float(np.sum(inventory[volume_index]))
         liquid_x = inventory[volume_index] / total
         bubble = solve_local_bubble(
@@ -192,7 +192,7 @@ def governing_storage_vector(
 ) -> np.ndarray:
     """Build liquid internal-energy storage from the governing property packet."""
     inventory = np.asarray(inventory_lbmol, dtype=float)
-    expected = (len(VOLUME_IDS), len(spec.component_names))
+    expected = (len(spec.topology.volume_ids), len(spec.component_names))
     if inventory.shape != expected or np.any(inventory <= 0.0):
         raise ValueError("storage inventory must be positive with model shape")
     properties = evaluation.steady_evaluation.properties
@@ -200,7 +200,7 @@ def governing_storage_vector(
     density = np.asarray(properties.liquid_density_lbmol_ft3, dtype=float)
     pressure = np.asarray(spec.pressure_psia, dtype=float)
     if (
-        enthalpy.shape != (len(VOLUME_IDS),)
+        enthalpy.shape != (len(spec.topology.volume_ids),)
         or density.shape != enthalpy.shape
         or pressure.shape != enthalpy.shape
         or np.any(~np.isfinite(enthalpy))
@@ -219,7 +219,7 @@ def _maximum_equilibrium_residual(
     indices = [
         index
         for index, row in enumerate(contract.rows)
-        if row.block in {"full_phase_equilibrium", "condenser_bubble"}
+        if row.block in {"full_phase_equilibrium", "condenser_bubble_fugacity"}
     ]
     if not indices:
         raise RuntimeError("dynamic contract has no equilibrium rows")
@@ -251,7 +251,8 @@ def zero_rate_evaluation(
         rate_coordinates=np.zeros(len(contract.derivative_variables)),
         algebraic_coordinates=algebraic_coordinates,
         storage_gradient_BTU_lbmol=np.zeros(
-            (len(VOLUME_IDS), len(spec.component_names)), dtype=float
+            (len(spec.topology.volume_ids), len(spec.component_names)),
+            dtype=float,
         ),
         fixed_steady_scales=fixed_steady_scales,
         state_id=state_id,
@@ -280,7 +281,7 @@ def evaluate_backward_euler_residual(
         raise ValueError("backward-Euler step must be positive")
     previous = np.asarray(previous_inventory_lbmol, dtype=float)
     scales = np.asarray(rate_scales_lbmolph, dtype=float)
-    expected = (len(VOLUME_IDS), len(spec.component_names))
+    expected = (len(spec.topology.volume_ids), len(spec.component_names))
     if previous.shape != expected or scales.shape != expected:
         raise ValueError("inventory or rate-scale shape is invalid")
     if np.any(previous <= 0.0) or np.any(scales <= 0.0):
@@ -317,12 +318,12 @@ def evaluate_backward_euler_residual(
     )
     endpoint_storage = governing_storage_vector(spec, dynamic, endpoint_inventory)
     previous_storage = np.asarray(previous_internal_energy_BTU, dtype=float)
-    if previous_storage.shape != (len(VOLUME_IDS),):
+    if previous_storage.shape != (len(spec.topology.volume_ids),):
         raise ValueError("previous storage vector has invalid shape")
     storage_rate = (endpoint_storage - previous_storage) / step_hours
     raw = np.asarray(dynamic.raw, dtype=float).copy()
     energy_indices = _energy_row_indices(contract)
-    if energy_indices.size != len(VOLUME_IDS):
+    if energy_indices.size != len(spec.topology.volume_ids):
         raise RuntimeError("dynamic contract must contain one energy row per volume")
     raw[energy_indices] += storage_rate
     return BackwardEulerEvaluation(

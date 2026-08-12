@@ -1,0 +1,92 @@
+{
+  "schema_id": "dd174-core-v3-moving-step-physical-adjudication-result-v1",
+  "classification": "moving_step_physical_scale_adjudication_passed",
+  "decision": "authorize_one_frozen_smaller_timestep_moving_proof_contract",
+  "contract_commit": "590e953249d0df3f53a459f381ad47f1c71f4214",
+  "contract_payload_sha256": "ba89677f68ff6b2adbb71804ece402fff1f388ffffe6262a4c6a21b52e175281",
+  "source_dd173_classification": "seven_volume_open_loop_moving_step_failed",
+  "source_dd173_formal_failure_preserved": true,
+  "metrics": {
+    "maximum_absolute_component_difference_lbmol": 3.2753515860406424e-05,
+    "maximum_absolute_component_index": [
+      3,
+      1
+    ],
+    "maximum_state_relative_difference_with_1_lbmol_floor": 1.5229599368718284e-06,
+    "maximum_state_relative_index": [
+      3,
+      2
+    ],
+    "maximum_volume_holdup_relative_component_difference": 7.2038686350587e-07,
+    "maximum_volume_relative_index": [
+      3,
+      1
+    ],
+    "component_difference_l1_lbmol": 0.00011646919762409169,
+    "signed_total_inventory_difference_lbmol": -5.74651437545981e-13,
+    "absolute_signed_total_inventory_difference_lbmol": 5.74651437545981e-13,
+    "difference_matrix_lbmol": [
+      [
+        -2.2655103748547845e-07,
+        -6.546372333104955e-08,
+        -1.5211973902751197e-09
+      ],
+      [
+        5.3273819133892175e-08,
+        -5.0187178857186154e-08,
+        5.189182195053377e-09
+      ],
+      [
+        4.7393221791480755e-08,
+        -2.852430966981956e-07,
+        1.578719575068277e-07
+      ],
+      [
+        -1.8886118711591848e-05,
+        -3.2753515860406424e-05,
+        -5.965998293611108e-06
+      ],
+      [
+        1.4723725941578891e-05,
+        2.4394589630105656e-05,
+        4.389067038701455e-06
+      ],
+      [
+        3.6693057676728813e-06,
+        7.191547560125855e-06,
+        1.1590504964686943e-06
+      ],
+      [
+        6.183526721770249e-07,
+        1.568613811286923e-06,
+        2.5661742597549164e-07
+      ]
+    ]
+  },
+  "limits": {
+    "maximum_absolute_component_difference_lbmol": 0.0001,
+    "maximum_state_relative_difference_with_1_lbmol_floor": 1e-05,
+    "maximum_volume_holdup_relative_component_difference": 1e-06,
+    "component_difference_l1_lbmol": 0.0002,
+    "absolute_signed_total_inventory_difference_lbmol": 1e-09,
+    "inherited_total_inventory_refinement_lbmol": 1e-06,
+    "inherited_global_component_identity_lbmol": 1e-06
+  },
+  "gates": {
+    "absolute_component": true,
+    "state_relative_with_floor": true,
+    "volume_holdup_relative": true,
+    "component_l1": true,
+    "signed_total": true,
+    "inherited_total_response_refinement": true,
+    "inherited_global_component_identity": true,
+    "dd173_formal_failure_preserved": true,
+    "zero_live_calls": true
+  },
+  "pass_gate": true,
+  "wall_clock_sec": 0.08712279998871963,
+  "model_call_count": 0,
+  "provider_call_count": 0,
+  "solver_call_count": 0,
+  "endpoint_regeneration_attempted": false
+}

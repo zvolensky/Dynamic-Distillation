@@ -1343,3 +1343,16 @@ nonconservative response. It does not authorize a trajectory. The only
 defensible successor is a zero-call physical-scale adjudication of the saved
 endpoints before deciding whether a separately frozen smaller-timestep moving
 proof is warranted.
+
+DD-174 performs that immutable-endpoint adjudication with zero model,
+provider, solver, or endpoint-regeneration calls. Maximum full/refined
+component difference is `3.275352e-5 lbmol`; the L1 difference is
+`1.164692e-4 lbmol`; the maximum difference relative to its volume's initial
+holdup is `7.203869e-7`; and the signed column-total difference is
+`-5.746514e-13 lbmol`. Every frozen physical-scale and inherited conservation
+gate passes.
+
+DD-173 remains formally failed, and no trajectory is authorized. The
+architecture is authorized only for one separately frozen moving proof using
+the unchanged disturbance and solver at a smaller grid: one `0.25 s` step
+versus two successive `0.125 s` steps.

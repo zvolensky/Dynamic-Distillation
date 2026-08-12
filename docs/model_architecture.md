@@ -1302,3 +1302,17 @@ The accepted DD-169 product rates remain fixed open-loop inputs for this first
 contract. DD-170 is structural only: a live leading-Jacobian and consistent-
 derivative audit is the next gate, and dynamic integration is not yet
 authorized.
+
+DD-171 completes that live numerical gate at the accepted DD-169 root. The
+zero-rate residual closes at `4.98e-13`, the provider-consistent storage
+gradient is stable to step halving, and both complete `54 x 54` leading
+matrices retain rank `54` with condition about `50.97`. No registered coupling
+is missing or exceeded, and component and energy conservation remain at
+machine scale. Exact-state memoization serves approximately `79.1%` of logical
+property requests, yielding an `8.446 s` audit wall without changing property
+ownership.
+
+The seven-volume architecture is therefore ready for one stationary implicit
+root-hold step. This authorizes neither a disturbance nor a trajectory: the
+first timestep must prove that backward Euler preserves the accepted root and
+that one full step agrees with two half steps before moving dynamics begin.

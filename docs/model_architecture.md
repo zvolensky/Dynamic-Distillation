@@ -1369,3 +1369,17 @@ Because the DD-175 contract made any failed gate a hard stop, this moving-step
 campaign ends without a trajectory or another tuned grid. The numerical
 evidence supports timestep convergence; the stop reflects the precommitted
 authorization rule, not rank loss, conservation failure, or dynamic blowup.
+
+DD-176 corrects the prospective accuracy policy without changing either
+historical result. New Core V3 moving-step and trajectory contracts use a
+topology-neutral physical refinement assessment: absolute component,
+`1 lbmol`-floor-relative, volume-holdup-relative, L1, and signed-total
+inventory differences. The old unfloored component-relative maximum remains
+reported as a diagnostic but is no longer a standalone campaign veto.
+
+All equation, nonlinear, equilibrium, physicality, kinematic, conservation,
+response, rate/algebraic refinement, provider, and performance gates remain
+in force. Under this prospective policy, the immutable DD-175 evidence is
+sufficient to draft one separately frozen short open-loop trajectory using
+the `0.25 s` and `0.125 s` grids. No trajectory or controller is authorized
+until that new contract is committed.

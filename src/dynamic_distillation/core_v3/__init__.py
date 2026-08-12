@@ -17,6 +17,11 @@ from dynamic_distillation.core_v3.provider_governed_registry_v1 import (
     audit_provider_governed_registry,
     build_provider_governed_registry,
 )
+from dynamic_distillation.core_v3.physical_refinement_policy_v1 import (
+    InventoryRefinementAssessment,
+    InventoryRefinementLimits,
+    assess_inventory_refinement,
+)
 from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
     BubbleSolveResult,
     BubbleSolveSettings,
@@ -66,6 +71,8 @@ __all__ = [
     "CoordinateLayout",
     "HydraulicGeometry",
     "IndependentPengRobinsonProvider",
+    "InventoryRefinementAssessment",
+    "InventoryRefinementLimits",
     "JacobianAudit",
     "LiveProperties",
     "NumericalReference",
@@ -81,6 +88,7 @@ __all__ = [
     "SteadyRootSettings",
     "audit_numerical_jacobian",
     "audit_provider_governed_registry",
+    "assess_inventory_refinement",
     "build_provider_governed_registry",
     "coordinate_layout",
     "decode_coordinates",

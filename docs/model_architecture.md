@@ -1397,3 +1397,17 @@ unfloored diagnostic reaches `7.258663e-7`, demonstrating that it would have
 rejected a coherent trajectory for the same trace-component scaling reason.
 One separately frozen modest open-loop extension is now authorized.
 Controllers remain outside the seven-volume dynamic boundary.
+
+DD-178 executes that extension over ten seconds. All 120 moving roots and all
+40 shared-time comparisons pass their numerical, physical, conservation, and
+provider gates. Worst residual is `4.740065e-12`; rank remains `54`; worst
+condition is `1.434602e7`; and both grids accumulate the expected
+`0.019841594413 lbmol` within approximately `1e-12 lbmol`.
+
+The campaign nevertheless fails formally because it inherited DD-175's
+absolute `<0.01 lbmol` maximum-response gate, which was intended for a
+subsecond interval and is incompatible with the known ten-second integrated
+feed increment. This is a contract-scaling defect. DD-178 remains failed and
+cannot be rerun. Only a separately frozen zero-call response adjudication may
+use the immutable evidence to establish a duration-scaled policy before any
+future trajectory is considered.

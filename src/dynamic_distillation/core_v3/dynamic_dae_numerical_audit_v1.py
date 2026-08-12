@@ -13,10 +13,6 @@ from dynamic_distillation.core_v3.dynamic_dae_contract_v1 import (
 from dynamic_distillation.core_v3.provider_call_audit_v1 import (
     ProviderCallAudit,
 )
-from dynamic_distillation.core_v3.provider_governed_registry_v1 import (
-    EQUILIBRIUM_VOLUME_IDS,
-    VOLUME_IDS,
-)
 from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
     NumericalReference,
     OperatingSpec,
@@ -108,7 +104,7 @@ def _state_from_inventory_and_algebraic(
     algebraic_coordinates: Sequence[float],
 ) -> PhysicalState:
     inventory = np.asarray(inventory_lbmol, dtype=float)
-    expected = (len(VOLUME_IDS), len(spec.component_names))
+    expected = (len(spec.topology.volume_ids), len(spec.component_names))
     if inventory.shape != expected or np.any(~np.isfinite(inventory)):
         raise ValueError("dynamic inventory has an invalid shape or value")
     if np.any(inventory <= 0.0):
@@ -174,7 +170,7 @@ def _saturated_liquid_internal_energy(
     )
     if not bubble.success or bubble.residual_inf_norm >= 1.0e-10:
         raise RuntimeError("storage derivative bubble reconstruction failed")
-    volume = VOLUME_IDS[volume_index]
+    volume = spec.topology.volume_ids[volume_index]
     enthalpy = call_audit.phase_enthalpy(
         provider,
         phase="liquid",
@@ -224,10 +220,10 @@ def audit_storage_gradient(
     for relative_step in relative_steps:
         if not np.isfinite(relative_step) or relative_step <= 0.0:
             raise ValueError("storage derivative step must be positive")
-        storage = np.empty(len(VOLUME_IDS), dtype=float)
+        storage = np.empty(len(spec.topology.volume_ids), dtype=float)
         gradient = np.empty_like(inventory)
         maximum_bubble = 0.0
-        for volume_index, volume in enumerate(VOLUME_IDS):
+        for volume_index, volume in enumerate(spec.topology.volume_ids):
             storage[volume_index], residual = _saturated_liquid_internal_energy(
                 spec,
                 provider,
@@ -382,7 +378,7 @@ def evaluate_dynamic_implicit_residual(
             for name in component_names
         ],
         dtype=float,
-    ).reshape((len(VOLUME_IDS), len(spec.component_names)))
+    ).reshape((len(spec.topology.volume_ids), len(spec.component_names)))
     rates = np.asarray(rate_coordinates, dtype=float).reshape(
         component_scales.shape
     ) * component_scales

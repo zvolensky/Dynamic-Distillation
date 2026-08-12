@@ -1411,3 +1411,15 @@ feed increment. This is a contract-scaling defect. DD-178 remains failed and
 cannot be rerun. Only a separately frozen zero-call response adjudication may
 use the immutable evidence to establish a duration-scaled policy before any
 future trajectory is considered.
+
+DD-179 performs that zero-call adjudication. Coarse and refined accumulation
+match their path-integrated expected external flow within `6.7445e-11` and
+`1.7977e-11` relative, differ from each other by only
+`9.8155e-13 lbmol`, and preserve every non-response DD-178 gate. DD-178's
+formal failure remains unchanged.
+
+Future trajectory response acceptance is duration-scaled: actual inventory
+accumulation must match integrated expected external flow rather than remain
+below a fixed absolute ceiling inherited from a shorter run. One separately
+frozen longer open-loop trajectory is now authorized under the DD-176 and
+DD-179 policies. Controllers remain outside the current boundary.

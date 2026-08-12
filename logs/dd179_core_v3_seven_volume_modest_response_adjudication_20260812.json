@@ -1,0 +1,51 @@
+{
+  "schema_id": "dd179-core-v3-duration-scaled-response-result-v1",
+  "classification": "duration_scaled_response_adjudication_passed",
+  "decision": "authorize_one_frozen_longer_open_loop_trajectory_contract",
+  "contract_commit": "bd8f4fab32f97b12c8686a682d9b416dff2bd812",
+  "contract_payload_sha256": "4efb868d72a42d1327580ec4a8602ff10c2ca99b510a62626bd20e5a9df17463",
+  "source_dd178_classification": "seven_volume_physical_modest_trajectory_failed",
+  "source_dd178_formal_failure_preserved": true,
+  "metrics": {
+    "coarse": {
+      "actual_total_inventory_change_lbmol": 0.01984159441434008,
+      "expected_total_inventory_change_lbmol": 0.019841594413001862,
+      "absolute_response_error_lbmol": 1.3382177310727883e-12,
+      "relative_response_error": 6.744507035159819e-11,
+      "actual_to_expected_ratio": 1.0000000000674452,
+      "component_inventory_identity_max_abs_lbmol": 8.205901236291169e-13
+    },
+    "refined": {
+      "actual_total_inventory_change_lbmol": 0.019841594413358532,
+      "expected_total_inventory_change_lbmol": 0.01984159441300183,
+      "absolute_response_error_lbmol": 3.56700780024255e-13,
+      "relative_response_error": 1.7977425231034636e-11,
+      "actual_to_expected_ratio": 1.0000000000179774,
+      "component_inventory_identity_max_abs_lbmol": 2.334608201204347e-13
+    },
+    "cross_grid_total_difference_lbmol": 9.815481760711009e-13
+  },
+  "limits": {
+    "relative_actual_expected_response_error": 1e-06,
+    "cross_grid_total_response_difference_lbmol": 1e-09,
+    "global_component_inventory_identity_lbmol": 1e-06
+  },
+  "gates": {
+    "coarse_actual_expected": true,
+    "refined_actual_expected": true,
+    "cross_grid_total": true,
+    "coarse_component_identity": true,
+    "refined_component_identity": true,
+    "coarse_positive_monotone": true,
+    "refined_positive_monotone": true,
+    "all_nonresponse_campaign_gates": true,
+    "dd178_formal_failure_preserved": true,
+    "zero_live_calls": true
+  },
+  "pass_gate": true,
+  "wall_clock_sec": 0.07917509999242611,
+  "model_call_count": 0,
+  "provider_call_count": 0,
+  "solver_call_count": 0,
+  "endpoint_regeneration_attempted": false
+}

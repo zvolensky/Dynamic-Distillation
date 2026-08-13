@@ -1627,3 +1627,26 @@ Across a long persistent-worker campaign, repeated full-ledger reporting adds
 superlinear bookkeeping. A successor must replace task-level full reports with
 incremental ownership evidence and enforce its wall deadline while executing.
 DD-193 cannot be retried, and DD-190's timestep-accuracy question remains open.
+
+The DD-194 correction gives `ProviderCallAudit` a constant-time `record_count`
+and a `report_since(start_index)` operation that validates only the current
+task's appended records. On a 200,000-record development ledger, checking the
+newest 51 records takes about `56.5 microseconds` versus `0.278 s` for a full
+report. Controlled trajectories also accept an absolute monotonic deadline and
+return `stop_reason="deadline"` before starting another root.
+
+The live two-second qualification confirms that the runaway bookkeeping is
+gone. All 48 finer-grid roots and every scientific gate pass, including
+response-relative total refinement `5.8920e-7` and level refinement
+`2.5612e-10`. However, the four-worker trajectory takes `52.396 s` against a
+`55.487 s` projected serial baseline, only `1.059x` faster. DD-194 therefore
+fails its precommitted meaningful-speed gate and does not authorize the full
+ten-second finer-grid campaign.
+
+This closes the brute-force refinement direction. The equations remain
+healthy over the qualified short horizon, but first-order backward Euler needs
+too many expensive Jacobians to demonstrate ten-second controller accuracy by
+repeated timestep halving. The next architecture decision should be a
+property-free structural design for a higher-order implicit formula, with no
+live trajectory until its state/history ownership and startup procedure are
+explicitly gated.

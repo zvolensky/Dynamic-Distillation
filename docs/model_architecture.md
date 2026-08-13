@@ -1483,3 +1483,19 @@ the main process. The four-second trajectory improves from `23.359 s` serial
 to `12.480 s` parallel, or `1.627x` faster after charging startup. The serial
 builder remains the reference and fallback for development diagnostics, not an
 automatic runtime fallback after a parallel failure.
+
+DD-184 adds the first seven-volume terminal inventory-control ownership layer.
+Distillate and bottoms cease to be fixed open-loop parameters and become
+positive log-ratio algebraic outputs of two geometry-based PI level
+controllers. Each controller adds one integral-memory state, one memory-rate
+variable, and two equations. The resulting ledger has 23 states, 23 derivative
+variables, 35 algebraic variables, and 58 equations; its `58 x 58` incidence
+matrix has full structural rank.
+
+Controller ownership is terminal-only. The top output enters the reflux-drum
+component and energy balances, the bottom output enters the combined
+reboiler/sump balances, and both product component draws use live terminal
+liquid composition. Interior equations and topology-generated links are
+unchanged. DD-184 is structural evidence only: the inherited geometry and PI
+constants are not yet tuned, and live residual, Jacobian, timestep, and
+controlled-trajectory work remain separately gated.

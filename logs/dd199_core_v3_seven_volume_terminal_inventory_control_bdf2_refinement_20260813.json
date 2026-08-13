@@ -1,0 +1,18 @@
+{
+  "schema_id": "dd199-core-v3-seven-volume-controlled-bdf2-refinement-abort-v1",
+  "classification": "aborted_before_scientific_result",
+  "decision": "retire_dd199_without_rerun_or_reclassification",
+  "contract_commit": "ed6ffbf",
+  "contract_payload_sha256": "ed3ce37a3a1fbeb73ff3dffb56eec23463ca864f2c946dd57c6b3fb969b67f7f",
+  "completed_roots_before_abort": 2,
+  "completed_paths": 0,
+  "failure_type": "trajectory_evaluation_shape_handoff",
+  "exception": "AttributeError: 'TerminalInventoryControlBDF2Evaluation' object has no attribute 'endpoint_inventory_lbmol'",
+  "scientific_gates_evaluated": false,
+  "model_failure_inferred": false,
+  "thermodynamic_failure_inferred": false,
+  "nonlinear_failure_inferred": false,
+  "retry_attempted": false,
+  "result_reclassification_authorized": false,
+  "successor_authorized": "one separately numbered unchanged-science successor after tested method-aware history access"
+}

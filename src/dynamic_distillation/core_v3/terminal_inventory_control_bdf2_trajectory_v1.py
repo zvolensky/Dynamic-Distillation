@@ -17,7 +17,6 @@ from .terminal_inventory_control_bdf2_residual_v1 import (
 )
 from .terminal_inventory_control_contract_v1 import TerminalInventoryControlContract
 from .terminal_inventory_control_implicit_step_v1 import (
-    TerminalInventoryControlBackwardEulerEvaluation,
     TerminalInventoryControlStepOutcome,
     solve_terminal_inventory_control_backward_euler_step,
 )
@@ -40,6 +39,24 @@ class TerminalInventoryControlBDF2TrajectoryResult:
     completed_steps: int
     completed: bool
     records: tuple[TerminalInventoryControlBDF2TrajectoryRecord, ...]
+
+
+def _accepted_inventory(evaluation: Any) -> np.ndarray:
+    if hasattr(evaluation, "kinematics"):
+        return evaluation.kinematics.endpoint_inventory_lbmol
+    return evaluation.endpoint_inventory_lbmol
+
+
+def _accepted_storage(evaluation: Any) -> np.ndarray:
+    if hasattr(evaluation, "kinematics"):
+        return evaluation.kinematics.endpoint_internal_energy_BTU
+    return evaluation.endpoint_internal_energy_BTU
+
+
+def _accepted_memory(evaluation: Any) -> np.ndarray:
+    if hasattr(evaluation, "kinematics"):
+        return evaluation.kinematics.endpoint_controller_memory
+    return evaluation.endpoint_controller_memory
 
 
 def run_terminal_inventory_control_bdf2_trajectory(
@@ -104,11 +121,11 @@ def run_terminal_inventory_control_bdf2_trajectory(
     for index in range(2, requested + 1):
         history = build_controlled_bdf2_history(
             step_seconds=step,
-            current_inventory_lbmol=current.endpoint_inventory_lbmol,
+            current_inventory_lbmol=_accepted_inventory(current),
             prior_inventory_lbmol=prior_inventory,
-            current_internal_energy_BTU=current.endpoint_internal_energy_BTU,
+            current_internal_energy_BTU=_accepted_storage(current),
             prior_internal_energy_BTU=prior_storage,
-            current_controller_memory=current.endpoint_controller_memory,
+            current_controller_memory=_accepted_memory(current),
             prior_controller_memory=prior_memory,
         )
         rates = component_rate_scales(contract.base, current.control_evaluation.base)
@@ -134,9 +151,9 @@ def run_terminal_inventory_control_bdf2_trajectory(
         )
         if not outcome.success:
             break
-        prior_inventory = current.endpoint_inventory_lbmol
-        prior_storage = current.endpoint_internal_energy_BTU
-        prior_memory = current.endpoint_controller_memory
+        prior_inventory = _accepted_inventory(current)
+        prior_storage = _accepted_storage(current)
+        prior_memory = _accepted_memory(current)
         current = outcome.evaluation
         current_coordinates = outcome.final_coordinates
 
@@ -154,5 +171,8 @@ def run_terminal_inventory_control_bdf2_trajectory(
 __all__ = [
     "TerminalInventoryControlBDF2TrajectoryRecord",
     "TerminalInventoryControlBDF2TrajectoryResult",
+    "_accepted_inventory",
+    "_accepted_memory",
+    "_accepted_storage",
     "run_terminal_inventory_control_bdf2_trajectory",
 ]

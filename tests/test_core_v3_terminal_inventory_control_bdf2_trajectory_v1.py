@@ -5,14 +5,26 @@ import numpy as np
 import dynamic_distillation.core_v3.terminal_inventory_control_bdf2_trajectory_v1 as trajectory
 
 
-def _evaluation(value):
+def _evaluation(value, *, bdf2=False):
     inventory = np.full((2, 2), value, dtype=float)
+    common = dict(
+        control_evaluation=SimpleNamespace(base=SimpleNamespace(physical_state=object()))
+    )
+    if bdf2:
+        return SimpleNamespace(
+            **common,
+            kinematics=SimpleNamespace(
+                endpoint_inventory_lbmol=inventory,
+                endpoint_internal_energy_BTU=np.asarray((value, value)),
+                endpoint_controller_memory=np.asarray((value, value)),
+            ),
+        )
     return SimpleNamespace(
+        **common,
         endpoint_inventory_lbmol=inventory,
         previous_internal_energy_BTU=np.asarray((value - 1.0, value - 1.0)),
         endpoint_internal_energy_BTU=np.asarray((value, value)),
         endpoint_controller_memory=np.asarray((value, value)),
-        control_evaluation=SimpleNamespace(base=SimpleNamespace(physical_state=object())),
     )
 
 
@@ -26,7 +38,7 @@ def test_dd199_trajectory_uses_one_be_startup_then_bdf2(monkeypatch):
     def fake_bdf2(*args, **kwargs):
         calls.append(("bdf2", kwargs["history"].current_inventory_lbmol.copy()))
         value = 2.0 + sum(kind == "bdf2" for kind, _detail in calls)
-        return SimpleNamespace(success=True, evaluation=_evaluation(value), final_coordinates=np.zeros(4))
+        return SimpleNamespace(success=True, evaluation=_evaluation(value, bdf2=True), final_coordinates=np.zeros(4))
 
     monkeypatch.setattr(trajectory, "solve_terminal_inventory_control_backward_euler_step", fake_be)
     monkeypatch.setattr(trajectory, "solve_terminal_inventory_control_bdf2_step", fake_bdf2)

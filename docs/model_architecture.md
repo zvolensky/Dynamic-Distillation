@@ -1730,3 +1730,15 @@ The pass authorizes one short, separately frozen BDF2 grid-refinement proof.
 Every path must use one accepted backward-Euler startup and constant BDF2 steps;
 duration, grids, limits, and economics must be fixed before execution. Longer
 integration and controller tuning remain unauthorized.
+
+DD-199 attempts the authorized two-second BDF2 grid refinement but stops before
+a complete path. The backward-Euler startup and first BDF2 endpoint complete;
+the next history handoff incorrectly reads direct backward-Euler endpoint
+fields from a BDF2 evaluation whose accepted inventory, energy, and PI memory
+are grouped under `kinematics`. This is a trajectory adapter defect and yields
+no scientific result.
+
+The trajectory kernel now uses method-aware accessors for all three accepted
+history families, and its regression chains multiple BDF2-shaped endpoints.
+DD-199 remains retired. Only a separately numbered successor with unchanged
+physics, grids, solver, and limits may repeat the proof.

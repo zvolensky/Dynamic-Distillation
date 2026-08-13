@@ -1466,3 +1466,20 @@ The next performance boundary is a short multi-root proof with one pool kept
 alive for the entire run. This must demonstrate exact serial equivalence and
 amortize the approximately `5 s` startup before the parallel path becomes the
 production default. Controller logic remains outside that proof.
+
+DD-183 completes the multi-root production qualification. One serial and one
+persistent-parallel path each advance the same disturbed seven-volume model
+through 16 successive `0.25 s` roots. Each worker refreshes the new root's
+inventory, provider-derived storage, component-rate scales, and physical-state
+template once before that root's first Jacobian. Later Jacobians reuse only
+that current-root basis. All 56 paired matrices, SciPy decisions, and accepted
+states are exactly identical.
+
+The persistent four-worker path is therefore the authorized production
+Jacobian architecture for Core V3. The pool is created once per simulation,
+workers retain independent DWSIM providers and exact-state caches, evolving
+root data is supplied explicitly, and deterministic matrix assembly remains in
+the main process. The four-second trajectory improves from `23.359 s` serial
+to `12.480 s` parallel, or `1.627x` faster after charging startup. The serial
+builder remains the reference and fallback for development diagnostics, not an
+automatic runtime fallback after a parallel failure.

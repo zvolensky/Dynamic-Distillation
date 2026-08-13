@@ -1589,3 +1589,27 @@ rate, algebraic, PI-memory, and product refinements pass. DD-190 therefore
 stops the current controlled-trajectory extension on numerical accuracy, not
 model instability. A new explicit integration decision is required before a
 smaller-grid proof, parallel controller integration, tuning, or longer run.
+
+DD-191 qualifies the persistent four-worker Jacobian architecture against the
+controlled `58 x 58` root itself. The serial and parallel solves use the same
+17-color central-difference pattern, controlled residual, state, scales,
+provider, and trust-region settings. All four paired Jacobians, SciPy
+decisions, and endpoint quantities are bit-for-bit identical. Both roots close
+at `1.621788e-12`, retain rank `58`, and have condition `1.434585e7`.
+Parallel solve wall falls from `2.071781 s` to `1.086940 s`, a `1.906x`
+speedup excluding the separately measured worker startup.
+
+DD-191 formally fails only its startup-ping participation check. A process
+pool is not required to schedule four trivial ping tasks on four different
+processes, so that preflight observed three IDs. The actual evidence is
+stronger: every 34-task Jacobian used the same four worker IDs. DD-192
+adjudicates that reporting defect from immutable artifacts with zero live
+calls and authorizes persistent parallel Jacobians for controlled steps.
+
+This authorization changes computation ownership, not model equations or
+acceptance standards. The main process still owns ordinary residuals, solver
+decisions, endpoint evaluation, and deterministic matrix assembly. Isolated
+workers evaluate only colored perturbation residuals through DWSIM. DD-190's
+grid-accuracy failure remains unresolved; the next live campaign must be a
+separately frozen finer-grid refinement proof, with no controller tuning or
+longer-horizon extension bundled into it.

@@ -1,0 +1,82 @@
+{
+  "schema_id": "dd192-core-v3-controlled-parallel-worker-adjudication-result-v1",
+  "classification": "controlled_parallel_worker_adjudication_passed",
+  "decision": "authorize_persistent_parallel_controlled_step_path_under_task_participation_policy",
+  "contract_commit": "37ce61f924029fd3c813eb7ce62c3a0dda2622d0",
+  "contract_payload_sha256": "88ce1141182ea4d15bc98440772cb255becdf46b92765c0a03e00d6298925df0",
+  "preserved_dd191_classification": "controlled_parallel_first_root_failed",
+  "preserved_dd191_decision": "retain_serial_controlled_step_path",
+  "metrics": {
+    "startup_ping_worker_count": 3,
+    "actual_workers_per_jacobian": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "actual_worker_ids": [
+      [
+        11992,
+        18888,
+        19948,
+        31648
+      ],
+      [
+        11992,
+        18888,
+        19948,
+        31648
+      ],
+      [
+        11992,
+        18888,
+        19948,
+        31648
+      ],
+      [
+        11992,
+        18888,
+        19948,
+        31648
+      ]
+    ],
+    "jacobian_count": 4,
+    "matrix_max_abs_difference": 0.0,
+    "endpoint_max_abs_difference": 0.0,
+    "parallel_solve_ratio": 0.5246402214450527,
+    "solve_speedup": 1.9060681189208692
+  },
+  "preserved_dd191_gates": {
+    "serial_root": true,
+    "parallel_root": true,
+    "matrix_count": true,
+    "matrix_equivalence": true,
+    "decision_equivalence": true,
+    "endpoint_equivalence": true,
+    "provider": true,
+    "provider_calls": true,
+    "parallel_speed": true,
+    "wall_clock": true
+  },
+  "gates": {
+    "source_failure_preserved": true,
+    "source_failure_is_ping_only": true,
+    "actual_four_worker_participation": true,
+    "stable_worker_membership": true,
+    "matrix_equivalence": true,
+    "endpoint_equivalence": true,
+    "parallel_speed": true,
+    "all_other_dd191_gates": true,
+    "zero_live_calls": true,
+    "wall_clock": true
+  },
+  "pass_gate": true,
+  "wall_clock_sec": 0.0572286999959033,
+  "model_calls": 0,
+  "provider_calls": 0,
+  "solver_calls": 0,
+  "endpoint_regeneration_calls": 0,
+  "dd191_reclassified": false,
+  "dd191_rerun": false,
+  "adjudication_executed_once": true
+}

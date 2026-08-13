@@ -1423,3 +1423,17 @@ accumulation must match integrated expected external flow rather than remain
 below a fixed absolute ceiling inherited from a shorter run. One separately
 frozen longer open-loop trajectory is now authorized under the DD-176 and
 DD-179 policies. Controllers remain outside the current boundary.
+
+DD-180 completes that longer proof over thirty seconds. Both `0.25 s` and
+`0.125 s` paths complete all 360 roots with full rank, tight residual closure,
+physical states, exact kinematics, conservation, and DWSIM PR ownership. All
+120 same-time comparisons pass. Actual accumulation is
+`0.059524783239 lbmol` on each grid and matches integrated external flow at
+approximately `1e-11` relative.
+
+The largest physical refinement differences occur at intermediate times,
+with `5.143323e-5 lbmol` maximum absolute and `1.658663e-4 lbmol` L1 error;
+both remain inside their frozen limits and do not grow monotonically to the
+endpoint. Open-loop validation is therefore complete for this stage. The
+next boundary is structural terminal-inventory-control design only. A live
+controller, controller tuning, and controlled trajectory remain unauthorized.

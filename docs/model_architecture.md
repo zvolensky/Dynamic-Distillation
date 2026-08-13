@@ -1540,3 +1540,19 @@ product, and level refinement limit. This is the first accepted moving result
 for the seven-volume terminal-control layer. It authorizes one separately
 frozen short controlled trajectory, but the extremely small product response
 at this horizon does not qualify the inherited PI constants as tuned.
+
+DD-188 chains that controller-enabled formulation for two seconds on
+`8 x 0.25 s` and `16 x 0.125 s` grids. All 24 roots remain physical,
+conservative, rank `58`, and closed below `3.42e-12`. Both paths have positive
+monotone accumulation and reproduce their separately integrated external
+flows to about `8e-11` relative. Controller-memory, product-rate, terminal-level,
+rate, algebraic, and all physical inventory refinement metrics except signed
+total remain inside their frozen limits at every shared time.
+
+DD-188 is nevertheless formally failed. Evolving controller outputs make the
+two first-order grids integrate slightly different external product flow; the
+resulting total-inventory difference reaches `5.928153e-9 lbmol`, above the
+frozen `<1e-9 lbmol` cross-grid and signed-total limit. The trajectory cannot
+be rerun or reclassified. No longer live controlled trajectory is authorized
+unless a separately frozen zero-call adjudication establishes a prospective
+response-scaled total-difference policy.

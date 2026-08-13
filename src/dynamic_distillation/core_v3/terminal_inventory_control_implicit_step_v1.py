@@ -145,6 +145,7 @@ def evaluate_terminal_inventory_control_backward_euler_residual(
     solve_coordinates: Sequence[float],
     step_seconds: float,
     fixed_steady_scales: Sequence[float],
+    product_reference_lbmolph: Sequence[float] | None = None,
     state_id: str,
     evaluation_kind: str,
 ) -> TerminalInventoryControlBackwardEulerEvaluation:
@@ -192,6 +193,7 @@ def evaluate_terminal_inventory_control_backward_euler_residual(
         solve_coordinates=effective,
         storage_gradient_BTU_lbmol=np.zeros(expected, dtype=float),
         fixed_steady_scales=fixed_steady_scales,
+        product_reference_lbmolph=product_reference_lbmolph,
         state_id=state_id,
         evaluation_kind=evaluation_kind,
     )
@@ -255,6 +257,7 @@ def solve_terminal_inventory_control_backward_euler_step(
     level_setpoints: TerminalLevelSetpoints,
     initial_solve_coordinates: Sequence[float],
     fixed_steady_scales: Sequence[float],
+    product_reference_lbmolph: Sequence[float] | None = None,
     step_seconds: float,
     settings: ImplicitStepSettings,
     name: str,
@@ -274,6 +277,7 @@ def solve_terminal_inventory_control_backward_euler_step(
         solve_coordinates=initial,
         storage_gradient_BTU_lbmol=np.zeros_like(previous),
         fixed_steady_scales=fixed_steady_scales,
+        product_reference_lbmolph=product_reference_lbmolph,
         state_id=f"{name}:scale_basis",
         evaluation_kind="residual",
     )
@@ -296,6 +300,7 @@ def solve_terminal_inventory_control_backward_euler_step(
             solve_coordinates=point,
             step_seconds=step_seconds,
             fixed_steady_scales=fixed_steady_scales,
+            product_reference_lbmolph=product_reference_lbmolph,
             state_id=state_id,
             evaluation_kind=("jacobian" if "jacobian" in state_id else "residual"),
         )

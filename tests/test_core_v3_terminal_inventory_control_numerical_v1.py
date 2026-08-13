@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import structural_rank
@@ -154,3 +156,21 @@ def test_dd185_bumpless_zero_time_controller_rows_close():
     assert baseline.distillate_lbmolph == state.distillate_lbmolph
     assert baseline.bottoms_lbmolph == state.bottoms_lbmolph
     assert np.all((baseline.level_fraction > 0.0) & (baseline.level_fraction < 1.0))
+
+    changed_template = replace(
+        state,
+        distillate_lbmolph=1.5 * state.distillate_lbmolph,
+        bottoms_lbmolph=0.75 * state.bottoms_lbmolph,
+    )
+    fixed_reference = evaluate_terminal_inventory_control_residual(
+        **{**common, "template": changed_template},
+        call_audit=ProviderCallAudit(),
+        level_setpoints=TerminalLevelSetpoints(*seed.level_fraction),
+        product_reference_lbmolph=(
+            state.distillate_lbmolph,
+            state.bottoms_lbmolph,
+        ),
+        state_id="dd185_test_fixed_product_reference",
+    )
+    assert fixed_reference.distillate_lbmolph == state.distillate_lbmolph
+    assert fixed_reference.bottoms_lbmolph == state.bottoms_lbmolph

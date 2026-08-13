@@ -193,6 +193,7 @@ def evaluate_terminal_inventory_control_residual(
     solve_coordinates: Sequence[float],
     storage_gradient_BTU_lbmol: Sequence[Sequence[float]],
     fixed_steady_scales: Sequence[float],
+    product_reference_lbmolph: Sequence[float] | None = None,
     state_id: str,
     evaluation_kind: str,
 ) -> TerminalInventoryControlEvaluation:
@@ -210,13 +211,21 @@ def evaluate_terminal_inventory_control_residual(
         (setpoints <= 0.0) | (setpoints >= 1.0)
     ):
         raise ValueError("terminal level setpoints are invalid")
-    products = np.asarray(
+    product_reference = np.asarray(
         (
-            float(template.distillate_lbmolph) * np.exp(product_logs[0]),
-            float(template.bottoms_lbmolph) * np.exp(product_logs[1]),
+            (template.distillate_lbmolph, template.bottoms_lbmolph)
+            if product_reference_lbmolph is None
+            else product_reference_lbmolph
         ),
         dtype=float,
-    )
+    ).reshape((-1,))
+    if (
+        product_reference.shape != (2,)
+        or np.any(~np.isfinite(product_reference))
+        or np.any(product_reference <= 0.0)
+    ):
+        raise ValueError("terminal controller product reference is invalid")
+    products = product_reference * np.exp(product_logs)
     if np.any(~np.isfinite(products)) or np.any(products <= 0.0):
         raise ValueError("terminal controller product output is invalid")
     live_template = replace(
@@ -300,6 +309,7 @@ def audit_terminal_inventory_control_leading_jacobian(
     root_solve_coordinates: Sequence[float],
     storage_gradient_BTU_lbmol: Sequence[Sequence[float]],
     fixed_steady_scales: Sequence[float],
+    product_reference_lbmolph: Sequence[float] | None = None,
     step: float,
     coupling_tolerance: float,
     state_id: str,
@@ -324,6 +334,7 @@ def audit_terminal_inventory_control_leading_jacobian(
             solve_coordinates=point + delta,
             storage_gradient_BTU_lbmol=storage_gradient_BTU_lbmol,
             fixed_steady_scales=fixed_steady_scales,
+            product_reference_lbmolph=product_reference_lbmolph,
             state_id=f"{state_id}:{column}:plus",
             evaluation_kind="jacobian",
         ).scaled
@@ -340,6 +351,7 @@ def audit_terminal_inventory_control_leading_jacobian(
             solve_coordinates=point - delta,
             storage_gradient_BTU_lbmol=storage_gradient_BTU_lbmol,
             fixed_steady_scales=fixed_steady_scales,
+            product_reference_lbmolph=product_reference_lbmolph,
             state_id=f"{state_id}:{column}:minus",
             evaluation_kind="jacobian",
         ).scaled

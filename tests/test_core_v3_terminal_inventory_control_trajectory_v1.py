@@ -73,6 +73,54 @@ def test_trajectory_stops_after_first_failed_root(monkeypatch):
     assert len(calls) == 1
 
 
+def test_trajectory_accepts_an_explicit_step_solver(monkeypatch):
+    sentinel_calls = []
+
+    def sentinel(*args, **kwargs):
+        sentinel_calls.append(kwargs["name"])
+        inventory = np.asarray(kwargs["previous_inventory_lbmol"])
+        memory = np.asarray(kwargs["previous_controller_memory"])
+        return SimpleNamespace(
+            success=True,
+            evaluation=SimpleNamespace(
+                endpoint_inventory_lbmol=inventory,
+                endpoint_controller_memory=memory,
+                control_evaluation=SimpleNamespace(
+                    base=SimpleNamespace(physical_state="state-1")
+                ),
+            ),
+            final_coordinates=np.zeros(4),
+        )
+
+    monkeypatch.setattr(
+        trajectory,
+        "solve_terminal_inventory_control_backward_euler_step",
+        lambda *args, **kwargs: pytest.fail("default solver was called"),
+    )
+    result = trajectory.run_terminal_inventory_control_trajectory(
+        SimpleNamespace(),
+        SimpleNamespace(),
+        SimpleNamespace(),
+        "state-0",
+        SimpleNamespace(),
+        SimpleNamespace(),
+        initial_inventory_lbmol=np.ones((2, 2)),
+        initial_controller_memory=np.zeros(2),
+        level_setpoints=SimpleNamespace(),
+        initial_solve_coordinates=np.zeros(4),
+        fixed_steady_scales=np.ones(3),
+        product_reference_lbmolph=(10.0, 20.0),
+        step_seconds=0.25,
+        duration_seconds=0.25,
+        settings=SimpleNamespace(),
+        name="test",
+        step_solver=sentinel,
+    )
+
+    assert result.completed
+    assert sentinel_calls == ["test:step_1"]
+
+
 @pytest.mark.parametrize(("duration", "step"), [(0.0, 0.25), (1.0, 0.0), (1.0, 0.3)])
 def test_trajectory_rejects_invalid_time_grid(monkeypatch, duration, step):
     with pytest.raises(ValueError):

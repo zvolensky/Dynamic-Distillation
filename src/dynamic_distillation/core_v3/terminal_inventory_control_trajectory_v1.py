@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
 import numpy as np
 
@@ -84,6 +84,7 @@ def run_terminal_inventory_control_trajectory(
     duration_seconds: float,
     settings: ImplicitStepSettings,
     name: str,
+    step_solver: Callable[..., TerminalInventoryControlStepOutcome] | None = None,
 ) -> TerminalInventoryControlTrajectoryResult:
     requested = _step_count(duration_seconds, step_seconds)
     inventory = np.asarray(initial_inventory_lbmol, dtype=float).copy()
@@ -105,8 +106,9 @@ def run_terminal_inventory_control_trajectory(
         raise ValueError("terminal-control trajectory initial state is invalid")
 
     records: list[TerminalInventoryControlTrajectoryStep] = []
+    solver = step_solver or solve_terminal_inventory_control_backward_euler_step
     for index in range(1, requested + 1):
-        outcome = solve_terminal_inventory_control_backward_euler_step(
+        outcome = solver(
             contract,
             spec,
             reference,

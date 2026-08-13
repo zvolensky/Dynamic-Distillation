@@ -1513,3 +1513,16 @@ condition `1.432411e3`, and spectrum change `8.604470e-11`. DD-185 therefore
 authorizes one separately frozen controlled stationary root-hold implicit-step
 contract. It does not qualify controller tuning or authorize a disturbed
 controlled trajectory.
+
+DD-186 performs the first controller-enabled implicit timestep while holding
+the DD-169 operating specification unchanged. One `1.0 s` backward-Euler root
+and two successive `0.5 s` roots all close below `3.82e-13` with rank `58`.
+Worst condition is `8.973645e5`, comparable to the accepted open-loop
+stationary-step conditioning.
+
+The stationary handoff remains effectively exact. Maximum controller-memory
+motion is `3.496572e-17`, maximum product-rate motion is `8.499913e-15`
+relative, and maximum level error is below `1e-15`. Full and refined endpoint
+inventories agree within `1.282663e-14` relative. This authorizes one
+separately frozen small controlled moving-step contract. Controller tuning and
+controlled trajectories remain unauthorized.

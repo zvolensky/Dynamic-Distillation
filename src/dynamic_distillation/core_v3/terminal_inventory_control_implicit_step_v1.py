@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import time
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
 import numpy as np
 from scipy.optimize import least_squares
@@ -261,6 +261,10 @@ def solve_terminal_inventory_control_backward_euler_step(
     step_seconds: float,
     settings: ImplicitStepSettings,
     name: str,
+    jacobian_builder: Callable[
+        [Callable[[np.ndarray, str], np.ndarray], np.ndarray, str], np.ndarray
+    ]
+    | None = None,
 ) -> TerminalInventoryControlStepOutcome:
     previous = np.asarray(previous_inventory_lbmol, dtype=float)
     initial = np.asarray(initial_solve_coordinates, dtype=float).reshape((-1,))
@@ -311,8 +315,20 @@ def solve_terminal_inventory_control_backward_euler_step(
         return objective(point, f"{name}:residual").scaled
 
     def jacobian(point: np.ndarray) -> np.ndarray:
+        scaled_objective = (
+            lambda candidate, state_id: objective(candidate, state_id).scaled
+        )
+        if jacobian_builder is not None:
+            return np.asarray(
+                jacobian_builder(
+                    scaled_objective,
+                    point.copy(),
+                    f"{name}:jacobian",
+                ),
+                dtype=float,
+            )
         matrix, _groups = colored_central_difference_jacobian(
-            lambda candidate, state_id: objective(candidate, state_id).scaled,
+            scaled_objective,
             point,
             pattern=pattern,
             step=settings.jacobian_step,

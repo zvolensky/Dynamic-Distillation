@@ -2,6 +2,9 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import structural_rank
 
+from dynamic_distillation.core_v3.colored_jacobian_v1 import (
+    colored_central_difference_jacobian,
+)
 from dynamic_distillation.core_v3.dynamic_dae_numerical_audit_v1 import (
     dynamic_algebraic_coordinates,
     inventory_from_state,
@@ -200,3 +203,43 @@ def test_dd186_stationary_solver_retains_complete_jacobian():
     assert outcome.nfev > 0
     assert outcome.final_jacobian.shape == (42, 42)
     assert np.all(np.isfinite(outcome.final_jacobian))
+
+
+def test_controlled_step_accepts_external_jacobian_builder():
+    provider, spec, reference, state, contract, inventory, point, setpoints, *_ = (
+        _basis()
+    )
+    pattern = terminal_inventory_control_step_pattern(contract)
+    calls = []
+
+    def builder(objective, coordinates, state_id):
+        calls.append(state_id)
+        matrix, _groups = colored_central_difference_jacobian(
+            objective,
+            coordinates,
+            pattern=pattern,
+            step=1.0e-5,
+            state_id=state_id,
+        )
+        return matrix
+
+    outcome = solve_terminal_inventory_control_backward_euler_step(
+        contract,
+        spec,
+        reference,
+        state,
+        provider,
+        ProviderCallAudit(),
+        previous_inventory_lbmol=inventory,
+        previous_controller_memory=np.zeros(2),
+        level_setpoints=setpoints,
+        initial_solve_coordinates=point,
+        fixed_steady_scales=_scales(),
+        step_seconds=1.0,
+        settings=ImplicitStepSettings(max_nfev=3, jacobian_mode="colored"),
+        name="dd191_test_external_builder",
+        jacobian_builder=builder,
+    )
+
+    assert calls
+    assert outcome.final_jacobian.shape == (42, 42)

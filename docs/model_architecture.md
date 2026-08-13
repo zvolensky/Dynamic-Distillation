@@ -1437,3 +1437,19 @@ both remain inside their frozen limits and do not grow monotonically to the
 endpoint. Open-loop validation is therefore complete for this stage. The
 next boundary is structural terminal-inventory-control design only. A live
 controller, controller tuning, and controlled trajectory remain unauthorized.
+
+DD-181 isolates the principal seven-volume runtime cost without changing this
+scientific boundary. The `54 x 54` implicit Jacobian has 17 structural colors,
+so each central-difference matrix consists of 34 independent complete residual
+evaluations. DD-180 executed those evaluations serially. Process-isolated
+DWSIM workers reproduce the same matrix, rank, condition, singular spectrum,
+and delegated property count while reducing median matrix time from
+`0.271654 s` with one worker to `0.102903 s` with four workers (`2.640x`).
+
+The production architecture may therefore use one persistent four-process
+DWSIM pool to construct colored Jacobians. Workers must own independent DWSIM
+provider instances and exact-state caches; matrix assembly remains
+deterministic in the main process. Pool creation is not a per-Jacobian
+operation because four-worker startup is about `5.714 s`. Integration into the
+step solver requires a separate equivalence proof before any controlled or
+longer trajectory.

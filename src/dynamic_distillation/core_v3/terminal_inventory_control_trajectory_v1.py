@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import time
 from typing import Any, Callable, Sequence
 
 import numpy as np
@@ -42,6 +43,7 @@ class TerminalInventoryControlTrajectoryResult:
     completed_steps: int
     completed: bool
     steps: tuple[TerminalInventoryControlTrajectoryStep, ...]
+    stop_reason: str | None = None
 
     @property
     def endpoint_outcome(self) -> TerminalInventoryControlStepOutcome:
@@ -85,6 +87,7 @@ def run_terminal_inventory_control_trajectory(
     settings: ImplicitStepSettings,
     name: str,
     step_solver: Callable[..., TerminalInventoryControlStepOutcome] | None = None,
+    deadline_monotonic: float | None = None,
 ) -> TerminalInventoryControlTrajectoryResult:
     requested = _step_count(duration_seconds, step_seconds)
     inventory = np.asarray(initial_inventory_lbmol, dtype=float).copy()
@@ -107,7 +110,14 @@ def run_terminal_inventory_control_trajectory(
 
     records: list[TerminalInventoryControlTrajectoryStep] = []
     solver = step_solver or solve_terminal_inventory_control_backward_euler_step
+    if deadline_monotonic is not None and not np.isfinite(deadline_monotonic):
+        raise ValueError("trajectory deadline must be finite")
+    stop_reason: str | None = None
     for index in range(1, requested + 1):
+        if deadline_monotonic is not None:
+            if time.perf_counter() >= float(deadline_monotonic):
+                stop_reason = "deadline"
+                break
         outcome = solver(
             contract,
             spec,
@@ -133,6 +143,7 @@ def run_terminal_inventory_control_trajectory(
             )
         )
         if not outcome.success:
+            stop_reason = "root_failure"
             break
         evaluation = outcome.evaluation
         inventory = evaluation.endpoint_inventory_lbmol.copy()
@@ -140,7 +151,7 @@ def run_terminal_inventory_control_trajectory(
         coordinates = outcome.final_coordinates.copy()
         template = evaluation.control_evaluation.base.physical_state
 
-    completed = len(records) == requested and all(
+    completed = stop_reason is None and len(records) == requested and all(
         record.outcome.success for record in records
     )
     return TerminalInventoryControlTrajectoryResult(
@@ -151,6 +162,7 @@ def run_terminal_inventory_control_trajectory(
         completed_steps=len(records),
         completed=bool(completed),
         steps=tuple(records),
+        stop_reason=stop_reason,
     )
 
 

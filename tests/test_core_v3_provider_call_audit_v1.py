@@ -211,3 +211,42 @@ def test_provider_audit_records_property_level_hybrid_ownership():
         "dwsim.declared_phase_enthalpy",
     ]
     assert audit.report()["pass"]
+
+
+def test_provider_audit_reports_only_incremental_records_without_copying_ledger():
+    audit = ProviderCallAudit()
+    provider = _Provider()
+    audit.phase_enthalpy(
+        provider,
+        phase="liquid",
+        temperature_F=120.0,
+        pressure_psia=200.0,
+        composition=[0.7, 0.2, 0.1],
+        caller="first",
+        state_id="incremental",
+        evaluation_kind="residual",
+    )
+    start = audit.record_count
+    audit.liquid_density(
+        provider,
+        temperature_F=120.0,
+        pressure_psia=200.0,
+        composition=[0.7, 0.2, 0.1],
+        caller="second",
+        state_id="incremental",
+        evaluation_kind="jacobian",
+    )
+
+    report = audit.report_since(start)
+
+    assert audit.record_count == 2
+    assert report["start_index"] == 1
+    assert report["end_index"] == 2
+    assert report["total_calls"] == 1
+    assert report["pass"]
+
+
+@pytest.mark.parametrize("start", [-1, 1, 1.5, True])
+def test_provider_audit_rejects_invalid_incremental_start(start):
+    with pytest.raises(ValueError, match="start index"):
+        ProviderCallAudit().report_since(start)

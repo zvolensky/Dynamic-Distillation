@@ -121,6 +121,39 @@ def test_trajectory_accepts_an_explicit_step_solver(monkeypatch):
     assert sentinel_calls == ["test:step_1"]
 
 
+def test_trajectory_stops_before_a_root_when_deadline_has_passed(monkeypatch):
+    calls, result = _run(monkeypatch, duration=0.25, step=0.25)
+    assert calls
+
+    def forbidden(*args, **kwargs):
+        pytest.fail("deadline-stopped trajectory called its solver")
+
+    result = trajectory.run_terminal_inventory_control_trajectory(
+        SimpleNamespace(),
+        SimpleNamespace(),
+        SimpleNamespace(),
+        "state-0",
+        SimpleNamespace(),
+        SimpleNamespace(),
+        initial_inventory_lbmol=np.ones((2, 2)),
+        initial_controller_memory=np.zeros(2),
+        level_setpoints=SimpleNamespace(),
+        initial_solve_coordinates=np.zeros(4),
+        fixed_steady_scales=np.ones(3),
+        product_reference_lbmolph=(10.0, 20.0),
+        step_seconds=0.25,
+        duration_seconds=0.25,
+        settings=SimpleNamespace(),
+        name="deadline",
+        step_solver=forbidden,
+        deadline_monotonic=0.0,
+    )
+
+    assert not result.completed
+    assert result.completed_steps == 0
+    assert result.stop_reason == "deadline"
+
+
 @pytest.mark.parametrize(("duration", "step"), [(0.0, 0.25), (1.0, 0.0), (1.0, 0.3)])
 def test_trajectory_rejects_invalid_time_grid(monkeypatch, duration, step):
     with pytest.raises(ValueError):

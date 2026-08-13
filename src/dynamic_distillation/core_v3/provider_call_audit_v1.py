@@ -62,6 +62,11 @@ class ProviderCallAudit:
     def records(self) -> tuple[ProviderCallRecord, ...]:
         return tuple(self._records)
 
+    @property
+    def record_count(self) -> int:
+        """Return the ledger length without copying the accumulated records."""
+        return len(self._records)
+
     def _record(
         self,
         *,
@@ -390,6 +395,53 @@ class ProviderCallAudit:
             "total_calls": len(self._records),
             "grouped_records": self.grouped_records(),
             "violations": list(violations),
+            "fallback_attempted": bool(self.fallback_attempted),
+            "pass": not violations,
+        }
+
+    def report_since(self, start_index: int) -> dict[str, Any]:
+        """Validate only records appended at or after ``start_index``."""
+        if (
+            not isinstance(start_index, int)
+            or isinstance(start_index, bool)
+            or start_index < 0
+            or start_index > len(self._records)
+        ):
+            raise ValueError("provider audit start index is invalid")
+        violations: list[str] = []
+        for index in range(start_index, len(self._records)):
+            record = self._records[index]
+            prefix = f"call[{index}] {record.caller}"
+            if (
+                record.provider_interface == self._provider_path("tp_flash")
+                and record.evaluation_kind != "diagnostic"
+            ):
+                violations.append(f"{prefix}: TP flash outside diagnostics")
+            if (
+                record.provider_interface.startswith("independent.")
+                and record.evaluation_kind != "validation"
+            ):
+                violations.append(f"{prefix}: independent PR outside validation")
+            if record.evaluation_kind in GOVERNING_EVALUATION_KINDS:
+                permitted = {
+                    self._provider_path("direct_imposed_phase_fugacity"),
+                    self._provider_path("declared_phase_enthalpy"),
+                    self._provider_path("declared_liquid_density"),
+                    self._provider_path("declared_vapor_compressibility_factor"),
+                }
+                if record.provider_interface not in permitted:
+                    violations.append(
+                        f"{prefix}: unauthorized governing provider "
+                        f"{record.provider_interface}"
+                    )
+        if self.fallback_attempted:
+            violations.append("provider fallback was attempted")
+        return {
+            "provider_identity": self.provider_identity,
+            "start_index": int(start_index),
+            "end_index": len(self._records),
+            "total_calls": len(self._records) - int(start_index),
+            "violations": violations,
             "fallback_attempted": bool(self.fallback_attempted),
             "pass": not violations,
         }

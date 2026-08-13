@@ -199,7 +199,7 @@ def _worker_evaluate(work: Mapping[str, Any]) -> dict[str, Any]:
     root_epoch = str(work["root_epoch"])
     provider = context["provider"]
     audit = context["audit"]
-    before_records = len(audit.records)
+    before_records = audit.record_count
     before_memo = provider.get_exact_state_memoization_stats()
     basis_rebuilt = context["root_epoch"] != root_epoch
     if basis_rebuilt:
@@ -260,14 +260,14 @@ def _worker_evaluate(work: Mapping[str, Any]) -> dict[str, Any]:
     )
     elapsed = time.perf_counter() - started
     after_memo = provider.get_exact_state_memoization_stats()
-    report = audit.report()
+    report = audit.report_since(before_records)
     return {
         "order": int(task.order),
         "residual": np.asarray(evaluation.scaled, dtype=float).tolist(),
         "process_id": int(os.getpid()),
         "root_epoch": root_epoch,
         "basis_rebuilt": bool(basis_rebuilt),
-        "logical_provider_calls": int(len(audit.records) - before_records),
+        "logical_provider_calls": int(audit.record_count - before_records),
         "memo_hits": int(after_memo["hits"] - before_memo["hits"]),
         "memo_misses": int(after_memo["misses"] - before_memo["misses"]),
         "provider_pass": bool(report["pass"]),
@@ -572,6 +572,7 @@ def execute(
     settings = dd190.dd188.dd187.dd186._settings(payload)
     paths = payload["paths"]
     parallel = payload["parallel"]
+    limits = payload["limits"]
     worker_evidence: list[dict[str, Any]] = []
     jacobian_wall: list[float] = []
 
@@ -662,6 +663,7 @@ def execute(
             )
 
         trajectory_started = time.perf_counter()
+        trajectory_deadline = total_started + float(limits["wall_clock_sec"])
         common = dict(
             contract=controlled,
             spec=spec,
@@ -678,6 +680,7 @@ def execute(
             duration_seconds=float(paths["duration_seconds"]),
             settings=settings,
             step_solver=parallel_step_solver,
+            deadline_monotonic=trajectory_deadline,
         )
         coarse = run_terminal_inventory_control_trajectory(
             **common,
@@ -695,7 +698,63 @@ def execute(
     memo = provider.get_exact_state_memoization_stats()
     provider.set_exact_state_memoization(False, clear=True)
     main_provider = dd190.dd188.dd187.dd186._provider_summary(audit)
-    limits = payload["limits"]
+    if not coarse.completed or not refined.completed:
+        worker_calls = sum(item["logical_provider_calls"] for item in worker_evidence)
+        logical_calls = int(main_provider["total_calls"] + worker_calls)
+        result = {
+            "schema_id": RESULT_SCHEMA,
+            "classification": "controlled_finer_parallel_trajectory_stopped_on_deadline",
+            "decision": "stop_controlled_trajectory_extension",
+            "contract_commit": _git("rev-parse", "HEAD"),
+            "contract_payload_sha256": payload["contract_payload_sha256"],
+            "paths": paths,
+            "coarse_completed_steps": coarse.completed_steps,
+            "refined_completed_steps": refined.completed_steps,
+            "coarse_stop_reason": coarse.stop_reason,
+            "refined_stop_reason": refined.stop_reason,
+            "scientific_gates": "not_evaluated",
+            "performance": {
+                **payload["performance"],
+                "parallel_trajectory_wall_sec": float(trajectory_wall),
+                "startup_wall_sec_raw": float(startup_raw),
+                "startup_wall_sec_adjusted": float(startup_adjusted),
+                "total_governed_wall_sec": float(total_wall),
+            },
+            "provider": {
+                "main": main_provider,
+                "worker_logical_calls": int(worker_calls),
+                "logical_calls": logical_calls,
+                "main_memoization": memo,
+            },
+            "worker_ping_ids_diagnostic": ping_ids,
+            "worker_evidence": worker_evidence,
+            "campaign_gates": {"in_execution_deadline": False},
+            "pass_gate": False,
+            "campaign_executed_once": True,
+            "controller_tuning_attempted": False,
+            "retry_attempted": False,
+            "alternate_grid_attempted": False,
+            "longer_horizon_attempted": False,
+        }
+        destination = (ROOT / result_path).with_suffix(".json")
+        document = ROOT / result_doc_path
+        destination.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+        document.write_text(
+            "\n".join(
+                (
+                    "# DD-193 Controlled Finer-Grid Parallel Trajectory Result",
+                    "",
+                    "- Classification: `controlled_finer_parallel_trajectory_stopped_on_deadline`",
+                    f"- Coarse/refined completed steps: `{coarse.completed_steps}` / `{refined.completed_steps}`",
+                    f"- Coarse/refined stop reason: `{coarse.stop_reason}` / `{refined.stop_reason}`",
+                    f"- Total governed wall: `{total_wall:.3f} s`",
+                    "- Scientific gates: `not evaluated`",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        return result
     setpoint_values = np.asarray((setpoints.top_fraction, setpoints.bottom_fraction))
     coarse_report = dd190.dd188._trajectory_report(
         coarse,

@@ -1613,3 +1613,17 @@ workers evaluate only colored perturbation residuals through DWSIM. DD-190's
 grid-accuracy failure remains unresolved; the next live campaign must be a
 separately frozen finer-grid refinement proof, with no controller tuning or
 longer-horizon extension bundled into it.
+
+DD-193 attempts the authorized finer-grid controlled proof on `80 x 0.125 s`
+and `160 x 0.0625 s` paths. It is stopped after at least `1503 s`, over six
+times its frozen total-wall limit, before a complete result or endpoint is
+written. The original parent and four workers remain CPU-bound until the
+operator stop; no scientific trajectory gate is therefore classified.
+
+The scaling failure is in audit instrumentation rather than the DAE equations.
+Every perturbation task calls `ProviderCallAudit.report()`, which scans the
+entire accumulated record list for violations and rebuilds grouped counts.
+Across a long persistent-worker campaign, repeated full-ledger reporting adds
+superlinear bookkeeping. A successor must replace task-level full reports with
+incremental ownership evidence and enforce its wall deadline while executing.
+DD-193 cannot be retried, and DD-190's timestep-accuracy question remains open.

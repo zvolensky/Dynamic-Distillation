@@ -1,0 +1,40 @@
+{
+  "schema_id": "dd193-core-v3-controlled-finer-parallel-trajectory-result-v1",
+  "classification": "controlled_finer_parallel_trajectory_aborted_on_wall_hard_stop",
+  "decision": "retire_dd193_without_retry_and_require_incremental_worker_audit_before_future_fine_grid_work",
+  "contract_commit": "43fb3bd3d02727bbcc6a962ee28a9878c8edb0b0",
+  "contract_payload_sha256": "0d9f1c06a792f5d7394c6ccf1853fc58d7517fe636e24e32d94bcc64e0aaf874",
+  "execution_started_local": "2026-08-13T09:31:00-04:00",
+  "operator_stop_observed_local": "2026-08-13T09:56:03-04:00",
+  "observed_elapsed_before_stop_sec": 1503.0,
+  "wall_clock_limit_sec": 240.0,
+  "wall_limit_exceedance_ratio": 6.2625,
+  "processes_stopped": {
+    "parent": 20872,
+    "workers": [10112, 25804, 26160, 26632],
+    "all_confirmed_stopped": true
+  },
+  "complete_result_artifact_written_by_campaign": false,
+  "completed_roots": null,
+  "scientific_gates": "not_evaluated",
+  "shared_time_refinement": "not_evaluated",
+  "endpoint_state": "not_available",
+  "performance_gates": {
+    "parallel_wall": false,
+    "total_wall": false
+  },
+  "diagnosis": {
+    "category": "worker_provenance_reporting_scaling_defect",
+    "mechanism": "each worker called ProviderCallAudit.report after every perturbation task; report rescans violations and groups the complete accumulated call ledger",
+    "complexity_effect": "cumulative audit work grows superlinearly across the trajectory",
+    "thermodynamic_or_model_failure_established": false,
+    "future_requirement": "use incremental per-task ownership evidence and enforce the wall deadline during execution before another fine-grid campaign"
+  },
+  "pass_gate": false,
+  "campaign_executed_once": true,
+  "campaign_completed": false,
+  "campaign_rerun": false,
+  "controller_tuning_attempted": false,
+  "alternate_grid_attempted": false,
+  "longer_horizon_attempted": false
+}

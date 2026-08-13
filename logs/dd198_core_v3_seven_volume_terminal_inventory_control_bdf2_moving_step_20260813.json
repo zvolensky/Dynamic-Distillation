@@ -1,0 +1,273 @@
+{
+  "schema_id": "dd198-core-v3-seven-volume-controlled-bdf2-moving-step-result-v1",
+  "classification": "controlled_bdf2_moving_step_passed",
+  "decision": "authorize_one_frozen_short_bdf2_refinement_contract",
+  "contract_commit": "e7a60aea52ccdea7d27e79a8483ba49df2d88216",
+  "contract_payload_sha256": "0230191bd724408c7cc2ca725abd12397d3baea15c8217e616008ca5b8910364",
+  "wall_clock_sec": 6.252146399987396,
+  "step": {
+    "success": true,
+    "status": 3,
+    "message": "`xtol` termination condition is satisfied.",
+    "nfev": 4,
+    "njev": 2,
+    "wall_clock_sec": 0.720690200017998,
+    "residual_inf_norm": 3.5282188597943312e-12,
+    "jacobian_rank": 58,
+    "jacobian_condition": 31727412.492182676,
+    "maximum_equilibrium_residual": 6.217248937900896e-15,
+    "component_conservation_relative_error": 1.7351152958883644e-12,
+    "energy_conservation_relative_error": 2.1125935651360582e-12,
+    "component_kinematic_identity": 0.0,
+    "energy_kinematic_identity_BTU": 0.0,
+    "controller_kinematic_identity": 0.0,
+    "controller_equation_closure": 1.0695131669675174e-15,
+    "global_component_inventory_identity_lbmol": 4.786373662864218e-13,
+    "inventory_lbmol": [
+      [
+        1078.757949758009,
+        302.0633475029112,
+        8.078703229952135
+      ],
+      [
+        21.262766422897975,
+        13.802603429045135,
+        0.7097601491981922
+      ],
+      [
+        14.07582955177396,
+        16.444776192624488,
+        1.4569753735170718
+      ],
+      [
+        15.227769177832592,
+        26.321854037923035,
+        3.9174242844950973
+      ],
+      [
+        15.027476373581882,
+        34.238068158309034,
+        5.079945877691552
+      ],
+      [
+        11.083334785228814,
+        36.483389045586144,
+        5.989645755301514
+      ],
+      [
+        105.81953840464875,
+        562.2338442903114,
+        125.94661730954353
+      ]
+    ],
+    "rate_coordinates": [
+      [
+        4.0146209564692096e-07,
+        1.1347647515433658e-07,
+        3.045828715763249e-09
+      ],
+      [
+        -7.958279185210286e-08,
+        5.447113078053307e-08,
+        5.114105225722456e-09
+      ],
+      [
+        -6.281920070212618e-08,
+        -5.520125624715073e-08,
+        7.110768394205225e-08
+      ],
+      [
+        0.00017920558690958947,
+        0.00029869506433396635,
+        5.999936812899001e-05
+      ],
+      [
+        6.979360288120175e-06,
+        1.1885344099815721e-05,
+        2.0712446831755672e-06
+      ],
+      [
+        1.4136731689029881e-07,
+        2.806960764428978e-07,
+        4.510825736148919e-08
+      ],
+      [
+        2.3420591521941617e-09,
+        5.9481111722241e-09,
+        9.706701890031937e-10
+      ]
+    ],
+    "algebraic_coordinates": [
+      0.0977130836737277,
+      0.17364436259436575,
+      -0.10794211775157943,
+      -0.04126966938798239,
+      -0.12353424976224706,
+      -0.13254518422001013,
+      -0.14177649631151806,
+      -7.064218680244909,
+      -6.075236904300932,
+      -1.1142871075725216,
+      -1.660101219914383,
+      -0.02911384014022941,
+      -0.16987687862703865,
+      0.3216848385222262,
+      -0.2545086656160517,
+      0.5015683692652685,
+      -0.3121260141941089,
+      1.091319888861281,
+      -0.09728763845993134,
+      -0.018077161564816507,
+      0.047084050910073685,
+      0.020403858693291026,
+      0.009153218399314324,
+      -0.0010848263595896021,
+      -0.026687557164880964,
+      -0.0172657375945402,
+      -0.005089118235191013,
+      0.026338380062744027,
+      0.030371516096803653,
+      -0.019390191598675638,
+      -7.081381330828524,
+      -6.079727961893085,
+      -0.03554065372640647
+    ],
+    "controller_memory": [
+      8.523946598316695e-14,
+      1.6820190929773723e-14
+    ],
+    "level_fraction": [
+      0.4598989426849729,
+      0.427453313540378
+    ],
+    "product_log_ratio": [
+      6.048042124770208e-11,
+      1.525778060039771e-11
+    ],
+    "distillate_lbmolph": 2220.9523405260766,
+    "bottoms_lbmolph": 4922.021659694665,
+    "physical": {
+      "positive_inventory": true,
+      "positive_liquid_composition": true,
+      "positive_vapor_composition": true,
+      "positive_flows": true,
+      "physical_levels": true,
+      "ordered_temperature": true,
+      "ordered_pressure": true,
+      "negative_condenser_duty": true,
+      "hydraulic_height_below_spacing": true,
+      "all_finite": true
+    }
+  },
+  "comparison": {
+    "maximum_absolute_inventory_difference_lbmol": 8.664731474539167e-07,
+    "inventory_difference_l1_lbmol": 3.094640294687423e-06,
+    "rate_coordinate_difference": 7.155501791565624e-08,
+    "algebraic_coordinate_difference": 6.900261427522647e-08,
+    "controller_memory_difference": 1.0976939005004032e-14,
+    "product_relative_difference": 6.9651244263883486e-12,
+    "level_fraction_difference": 1.916411473956714e-12,
+    "bdf2_richardson_max_abs_lbmol": 1.669391426872835e-06,
+    "backward_euler_richardson_max_abs_lbmol": 2.5358645743267516e-06,
+    "richardson_max_error_ratio": 0.6583125312660053
+  },
+  "exact_state_memoization": {
+    "enabled": true,
+    "hits": 1854,
+    "misses": 696,
+    "families": {
+      "fugacity": {
+        "hits": 770,
+        "misses": 280,
+        "entries": 280
+      },
+      "enthalpy": {
+        "hits": 713,
+        "misses": 262,
+        "entries": 262
+      },
+      "density": {
+        "hits": 371,
+        "misses": 154,
+        "entries": 154
+      },
+      "vapor_z": {
+        "hits": 0,
+        "misses": 0,
+        "entries": 0
+      }
+    }
+  },
+  "provider": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {},
+    "total_calls": 2550,
+    "counts": [
+      {
+        "provider_interface": "dwsim.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "count": 476
+      },
+      {
+        "provider_interface": "dwsim.declared_liquid_density",
+        "evaluation_kind": "residual",
+        "count": 49
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "count": 884
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "residual",
+        "count": 91
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "count": 952
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "count": 98
+      }
+    ],
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true
+  },
+  "gates": {
+    "success": true,
+    "residual": true,
+    "rank": true,
+    "condition": true,
+    "equilibrium": true,
+    "component_conservation": true,
+    "energy_conservation": true,
+    "component_kinematics": true,
+    "energy_kinematics": true,
+    "controller_kinematics": true,
+    "controller_equations": true,
+    "global_component_identity": true,
+    "physical": true,
+    "inventory_max": true,
+    "inventory_l1": true,
+    "rate_comparison": true,
+    "algebraic_comparison": true,
+    "controller_comparison": true,
+    "product_comparison": true,
+    "level_comparison": true,
+    "richardson_accuracy_improvement": true,
+    "provider": true,
+    "provider_calls": true,
+    "wall_clock": true
+  },
+  "pass_gate": true,
+  "campaign_executed_once": true,
+  "controller_tuning_attempted": false,
+  "retry_attempted": false,
+  "alternate_step_attempted": false,
+  "trajectory_attempted": false
+}

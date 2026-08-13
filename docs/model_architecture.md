@@ -1710,3 +1710,23 @@ step. That successor must use an accepted backward-Euler startup history and a
 fixed timestep, compare directly with the accepted backward-Euler refinement,
 and pass all closure, rank, physicality, conservation, and accuracy gates
 before any BDF2 trajectory is considered.
+
+DD-198 performs the first moving solve with that architecture. The accepted
+DD-185 stationary state and DD-187 first `0.125 s` backward-Euler endpoint form
+the two history levels; one constant-step BDF2 solve advances to `0.25 s` under
+the unchanged `+0.1%` feed disturbance. The residual closes at `3.528219e-12`,
+the `58 x 58` Jacobian remains full rank with condition `3.172741e7`, and all
+BDF2 component, energy, PI-memory, conservation, physicality, equilibrium, and
+provider gates pass.
+
+The BDF2 endpoint differs from DD-187's accepted two-half-step endpoint by at
+most `8.664731e-7 lbmol` per component state. Against the frozen backward-Euler
+Richardson estimate, BDF2 reduces maximum inventory error from
+`2.535865e-6` to `1.669391e-6 lbmol`, a ratio of `0.658313`. This is the first
+live evidence that the higher-order formula improves moving-state accuracy
+rather than merely preserving closure.
+
+The pass authorizes one short, separately frozen BDF2 grid-refinement proof.
+Every path must use one accepted backward-Euler startup and constant BDF2 steps;
+duration, grids, limits, and economics must be fixed before execution. Longer
+integration and controller tuning remain unauthorized.

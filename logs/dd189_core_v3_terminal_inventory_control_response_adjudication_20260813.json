@@ -1,0 +1,39 @@
+{
+  "schema_id": "dd189-core-v3-controlled-response-adjudication-result-v1",
+  "classification": "controlled_response_policy_adjudication_passed",
+  "decision": "authorize_one_frozen_modest_controlled_trajectory_contract_under_response_scaled_policy",
+  "contract_commit": "eaf7fe6478ee0af8f110a5e41857063bec1540c9",
+  "contract_payload_sha256": "24376691a5830cbe9fb6f53460c721172102853cb9eff0434a68b96e53ba939d",
+  "preserved_dd188_classification": "terminal_inventory_control_short_trajectory_failed",
+  "preserved_dd188_decision": "stop_terminal_control_trajectory_path",
+  "metrics": {
+    "actual_cross_grid_difference_lbmol": -5.928153301582029e-09,
+    "expected_cross_grid_difference_lbmol": -5.928163820945187e-09,
+    "unexplained_cross_grid_difference_lbmol": 1.0519363158323358e-14,
+    "cross_grid_difference_relative_to_response": 1.4938741984801773e-06,
+    "individual_path_integrated_relative_error": {
+      "coarse": 8.020495839447214e-11,
+      "refined": 8.285568183504026e-11
+    },
+    "maximum_component_inventory_identity_lbmol": 5.53035048311834e-13
+  },
+  "gates": {
+    "source_failure_preserved": true,
+    "coarse_integrated_identity": true,
+    "refined_integrated_identity": true,
+    "external_flow_explains_grid_difference": true,
+    "response_relative_grid_difference": true,
+    "component_inventory_identity": true,
+    "zero_live_calls": true,
+    "wall_clock": true
+  },
+  "pass_gate": true,
+  "wall_clock_sec": 0.059178799972869456,
+  "model_calls": 0,
+  "provider_calls": 0,
+  "solver_calls": 0,
+  "endpoint_regeneration_calls": 0,
+  "dd188_reclassified": false,
+  "dd188_rerun": false,
+  "campaign_executed_once": true
+}

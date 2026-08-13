@@ -1556,3 +1556,20 @@ frozen `<1e-9 lbmol` cross-grid and signed-total limit. The trajectory cannot
 be rerun or reclassified. No longer live controlled trajectory is authorized
 unless a separately frozen zero-call adjudication establishes a prospective
 response-scaled total-difference policy.
+
+DD-189 performs that adjudication without a model, provider, solver, or
+endpoint-regeneration call. DD-188's actual coarse-minus-refined total
+difference is `-5.928153e-9 lbmol`; the difference between the two paths'
+independently integrated external flows is `-5.928164e-9 lbmol`. The
+unexplained remainder is only `1.051936e-14 lbmol`, and the grid difference is
+`1.493874e-6` of the accumulated response.
+
+The architecture therefore retains the physical inventory policy but refines
+its interpretation for controlled trajectories. When external product outputs
+evolve, signed total is a required diagnostic rather than an absolute veto;
+the grid difference must instead match the independently integrated external
+flow difference within `1e-10 lbmol` and remain below `1e-5` of response. All
+absolute-component, floor-relative, volume-relative, L1, controller, closure,
+and conservation gates remain mandatory. DD-188 stays formally failed, while
+one separately frozen modest controlled trajectory is authorized under the
+prospective policy.

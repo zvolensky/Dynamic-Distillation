@@ -1,0 +1,134 @@
+{
+  "schema_id": "dd201-core-v3-bdf2-response-adjudication-result-v1",
+  "classification": "bdf2_response_policy_passed",
+  "decision": "authorize_one_frozen_modest_bdf2_trajectory_contract",
+  "contract_commit": "e84a0bf00eb4de1f19a7b0effb1f12a860358874",
+  "contract_payload_sha256": "7fbb16ae0a0f00f25efa97c8db474acd8441c29db9c47261f0bf25a419b40db1",
+  "dd200_formal_failure_retained": true,
+  "shared_time_adjudication": [
+    {
+      "time_seconds": 0.25,
+      "original_failed_subgates": [],
+      "actual_difference_lbmol": -2.2737367544323206e-11,
+      "expected_external_difference_lbmol": -2.2737367544323206e-11,
+      "unexplained_difference_lbmol": 0.0,
+      "response_relative_difference": 4.583778395678643e-08,
+      "gates": {
+        "external_flow_explanation": true,
+        "response_relative": true
+      },
+      "pass_gate": true
+    },
+    {
+      "time_seconds": 0.5,
+      "original_failed_subgates": [],
+      "actual_difference_lbmol": -6.548361852765083e-11,
+      "expected_external_difference_lbmol": -6.548361852765083e-11,
+      "unexplained_difference_lbmol": 0.0,
+      "response_relative_difference": 6.600641038031038e-08,
+      "gates": {
+        "external_flow_explanation": true,
+        "response_relative": true
+      },
+      "pass_gate": true
+    },
+    {
+      "time_seconds": 0.75,
+      "original_failed_subgates": [],
+      "actual_difference_lbmol": -1.5188561519607902e-10,
+      "expected_external_difference_lbmol": -1.5234036254696548e-10,
+      "unexplained_difference_lbmol": 4.547473508864641e-13,
+      "response_relative_difference": 1.02065472846455e-07,
+      "gates": {
+        "external_flow_explanation": true,
+        "response_relative": true
+      },
+      "pass_gate": true
+    },
+    {
+      "time_seconds": 1.0,
+      "original_failed_subgates": [],
+      "actual_difference_lbmol": -3.0468072509393096e-10,
+      "expected_external_difference_lbmol": -3.055902197957039e-10,
+      "unexplained_difference_lbmol": 9.094947017729282e-13,
+      "response_relative_difference": 1.535566019816624e-07,
+      "gates": {
+        "external_flow_explanation": true,
+        "response_relative": true
+      },
+      "pass_gate": true
+    },
+    {
+      "time_seconds": 1.25,
+      "original_failed_subgates": [],
+      "actual_difference_lbmol": -5.475158104673028e-10,
+      "expected_external_difference_lbmol": -5.475158104673028e-10,
+      "unexplained_difference_lbmol": 0.0,
+      "response_relative_difference": 2.2075484314439996e-07,
+      "gates": {
+        "external_flow_explanation": true,
+        "response_relative": true
+      },
+      "pass_gate": true
+    },
+    {
+      "time_seconds": 1.5,
+      "original_failed_subgates": [],
+      "actual_difference_lbmol": -8.963070285972208e-10,
+      "expected_external_difference_lbmol": -8.967617759481072e-10,
+      "unexplained_difference_lbmol": 4.547473508864641e-13,
+      "response_relative_difference": 3.01154431784974e-07,
+      "gates": {
+        "external_flow_explanation": true,
+        "response_relative": true
+      },
+      "pass_gate": true
+    },
+    {
+      "time_seconds": 1.75,
+      "original_failed_subgates": [
+        "signed_total"
+      ],
+      "actual_difference_lbmol": -1.36969902087003e-09,
+      "expected_external_difference_lbmol": -1.3706085155718029e-09,
+      "unexplained_difference_lbmol": 9.094947017729282e-13,
+      "response_relative_difference": 3.944673015806999e-07,
+      "gates": {
+        "external_flow_explanation": true,
+        "response_relative": true
+      },
+      "pass_gate": true
+    },
+    {
+      "time_seconds": 2.0,
+      "original_failed_subgates": [
+        "signed_total"
+      ],
+      "actual_difference_lbmol": -1.9817889551632106e-09,
+      "expected_external_difference_lbmol": -1.98315319721587e-09,
+      "unexplained_difference_lbmol": 1.3642420526593924e-12,
+      "response_relative_difference": 4.994035318682505e-07,
+      "gates": {
+        "external_flow_explanation": true,
+        "response_relative": true
+      },
+      "pass_gate": true
+    }
+  ],
+  "worst_unexplained_difference_lbmol": 1.3642420526593924e-12,
+  "worst_response_relative_difference": 4.994035318682505e-07,
+  "gates": {
+    "dd200_remains_failed": true,
+    "only_signed_total_failed": true,
+    "all_other_campaign_gates": true,
+    "all_other_shared_gates": true,
+    "adjudication": true,
+    "zero_calls": true
+  },
+  "pass_gate": true,
+  "model_calls": 0,
+  "provider_calls": 0,
+  "solver_calls": 0,
+  "endpoint_regeneration_calls": 0,
+  "campaign_executed_once": true
+}

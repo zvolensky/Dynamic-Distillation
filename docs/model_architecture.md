@@ -1755,3 +1755,15 @@ external product-flow histories within `2.51e-12 lbmol` and is only
 DD-200 remains formally failed. The already-established DD-189 policy permits
 one zero-call adjudication using saved inventories and total external rates at
 every shared time. No live rerun or model change is justified.
+
+DD-201 performs that adjudication. It independently reconstructs each path's
+total inventory from saved total feed and product rates using one
+backward-Euler startup followed by the BDF2 recurrence. Across all eight shared
+times, the worst unexplained coarse/refined difference is
+`1.364242e-12 lbmol`, and the worst difference is only `4.994035e-7` of
+response. The accepted DD-189 policy therefore passes with zero live calls.
+
+DD-200 remains formally failed, but its scientific BDF2 refinement evidence is
+accepted prospectively: two-second BDF2 grid error is about one-third of the
+same-grid backward-Euler error. One frozen modest BDF2 trajectory is authorized
+next; its numerical and performance contract must precede execution.

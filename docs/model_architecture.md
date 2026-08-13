@@ -1742,3 +1742,16 @@ The trajectory kernel now uses method-aware accessors for all three accepted
 history families, and its regression chains multiple BDF2-shaped endpoints.
 DD-199 remains retired. Only a separately numbered successor with unchanged
 physics, grids, solver, and limits may repeat the proof.
+
+DD-200 completes the corrected proof. All 24 roots and every scientific gate
+except the legacy absolute signed-total subgate pass. BDF2 reduces worst shared
+maximum and L1 inventory differences to about `32.5%` of DD-188 backward Euler,
+while retaining full rank, physicality, conservation, and bounded execution.
+The only failures occur when cross-grid total difference exceeds `1e-9 lbmol`
+at the final two shared times; the final difference is explained by distinct
+external product-flow histories within `2.51e-12 lbmol` and is only
+`4.996e-7` of response.
+
+DD-200 remains formally failed. The already-established DD-189 policy permits
+one zero-call adjudication using saved inventories and total external rates at
+every shared time. No live rerun or model change is justified.

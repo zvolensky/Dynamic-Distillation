@@ -1,0 +1,22 @@
+{
+  "schema_id": "dd201-core-v3-bdf2-response-adjudication-contract-v1",
+  "preparation_base_commit": "40188203189b206e3ca90b106366cb3ce9b53076",
+  "sources": {
+    "logs/dd200_core_v3_seven_volume_terminal_inventory_control_bdf2_refinement_contract_20260813.json": "a5b4d93231dd99526ae7a68dae4d580998fa8a62e90f817746af6920ca51496f",
+    "logs/dd200_core_v3_seven_volume_terminal_inventory_control_bdf2_refinement_20260813.json": "51ee8eaeb15e796f7c9b425c213e94fe8a5f56ca374719387cbf920c5af858da",
+    "logs/dd189_core_v3_terminal_inventory_control_response_adjudication_20260813.json": "0fc1e22401d56d8f45607e9093b81d9e1fd531057a7dd754594ee53651d21142"
+  },
+  "implementation_sha256": "816d9f997db0767c2e4b3773d622f6276ad341a65ea7f7427f2eb87944db5bc9",
+  "limits": {
+    "unexplained_difference_lbmol": 1e-10,
+    "response_relative_difference": 1e-05
+  },
+  "required_failed_subgate": "signed_total",
+  "dd200_must_remain_failed": true,
+  "model_calls": 0,
+  "provider_calls": 0,
+  "solver_calls": 0,
+  "endpoint_regeneration_calls": 0,
+  "campaign_executed": false,
+  "contract_payload_sha256": "7fbb16ae0a0f00f25efa97c8db474acd8441c29db9c47261f0bf25a419b40db1"
+}

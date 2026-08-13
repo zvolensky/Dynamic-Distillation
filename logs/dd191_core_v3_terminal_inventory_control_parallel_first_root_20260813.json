@@ -1,0 +1,304 @@
+{
+  "schema_id": "dd191-core-v3-terminal-control-parallel-first-root-result-v1",
+  "classification": "controlled_parallel_first_root_failed",
+  "decision": "retain_serial_controlled_step_path",
+  "contract_commit": "1bc51b5c611b90f827885c5ada76226c714e0c1f",
+  "contract_payload_sha256": "649a355b8e6f3cde0f379d0fe04d9466ae9be0896be4b7d31f5e034261ef51ce",
+  "serial": {
+    "success": true,
+    "status": 3,
+    "message": "`xtol` termination condition is satisfied.",
+    "nfev": 4,
+    "njev": 4,
+    "cost": 2.2824679714235448e-24,
+    "optimality": 4.204125698264858e-09,
+    "wall_clock_sec": 2.071781299979193,
+    "residual_inf_norm": 1.6217876238103488e-12,
+    "jacobian_rank": 58,
+    "jacobian_condition": 14345845.482945599,
+    "jacobian_sha256": "57f7fdf6d55c45bc630584a735c5a8c01c3136d947ca9cfcd8d4e649a4a82ea3"
+  },
+  "parallel": {
+    "success": true,
+    "status": 3,
+    "message": "`xtol` termination condition is satisfied.",
+    "nfev": 4,
+    "njev": 4,
+    "cost": 2.2824679714235448e-24,
+    "optimality": 4.204125698264858e-09,
+    "wall_clock_sec": 1.0869398000068031,
+    "residual_inf_norm": 1.6217876238103488e-12,
+    "jacobian_rank": 58,
+    "jacobian_condition": 14345845.482945599,
+    "jacobian_sha256": "57f7fdf6d55c45bc630584a735c5a8c01c3136d947ca9cfcd8d4e649a4a82ea3"
+  },
+  "matrix_comparison": {
+    "serial_count": 4,
+    "parallel_count": 4,
+    "serial_sha256": [
+      "0836dcbb8c00e1938bb994fec28f8c250ca84a0d77f44d924b6a1f04b0df559d",
+      "54bdfabf5bdc62a6d7d4661f4579a47a8c2296b5d7a5cb4383f4fd119acf9377",
+      "6b974366465b66feaf8f20beb87c35ac8c8ea1a316600a5a9c528c9c4aab9834",
+      "57f7fdf6d55c45bc630584a735c5a8c01c3136d947ca9cfcd8d4e649a4a82ea3"
+    ],
+    "parallel_sha256": [
+      "0836dcbb8c00e1938bb994fec28f8c250ca84a0d77f44d924b6a1f04b0df559d",
+      "54bdfabf5bdc62a6d7d4661f4579a47a8c2296b5d7a5cb4383f4fd119acf9377",
+      "6b974366465b66feaf8f20beb87c35ac8c8ea1a316600a5a9c528c9c4aab9834",
+      "57f7fdf6d55c45bc630584a735c5a8c01c3136d947ca9cfcd8d4e649a4a82ea3"
+    ],
+    "per_matrix_max_abs_difference": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "maximum_absolute_difference": 0.0
+  },
+  "outcome_comparison": {
+    "success_equal": true,
+    "status_equal": true,
+    "message_equal": true,
+    "nfev_equal": true,
+    "njev_equal": true,
+    "numeric_differences": {
+      "cost": 0.0,
+      "optimality": 0.0,
+      "initial_coordinates": 0.0,
+      "final_coordinates": 0.0,
+      "final_residual": 0.0,
+      "returned_jacobian": 0.0,
+      "inventory_lbmol": 0.0,
+      "component_rate_lbmolph": 0.0,
+      "algebraic_coordinates": 0.0,
+      "controller_memory": 0.0,
+      "level_fraction": 0.0,
+      "product_log_ratio": 0.0,
+      "distillate_lbmolph": 0.0,
+      "bottoms_lbmolph": 0.0,
+      "endpoint_energy_BTU": 0.0
+    },
+    "maximum_numeric_difference": 0.0
+  },
+  "worker_ping_ids": [
+    11992,
+    18888,
+    31648
+  ],
+  "provider": {
+    "serial": {
+      "provider_identity": "dwsim",
+      "interface_provider_identities": {},
+      "total_calls": 4828,
+      "counts": [
+        {
+          "provider_interface": "dwsim.declared_liquid_density",
+          "evaluation_kind": "jacobian",
+          "count": 952
+        },
+        {
+          "provider_interface": "dwsim.declared_liquid_density",
+          "evaluation_kind": "residual",
+          "count": 42
+        },
+        {
+          "provider_interface": "dwsim.declared_phase_enthalpy",
+          "evaluation_kind": "jacobian",
+          "count": 1768
+        },
+        {
+          "provider_interface": "dwsim.declared_phase_enthalpy",
+          "evaluation_kind": "residual",
+          "count": 78
+        },
+        {
+          "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+          "evaluation_kind": "jacobian",
+          "count": 1904
+        },
+        {
+          "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+          "evaluation_kind": "residual",
+          "count": 84
+        }
+      ],
+      "violations": [],
+      "fallback_attempted": false,
+      "pass": true
+    },
+    "parallel_main": {
+      "provider_identity": "dwsim",
+      "interface_provider_identities": {},
+      "total_calls": 204,
+      "counts": [
+        {
+          "provider_interface": "dwsim.declared_liquid_density",
+          "evaluation_kind": "residual",
+          "count": 42
+        },
+        {
+          "provider_interface": "dwsim.declared_phase_enthalpy",
+          "evaluation_kind": "residual",
+          "count": 78
+        },
+        {
+          "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+          "evaluation_kind": "residual",
+          "count": 84
+        }
+      ],
+      "violations": [],
+      "fallback_attempted": false,
+      "pass": true
+    },
+    "workers": [
+      {
+        "color_count": 17,
+        "task_count": 34,
+        "worker_ids": [
+          11992,
+          18888,
+          19948,
+          31648
+        ],
+        "logical_provider_calls": 1156,
+        "memo_hits": 910,
+        "memo_misses": 246,
+        "provider_pass": true,
+        "fallback_attempted": false
+      },
+      {
+        "color_count": 17,
+        "task_count": 34,
+        "worker_ids": [
+          11992,
+          18888,
+          19948,
+          31648
+        ],
+        "logical_provider_calls": 1156,
+        "memo_hits": 774,
+        "memo_misses": 382,
+        "provider_pass": true,
+        "fallback_attempted": false
+      },
+      {
+        "color_count": 17,
+        "task_count": 34,
+        "worker_ids": [
+          11992,
+          18888,
+          19948,
+          31648
+        ],
+        "logical_provider_calls": 1156,
+        "memo_hits": 774,
+        "memo_misses": 382,
+        "provider_pass": true,
+        "fallback_attempted": false
+      },
+      {
+        "color_count": 17,
+        "task_count": 34,
+        "worker_ids": [
+          11992,
+          18888,
+          19948,
+          31648
+        ],
+        "logical_provider_calls": 1156,
+        "memo_hits": 774,
+        "memo_misses": 382,
+        "provider_pass": true,
+        "fallback_attempted": false
+      }
+    ]
+  },
+  "logical_provider_calls": 9656,
+  "serial_memoization": {
+    "enabled": true,
+    "hits": 3708,
+    "misses": 1120,
+    "families": {
+      "fugacity": {
+        "hits": 1540,
+        "misses": 448,
+        "entries": 448
+      },
+      "enthalpy": {
+        "hits": 1426,
+        "misses": 420,
+        "entries": 420
+      },
+      "density": {
+        "hits": 742,
+        "misses": 252,
+        "entries": 252
+      },
+      "vapor_z": {
+        "hits": 0,
+        "misses": 0,
+        "entries": 0
+      }
+    }
+  },
+  "parallel_main_memoization": {
+    "enabled": true,
+    "hits": 68,
+    "misses": 136,
+    "families": {
+      "fugacity": {
+        "hits": 28,
+        "misses": 56,
+        "entries": 56
+      },
+      "enthalpy": {
+        "hits": 26,
+        "misses": 52,
+        "entries": 52
+      },
+      "density": {
+        "hits": 14,
+        "misses": 28,
+        "entries": 28
+      },
+      "vapor_z": {
+        "hits": 0,
+        "misses": 0,
+        "entries": 0
+      }
+    }
+  },
+  "performance": {
+    "serial_total_jacobian_wall_sec": 1.9427808000473306,
+    "parallel_total_jacobian_wall_sec": 0.9454049999767449,
+    "serial_solve_wall_sec": 2.071781299979193,
+    "parallel_solve_wall_sec": 1.0869398000068031,
+    "parallel_solve_ratio": 0.5246402214450527,
+    "solve_speedup": 1.9060681189208692,
+    "startup_wall_sec_raw": 6.808269300003303,
+    "startup_wall_sec_adjusted": 6.658269300003303,
+    "total_governed_wall_sec": 20.678522400005022
+  },
+  "gates": {
+    "serial_root": true,
+    "parallel_root": true,
+    "matrix_count": true,
+    "matrix_equivalence": true,
+    "decision_equivalence": true,
+    "endpoint_equivalence": true,
+    "worker_participation": false,
+    "provider": true,
+    "provider_calls": true,
+    "parallel_speed": true,
+    "wall_clock": true
+  },
+  "pass_gate": false,
+  "campaign_executed_once": true,
+  "endpoint_accepted": false,
+  "state_advanced": false,
+  "second_timestep_attempted": false,
+  "controller_tuning_attempted": false,
+  "trajectory_attempted": false,
+  "retry_attempted": false
+}

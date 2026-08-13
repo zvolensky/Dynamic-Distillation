@@ -1499,3 +1499,17 @@ liquid composition. Interior equations and topology-generated links are
 unchanged. DD-184 is structural evidence only: the inherited geometry and PI
 constants are not yet tuned, and live residual, Jacobian, timestep, and
 controlled-trajectory work remain separately gated.
+
+DD-185 validates that controller ownership numerically at the accepted DD-169
+root. Live DWSIM liquid densities map the terminal inventories to a `0.459899`
+top level fraction and `0.427453` bottom level fraction. Taking those exact
+values as setpoints and initializing both integral memories and product log
+ratios at zero gives a bumpless handoff: distillate remains `2220.952340` and
+bottoms remains `4922.021660 lbmol/h`, with exactly zero controller residual.
+
+The complete zero-time residual remains `4.979842e-13`. Both finite-difference
+`58 x 58` leading Jacobians have rank `58`, no unexpected couplings, worst
+condition `1.432411e3`, and spectrum change `8.604470e-11`. DD-185 therefore
+authorizes one separately frozen controlled stationary root-hold implicit-step
+contract. It does not qualify controller tuning or authorize a disturbed
+controlled trajectory.

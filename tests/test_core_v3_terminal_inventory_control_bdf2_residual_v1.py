@@ -185,3 +185,33 @@ def test_dd196_residual_rejects_history_with_wrong_topology(monkeypatch):
             state_id="dd196_bad",
             evaluation_kind="residual",
         )
+
+
+def test_dd198_bdf2_solver_rejects_bad_initial_coordinates(monkeypatch):
+    contract, spec, history, point, _captured = _fixture(monkeypatch)
+
+    with pytest.raises(ValueError, match="initial coordinates"):
+        residual.solve_terminal_inventory_control_bdf2_step(
+            contract,
+            spec,
+            SimpleNamespace(),
+            SimpleNamespace(),
+            object(),
+            ProviderCallAudit(),
+            history=history,
+            level_setpoints=SimpleNamespace(),
+            rate_scales_lbmolph=np.ones_like(history.current_inventory_lbmol),
+            initial_solve_coordinates=point[:-1],
+            step_seconds=0.125,
+            fixed_steady_scales=np.ones(len(contract.base.rows)),
+            settings=SimpleNamespace(
+                jacobian_step=1.0e-5,
+                method="trf",
+                ftol=1.0e-12,
+                xtol=1.0e-12,
+                gtol=1.0e-12,
+                max_nfev=10,
+                x_scale=1.0,
+            ),
+            name="dd198_bad",
+        )

@@ -385,11 +385,22 @@ def _least_squares(
     settings: ImplicitStepSettings,
     *,
     jacobian_pattern: np.ndarray | None = None,
+    jacobian_builder: Callable[
+        [Callable[[np.ndarray, str], np.ndarray], np.ndarray, str], np.ndarray
+    ]
+    | None = None,
 ) -> ImplicitSolveOutcome:
     def residual(point: np.ndarray) -> np.ndarray:
         return objective(point, f"{name}:residual")
 
     def jacobian(point: np.ndarray) -> np.ndarray:
+        if jacobian_builder is not None:
+            return np.asarray(
+                jacobian_builder(
+                    objective, point.copy(), f"{name}:jacobian"
+                ),
+                dtype=float,
+            )
         if settings.jacobian_mode == "colored":
             if jacobian_pattern is None:
                 raise ValueError("colored Jacobian requires a sparsity pattern")
@@ -505,6 +516,10 @@ def solve_backward_euler_step(
     step_seconds: float,
     settings: ImplicitStepSettings,
     name: str,
+    jacobian_builder: Callable[
+        [Callable[[np.ndarray, str], np.ndarray], np.ndarray, str], np.ndarray
+    ]
+    | None = None,
 ) -> ImplicitSolveOutcome:
     previous = np.asarray(previous_inventory_lbmol, dtype=float)
     algebraic = (
@@ -577,6 +592,7 @@ def solve_backward_euler_step(
         endpoint,
         settings,
         jacobian_pattern=pattern,
+        jacobian_builder=jacobian_builder,
     )
 
 

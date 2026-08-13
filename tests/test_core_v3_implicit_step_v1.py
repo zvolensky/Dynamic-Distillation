@@ -8,6 +8,8 @@ from dynamic_distillation.core_v3.dynamic_dae_numerical_audit_v1 import (
     inventory_from_state,
 )
 from dynamic_distillation.core_v3.implicit_step_v1 import (
+    ImplicitStepSettings,
+    _least_squares,
     central_difference_jacobian,
     component_rate_scales,
     evaluate_backward_euler_residual,
@@ -224,3 +226,43 @@ def test_dd097_storage_property_chain_is_recorded_as_governing():
     assert audit.records
     assert {record.evaluation_kind for record in audit.records} == {"residual"}
     assert audit.report()["pass"]
+
+
+def test_external_jacobian_builder_preserves_least_squares_ownership():
+    class Evaluation:
+        def __init__(self, point):
+            self.scaled = np.asarray((point[0] - 1.0, 2.0 * point[1] + 0.5))
+
+    calls = []
+
+    def objective(point, state_id):
+        calls.append(("residual", state_id))
+        return Evaluation(point).scaled
+
+    def endpoint(point):
+        return Evaluation(point)
+
+    def builder(solver_objective, point, state_id):
+        calls.append(("jacobian", state_id, point.copy()))
+        assert np.array_equal(solver_objective(point, f"{state_id}:probe"), Evaluation(point).scaled)
+        return np.asarray(((1.0, 0.0), (0.0, 2.0)))
+
+    outcome = _least_squares(
+        "external_builder",
+        np.zeros(2),
+        objective,
+        endpoint,
+        ImplicitStepSettings(jacobian_mode="colored"),
+        jacobian_pattern=np.eye(2, dtype=bool),
+        jacobian_builder=builder,
+    )
+
+    assert outcome.success
+    assert np.allclose(outcome.final_coordinates, (1.0, -0.25))
+    assert np.array_equal(outcome.jacobian, ((1.0, 0.0), (0.0, 2.0)))
+    assert any(call[0] == "jacobian" for call in calls)
+    assert all(
+        call[1].startswith("external_builder:")
+        for call in calls
+        if call[0] == "jacobian"
+    )

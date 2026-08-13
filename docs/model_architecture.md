@@ -1573,3 +1573,19 @@ absolute-component, floor-relative, volume-relative, L1, controller, closure,
 and conservation gates remain mandatory. DD-188 stays formally failed, while
 one separately frozen modest controlled trajectory is authorized under the
 prospective policy.
+
+DD-190 extends the unchanged controlled disturbance to ten seconds on
+`40 x 0.25 s` and `80 x 0.125 s` grids. All 120 roots remain physical,
+conservative, rank `58`, and closed below `3.96e-12`. Both paths are positive
+and monotone, and each matches its integrated external flow within
+`1.55e-11` relative. The unexplained coarse/refined total difference stays
+below `7.98e-13 lbmol`, confirming that no mass leak appears.
+
+The campaign nevertheless fails its precommitted timestep-refinement gates.
+The total-grid difference relative to accumulated response exceeds `1e-5` at
+`4.75 s` and reaches `5.313564e-5` at `10 s`. Terminal-level refinement
+exceeds `1e-8` at `7.25 s` and reaches `1.754111e-8`. All other physical,
+rate, algebraic, PI-memory, and product refinements pass. DD-190 therefore
+stops the current controlled-trajectory extension on numerical accuracy, not
+model instability. A new explicit integration decision is required before a
+smaller-grid proof, parallel controller integration, tuning, or longer run.

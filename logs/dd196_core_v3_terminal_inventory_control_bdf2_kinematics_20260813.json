@@ -1,0 +1,33 @@
+{
+  "decision": "pass",
+  "date": "2026-08-13",
+  "dd": "DD-196",
+  "scope": "property-free controlled constant-step BDF2 kinematics and residual assembly",
+  "metrics": {
+    "stationary_derivative_max_abs": 0.0,
+    "quadratic_derivative_error_abs": 0.0,
+    "controller_inverse_round_trip_max_abs": 1.609823385706477e-15,
+    "stationary_residual_max_abs": 0.0,
+    "provider_calls": 0,
+    "focused_tests_passed": 18,
+    "core_v3_tests_passed": 424,
+    "core_v3_test_wall_seconds": 20.76
+  },
+  "implemented": [
+    "explicit two-level controlled BDF2 history",
+    "positive component-inventory endpoint map",
+    "effective BDF2 component rates",
+    "provider-derived internal-energy BDF2 storage rates",
+    "exact PI-memory endpoint inversion",
+    "controlled residual assembly with unchanged physical ownership",
+    "constant-step and history validation"
+  ],
+  "not_executed": [
+    "live property evaluation",
+    "numerical Jacobian",
+    "nonlinear solve",
+    "accepted timestep",
+    "trajectory"
+  ],
+  "next_authorization": "one separately frozen live stationary residual and Jacobian parity audit only"
+}

@@ -1670,3 +1670,23 @@ and taking a new backward-Euler startup step. The generic eight-volume,
 four-component ledger is `82 x 82`, rank `82`, with no named interior logic.
 This is structural authorization only. A BDF2 residual and property-free
 stationary identity audit must pass before any live root is considered.
+
+DD-196 implements that authorized layer. `ControlledBDF2History` stores fixed
+current/prior component inventories, provider-derived internal energies, and PI
+memories. The endpoint mapper retains positive exponential inventory
+coordinates, computes the exact BDF2 rate implied by the mapped endpoint, and
+inverts the PI-memory derivative exactly. A mismatched timestep invalidates the
+history.
+
+The controlled BDF2 residual reuses the existing terminal-control physical
+residual. It substitutes effective BDF2 component-rate coordinates before the
+material balances are evaluated, obtains endpoint governing internal energy
+from the accepted provider-owned storage definition, and adds its BDF2 storage
+rate exactly once to each energy row. Algebraic variables, product ownership,
+controller equations, and physical scales remain unchanged.
+
+The property-free stationary assembly is exactly zero with zero provider calls;
+linear and quadratic derivative identities, PI inversion, generic topology,
+and invalid-history behavior are tested. This implementation pass authorizes
+only a separately frozen live stationary residual/Jacobian parity audit. It
+does not authorize a nonlinear solve, accepted BDF2 step, or trajectory.

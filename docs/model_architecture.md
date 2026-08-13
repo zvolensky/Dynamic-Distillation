@@ -1690,3 +1690,23 @@ linear and quadratic derivative identities, PI inversion, generic topology,
 and invalid-history behavior are tested. This implementation pass authorizes
 only a separately frozen live stationary residual/Jacobian parity audit. It
 does not authorize a nonlinear solve, accepted BDF2 step, or trajectory.
+
+DD-197 supplies the first live thermodynamic check of that implementation. At
+the accepted seven-volume controlled stationary state, identical current and
+prior histories produce exactly zero inventory, component-rate, energy-rate,
+and PI-memory motion. The complete BDF2 residual is `4.979842e-13` and matches
+the backward-Euler stationary residual exactly.
+
+Dense central-difference BDF2 Jacobians at `1e-5` and `5e-6`, plus the
+backward-Euler reference Jacobian, all retain rank `58`; worst condition is
+`3.172742e7`. BDF2 spectrum sensitivity to finite-difference step is
+`1.078595e-7`. Its matrix differs from backward Euler by `0.3330511` in the
+reported relative norm because the time-derivative coefficients differ. This
+is expected method behavior: the stationary root, registered structure,
+physical equations, and provider ownership remain unchanged.
+
+The stationary parity pass authorizes only one separately frozen moving BDF2
+step. That successor must use an accepted backward-Euler startup history and a
+fixed timestep, compare directly with the accepted backward-Euler refinement,
+and pass all closure, rank, physicality, conservation, and accuracy gates
+before any BDF2 trajectory is considered.

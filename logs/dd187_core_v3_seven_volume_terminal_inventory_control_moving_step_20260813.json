@@ -1,0 +1,704 @@
+{
+  "schema_id": "dd187-core-v3-seven-volume-terminal-control-moving-step-result-v1",
+  "classification": "terminal_inventory_control_moving_step_passed",
+  "decision": "authorize_one_frozen_short_controlled_trajectory_contract",
+  "contract_commit": "7e7eec287a962102f28f626e1b379f8237db799e",
+  "contract_payload_sha256": "9e1f098f9c959bd414066b0787942dd1ddc58e5a3ddd5e6496360962ee913cf7",
+  "wall_clock_sec": 6.836153599986574,
+  "steps": {
+    "full": {
+      "success": true,
+      "status": 3,
+      "message": "`xtol` termination condition is satisfied.",
+      "nfev": 4,
+      "njev": 4,
+      "wall_clock_sec": 1.4664210000191815,
+      "residual_inf_norm": 8.73951224554166e-13,
+      "jacobian_rank": 58,
+      "jacobian_condition": 3587382.249854262,
+      "component_rate_max_abs_lbmolph": 3.8134224391114913,
+      "controller_rate_max_abs_per_sec": 5.674233516726209e-13,
+      "relative_inventory_movement": 1.3578474183476855e-05,
+      "algebraic_movement": 2.151771851033671e-05,
+      "controller_memory_movement": 1.4185583791815523e-13,
+      "level_error": 1.132712257323476e-10,
+      "product_relative_movement": 6.823268268322388e-11,
+      "component_kinematic_identity": 0.0,
+      "energy_kinematic_identity": 0.0,
+      "controller_kinematic_identity": 0.0,
+      "maximum_equilibrium_residual": 3.219646771412959e-15,
+      "component_conservation_relative_error": 3.223182869114697e-13,
+      "energy_conservation_relative_error": 8.803182527212078e-13,
+      "inventory_lbmol": [
+        [
+          1078.7579497340307,
+          302.0633474964326,
+          8.07870322978263
+        ],
+        [
+          21.262766428008845,
+          13.802603425173883,
+          0.7097601490986069
+        ],
+        [
+          14.075829554533636,
+          16.444776163350813,
+          1.4569753905535903
+        ],
+        [
+          15.227767186888242,
+          26.321850635585314,
+          3.917423668425113
+        ],
+        [
+          15.027478269936559,
+          34.23807137860584,
+          5.079946441336961
+        ],
+        [
+          11.083334891969411,
+          36.48338925720373,
+          5.989645789318698
+        ],
+        [
+          105.81953840860089,
+          562.2338443003437,
+          125.94661731118063
+        ]
+      ],
+      "rate_coordinates": [
+        [
+          4.0259927228031314e-07,
+          1.1371913869247527e-07,
+          3.0527945480642662e-09
+        ],
+        [
+          -7.975177592777934e-08,
+          5.4397212775899976e-08,
+          5.242914114172319e-09
+        ],
+        [
+          -6.278749463895922e-08,
+          -5.379798281530365e-08,
+          7.027824475010464e-08
+        ],
+        [
+          0.00017929787295204125,
+          0.0002988411638163652,
+          6.002519923725808e-05
+        ],
+        [
+          6.8208077397541365e-06,
+          1.1606545279554005e-05,
+          2.0250020505477767e-06
+        ],
+        [
+          2.0322834981955458e-07,
+          4.0317211025585187e-07,
+          6.48011624063668e-08
+        ],
+        [
+          5.745169916927707e-09,
+          1.4585342314273697e-08,
+          2.380065535050934e-09
+        ]
+      ],
+      "algebraic_coordinates": [
+        0.09771308367383805,
+        0.17364436248145124,
+        -0.10794211777512343,
+        -0.04126967084152229,
+        -0.12353425669140401,
+        -0.13254518507511842,
+        -0.14177649631532926,
+        -7.064218679831455,
+        -6.075236904428608,
+        -1.1142871188162966,
+        -1.6601012331748521,
+        -0.029113813962781617,
+        -0.16987685114086615,
+        0.3216848567067705,
+        -0.2545086811186662,
+        0.5015683735236676,
+        -0.3121260139513047,
+        1.091319888886859,
+        -0.09728763845467026,
+        -0.01807716154292619,
+        0.047084050306619524,
+        0.02040358784115018,
+        0.009153439892612403,
+        -0.0010848126760010584,
+        -0.026687556841179027,
+        -0.017265732757476185,
+        -0.005089121424247571,
+        0.026338382762466934,
+        0.030371518187160128,
+        -0.019390189435573215,
+        -7.081381330829793,
+        -6.079727961893559,
+        -0.03554065575873373
+      ],
+      "controller_memory": [
+        1.1799105636675378e-13,
+        1.4185583791815523e-13
+      ],
+      "level_fraction": [
+        0.45989894267745346,
+        0.42745331354698424
+      ],
+      "product_log_ratio": [
+        5.675369811240856e-11,
+        6.823265803863266e-11
+      ],
+      "distillate_lbmolph": 2220.9523405177997,
+      "bottoms_lbmolph": 4922.021659955409,
+      "physical": {
+        "positive_inventory": true,
+        "positive_liquid_composition": true,
+        "positive_vapor_composition": true,
+        "positive_flows": true,
+        "physical_levels": true,
+        "ordered_temperature": true,
+        "ordered_pressure": true,
+        "negative_condenser_duty": true,
+        "hydraulic_height_below_spacing": true,
+        "all_finite": true
+      },
+      "physical_pass": true
+    },
+    "half1": {
+      "success": true,
+      "status": 3,
+      "message": "`xtol` termination condition is satisfied.",
+      "nfev": 4,
+      "njev": 4,
+      "wall_clock_sec": 1.2840313999913633,
+      "residual_inf_norm": 1.6217876238103488e-12,
+      "jacobian_rank": 58,
+      "jacobian_condition": 14345845.482945599,
+      "component_rate_max_abs_lbmolph": 3.887845099734477,
+      "controller_rate_max_abs_per_sec": 2.59790204961923e-13,
+      "relative_inventory_movement": 6.908647577166611e-06,
+      "algebraic_movement": 1.0964667479476664e-05,
+      "controller_memory_movement": 3.2473775620240374e-14,
+      "level_error": 6.234968097373894e-11,
+      "product_relative_movement": 3.120727152829584e-11,
+      "component_kinematic_identity": 0.0,
+      "energy_kinematic_identity": 0.0,
+      "controller_kinematic_identity": 0.0,
+      "maximum_equilibrium_residual": 2.4424906541753412e-15,
+      "component_conservation_relative_error": 2.6452308636192058e-12,
+      "energy_conservation_relative_error": 2.816541732802311e-12,
+      "inventory_lbmol": [
+        [
+          1078.7579495738828,
+          302.06334745095864,
+          8.07870322855867
+        ],
+        [
+          21.262766459474662,
+          13.802603403958637,
+          0.7097601468788025
+        ],
+        [
+          14.075829580290778,
+          16.444776209453753,
+          1.4569753464535726
+        ],
+        [
+          15.227689257264903,
+          26.321720809204116,
+          3.917397540243282
+        ],
+        [
+          15.027473790382285,
+          34.23806375899169,
+          5.079945111120687
+        ],
+        [
+          11.083334735572263,
+          36.48338894698643,
+          5.989645739456485
+        ],
+        [
+          105.81953840384514,
+          562.2338442882705,
+          125.94661730921048
+        ]
+      ],
+      "rate_coordinates": [
+        [
+          4.4375598336470024e-07,
+          1.2480680330543043e-07,
+          3.3431985932766245e-09
+        ],
+        [
+          -8.848742275404497e-08,
+          6.091311044239702e-08,
+          5.4758863754798345e-09
+        ],
+        [
+          -6.744293576438399e-08,
+          -3.5448809873686904e-09,
+          4.1025859678599074e-08
+        ],
+        [
+          0.00018271408171858527,
+          0.00030467334078337996,
+          6.108093467291792e-05
+        ],
+        [
+          3.531577386261589e-06,
+          6.0161587783142216e-06,
+          1.0477997790924751e-06
+        ],
+        [
+          5.3479366648133156e-08,
+          1.0620564564000603e-07,
+          1.7066826358515325e-08
+        ],
+        [
+          7.569524403398164e-10,
+          1.9223211501295385e-09,
+          3.136408590349165e-10
+        ]
+      ],
+      "algebraic_coordinates": [
+        0.09771308367354663,
+        0.17364436178740741,
+        -0.10794211873400147,
+        -0.04126973613188969,
+        -0.12353424037418857,
+        -0.13254518382306557,
+        -0.14177649631074318,
+        -7.064218675045154,
+        -6.075236902780717,
+        -1.1142870870181825,
+        -1.6601012005041782,
+        -0.029112291427697296,
+        -0.16987514906003337,
+        0.3216848135473541,
+        -0.25450864508579923,
+        0.501568367287903,
+        -0.3121260143077885,
+        1.0913198888560813,
+        -0.0972876384610031,
+        -0.01807716134398372,
+        0.04708405168011116,
+        0.02039303479011932,
+        0.009152916227344859,
+        -0.0010848327324437428,
+        -0.026687557318502735,
+        -0.017265744247347576,
+        -0.005089240016061379,
+        0.02633849521677454,
+        0.03037160080847762,
+        -0.01939010742170886,
+        -7.081381330826682,
+        -6.079727961892577,
+        -0.035540733988920915
+      ],
+      "controller_memory": [
+        3.2473775620240374e-14,
+        4.6771430164412895e-15
+      ],
+      "level_fraction": [
+        0.4598989426265319,
+        0.42745331353903393
+      ],
+      "product_log_ratio": [
+        3.120729837105097e-11,
+        4.494734438800081e-12
+      ],
+      "distillate_lbmolph": 2220.9523404610622,
+      "bottoms_lbmolph": 4922.0216596416885,
+      "physical": {
+        "positive_inventory": true,
+        "positive_liquid_composition": true,
+        "positive_vapor_composition": true,
+        "positive_flows": true,
+        "physical_levels": true,
+        "ordered_temperature": true,
+        "ordered_pressure": true,
+        "negative_condenser_duty": true,
+        "hydraulic_height_below_spacing": true,
+        "all_finite": true
+      },
+      "physical_pass": true
+    },
+    "half2": {
+      "success": true,
+      "status": 3,
+      "message": "`xtol` termination condition is satisfied.",
+      "nfev": 4,
+      "njev": 4,
+      "wall_clock_sec": 1.240453999984311,
+      "residual_inf_norm": 5.641118859441103e-13,
+      "jacobian_rank": 58,
+      "jacobian_condition": 14345847.05336699,
+      "component_rate_max_abs_lbmolph": 3.812032678229116,
+      "controller_rate_max_abs_per_sec": 4.953105918818948e-13,
+      "relative_inventory_movement": 1.369570681878256e-05,
+      "algebraic_movement": 2.1719568036905612e-05,
+      "controller_memory_movement": 9.438759960547722e-14,
+      "level_error": 1.188742437818746e-10,
+      "product_relative_movement": 5.953161640209534e-11,
+      "component_kinematic_identity": 0.0,
+      "energy_kinematic_identity": 0.0,
+      "controller_kinematic_identity": 0.0,
+      "maximum_equilibrium_residual": 2.8865798640254113e-15,
+      "component_conservation_relative_error": 1.1587087696588315e-12,
+      "energy_conservation_relative_error": 2.290768208976324e-13,
+      "inventory_lbmol": [
+        [
+          1078.7579497518914,
+          302.06334750126547,
+          8.078703229908973
+        ],
+        [
+          21.262766424193956,
+          13.802603428085174,
+          0.7097601491594392
+        ],
+        [
+          14.075829552456995,
+          16.44477618515664,
+          1.4569753778665975
+        ],
+        [
+          15.227768670083984,
+          26.321853171449888,
+          3.9174241276687773
+        ],
+        [
+          15.027476864744227,
+          34.23806899344372,
+          5.079946023591168
+        ],
+        [
+          11.083334805433337,
+          36.48338908567698,
+          5.989645761744971
+        ],
+        [
+          105.8195384051685,
+          562.2338442916313,
+          125.94661730975892
+        ]
+      ],
+      "rate_coordinates": [
+        [
+          4.0175280438465414e-07,
+          1.1353895315754754e-07,
+          3.047538602080592e-09
+        ],
+        [
+          -7.962606620827966e-08,
+          5.445189305604592e-08,
+          5.147236152392285e-09
+        ],
+        [
+          -6.281888598682509e-08,
+          -5.4836868046955365e-08,
+          7.08969817974084e-08
+        ],
+        [
+          0.00017922913237894015,
+          0.00029873225436136857,
+          6.000594436579841e-05
+        ],
+        [
+          6.938618095173878e-06,
+          1.1813789081900065e-05,
+          2.0593815259832934e-06
+        ],
+        [
+          1.5767151591027454e-07,
+          3.1301479608692983e-07,
+          5.030354247201856e-08
+        ],
+        [
+          2.986724380397641e-09,
+          7.58511183130398e-09,
+          1.2377893110476054e-09
+        ]
+      ],
+      "algebraic_coordinates": [
+        0.09771308367376057,
+        0.1736443625657369,
+        -0.10794211775710862,
+        -0.04126966974446706,
+        -0.123534251552416,
+        -0.13254518438167465,
+        -0.14177649631201947,
+        -7.064218680121238,
+        -6.075236904312879,
+        -1.1142871104448138,
+        -1.6601012232995658,
+        -0.029113833542065374,
+        -0.16987687164587023,
+        0.32168484324604096,
+        -0.25450866958498497,
+        0.5015683700704977,
+        -0.3121260141479856,
+        1.0913198888646476,
+        -0.09728763845923614,
+        -0.01807716155875483,
+        0.04708405075500731,
+        0.02040378969067675,
+        0.00915327580601773,
+        -0.001084823767867215,
+        -0.026687557103544656,
+        -0.017265736337159002,
+        -0.005089119046958967,
+        0.02633838075086712,
+        0.030371516631384373,
+        -0.01939019104549198,
+        -7.081381330828862,
+        -6.0797279618931945,
+        -0.035540654242327246
+      ],
+      "controller_memory": [
+        9.438759960547722e-14,
+        2.7797129934777755e-14
+      ],
+      "level_fraction": [
+        0.4598989426830565,
+        0.4274533135412471
+      ],
+      "product_log_ratio": [
+        5.95316586254329e-11,
+        2.222298457153779e-11
+      ],
+      "distillate_lbmolph": 2220.9523405239693,
+      "bottoms_lbmolph": 4922.021659728947,
+      "physical": {
+        "positive_inventory": true,
+        "positive_liquid_composition": true,
+        "positive_vapor_composition": true,
+        "positive_flows": true,
+        "physical_levels": true,
+        "ordered_temperature": true,
+        "ordered_pressure": true,
+        "negative_condenser_duty": true,
+        "hydraulic_height_below_spacing": true,
+        "all_finite": true
+      },
+      "physical_pass": true
+    }
+  },
+  "response": {
+    "full": {
+      "component_inventory_change_lbmol": [
+        0.00016534651699728897,
+        0.0002755777598189013,
+        5.5115551508055916e-05
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0001653465169083764,
+        0.0002755777598261488,
+        5.511555151484357e-05
+      ],
+      "component_inventory_identity_max_abs_lbmol": 8.891257413483344e-14,
+      "total_inventory_change_lbmol": 0.0004960398283242462,
+      "expected_total_inventory_change_lbmol": 0.0004960398282493688
+    },
+    "refined": {
+      "component_inventory_change_lbmol": [
+        0.00016534652106869885,
+        0.00027557777313624854,
+        5.511555412474056e-05
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0001653465215700065,
+        0.0002755777730646969,
+        5.5115554126771036e-05
+      ],
+      "component_inventory_identity_max_abs_lbmol": 5.013076542423334e-13,
+      "total_inventory_change_lbmol": 0.000496039848329688,
+      "expected_total_inventory_change_lbmol": 0.0004960398487614744
+    }
+  },
+  "refinement": {
+    "physical_inventory": {
+      "maximum_absolute_component_difference_lbmol": 2.5358645743267516e-06,
+      "maximum_absolute_component_index": [
+        3,
+        1
+      ],
+      "maximum_state_relative_difference_with_1_lbmol_floor": 1.1723263530570467e-07,
+      "maximum_state_relative_index": [
+        3,
+        2
+      ],
+      "maximum_volume_holdup_relative_component_difference": 5.57742727455772e-08,
+      "maximum_volume_relative_index": [
+        3,
+        1
+      ],
+      "component_difference_l1_lbmol": 9.051783628533094e-06,
+      "signed_total_inventory_difference_lbmol": -2.0005441747628083e-11,
+      "absolute_signed_total_inventory_difference_lbmol": 2.0005441747628083e-11
+    },
+    "legacy_unfloored_relative_inventory_diagnostic": 1.1723263530570467e-07,
+    "rate_coordinate_difference": 2.0724380234606015e-07,
+    "algebraic_coordinate_difference": 2.0184952656890354e-07,
+    "controller_memory_difference": 1.1405870798337748e-13,
+    "product_relative_difference": 4.60098447179238e-11,
+    "level_fraction_difference": 5.737132990901728e-12
+  },
+  "worst_condition": 14345847.05336699,
+  "maximum_product_relative_movement": 6.823268268322388e-11,
+  "maximum_controller_memory_movement": 1.4185583791815523e-13,
+  "exact_state_memoization": {
+    "enabled": true,
+    "hits": 11385,
+    "misses": 3099,
+    "families": {
+      "fugacity": {
+        "hits": 4749,
+        "misses": 1215,
+        "entries": 1215
+      },
+      "enthalpy": {
+        "hits": 4386,
+        "misses": 1152,
+        "entries": 1152
+      },
+      "density": {
+        "hits": 2250,
+        "misses": 732,
+        "entries": 732
+      },
+      "vapor_z": {
+        "hits": 0,
+        "misses": 0,
+        "entries": 0
+      }
+    }
+  },
+  "provider": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {},
+    "total_calls": 14484,
+    "counts": [
+      {
+        "provider_interface": "dwsim.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "count": 2856
+      },
+      {
+        "provider_interface": "dwsim.declared_liquid_density",
+        "evaluation_kind": "residual",
+        "count": 126
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "count": 5304
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "residual",
+        "count": 234
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "count": 5712
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "count": 252
+      }
+    ],
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true
+  },
+  "step_gates": {
+    "full": {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "equilibrium": true,
+      "component_conservation": true,
+      "energy_conservation": true,
+      "component_kinematics": true,
+      "energy_kinematics": true,
+      "controller_kinematics": true,
+      "controller_equations": true,
+      "physical": true
+    },
+    "half1": {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "equilibrium": true,
+      "component_conservation": true,
+      "energy_conservation": true,
+      "component_kinematics": true,
+      "energy_kinematics": true,
+      "controller_kinematics": true,
+      "controller_equations": true,
+      "physical": true
+    },
+    "half2": {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "equilibrium": true,
+      "component_conservation": true,
+      "energy_conservation": true,
+      "component_kinematics": true,
+      "energy_kinematics": true,
+      "controller_kinematics": true,
+      "controller_equations": true,
+      "physical": true
+    }
+  },
+  "response_gates": {
+    "full": {
+      "positive": true,
+      "detectable": true,
+      "bounded": true,
+      "global_component_identity": true
+    },
+    "refined": {
+      "positive": true,
+      "detectable": true,
+      "bounded": true,
+      "global_component_identity": true
+    }
+  },
+  "refinement_gates": {
+    "absolute_component": true,
+    "state_relative_with_floor": true,
+    "volume_holdup_relative": true,
+    "component_l1": true,
+    "signed_total": true,
+    "rate": true,
+    "algebraic": true,
+    "controller_memory": true,
+    "product": true,
+    "level": true
+  },
+  "campaign_gates": {
+    "steps": true,
+    "response": true,
+    "refinement": true,
+    "provider": true,
+    "provider_calls": true,
+    "wall_clock": true
+  },
+  "pass_gate": true,
+  "campaign_executed_once": true,
+  "disturbance_attempted": true,
+  "controller_tuning_attempted": false,
+  "retry_attempted": false,
+  "trajectory_attempted": false
+}

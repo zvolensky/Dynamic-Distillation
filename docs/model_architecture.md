@@ -1526,3 +1526,17 @@ relative, and maximum level error is below `1e-15`. Full and refined endpoint
 inventories agree within `1.282663e-14` relative. This authorizes one
 separately frozen small controlled moving-step contract. Controller tuning and
 controlled trajectories remain unauthorized.
+
+DD-187 applies the first controller-enabled disturbance: feed component rates
+and feed enthalpy increase together by `0.1%`, preserving feed composition and
+specific enthalpy. Product log ratios are always referenced to the fixed
+DD-169 product rates; they are not compounded from a prior endpoint. One
+`0.25 s` root and two successive `0.125 s` roots all close below `1.63e-12`
+and retain rank `58`, with worst condition `1.434585e7`.
+
+Both grids accumulate `4.960398e-4 lbmol` over the quarter-second horizon and
+agree within every physical-scale inventory, rate, algebraic, controller,
+product, and level refinement limit. This is the first accepted moving result
+for the seven-volume terminal-control layer. It authorizes one separately
+frozen short controlled trajectory, but the extremely small product response
+at this horizon does not qualify the inherited PI constants as tuned.

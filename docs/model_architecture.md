@@ -1650,3 +1650,23 @@ repeated timestep halving. The next architecture decision should be a
 property-free structural design for a higher-order implicit formula, with no
 live trajectory until its state/history ownership and startup procedure are
 explicitly gated.
+
+DD-195 defines that higher-order structure as constant-step BDF2. It changes
+the time discretization but not physical equation ownership: the controlled
+solve remains `58 x 58`, full structural rank, with the same topology-generated
+Jacobian pattern. History is fixed input rather than another solved state.
+
+For seven volumes and three components, each of two history levels owns 21
+component inventories, seven provider-derived internal-energy storages, and
+two PI memories, for 60 saved values. Component and energy derivatives use
+`(3*y[n+1]-4*y[n]+y[n-1])/(2*dt)`. PI-memory solve coordinates map to the
+same BDF2 derivative exactly. Component endpoints retain the positive
+exponential map, and the balance receives the exact BDF2 rate implied by the
+endpoint.
+
+One accepted existing backward-Euler step creates startup history. The BDF2
+contract is constant-step only; changing `dt` requires discarding its history
+and taking a new backward-Euler startup step. The generic eight-volume,
+four-component ledger is `82 x 82`, rank `82`, with no named interior logic.
+This is structural authorization only. A BDF2 residual and property-free
+stationary identity audit must pass before any live root is considered.

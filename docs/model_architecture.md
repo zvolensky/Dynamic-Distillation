@@ -1453,3 +1453,16 @@ deterministic in the main process. Pool creation is not a per-Jacobian
 operation because four-worker startup is about `5.714 s`. Integration into the
 step solver requires a separate equivalence proof before any controlled or
 longer trajectory.
+
+DD-182 integrates that worker model into one real `least_squares(method="trf")`
+backward-Euler root. The main process continues to own every ordinary residual,
+trust-region decision, convergence test, and endpoint evaluation. An optional
+Jacobian-builder hook delegates only the 34 colored perturbation residuals;
+the default path remains serial. The serial and parallel roots each require
+four Jacobians and are identical in matrices, solver decisions, and endpoint.
+Parallel solve wall falls from `1.252650 s` to `0.534514 s` (`2.344x`).
+
+The next performance boundary is a short multi-root proof with one pool kept
+alive for the entire run. This must demonstrate exact serial equivalence and
+amortize the approximately `5 s` startup before the parallel path becomes the
+production default. Controller logic remains outside that proof.

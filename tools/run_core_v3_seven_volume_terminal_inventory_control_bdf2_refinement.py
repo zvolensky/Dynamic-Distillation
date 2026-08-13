@@ -157,7 +157,7 @@ def _bdf2_expected_inventory_history(
 def _contract_markdown(payload: Mapping[str, Any]) -> str:
     paths = payload["paths"]
     return "\n".join((
-        "# DD-199 Controlled BDF2 Short-Refinement Contract",
+        f"# {payload.get('campaign_id', 'DD-199')} Controlled BDF2 Short-Refinement Contract",
         "",
         f"- Payload SHA-256: `{payload['contract_payload_sha256']}`",
         f"- Preparation base commit: `{payload['preparation_base_commit']}`",
@@ -177,7 +177,7 @@ def _contract_markdown(payload: Mapping[str, Any]) -> str:
 def _result_markdown(payload: Mapping[str, Any]) -> str:
     shared = payload["shared_time_refinement"]
     return "\n".join((
-        "# DD-199 Controlled BDF2 Short-Refinement Result",
+        f"# {payload.get('campaign_id', 'DD-199')} Controlled BDF2 Short-Refinement Result",
         "",
         f"- Classification: `{payload['classification']}`",
         f"- Decision: `{payload['decision']}`",
@@ -192,7 +192,19 @@ def _result_markdown(payload: Mapping[str, Any]) -> str:
     ))
 
 
-def prepare(source_path: Path, dd198_path: Path, dd188_path: Path, contract_path: Path, contract_doc_path: Path) -> dict[str, Any]:
+def prepare(
+    source_path: Path,
+    dd198_path: Path,
+    dd188_path: Path,
+    contract_path: Path,
+    contract_doc_path: Path,
+    *,
+    campaign_id: str = "DD-199",
+    schema_id: str = SCHEMA,
+    result_schema_id: str = RESULT_SCHEMA,
+    additional_sources: Sequence[Path] = (),
+    implementation_paths: Sequence[str] = IMPLEMENTATION,
+) -> dict[str, Any]:
     source = _load(source_path)
     dd198 = _load(dd198_path)
     dd188 = _load(dd188_path)
@@ -203,11 +215,19 @@ def prepare(source_path: Path, dd198_path: Path, dd188_path: Path, contract_path
     pairs = [[index, 2 * index] for index in range(1, coarse_steps + 1)]
     baseline = dd188["shared_time_refinement"]
     payload: dict[str, Any] = {
-        "schema_id": SCHEMA,
+        "schema_id": schema_id,
+        "result_schema_id": result_schema_id,
+        "campaign_id": campaign_id,
         "preparation_base_commit": dd187.dd186._git("rev-parse", "HEAD"),
         "sources": {
             str(path).replace("\\", "/"): dd187.dd186._sha(ROOT / path)
-            for path in (source_path, dd198_path, dd188_path, DD185_CONTRACT)
+            for path in (
+                source_path,
+                dd198_path,
+                dd188_path,
+                DD185_CONTRACT,
+                *additional_sources,
+            )
         },
         "workbook": source["workbook"],
         "workbook_sha256": source["workbook_sha256"],
@@ -259,7 +279,9 @@ def prepare(source_path: Path, dd198_path: Path, dd188_path: Path, contract_path
         },
         "physical_refinement_limits": source["physical_refinement_limits"],
         "required_rank": 58,
-        "implementation_sha256": {path: dd187.dd186._sha(ROOT / path) for path in IMPLEMENTATION},
+        "implementation_sha256": {
+            path: dd187.dd186._sha(ROOT / path) for path in implementation_paths
+        },
         "hard_stops": [
             "either path fails to complete every root",
             "any root loses closure, rank, condition, physicality, equilibrium, conservation, or kinematics",
@@ -495,7 +517,8 @@ def execute(contract_path: Path, result_path: Path, result_doc_path: Path) -> di
     }
     passed = all(gates.values())
     result = {
-        "schema_id": RESULT_SCHEMA,
+        "schema_id": payload.get("result_schema_id", RESULT_SCHEMA),
+        "campaign_id": payload.get("campaign_id", "DD-199"),
         "classification": "controlled_bdf2_refinement_passed" if passed else "controlled_bdf2_refinement_failed",
         "decision": "authorize_one_frozen_modest_bdf2_trajectory_contract" if passed else "stop_bdf2_trajectory_path",
         "contract_commit": dd187.dd186._git("rev-parse", "HEAD"),

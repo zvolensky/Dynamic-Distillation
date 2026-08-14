@@ -1869,3 +1869,11 @@ stops, and monotonic deadlines. Serial execution remains the default. This
 separation keeps process management and thermodynamic worker initialization at
 the application boundary while making numerical ownership reusable and
 testable.
+
+DD-208 supplies the live boundary proof for this extraction. The reusable
+backend reproduces DD-204's startup and first BDF2 root exactly, including
+solver metadata, accepted physical states, residuals, rank, and condition. All
+seven Jacobians use four workers with the required per-root basis lifecycle and
+no provider fallback. Future parallel BDF2 execution shall use the production
+coordinator and adapter; campaign-local closure implementations remain only as
+immutable historical evidence.

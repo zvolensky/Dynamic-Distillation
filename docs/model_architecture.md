@@ -1930,3 +1930,14 @@ does not alter endpoint equations, conserved states, controller memory,
 thermodynamic calls, Jacobian construction, bounds, or acceptance. Production
 continues to use the accepted-endpoint default until a frozen live proof shows
 that extrapolation reduces Jacobian work without changing physical endpoints.
+
+DD-212 supplies that live proof. On two independent ten-second, eight-worker
+paths, linear extrapolation reduces Jacobian count by `19.718%`, logical calls
+by `18.988%`, and warm trajectory wall by `21.501%`. Accepted physical science
+agrees within `3.046807e-10`, and all roots and provider/worker gates pass.
+
+Production controlled BDF2 recipes therefore select `linear_extrapolation`
+explicitly. The Python API default remains `accepted_endpoint` so historical
+contracts and callers retain unchanged behavior. The predictor is not a
+fallback mechanism: if an extrapolated root fails, the trajectory stops under
+the existing root-failure contract.

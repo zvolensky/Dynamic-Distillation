@@ -1901,3 +1901,18 @@ production throughput. Thermodynamic cost remains material: the two paths use
 `1,640,840` logical property calls and `250.435 s` governed wall. The architecture
 therefore advances only to one separately frozen 60-second validation, with the
 same bounded execution discipline.
+
+## DD-210 worker scaling
+
+The production Jacobian coordinator remains independent of worker count. On
+the present eight-core host, DD-210 compares four and eight persistent DWSIM
+workers using identical startup and BDF2 roots. All Jacobians and accepted root
+reports are exactly equal, including solver decisions, while warm trajectory
+wall improves by `1.535x`.
+
+Eight workers are therefore the production default on this host. The executor
+remains caller-owned, every matrix must demonstrate actual participation by
+all configured workers, and every root must rebuild exactly one physical basis
+per worker. Worker count is a deployment setting bounded by available physical
+cores, not a model equation or scientific parameter. Four workers remain the
+qualified fallback where host capacity requires it.

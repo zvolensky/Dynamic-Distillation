@@ -1787,3 +1787,22 @@ method for the current Core V3 milestone. It authorizes one separately frozen
 integration extension, not controller tuning, arbitrary timestep changes, or
 an unrestricted production trajectory. Any timestep change still invalidates
 BDF2 history and requires a new backward-Euler startup.
+
+DD-203 gives that selected method the production trajectory orchestration
+contract already used around backward Euler. The BDF2 runner retains its
+default one-step backward-Euler startup and constant-step history ownership,
+but now accepts explicit startup and BDF2 step solvers. This is the interface used
+by qualified serial, memoized, or parallel Jacobian implementations; the
+trajectory itself does not own or silently select a performance backend.
+
+A finite monotonic deadline is checked before startup and before each BDF2
+root. Incomplete results distinguish deadline expiration from nonlinear root
+failure, retain every completed record with its method label, and expose no
+endpoint when no root completed. Requested duration and the final completed
+outcome use the same reporting shape as the established controlled trajectory
+workflow.
+
+The gate is property-free and does not advance the model. Its pass authorizes
+one frozen live serial-versus-performance-path equivalence proof. A longer
+BDF2 trajectory remains unauthorized until the injected solver reproduces the
+serial Jacobians, decisions, and endpoints under live DWSIM evaluation.

@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Sequence
+import time
+from typing import Any, Callable, Sequence
 
 import numpy as np
 
 from .implicit_step_v1 import ImplicitStepSettings, component_rate_scales
 from .provider_call_audit_v1 import ProviderCallAudit
-from .provider_governed_residual_v1 import NumericalReference, OperatingSpec, PhysicalState
+from .provider_governed_residual_v1 import (
+    NumericalReference,
+    OperatingSpec,
+    PhysicalState,
+)
 from .terminal_inventory_control_bdf2_kinematics_v1 import build_controlled_bdf2_history
 from .terminal_inventory_control_bdf2_residual_v1 import (
     TerminalInventoryControlBDF2StepOutcome,
@@ -28,7 +33,9 @@ class TerminalInventoryControlBDF2TrajectoryRecord:
     index: int
     time_seconds: float
     method: str
-    outcome: TerminalInventoryControlStepOutcome | TerminalInventoryControlBDF2StepOutcome
+    outcome: (
+        TerminalInventoryControlStepOutcome | TerminalInventoryControlBDF2StepOutcome
+    )
 
 
 @dataclass(frozen=True)
@@ -39,6 +46,19 @@ class TerminalInventoryControlBDF2TrajectoryResult:
     completed_steps: int
     completed: bool
     records: tuple[TerminalInventoryControlBDF2TrajectoryRecord, ...]
+    stop_reason: str | None = None
+
+    @property
+    def duration_seconds(self) -> float:
+        return float(self.requested_steps) * float(self.step_seconds)
+
+    @property
+    def endpoint_outcome(
+        self,
+    ) -> TerminalInventoryControlStepOutcome | TerminalInventoryControlBDF2StepOutcome:
+        if not self.records:
+            raise RuntimeError("controlled BDF2 trajectory has no endpoint")
+        return self.records[-1].outcome
 
 
 def _accepted_inventory(evaluation: Any) -> np.ndarray:
@@ -77,21 +97,49 @@ def run_terminal_inventory_control_bdf2_trajectory(
     step_seconds: float,
     settings: ImplicitStepSettings,
     name: str,
+    startup_step_solver: (
+        Callable[..., TerminalInventoryControlStepOutcome] | None
+    ) = None,
+    bdf2_step_solver: (
+        Callable[..., TerminalInventoryControlBDF2StepOutcome] | None
+    ) = None,
+    deadline_monotonic: float | None = None,
 ) -> TerminalInventoryControlBDF2TrajectoryResult:
     """Run one BE startup followed by fixed-step BDF2 roots."""
     duration = float(duration_seconds)
     step = float(step_seconds)
-    if not np.isfinite(duration) or not np.isfinite(step) or duration <= 0.0 or step <= 0.0:
-        raise ValueError("controlled BDF2 trajectory duration and step must be positive")
+    if (
+        not np.isfinite(duration)
+        or not np.isfinite(step)
+        or duration <= 0.0
+        or step <= 0.0
+    ):
+        raise ValueError(
+            "controlled BDF2 trajectory duration and step must be positive"
+        )
     requested = int(round(duration / step))
-    if requested < 2 or not np.isclose(requested * step, duration, rtol=0.0, atol=1e-12):
+    if requested < 2 or not np.isclose(
+        requested * step, duration, rtol=0.0, atol=1e-12
+    ):
         raise ValueError("controlled BDF2 trajectory needs at least two constant steps")
+    if deadline_monotonic is not None and not np.isfinite(deadline_monotonic):
+        raise ValueError("controlled BDF2 trajectory deadline must be finite")
 
     initial_inventory = np.asarray(initial_inventory_lbmol, dtype=float)
     initial_memory = np.asarray(initial_controller_memory, dtype=float)
     initial_coordinates = np.asarray(initial_solve_coordinates, dtype=float)
     records: list[TerminalInventoryControlBDF2TrajectoryRecord] = []
-    startup = solve_terminal_inventory_control_backward_euler_step(
+    startup_solver = (
+        startup_step_solver or solve_terminal_inventory_control_backward_euler_step
+    )
+    bdf2_solver = bdf2_step_solver or solve_terminal_inventory_control_bdf2_step
+    if deadline_monotonic is not None and time.perf_counter() >= float(
+        deadline_monotonic
+    ):
+        return TerminalInventoryControlBDF2TrajectoryResult(
+            name, step, requested, 0, False, tuple(), "deadline"
+        )
+    startup = startup_solver(
         contract,
         spec,
         reference,
@@ -108,17 +156,27 @@ def run_terminal_inventory_control_bdf2_trajectory(
         settings=settings,
         name=f"{name}:startup",
     )
-    records.append(TerminalInventoryControlBDF2TrajectoryRecord(1, step, "backward_euler", startup))
+    records.append(
+        TerminalInventoryControlBDF2TrajectoryRecord(1, step, "backward_euler", startup)
+    )
     if not startup.success:
-        return TerminalInventoryControlBDF2TrajectoryResult(name, step, requested, 1, False, tuple(records))
+        return TerminalInventoryControlBDF2TrajectoryResult(
+            name, step, requested, 1, False, tuple(records), "root_failure"
+        )
 
     prior_inventory = initial_inventory
     prior_storage = startup.evaluation.previous_internal_energy_BTU
     prior_memory = initial_memory
     current = startup.evaluation
     current_coordinates = startup.final_coordinates
+    stop_reason: str | None = None
 
     for index in range(2, requested + 1):
+        if deadline_monotonic is not None and time.perf_counter() >= float(
+            deadline_monotonic
+        ):
+            stop_reason = "deadline"
+            break
         history = build_controlled_bdf2_history(
             step_seconds=step,
             current_inventory_lbmol=_accepted_inventory(current),
@@ -129,7 +187,7 @@ def run_terminal_inventory_control_bdf2_trajectory(
             prior_controller_memory=prior_memory,
         )
         rates = component_rate_scales(contract.base, current.control_evaluation.base)
-        outcome = solve_terminal_inventory_control_bdf2_step(
+        outcome = bdf2_solver(
             contract,
             spec,
             reference,
@@ -147,9 +205,12 @@ def run_terminal_inventory_control_bdf2_trajectory(
             name=f"{name}:bdf2_{index}",
         )
         records.append(
-            TerminalInventoryControlBDF2TrajectoryRecord(index, index * step, "bdf2", outcome)
+            TerminalInventoryControlBDF2TrajectoryRecord(
+                index, index * step, "bdf2", outcome
+            )
         )
         if not outcome.success:
+            stop_reason = "root_failure"
             break
         prior_inventory = _accepted_inventory(current)
         prior_storage = _accepted_storage(current)
@@ -157,7 +218,11 @@ def run_terminal_inventory_control_bdf2_trajectory(
         current = outcome.evaluation
         current_coordinates = outcome.final_coordinates
 
-    completed = len(records) == requested and all(record.outcome.success for record in records)
+    completed = (
+        stop_reason is None
+        and len(records) == requested
+        and all(record.outcome.success for record in records)
+    )
     return TerminalInventoryControlBDF2TrajectoryResult(
         name=name,
         step_seconds=step,
@@ -165,6 +230,7 @@ def run_terminal_inventory_control_bdf2_trajectory(
         completed_steps=len(records),
         completed=completed,
         records=tuple(records),
+        stop_reason=stop_reason,
     )
 
 

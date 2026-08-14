@@ -1877,3 +1877,27 @@ seven Jacobians use four workers with the required per-root basis lifecycle and
 no provider fallback. Future parallel BDF2 execution shall use the production
 coordinator and adapter; campaign-local closure implementations remain only as
 immutable historical evidence.
+
+## DD-209 30-second production horizon
+
+DD-209 is the first horizon extension executed entirely through the reusable
+production backend. The scientific model remains the DD-202 controlled
+seven-volume system: fixed pressure, a `+0.1%` feed-rate and feed-enthalpy
+disturbance, top and bottom inventory PI controllers, DWSIM Peng-Robinson
+properties, one backward-Euler startup per path, and constant-step BDF2
+thereafter. The coarse and refined paths use `0.25 s` and `0.125 s` steps for
+the same 30-second interval.
+
+Both paths complete with full rank, bounded condition, physical states, exact
+conservation, equilibrium closure, controller closure, and acceptable
+cross-grid response. The persistent worker pool preserves main-process solver
+and accepted-state ownership while using all four workers for every colored
+Jacobian. No equation, property basis, controller, or timestep is adapted
+during execution.
+
+This establishes tested numerical coherence through 30 seconds. It does not
+establish process settling, long-horizon controller performance, or acceptable
+production throughput. Thermodynamic cost remains material: the two paths use
+`1,640,840` logical property calls and `250.435 s` governed wall. The architecture
+therefore advances only to one separately frozen 60-second validation, with the
+same bounded execution discipline.

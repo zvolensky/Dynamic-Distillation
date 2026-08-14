@@ -103,6 +103,7 @@ def run_terminal_inventory_control_bdf2_trajectory(
     bdf2_step_solver: (
         Callable[..., TerminalInventoryControlBDF2StepOutcome] | None
     ) = None,
+    step_solver_backend: Any | None = None,
     deadline_monotonic: float | None = None,
 ) -> TerminalInventoryControlBDF2TrajectoryResult:
     """Run one BE startup followed by fixed-step BDF2 roots."""
@@ -129,10 +130,21 @@ def run_terminal_inventory_control_bdf2_trajectory(
     initial_memory = np.asarray(initial_controller_memory, dtype=float)
     initial_coordinates = np.asarray(initial_solve_coordinates, dtype=float)
     records: list[TerminalInventoryControlBDF2TrajectoryRecord] = []
-    startup_solver = (
-        startup_step_solver or solve_terminal_inventory_control_backward_euler_step
-    )
-    bdf2_solver = bdf2_step_solver or solve_terminal_inventory_control_bdf2_step
+    if step_solver_backend is not None and (
+        startup_step_solver is not None or bdf2_step_solver is not None
+    ):
+        raise ValueError(
+            "controlled BDF2 trajectory cannot combine a solver backend with "
+            "individual solver overrides"
+        )
+    if step_solver_backend is None:
+        startup_solver = (
+            startup_step_solver or solve_terminal_inventory_control_backward_euler_step
+        )
+        bdf2_solver = bdf2_step_solver or solve_terminal_inventory_control_bdf2_step
+    else:
+        startup_solver = step_solver_backend.startup_step_solver
+        bdf2_solver = step_solver_backend.bdf2_step_solver
     if deadline_monotonic is not None and time.perf_counter() >= float(
         deadline_monotonic
     ):

@@ -1852,3 +1852,20 @@ The persistent four-worker BDF2 path is adopted for production integration.
 SciPy and accepted-state ownership remain in the main process; workers remain
 limited to colored Jacobian perturbations and rebuild their physical basis
 once per root. The DD-203 between-root deadline remains mandatory.
+
+## DD-207 reusable persistent-parallel backend
+
+DD-207 moves the accepted coordination pattern into Core V3 source modules.
+The executor remains caller-owned so one pool can span multiple trajectory
+paths. The generic coordinator owns color-task construction, deterministic
+assembly, and runtime validation of worker participation, root-basis rebuilds,
+and provider authority. The terminal-control adapter owns only serialization
+of the backward-Euler or BDF2 root basis and injection of the parallel
+Jacobian builder into the existing main-process nonlinear solvers.
+
+The trajectory runner now accepts this adapter through `step_solver_backend`.
+It remains the owner of startup/BDF2 sequencing, accepted history, failure
+stops, and monotonic deadlines. Serial execution remains the default. This
+separation keeps process management and thermodynamic worker initialization at
+the application boundary while making numerical ownership reusable and
+testable.

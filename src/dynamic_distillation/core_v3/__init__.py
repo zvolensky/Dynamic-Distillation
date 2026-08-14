@@ -22,6 +22,10 @@ from dynamic_distillation.core_v3.physical_refinement_policy_v1 import (
     InventoryRefinementLimits,
     assess_inventory_refinement,
 )
+from dynamic_distillation.core_v3.persistent_parallel_colored_jacobian_v1 import (
+    PersistentParallelColoredJacobian,
+    PersistentParallelJacobianEvidence,
+)
 from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
     BubbleSolveResult,
     BubbleSolveSettings,
@@ -56,6 +60,9 @@ from dynamic_distillation.core_v3.provider_governed_steady_root_v1 import (
     physical_vector_and_scales,
     prepare_campaign,
 )
+from dynamic_distillation.core_v3.terminal_inventory_control_bdf2_parallel_v1 import (
+    TerminalInventoryControlBDF2ParallelStepSolvers,
+)
 
 __all__ = [
     "ARCHITECTURE_NAME",
@@ -79,6 +86,8 @@ __all__ = [
     "OperatingSpec",
     "PengRobinsonParameters",
     "PhysicalState",
+    "PersistentParallelColoredJacobian",
+    "PersistentParallelJacobianEvidence",
     "ProviderCallAudit",
     "ProviderCallRecord",
     "ProviderGovernedRegistry",
@@ -86,6 +95,7 @@ __all__ = [
     "ResidualRow",
     "RegistryAudit",
     "SteadyRootSettings",
+    "TerminalInventoryControlBDF2ParallelStepSolvers",
     "audit_numerical_jacobian",
     "audit_provider_governed_registry",
     "assess_inventory_refinement",

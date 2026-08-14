@@ -316,3 +316,76 @@ def test_dd203_trajectory_reports_bdf2_root_failure(monkeypatch):
     assert result.completed_steps == 2
     assert result.stop_reason == "root_failure"
     assert result.records[-1].method == "bdf2"
+
+
+def test_production_step_solver_backend_routes_both_methods(monkeypatch):
+    calls = []
+
+    class Backend:
+        def startup_step_solver(self, *args, **kwargs):
+            calls.append(("backward_euler", kwargs["name"]))
+            return SimpleNamespace(
+                success=True,
+                evaluation=_evaluation(2.0),
+                final_coordinates=np.zeros(4),
+            )
+
+        def bdf2_step_solver(self, *args, **kwargs):
+            calls.append(("bdf2", kwargs["name"]))
+            return SimpleNamespace(
+                success=True,
+                evaluation=_evaluation(3.0, bdf2=True),
+                final_coordinates=np.zeros(4),
+            )
+
+    monkeypatch.setattr(
+        trajectory, "component_rate_scales", lambda *args: np.ones((2, 2))
+    )
+    result = trajectory.run_terminal_inventory_control_bdf2_trajectory(
+        SimpleNamespace(base=object()),
+        object(),
+        object(),
+        object(),
+        object(),
+        object(),
+        initial_inventory_lbmol=np.ones((2, 2)),
+        initial_controller_memory=(0.0, 0.0),
+        level_setpoints=object(),
+        initial_solve_coordinates=np.zeros(4),
+        fixed_steady_scales=np.ones(2),
+        product_reference_lbmolph=(1.0, 1.0),
+        duration_seconds=0.25,
+        step_seconds=0.125,
+        settings=object(),
+        name="production_backend",
+        step_solver_backend=Backend(),
+    )
+
+    assert result.completed
+    assert [kind for kind, _name in calls] == ["backward_euler", "bdf2"]
+    assert calls[0][1] == "production_backend:startup"
+    assert calls[1][1] == "production_backend:bdf2_2"
+
+
+def test_production_step_solver_backend_rejects_individual_override():
+    with pytest.raises(ValueError, match="cannot combine"):
+        trajectory.run_terminal_inventory_control_bdf2_trajectory(
+            object(),
+            object(),
+            object(),
+            object(),
+            object(),
+            object(),
+            initial_inventory_lbmol=np.ones((2, 2)),
+            initial_controller_memory=(0.0, 0.0),
+            level_setpoints=object(),
+            initial_solve_coordinates=np.zeros(4),
+            fixed_steady_scales=np.ones(2),
+            product_reference_lbmolph=(1.0, 1.0),
+            duration_seconds=0.25,
+            step_seconds=0.125,
+            settings=object(),
+            name="invalid_backend",
+            step_solver_backend=object(),
+            startup_step_solver=lambda *args, **kwargs: None,
+        )

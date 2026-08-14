@@ -30,3 +30,24 @@ def test_dd199_rank_condition_detects_singular_matrix():
 
     assert rank == 1
     assert np.isinf(condition)
+
+
+def test_dd202_response_scaled_policy_removes_only_legacy_signed_total():
+    physical_gates = {"absolute": True, "signed_total": False, "l1": True}
+
+    selected = dd199._physical_gates_for_policy(
+        physical_gates, "response_scaled_external_flow"
+    )
+
+    assert selected == {"absolute": True, "l1": True}
+    assert physical_gates["signed_total"] is False
+
+
+def test_dd199_legacy_policy_preserves_signed_total_gate():
+    physical_gates = {"absolute": True, "signed_total": False, "l1": True}
+
+    selected = dd199._physical_gates_for_policy(
+        physical_gates, "legacy_absolute"
+    )
+
+    assert selected == physical_gates

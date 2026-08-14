@@ -166,7 +166,7 @@ def _contract_markdown(payload: Mapping[str, Any]) -> str:
         f"- Refined path: `{paths['refined_steps']} x {paths['refined_step_seconds']} s`",
         "- Each path: one backward-Euler startup, then constant-step BDF2",
         f"- Shared-time comparisons: `{paths['shared_time_count']}`",
-        "- Accuracy gate: worst shared inventory max and L1 errors below `0.8 x` DD-188",
+        f"- Accuracy gate: worst shared inventory max and L1 errors below `{payload['accuracy_baseline']['required_ratio']} x` {payload['accuracy_baseline']['label']}",
         "- Retry, alternate grid, tuning, fallback, or longer trajectory: `False`",
         "",
         "Commit this immutable contract before its one execution.",
@@ -176,6 +176,7 @@ def _contract_markdown(payload: Mapping[str, Any]) -> str:
 
 def _result_markdown(payload: Mapping[str, Any]) -> str:
     shared = payload["shared_time_refinement"]
+    baseline = payload["accuracy_baseline"]
     return "\n".join((
         f"# {payload.get('campaign_id', 'DD-199')} Controlled BDF2 Short-Refinement Result",
         "",
@@ -184,7 +185,7 @@ def _result_markdown(payload: Mapping[str, Any]) -> str:
         f"- Completed roots: `{payload['completed_roots']}`",
         f"- Worst residual / condition: `{payload['worst_residual']:.6e}` / `{payload['worst_condition']:.6e}`",
         f"- Worst shared inventory max / L1: `{shared['worst_absolute_component_difference_lbmol']:.6e}` / `{shared['worst_component_l1_lbmol']:.6e} lbmol`",
-        f"- DD-188 max / L1 ratios: `{shared['dd188_max_error_ratio']:.6f}` / `{shared['dd188_l1_error_ratio']:.6f}`",
+        f"- {baseline['label']} max / L1 ratios: `{shared['baseline_max_error_ratio']:.6f}` / `{shared['baseline_l1_error_ratio']:.6f}`",
         f"- Coarse/refined accumulation: `{payload['response']['coarse']['total_inventory_change_lbmol']:.6e}` / `{payload['response']['refined']['total_inventory_change_lbmol']:.6e} lbmol`",
         f"- Provider calls / wall: `{payload['provider']['total_calls']}` / `{payload['wall_clock_sec']:.3f} s`",
         "- Retry, tuning, alternate grid, or longer trajectory: `False`",
@@ -204,15 +205,29 @@ def prepare(
     result_schema_id: str = RESULT_SCHEMA,
     additional_sources: Sequence[Path] = (),
     implementation_paths: Sequence[str] = IMPLEMENTATION,
+    duration_seconds: float = DURATION_SEC,
+    coarse_step_seconds: float = COARSE_DT_SEC,
+    refined_step_seconds: float = REFINED_DT_SEC,
+    accuracy_baseline_label: str = "DD-188",
+    accuracy_ratio: float = 0.8,
+    limits_overrides: Mapping[str, float] | None = None,
+    signed_total_policy: str = "legacy_absolute",
+    pass_decision: str = "authorize_one_frozen_modest_bdf2_trajectory_contract",
+    fail_decision: str = "stop_bdf2_trajectory_path",
 ) -> dict[str, Any]:
     source = _load(source_path)
     dd198 = _load(dd198_path)
     dd188 = _load(dd188_path)
     if not dd198["pass_gate"] or not all(dd198["gates"].values()):
         raise RuntimeError("DD-199 requires accepted DD-198")
-    coarse_steps = int(round(DURATION_SEC / COARSE_DT_SEC))
-    refined_steps = int(round(DURATION_SEC / REFINED_DT_SEC))
-    pairs = [[index, 2 * index] for index in range(1, coarse_steps + 1)]
+    coarse_steps = int(round(float(duration_seconds) / float(coarse_step_seconds)))
+    refined_steps = int(round(float(duration_seconds) / float(refined_step_seconds)))
+    if not np.isclose(coarse_steps * coarse_step_seconds, duration_seconds) or not np.isclose(refined_steps * refined_step_seconds, duration_seconds):
+        raise ValueError("BDF2 refinement grids must divide the duration exactly")
+    refinement_ratio = int(round(float(coarse_step_seconds) / float(refined_step_seconds)))
+    if refinement_ratio < 2 or not np.isclose(refinement_ratio * refined_step_seconds, coarse_step_seconds):
+        raise ValueError("BDF2 refinement grids need an integral refinement ratio")
+    pairs = [[index, refinement_ratio * index] for index in range(1, coarse_steps + 1)]
     baseline = dd188["shared_time_refinement"]
     payload: dict[str, Any] = {
         "schema_id": schema_id,
@@ -244,18 +259,19 @@ def prepare(
         "fixed_steady_residual_scales": source["fixed_steady_residual_scales"],
         "solver": source["solver"],
         "paths": {
-            "duration_seconds": DURATION_SEC,
-            "coarse_step_seconds": COARSE_DT_SEC,
+            "duration_seconds": float(duration_seconds),
+            "coarse_step_seconds": float(coarse_step_seconds),
             "coarse_steps": coarse_steps,
-            "refined_step_seconds": REFINED_DT_SEC,
+            "refined_step_seconds": float(refined_step_seconds),
             "refined_steps": refined_steps,
             "shared_time_count": len(pairs),
             "shared_step_pairs_1based": pairs,
         },
-        "dd188_accuracy_baseline": {
+        "accuracy_baseline": {
+            "label": accuracy_baseline_label,
             "worst_absolute_component_difference_lbmol": baseline["worst_absolute_component_difference_lbmol"],
             "worst_component_l1_lbmol": baseline["worst_component_l1_lbmol"],
-            "required_ratio": 0.8,
+            "required_ratio": float(accuracy_ratio),
         },
         "limits": {
             "scaled_residual": 1e-8,
@@ -279,6 +295,9 @@ def prepare(
         },
         "physical_refinement_limits": source["physical_refinement_limits"],
         "required_rank": 58,
+        "signed_total_policy": signed_total_policy,
+        "pass_decision": pass_decision,
+        "fail_decision": fail_decision,
         "implementation_sha256": {
             path: dd187.dd186._sha(ROOT / path) for path in implementation_paths
         },
@@ -286,7 +305,7 @@ def prepare(
             "either path fails to complete every root",
             "any root loses closure, rank, condition, physicality, equilibrium, conservation, or kinematics",
             "shared physical/controller refinement exceeds a frozen limit",
-            "worst inventory max or L1 refinement is not below 0.8 times DD-188",
+            f"worst inventory max or L1 refinement is not below {accuracy_ratio} times {accuracy_baseline_label}",
             "response, provider, call, or wall gate fails",
         ],
         "property_evaluation_attempted": False,
@@ -296,6 +315,10 @@ def prepare(
         "retry_authorized": False,
         "campaign_executed": False,
     }
+    if limits_overrides:
+        payload["limits"].update(
+            {str(name): float(value) for name, value in limits_overrides.items()}
+        )
     payload["contract_payload_sha256"] = dd187.dd186._hash(payload)
     destination = ROOT / contract_path
     document = ROOT / contract_doc_path
@@ -399,12 +422,33 @@ def _path_report(trajectory: TerminalInventoryControlBDF2TrajectoryResult, spec:
         "total_inventory_change_lbmol": float(np.sum(actual_total)),
         "expected_total_inventory_change_lbmol": float(np.sum(expected_total)),
         "total_inventory_strictly_increasing": bool(np.all(np.diff(totals) > 0.0)),
+        "actual_total_inventory_history_lbmol": totals,
+        "expected_total_inventory_history_lbmol": [
+            float(np.sum(value)) for value in expected
+        ],
     }
     response["total_inventory_relative_error"] = abs(response["total_inventory_change_lbmol"] - response["expected_total_inventory_change_lbmol"]) / max(abs(response["expected_total_inventory_change_lbmol"]), 1e-12)
     return response, reports
 
 
-def _shared(initial_inventory: np.ndarray, coarse: TerminalInventoryControlBDF2TrajectoryResult, refined: TerminalInventoryControlBDF2TrajectoryResult, pairs: Sequence[Sequence[int]], payload: Mapping[str, Any]) -> dict[str, Any]:
+def _physical_gates_for_policy(
+    gates: Mapping[str, bool], policy: str
+) -> dict[str, bool]:
+    selected = dict(gates)
+    if policy == "response_scaled_external_flow":
+        selected.pop("signed_total", None)
+    return selected
+
+
+def _shared(
+    initial_inventory: np.ndarray,
+    coarse: TerminalInventoryControlBDF2TrajectoryResult,
+    refined: TerminalInventoryControlBDF2TrajectoryResult,
+    coarse_response: Mapping[str, Any],
+    refined_response: Mapping[str, Any],
+    pairs: Sequence[Sequence[int]],
+    payload: Mapping[str, Any],
+) -> dict[str, Any]:
     limits = payload["limits"]
     physical_limits = InventoryRefinementLimits.from_mapping(payload["physical_refinement_limits"])
     comparisons = []
@@ -420,23 +464,60 @@ def _shared(initial_inventory: np.ndarray, coarse: TerminalInventoryControlBDF2T
             "product_relative_difference": float(np.max(np.abs(c["products"] - r["products"]) / product_scale)),
             "level_fraction_difference": float(np.max(np.abs(c["levels"] - r["levels"]))),
         }
+        policy = str(payload.get("signed_total_policy", "legacy_absolute"))
+        physical_gates = _physical_gates_for_policy(physical.gates, policy)
+        signed_total_diagnostic = not physical_gates.get("signed_total", True)
+        if policy == "response_scaled_external_flow":
+            signed_total_diagnostic = not physical.gates.get("signed_total", True)
+        actual_difference = (
+            coarse_response["actual_total_inventory_history_lbmol"][int(coarse_index)]
+            - refined_response["actual_total_inventory_history_lbmol"][int(refined_index)]
+        )
+        expected_difference = (
+            coarse_response["expected_total_inventory_history_lbmol"][int(coarse_index)]
+            - refined_response["expected_total_inventory_history_lbmol"][int(refined_index)]
+        )
+        unexplained = actual_difference - expected_difference
+        coarse_accumulation = (
+            coarse_response["actual_total_inventory_history_lbmol"][int(coarse_index)]
+            - coarse_response["actual_total_inventory_history_lbmol"][0]
+        )
+        refined_accumulation = (
+            refined_response["actual_total_inventory_history_lbmol"][int(refined_index)]
+            - refined_response["actual_total_inventory_history_lbmol"][0]
+        )
+        response_scale = max(abs(coarse_accumulation), abs(refined_accumulation), 1e-12)
+        response_relative = abs(actual_difference) / response_scale
         gates = {
-            **dict(physical.gates),
+            **physical_gates,
             "rate": metrics["rate_coordinate_difference"] < limits["rate_coordinate_refinement"],
             "algebraic": metrics["algebraic_coordinate_difference"] < limits["algebraic_coordinate_refinement"],
             "controller_memory": metrics["controller_memory_difference"] < limits["controller_memory_refinement"],
             "product": metrics["product_relative_difference"] < limits["product_relative_refinement"],
             "level": metrics["level_fraction_difference"] < limits["level_fraction_refinement"],
         }
+        if policy == "response_scaled_external_flow":
+            gates.update(
+                signed_total_explained=abs(unexplained)
+                < limits["external_flow_explanation_lbmol"],
+                signed_total_response_relative=response_relative
+                < limits["response_relative_cross_grid"],
+            )
         comparisons.append({
             "coarse_step": int(coarse_index), "refined_step": int(refined_index),
-            "time_seconds": float(coarse_index) * COARSE_DT_SEC,
-            "physical_metrics": dict(physical.metrics), **metrics,
+            "time_seconds": float(coarse_index)
+            * float(payload["paths"]["coarse_step_seconds"]),
+            "physical_metrics": dict(physical.metrics),
+            "signed_total_diagnostic_failed": signed_total_diagnostic,
+            "signed_total_expected_external_difference_lbmol": expected_difference,
+            "signed_total_unexplained_difference_lbmol": unexplained,
+            "signed_total_response_relative_difference": response_relative,
+            **metrics,
             "gates": gates, "pass_gate": all(gates.values()),
         })
     worst_max = max(item["physical_metrics"]["maximum_absolute_component_difference_lbmol"] for item in comparisons)
     worst_l1 = max(item["physical_metrics"]["component_difference_l1_lbmol"] for item in comparisons)
-    baseline = payload["dd188_accuracy_baseline"]
+    baseline = payload["accuracy_baseline"]
     return {
         "comparisons": comparisons,
         "worst_absolute_component_difference_lbmol": worst_max,
@@ -446,8 +527,18 @@ def _shared(initial_inventory: np.ndarray, coarse: TerminalInventoryControlBDF2T
         "worst_controller_memory_difference": max(item["controller_memory_difference"] for item in comparisons),
         "worst_product_relative_difference": max(item["product_relative_difference"] for item in comparisons),
         "worst_level_fraction_difference": max(item["level_fraction_difference"] for item in comparisons),
-        "dd188_max_error_ratio": worst_max / baseline["worst_absolute_component_difference_lbmol"],
-        "dd188_l1_error_ratio": worst_l1 / baseline["worst_component_l1_lbmol"],
+        "baseline_max_error_ratio": worst_max
+        / baseline["worst_absolute_component_difference_lbmol"],
+        "baseline_l1_error_ratio": worst_l1
+        / baseline["worst_component_l1_lbmol"],
+        "worst_unexplained_total_difference_lbmol": max(
+            abs(item["signed_total_unexplained_difference_lbmol"])
+            for item in comparisons
+        ),
+        "worst_response_relative_total_difference": max(
+            item["signed_total_response_relative_difference"]
+            for item in comparisons
+        ),
         "physical_pass": all(item["pass_gate"] for item in comparisons),
     }
 
@@ -478,11 +569,21 @@ def execute(contract_path: Path, result_path: Path, result_doc_path: Path) -> di
         initial_controller_memory=memory, level_setpoints=setpoints,
         initial_solve_coordinates=coordinates,
         fixed_steady_scales=payload["fixed_steady_residual_scales"],
-        product_reference_lbmolph=products, duration_seconds=DURATION_SEC, settings=settings,
+        product_reference_lbmolph=products, settings=settings,
     )
     started = time.perf_counter()
-    coarse = run_terminal_inventory_control_bdf2_trajectory(**common, step_seconds=COARSE_DT_SEC, name="dd199_coarse")
-    refined = run_terminal_inventory_control_bdf2_trajectory(**common, step_seconds=REFINED_DT_SEC, name="dd199_refined")
+    coarse = run_terminal_inventory_control_bdf2_trajectory(
+        **common,
+        duration_seconds=float(payload["paths"]["duration_seconds"]),
+        step_seconds=float(payload["paths"]["coarse_step_seconds"]),
+        name=f"{payload.get('campaign_id', 'DD-199').lower()}_coarse",
+    )
+    refined = run_terminal_inventory_control_bdf2_trajectory(
+        **common,
+        duration_seconds=float(payload["paths"]["duration_seconds"]),
+        step_seconds=float(payload["paths"]["refined_step_seconds"]),
+        name=f"{payload.get('campaign_id', 'DD-199').lower()}_refined",
+    )
     elapsed = time.perf_counter() - started
     memo = provider.get_exact_state_memoization_stats()
     provider.set_exact_state_memoization(False, clear=True)
@@ -490,7 +591,15 @@ def execute(contract_path: Path, result_path: Path, result_doc_path: Path) -> di
     limits = payload["limits"]
     coarse_response, coarse_steps = _path_report(coarse, spec, inventory, limits, payload["required_rank"])
     refined_response, refined_steps = _path_report(refined, spec, inventory, limits, payload["required_rank"])
-    shared = _shared(inventory, coarse, refined, payload["paths"]["shared_step_pairs_1based"], payload)
+    shared = _shared(
+        inventory,
+        coarse,
+        refined,
+        coarse_response,
+        refined_response,
+        payload["paths"]["shared_step_pairs_1based"],
+        payload,
+    )
     response = {"coarse": coarse_response, "refined": refined_response}
     cross_difference = coarse_response["total_inventory_change_lbmol"] - refined_response["total_inventory_change_lbmol"]
     expected_difference = coarse_response["expected_total_inventory_change_lbmol"] - refined_response["expected_total_inventory_change_lbmol"]
@@ -502,14 +611,14 @@ def execute(contract_path: Path, result_path: Path, result_doc_path: Path) -> di
         "cross_grid_response_relative": abs(cross_difference) / response_scale < limits["response_relative_cross_grid"],
     }
     all_steps = coarse_steps + refined_steps
-    baseline_ratio = payload["dd188_accuracy_baseline"]["required_ratio"]
+    baseline_ratio = payload["accuracy_baseline"]["required_ratio"]
     gates = {
         "coarse_complete": coarse.completed and len(coarse_steps) == payload["paths"]["coarse_steps"],
         "refined_complete": refined.completed and len(refined_steps) == payload["paths"]["refined_steps"],
         "roots": all(all(item["gates"].values()) for item in all_steps),
         "shared_physical": shared["physical_pass"],
-        "accuracy_max": shared["dd188_max_error_ratio"] < baseline_ratio,
-        "accuracy_l1": shared["dd188_l1_error_ratio"] < baseline_ratio,
+        "accuracy_max": shared["baseline_max_error_ratio"] < baseline_ratio,
+        "accuracy_l1": shared["baseline_l1_error_ratio"] < baseline_ratio,
         "response": all(response_gates.values()),
         "provider": provider_summary["pass"],
         "provider_calls": provider_summary["total_calls"] < limits["provider_calls"],
@@ -520,10 +629,11 @@ def execute(contract_path: Path, result_path: Path, result_doc_path: Path) -> di
         "schema_id": payload.get("result_schema_id", RESULT_SCHEMA),
         "campaign_id": payload.get("campaign_id", "DD-199"),
         "classification": "controlled_bdf2_refinement_passed" if passed else "controlled_bdf2_refinement_failed",
-        "decision": "authorize_one_frozen_modest_bdf2_trajectory_contract" if passed else "stop_bdf2_trajectory_path",
+        "decision": payload["pass_decision"] if passed else payload["fail_decision"],
         "contract_commit": dd187.dd186._git("rev-parse", "HEAD"),
         "contract_payload_sha256": payload["contract_payload_sha256"],
         "paths": payload["paths"],
+        "accuracy_baseline": payload["accuracy_baseline"],
         "wall_clock_sec": float(elapsed),
         "completed_roots": len(all_steps),
         "worst_residual": max(item["residual_inf_norm"] for item in all_steps),

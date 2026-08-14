@@ -1954,9 +1954,12 @@ controlled horizon.
 
 The campaign nevertheless fails its production wall contract by `8.084 s`:
 `308.084 s` governed total versus the frozen `<300 s` limit. The trajectory
-itself consumes `276.857 s`, while adjusted worker startup consumes `3.144 s`.
-The remaining approximately `28.083 s` belongs to orchestration, evidence
-assembly, serialization, and shutdown rather than accepted timestep solves.
-Longer integration is not authorized. The next architecture work is limited to
-a zero-call audit of this non-trajectory cost; equation, solver, grid,
-controller, and thermodynamic changes are outside that scope.
+itself consumes `276.857 s`, while raw worker startup consumes `3.294 s`. The
+remaining `27.933 s` occurs after the trajectory timer ends and before the
+process-pool context exits, encompassing evidence extraction and worker
+shutdown. Response analysis, result construction, and serialization occur
+after the governed timer and cannot cause this failure.
+The next architecture work may define a reusable production-session lifetime
+for the already caller-owned executor so worker teardown is paid once per
+session rather than once per trajectory segment. Longer integration and any
+equation, solver, grid, controller, or thermodynamic change remain unauthorized.

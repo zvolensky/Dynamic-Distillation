@@ -27,10 +27,14 @@ support the 60-second scientific-coherence conclusion.
 
 ## Performance Boundary
 
-The nonlinear trajectories consume `276.857 s`; adjusted worker startup is
-`3.144 s`, leaving approximately `28.083 s` in orchestration, evidence
-assembly, serialization, and shutdown inside the governed total. Because all
-roots completed before classification, the next authorized diagnostic should
-be a zero-model-call timing and artifact-volume audit of this non-trajectory
-overhead. DD-213 shall not be rerun, retuned, or reclassified, and longer
-integration remains unauthorized.
+The nonlinear trajectories consume `276.857 s`; raw worker startup is
+`3.294 s`, leaving `27.933 s` between trajectory completion and executor exit.
+Source inspection proves that governed timing ends before response analysis,
+result construction, and JSON serialization. A zero-call local benchmark also
+parses or pretty-serializes the 5 MB result in approximately `0.05-0.06 s`.
+The failed margin is therefore isolated to worker-evidence extraction plus
+DWSIM process-pool shutdown, with shutdown the dominant candidate. DD-213 shall
+not be rerun, retuned, or reclassified, and longer integration remains
+unauthorized. The next design should move the already caller-owned worker pool
+to a reusable production-session lifetime so teardown is not charged to every
+trajectory segment.

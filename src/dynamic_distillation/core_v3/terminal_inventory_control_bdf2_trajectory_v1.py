@@ -105,6 +105,7 @@ def run_terminal_inventory_control_bdf2_trajectory(
     ) = None,
     step_solver_backend: Any | None = None,
     deadline_monotonic: float | None = None,
+    bdf2_initial_guess_policy: str = "accepted_endpoint",
 ) -> TerminalInventoryControlBDF2TrajectoryResult:
     """Run one BE startup followed by fixed-step BDF2 roots."""
     duration = float(duration_seconds)
@@ -125,6 +126,9 @@ def run_terminal_inventory_control_bdf2_trajectory(
         raise ValueError("controlled BDF2 trajectory needs at least two constant steps")
     if deadline_monotonic is not None and not np.isfinite(deadline_monotonic):
         raise ValueError("controlled BDF2 trajectory deadline must be finite")
+    initial_guess_policy = str(bdf2_initial_guess_policy).strip().lower()
+    if initial_guess_policy not in ("accepted_endpoint", "linear_extrapolation"):
+        raise ValueError("controlled BDF2 initial-guess policy is invalid")
 
     initial_inventory = np.asarray(initial_inventory_lbmol, dtype=float)
     initial_memory = np.asarray(initial_controller_memory, dtype=float)
@@ -181,6 +185,7 @@ def run_terminal_inventory_control_bdf2_trajectory(
     prior_memory = initial_memory
     current = startup.evaluation
     current_coordinates = startup.final_coordinates
+    prior_coordinates = initial_coordinates.copy()
     stop_reason: str | None = None
 
     for index in range(2, requested + 1):
@@ -199,6 +204,12 @@ def run_terminal_inventory_control_bdf2_trajectory(
             prior_controller_memory=prior_memory,
         )
         rates = component_rate_scales(contract.base, current.control_evaluation.base)
+        if initial_guess_policy == "linear_extrapolation":
+            next_coordinates = current_coordinates + (
+                current_coordinates - prior_coordinates
+            )
+        else:
+            next_coordinates = current_coordinates
         outcome = bdf2_solver(
             contract,
             spec,
@@ -209,7 +220,7 @@ def run_terminal_inventory_control_bdf2_trajectory(
             history=history,
             level_setpoints=level_setpoints,
             rate_scales_lbmolph=rates,
-            initial_solve_coordinates=current_coordinates,
+            initial_solve_coordinates=next_coordinates,
             fixed_steady_scales=fixed_steady_scales,
             product_reference_lbmolph=product_reference_lbmolph,
             step_seconds=step,
@@ -228,6 +239,7 @@ def run_terminal_inventory_control_bdf2_trajectory(
         prior_storage = _accepted_storage(current)
         prior_memory = _accepted_memory(current)
         current = outcome.evaluation
+        prior_coordinates = current_coordinates
         current_coordinates = outcome.final_coordinates
 
     completed = (

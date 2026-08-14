@@ -389,3 +389,124 @@ def test_production_step_solver_backend_rejects_individual_override():
             step_solver_backend=object(),
             startup_step_solver=lambda *args, **kwargs: None,
         )
+
+
+def test_bdf2_linear_predictor_extrapolates_accepted_coordinates(monkeypatch):
+    guesses = []
+    endpoints = iter(
+        (
+            np.asarray((1.0, 2.0, 3.0, 4.0)),
+            np.asarray((1.5, 3.0, 4.5, 6.0)),
+            np.asarray((2.0, 4.0, 6.0, 8.0)),
+        )
+    )
+
+    def startup(*args, **kwargs):
+        return SimpleNamespace(
+            success=True,
+            evaluation=_evaluation(2.0),
+            final_coordinates=next(endpoints),
+        )
+
+    def bdf2(*args, **kwargs):
+        guesses.append(np.asarray(kwargs["initial_solve_coordinates"]).copy())
+        return SimpleNamespace(
+            success=True,
+            evaluation=_evaluation(3.0 + len(guesses), bdf2=True),
+            final_coordinates=next(endpoints),
+        )
+
+    monkeypatch.setattr(
+        trajectory, "component_rate_scales", lambda *args: np.ones((2, 2))
+    )
+    result = trajectory.run_terminal_inventory_control_bdf2_trajectory(
+        SimpleNamespace(base=object()),
+        object(),
+        object(),
+        object(),
+        object(),
+        object(),
+        initial_inventory_lbmol=np.ones((2, 2)),
+        initial_controller_memory=(0.0, 0.0),
+        level_setpoints=object(),
+        initial_solve_coordinates=np.zeros(4),
+        fixed_steady_scales=np.ones(2),
+        product_reference_lbmolph=(1.0, 1.0),
+        duration_seconds=0.375,
+        step_seconds=0.125,
+        settings=object(),
+        name="linear_predictor",
+        startup_step_solver=startup,
+        bdf2_step_solver=bdf2,
+        bdf2_initial_guess_policy="linear_extrapolation",
+    )
+
+    assert result.completed
+    assert np.array_equal(guesses[0], np.asarray((2.0, 4.0, 6.0, 8.0)))
+    assert np.array_equal(guesses[1], np.asarray((2.0, 4.0, 6.0, 8.0)))
+
+
+def test_bdf2_default_initial_guess_remains_accepted_endpoint(monkeypatch):
+    guesses = []
+
+    def bdf2(*args, **kwargs):
+        guesses.append(np.asarray(kwargs["initial_solve_coordinates"]).copy())
+        return SimpleNamespace(
+            success=True,
+            evaluation=_evaluation(3.0, bdf2=True),
+            final_coordinates=np.full(4, 2.0),
+        )
+
+    monkeypatch.setattr(
+        trajectory, "component_rate_scales", lambda *args: np.ones((2, 2))
+    )
+    result = trajectory.run_terminal_inventory_control_bdf2_trajectory(
+        SimpleNamespace(base=object()),
+        object(),
+        object(),
+        object(),
+        object(),
+        object(),
+        initial_inventory_lbmol=np.ones((2, 2)),
+        initial_controller_memory=(0.0, 0.0),
+        level_setpoints=object(),
+        initial_solve_coordinates=np.zeros(4),
+        fixed_steady_scales=np.ones(2),
+        product_reference_lbmolph=(1.0, 1.0),
+        duration_seconds=0.25,
+        step_seconds=0.125,
+        settings=object(),
+        name="default_predictor",
+        startup_step_solver=lambda *args, **kwargs: SimpleNamespace(
+            success=True,
+            evaluation=_evaluation(2.0),
+            final_coordinates=np.ones(4),
+        ),
+        bdf2_step_solver=bdf2,
+    )
+
+    assert result.completed
+    assert np.array_equal(guesses[0], np.ones(4))
+
+
+def test_bdf2_rejects_unknown_initial_guess_policy():
+    with pytest.raises(ValueError, match="initial-guess policy"):
+        trajectory.run_terminal_inventory_control_bdf2_trajectory(
+            object(),
+            object(),
+            object(),
+            object(),
+            object(),
+            object(),
+            initial_inventory_lbmol=np.ones((2, 2)),
+            initial_controller_memory=(0.0, 0.0),
+            level_setpoints=object(),
+            initial_solve_coordinates=np.zeros(4),
+            fixed_steady_scales=np.ones(2),
+            product_reference_lbmolph=(1.0, 1.0),
+            duration_seconds=0.25,
+            step_seconds=0.125,
+            settings=object(),
+            name="bad_predictor",
+            bdf2_initial_guess_policy="quadratic_magic",
+        )

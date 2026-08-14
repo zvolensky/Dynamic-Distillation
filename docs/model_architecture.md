@@ -1916,3 +1916,17 @@ all configured workers, and every root must rebuild exactly one physical basis
 per worker. Worker count is a deployment setting bounded by available physical
 cores, not a model equation or scientific parameter. Four workers remain the
 qualified fallback where host capacity requires it.
+
+## DD-211 optional BDF2 coordinate predictor
+
+The controlled BDF2 trajectory now exposes a default-off initial-guess policy.
+The accepted default starts each BDF2 root from the previous accepted solve
+coordinates. The optional linear policy extrapolates the next coordinate guess
+from the two latest accepted vectors. Coordinate history is separate from and
+advances with the already accepted physical BDF2 history.
+
+This policy belongs to nonlinear orchestration, not the physical model. It
+does not alter endpoint equations, conserved states, controller memory,
+thermodynamic calls, Jacobian construction, bounds, or acceptance. Production
+continues to use the accepted-endpoint default until a frozen live proof shows
+that extrapolation reduces Jacobian work without changing physical endpoints.

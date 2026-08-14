@@ -1767,3 +1767,23 @@ DD-200 remains formally failed, but its scientific BDF2 refinement evidence is
 accepted prospectively: two-second BDF2 grid error is about one-third of the
 same-grid backward-Euler error. One frozen modest BDF2 trajectory is authorized
 next; its numerical and performance contract must precede execution.
+
+DD-202 extends that evidence to the ten-second controlled response that stopped
+DD-190. Both constant-step paths complete all `40 + 80` roots with one
+backward-Euler startup per grid. Every root remains physical, conservative,
+full rank, and provider-governed; all 40 shared-time comparisons pass the
+response-scaled total policy established by DD-189 and DD-201.
+
+Against DD-190 on the same `0.25 s` and `0.125 s` grids, BDF2 reduces the worst
+maximum inventory difference by `81.07%` and the worst L1 difference by
+`85.05%`. Worst level refinement falls from DD-190's `1.754111e-8` to
+`1.225224e-9`, and worst response-relative total difference is
+`5.203283e-6`, below the frozen `1e-5` limit. The old absolute signed-total
+diagnostic still trips as the controlled external outputs separate, but the
+unexplained remainder is at most `7.275958e-12 lbmol`.
+
+This result selects constant-step BDF2 as the validated controlled integration
+method for the current Core V3 milestone. It authorizes one separately frozen
+integration extension, not controller tuning, arbitrary timestep changes, or
+an unrestricted production trajectory. Any timestep change still invalidates
+BDF2 history and requires a new backward-Euler startup.

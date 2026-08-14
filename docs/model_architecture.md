@@ -1941,3 +1941,22 @@ explicitly. The Python API default remains `accepted_endpoint` so historical
 contracts and callers retain unchanged behavior. The predictor is not a
 fallback mechanism: if an extrapolated root fails, the trajectory stops under
 the existing root-failure contract.
+
+## DD-213 60-second production boundary
+
+DD-213 combines the accepted eight-worker source backend and explicit linear
+coordinate predictor on both production BDF2 grids for 60 simulated seconds.
+Both trajectories complete all 720 roots. Full rank, accepted conditioning,
+physicality, equilibrium, conservation, controller response, cross-grid
+agreement, worker lifecycle, and DWSIM provider ownership all remain intact.
+The architecture is therefore scientifically coherent through this 60-second
+controlled horizon.
+
+The campaign nevertheless fails its production wall contract by `8.084 s`:
+`308.084 s` governed total versus the frozen `<300 s` limit. The trajectory
+itself consumes `276.857 s`, while adjusted worker startup consumes `3.144 s`.
+The remaining approximately `28.083 s` belongs to orchestration, evidence
+assembly, serialization, and shutdown rather than accepted timestep solves.
+Longer integration is not authorized. The next architecture work is limited to
+a zero-call audit of this non-trajectory cost; equation, solver, grid,
+controller, and thermodynamic changes are outside that scope.

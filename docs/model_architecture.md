@@ -1843,3 +1843,12 @@ and list representations of diagnostic index coordinates. This is an evidence
 layer defect, not a state, equation, solver, provider, or parallel arithmetic
 difference. Production adoption awaits one zero-call persisted-artifact
 adjudication; the live campaign shall not be rerun.
+
+DD-206 adjudicates the immutable DD-205 and DD-202 JSON artifacts without
+loading model or thermodynamic code. Their complete scientific objects are
+exactly equal after the common JSON representation is applied. The sole
+DD-205 failure is therefore confirmed as an evidence-comparator type artifact.
+The persistent four-worker BDF2 path is adopted for production integration.
+SciPy and accepted-state ownership remain in the main process; workers remain
+limited to colored Jacobian perturbations and rebuild their physical basis
+once per root. The DD-203 between-root deadline remains mandatory.

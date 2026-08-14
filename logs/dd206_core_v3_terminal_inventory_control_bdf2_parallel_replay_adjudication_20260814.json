@@ -1,0 +1,45 @@
+{
+  "schema_id": "dd206-core-v3-controlled-bdf2-parallel-replay-adjudication-result-v1",
+  "campaign_id": "DD-206",
+  "classification": "controlled_bdf2_parallel_replay_adjudication_passed",
+  "decision": "adopt_persistent_parallel_bdf2_trajectory_path",
+  "contract_commit": "32495a12da02575f4d81a251291005e2d64d3f6d",
+  "contract_payload_sha256": "78c35622a68b48f713f7e76cdfce15f7c31ecb72a6268f16fb18306206ed4cb8",
+  "canonical_science_hash": "f3e71c2a441f49086fa1931f92892e8a1431e63dfed49e11d8e40fceb69d0f42",
+  "replay_science_hash": "f3e71c2a441f49086fa1931f92892e8a1431e63dfed49e11d8e40fceb69d0f42",
+  "scientific_objects_exactly_equal": true,
+  "representation_mismatch_count": 120,
+  "dd205_numeric_difference": 0.0,
+  "dd205_failed_gates": [
+    "saved_result_equivalence"
+  ],
+  "dd205_performance": {
+    "dd202_wall_sec": 159.19488749999437,
+    "trajectory_wall_sec": 77.76670149998972,
+    "trajectory_ratio": 0.4884999934435236,
+    "speedup": 2.04708293433296,
+    "startup_wall_sec_raw": 2.010042899986729,
+    "startup_wall_sec_adjusted": 1.8600428999867291,
+    "total_governed_wall_sec": 93.15423440001905
+  },
+  "dd205_completed_roots": 120,
+  "campaign_gates": {
+    "source_status": true,
+    "sole_failed_gate": true,
+    "numeric_comparison": true,
+    "representation_paths": true,
+    "canonical_hash": true,
+    "exact_scientific_objects": true,
+    "performance_evidence": true,
+    "wall_clock": true
+  },
+  "wall_clock_sec": 0.03121719998307526,
+  "model_calls": 0,
+  "provider_calls": 0,
+  "solver_calls": 0,
+  "trajectory_calls": 0,
+  "pass_gate": true,
+  "campaign_executed_once": true,
+  "dd205_rerun": false,
+  "retry_attempted": false
+}

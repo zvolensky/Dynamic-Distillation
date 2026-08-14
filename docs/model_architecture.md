@@ -1827,3 +1827,19 @@ serial to `7.369045 s` parallel (`1.295x`), and adjusted worker startup is
 `2.035537 s`. This authorizes the persistent parallel Jacobian backend for one
 separately frozen longer BDF2 trajectory; it does not yet establish
 long-horizon speed or production readiness.
+
+## DD-205 persistent-parallel BDF2 replay
+
+DD-205 applies the DD-204 worker path to the accepted DD-202 ten-second
+controlled BDF2 milestone without changing the physical or numerical model.
+One persistent four-worker pool evaluates all colored Jacobian perturbations
+for the 40-root coarse and 80-root refined paths; the main process retains
+SciPy ownership and all nonlinear decisions.
+
+The complete live replay is scientifically identical to DD-202 after
+serialization and is `2.047x` faster in trajectory wall time. DD-205 remains
+formally failed because its in-memory evidence comparator distinguishes tuple
+and list representations of diagnostic index coordinates. This is an evidence
+layer defect, not a state, equation, solver, provider, or parallel arithmetic
+difference. Production adoption awaits one zero-call persisted-artifact
+adjudication; the live campaign shall not be rerun.

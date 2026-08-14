@@ -1,0 +1,43 @@
+{
+  "schema_id": "dd206-core-v3-controlled-bdf2-parallel-replay-adjudication-contract-v1",
+  "result_schema_id": "dd206-core-v3-controlled-bdf2-parallel-replay-adjudication-result-v1",
+  "campaign_id": "DD-206",
+  "preparation_base_commit": "69e88f28c03c0a523cb30db0f21174641f257265",
+  "sources": {
+    "logs/dd202_core_v3_seven_volume_terminal_inventory_control_bdf2_modest_20260814.json": "63eeb33463f3bf523a0b8b9930fb24dab8f3eb7b7d56bc87d4ac4e323f3bb62d",
+    "logs/dd205_core_v3_terminal_inventory_control_bdf2_parallel_replay_20260814.json": "e458edcb4f77f17ef6d8b7b13e2cd5171d048e8f1ad330be2c8a272c163e9fdc"
+  },
+  "science_keys": [
+    "coarse",
+    "refined",
+    "shared_time_refinement",
+    "response",
+    "cross_grid",
+    "response_gates"
+  ],
+  "expected_failed_gate": "saved_result_equivalence",
+  "expected_representation_mismatch_count": 120,
+  "limits": {
+    "wall_clock_sec": 5.0
+  },
+  "implementation_sha256": {
+    "tests/test_core_v3_terminal_inventory_control_bdf2_parallel_replay_adjudication.py": "7d645cc26130f6952a756af6ee7c0df7547adef9936aa4f2fc369b9ac8652c67",
+    "tools/adjudicate_core_v3_terminal_inventory_control_bdf2_parallel_replay.py": "9ff1ec84e39d67b1e6ca672811d69688d3de222f2f197d4a5d3d5a1c124e00e9"
+  },
+  "hard_stops": [
+    "DD-205 has any failed campaign gate beyond saved-result equivalence",
+    "persisted DD-202 and DD-205 scientific objects are not exactly equal",
+    "DD-205 mismatch paths are not exactly the known tuple/list diagnostic-index set",
+    "DD-205 numeric comparison is nonzero",
+    "the zero-call wall ceiling is exceeded",
+    "any model, property, residual, solver, timestep, trajectory, retry, or regeneration occurs"
+  ],
+  "property_evaluation_attempted": false,
+  "model_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "trajectory_attempted": false,
+  "retry_authorized": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "78c35622a68b48f713f7e76cdfce15f7c31ecb72a6268f16fb18306206ed4cb8"
+}

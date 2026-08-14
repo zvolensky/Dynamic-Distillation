@@ -1806,3 +1806,24 @@ The gate is property-free and does not advance the model. Its pass authorizes
 one frozen live serial-versus-performance-path equivalence proof. A longer
 BDF2 trajectory remains unauthorized until the injected solver reproduces the
 serial Jacobians, decisions, and endpoints under live DWSIM evaluation.
+
+DD-204 supplies that live equivalence proof with one backward-Euler startup and
+one BDF2 root at `dt=0.125 s`. The serial path evaluates colored Jacobians in
+the main process. The performance path keeps SciPy residual calls, decisions,
+and endpoint ownership in the main process while one persistent four-worker
+DWSIM pool evaluates only the 34 colored central-difference perturbations per
+matrix.
+
+The worker basis is method-aware. For the startup root, each worker reconstructs
+the current template, previous inventory and PI memory, provider-owned storage,
+and rate scales. For the BDF2 root, each worker reconstructs the accepted
+two-level component, internal-energy, and PI-memory history plus current rate
+scales. Each worker rebuilds this basis once per root, not once per Jacobian.
+
+Seven paired Jacobians and both complete root outcomes are bit-for-bit equal.
+Both methods retain rank `58`, with worst residual `1.868842e-12` and worst
+condition `3.172741e7`. Warm-pool trajectory wall improves from `9.543881 s`
+serial to `7.369045 s` parallel (`1.295x`), and adjusted worker startup is
+`2.035537 s`. This authorizes the persistent parallel Jacobian backend for one
+separately frozen longer BDF2 trajectory; it does not yet establish
+long-horizon speed or production readiness.

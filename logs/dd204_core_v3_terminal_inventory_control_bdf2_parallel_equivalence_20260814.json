@@ -1,0 +1,994 @@
+{
+  "schema_id": "dd204-core-v3-controlled-bdf2-parallel-equivalence-result-v1",
+  "classification": "controlled_bdf2_parallel_equivalence_passed",
+  "decision": "authorize_persistent_parallel_bdf2_trajectory_path",
+  "contract_commit": "72473eb9ace39b75f5f0bbda3b8826a54812c084",
+  "contract_payload_sha256": "9641691c91893067da2bb5bba4bef2547d6daf959e3e5296cedf8dce1cfbb600",
+  "serial": {
+    "completed": true,
+    "completed_steps": 2,
+    "stop_reason": null,
+    "methods": [
+      "backward_euler",
+      "bdf2"
+    ],
+    "worst_residual": 1.868841936003158e-12,
+    "worst_condition": 31727412.494669225,
+    "minimum_rank": 58,
+    "reports": [
+      {
+        "index": 1,
+        "time_seconds": 0.125,
+        "method": "backward_euler",
+        "success": true,
+        "nfev": 4,
+        "njev": 4,
+        "residual_inf_norm": 1.6217876238103488e-12,
+        "jacobian_rank": 58,
+        "jacobian_condition": 14345845.482945599,
+        "maximum_equilibrium_residual": 2.4424906541753412e-15,
+        "component_conservation_relative_error": 2.6452308636192058e-12,
+        "energy_conservation_relative_error": 2.816541732802311e-12,
+        "controller_equation_closure": 7.594734093565103e-16,
+        "inventory_lbmol": [
+          [
+            1078.7579495738828,
+            302.06334745095864,
+            8.07870322855867
+          ],
+          [
+            21.262766459474662,
+            13.802603403958637,
+            0.7097601468788025
+          ],
+          [
+            14.075829580290778,
+            16.444776209453753,
+            1.4569753464535726
+          ],
+          [
+            15.227689257264903,
+            26.321720809204116,
+            3.917397540243282
+          ],
+          [
+            15.027473790382285,
+            34.23806375899169,
+            5.079945111120687
+          ],
+          [
+            11.083334735572263,
+            36.48338894698643,
+            5.989645739456485
+          ],
+          [
+            105.81953840384514,
+            562.2338442882705,
+            125.94661730921048
+          ]
+        ],
+        "rate_coordinates": [
+          [
+            4.4375598336470024e-07,
+            1.2480680330543043e-07,
+            3.3431985932766245e-09
+          ],
+          [
+            -8.848742275404497e-08,
+            6.091311044239702e-08,
+            5.4758863754798345e-09
+          ],
+          [
+            -6.744293576438399e-08,
+            -3.5448809873686904e-09,
+            4.1025859678599074e-08
+          ],
+          [
+            0.00018271408171858527,
+            0.00030467334078337996,
+            6.108093467291792e-05
+          ],
+          [
+            3.531577386261589e-06,
+            6.0161587783142216e-06,
+            1.0477997790924751e-06
+          ],
+          [
+            5.3479366648133156e-08,
+            1.0620564564000603e-07,
+            1.7066826358515325e-08
+          ],
+          [
+            7.569524403398164e-10,
+            1.9223211501295385e-09,
+            3.136408590349165e-10
+          ]
+        ],
+        "algebraic_coordinates": [
+          0.09771308367354663,
+          0.17364436178740741,
+          -0.10794211873400147,
+          -0.04126973613188969,
+          -0.12353424037418857,
+          -0.13254518382306557,
+          -0.14177649631074318,
+          -7.064218675045154,
+          -6.075236902780717,
+          -1.1142870870181825,
+          -1.6601012005041782,
+          -0.029112291427697296,
+          -0.16987514906003337,
+          0.3216848135473541,
+          -0.25450864508579923,
+          0.501568367287903,
+          -0.3121260143077885,
+          1.0913198888560813,
+          -0.0972876384610031,
+          -0.01807716134398372,
+          0.04708405168011116,
+          0.02039303479011932,
+          0.009152916227344859,
+          -0.0010848327324437428,
+          -0.026687557318502735,
+          -0.017265744247347576,
+          -0.005089240016061379,
+          0.02633849521677454,
+          0.03037160080847762,
+          -0.01939010742170886,
+          -7.081381330826682,
+          -6.079727961892577,
+          -0.035540733988920915
+        ],
+        "controller_memory": [
+          3.2473775620240374e-14,
+          4.6771430164412895e-15
+        ],
+        "level_fraction": [
+          0.4598989426265319,
+          0.42745331353903393
+        ],
+        "distillate_lbmolph": 2220.9523404610622,
+        "bottoms_lbmolph": 4922.0216596416885,
+        "physical": {
+          "positive_inventory": true,
+          "positive_liquid_composition": true,
+          "positive_vapor_composition": true,
+          "positive_flows": true,
+          "physical_levels": true,
+          "ordered_temperature": true,
+          "ordered_pressure": true,
+          "negative_condenser_duty": true,
+          "hydraulic_height_below_spacing": true,
+          "all_finite": true
+        },
+        "gates": {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "equilibrium": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "controller_equations": true,
+          "physical": true
+        }
+      },
+      {
+        "index": 2,
+        "time_seconds": 0.25,
+        "method": "bdf2",
+        "success": true,
+        "nfev": 4,
+        "njev": 3,
+        "residual_inf_norm": 1.868841936003158e-12,
+        "jacobian_rank": 58,
+        "jacobian_condition": 31727412.494669225,
+        "maximum_equilibrium_residual": 3.1086244689504336e-15,
+        "component_conservation_relative_error": 1.4049265127150714e-12,
+        "energy_conservation_relative_error": 2.606565996405804e-12,
+        "controller_equation_closure": 8.317636392748026e-16,
+        "inventory_lbmol": [
+          [
+            1078.7579497580082,
+            302.0633475029109,
+            8.078703229952126
+          ],
+          [
+            21.26276642289821,
+            13.802603429044972,
+            0.7097601491981779
+          ],
+          [
+            14.07582955177415,
+            16.44477619262438,
+            1.4569753735170472
+          ],
+          [
+            15.227769177832696,
+            26.321854037922943,
+            3.9174242844950875
+          ],
+          [
+            15.027476373581973,
+            34.23806815830885,
+            5.079945877691527
+          ],
+          [
+            11.083334785228981,
+            36.48338904558602,
+            5.989645755301471
+          ],
+          [
+            105.81953840464912,
+            562.2338442903124,
+            125.94661730954364
+          ]
+        ],
+        "rate_coordinates": [
+          [
+            4.014590166488161e-07,
+            1.1347551296742881e-07,
+            3.0457986474223815e-09
+          ],
+          [
+            -7.958199804790396e-08,
+            5.447057752306111e-08,
+            5.114056740522807e-09
+          ],
+          [
+            -6.281855723963161e-08,
+            -5.520161706724114e-08,
+            7.110760050240635e-08
+          ],
+          [
+            0.0001792055872643959,
+            0.0002986950640212556,
+            5.999936809591484e-05
+          ],
+          [
+            6.979360594817252e-06,
+            1.1885343474394231e-05,
+            2.071244598984213e-06
+          ],
+          [
+            1.4136788217510712e-07,
+            2.8069566751346197e-07,
+            4.510811002661894e-08
+          ],
+          [
+            2.343309995174258e-09,
+            5.951575045092059e-09,
+            9.710550637663002e-10
+          ]
+        ],
+        "algebraic_coordinates": [
+          0.0977130836737314,
+          0.17364436259436022,
+          -0.10794211775158354,
+          -0.041269669387985576,
+          -0.12353424976225219,
+          -0.13254518422001393,
+          -0.14177649631151656,
+          -7.0642186802448785,
+          -6.0752369043009224,
+          -1.1142871075724956,
+          -1.6601012199143779,
+          -0.029113840140218252,
+          -0.1698768786270401,
+          0.32168483852223845,
+          -0.2545086656160535,
+          0.5015683692652912,
+          -0.31212601419410696,
+          1.0913198888612845,
+          -0.09728763845992972,
+          -0.018077161564815394,
+          0.04708405091007591,
+          0.020403858693289496,
+          0.009153218399308332,
+          -0.0010848263595907913,
+          -0.026687557173000698,
+          -0.017265737602707793,
+          -0.005089118242911175,
+          0.02633838005482342,
+          0.030371516088720088,
+          -0.019390191606699036,
+          -7.081381330828528,
+          -6.079727961893086,
+          -0.035540653703210384
+        ],
+        "controller_memory": [
+          8.52395907628766e-14,
+          1.682436517231265e-14
+        ],
+        "level_fraction": [
+          0.4598989426849729,
+          0.42745331354037874
+        ],
+        "distillate_lbmolph": 2220.9523405260766,
+        "bottoms_lbmolph": 4922.021659694695,
+        "physical": {
+          "positive_inventory": true,
+          "positive_liquid_composition": true,
+          "positive_vapor_composition": true,
+          "positive_flows": true,
+          "physical_levels": true,
+          "ordered_temperature": true,
+          "ordered_pressure": true,
+          "negative_condenser_duty": true,
+          "hydraulic_height_below_spacing": true,
+          "all_finite": true
+        },
+        "gates": {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "equilibrium": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "controller_equations": true,
+          "physical": true
+        }
+      }
+    ]
+  },
+  "parallel": {
+    "completed": true,
+    "completed_steps": 2,
+    "stop_reason": null,
+    "methods": [
+      "backward_euler",
+      "bdf2"
+    ],
+    "worst_residual": 1.868841936003158e-12,
+    "worst_condition": 31727412.494669225,
+    "minimum_rank": 58,
+    "reports": [
+      {
+        "index": 1,
+        "time_seconds": 0.125,
+        "method": "backward_euler",
+        "success": true,
+        "nfev": 4,
+        "njev": 4,
+        "residual_inf_norm": 1.6217876238103488e-12,
+        "jacobian_rank": 58,
+        "jacobian_condition": 14345845.482945599,
+        "maximum_equilibrium_residual": 2.4424906541753412e-15,
+        "component_conservation_relative_error": 2.6452308636192058e-12,
+        "energy_conservation_relative_error": 2.816541732802311e-12,
+        "controller_equation_closure": 7.594734093565103e-16,
+        "inventory_lbmol": [
+          [
+            1078.7579495738828,
+            302.06334745095864,
+            8.07870322855867
+          ],
+          [
+            21.262766459474662,
+            13.802603403958637,
+            0.7097601468788025
+          ],
+          [
+            14.075829580290778,
+            16.444776209453753,
+            1.4569753464535726
+          ],
+          [
+            15.227689257264903,
+            26.321720809204116,
+            3.917397540243282
+          ],
+          [
+            15.027473790382285,
+            34.23806375899169,
+            5.079945111120687
+          ],
+          [
+            11.083334735572263,
+            36.48338894698643,
+            5.989645739456485
+          ],
+          [
+            105.81953840384514,
+            562.2338442882705,
+            125.94661730921048
+          ]
+        ],
+        "rate_coordinates": [
+          [
+            4.4375598336470024e-07,
+            1.2480680330543043e-07,
+            3.3431985932766245e-09
+          ],
+          [
+            -8.848742275404497e-08,
+            6.091311044239702e-08,
+            5.4758863754798345e-09
+          ],
+          [
+            -6.744293576438399e-08,
+            -3.5448809873686904e-09,
+            4.1025859678599074e-08
+          ],
+          [
+            0.00018271408171858527,
+            0.00030467334078337996,
+            6.108093467291792e-05
+          ],
+          [
+            3.531577386261589e-06,
+            6.0161587783142216e-06,
+            1.0477997790924751e-06
+          ],
+          [
+            5.3479366648133156e-08,
+            1.0620564564000603e-07,
+            1.7066826358515325e-08
+          ],
+          [
+            7.569524403398164e-10,
+            1.9223211501295385e-09,
+            3.136408590349165e-10
+          ]
+        ],
+        "algebraic_coordinates": [
+          0.09771308367354663,
+          0.17364436178740741,
+          -0.10794211873400147,
+          -0.04126973613188969,
+          -0.12353424037418857,
+          -0.13254518382306557,
+          -0.14177649631074318,
+          -7.064218675045154,
+          -6.075236902780717,
+          -1.1142870870181825,
+          -1.6601012005041782,
+          -0.029112291427697296,
+          -0.16987514906003337,
+          0.3216848135473541,
+          -0.25450864508579923,
+          0.501568367287903,
+          -0.3121260143077885,
+          1.0913198888560813,
+          -0.0972876384610031,
+          -0.01807716134398372,
+          0.04708405168011116,
+          0.02039303479011932,
+          0.009152916227344859,
+          -0.0010848327324437428,
+          -0.026687557318502735,
+          -0.017265744247347576,
+          -0.005089240016061379,
+          0.02633849521677454,
+          0.03037160080847762,
+          -0.01939010742170886,
+          -7.081381330826682,
+          -6.079727961892577,
+          -0.035540733988920915
+        ],
+        "controller_memory": [
+          3.2473775620240374e-14,
+          4.6771430164412895e-15
+        ],
+        "level_fraction": [
+          0.4598989426265319,
+          0.42745331353903393
+        ],
+        "distillate_lbmolph": 2220.9523404610622,
+        "bottoms_lbmolph": 4922.0216596416885,
+        "physical": {
+          "positive_inventory": true,
+          "positive_liquid_composition": true,
+          "positive_vapor_composition": true,
+          "positive_flows": true,
+          "physical_levels": true,
+          "ordered_temperature": true,
+          "ordered_pressure": true,
+          "negative_condenser_duty": true,
+          "hydraulic_height_below_spacing": true,
+          "all_finite": true
+        },
+        "gates": {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "equilibrium": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "controller_equations": true,
+          "physical": true
+        }
+      },
+      {
+        "index": 2,
+        "time_seconds": 0.25,
+        "method": "bdf2",
+        "success": true,
+        "nfev": 4,
+        "njev": 3,
+        "residual_inf_norm": 1.868841936003158e-12,
+        "jacobian_rank": 58,
+        "jacobian_condition": 31727412.494669225,
+        "maximum_equilibrium_residual": 3.1086244689504336e-15,
+        "component_conservation_relative_error": 1.4049265127150714e-12,
+        "energy_conservation_relative_error": 2.606565996405804e-12,
+        "controller_equation_closure": 8.317636392748026e-16,
+        "inventory_lbmol": [
+          [
+            1078.7579497580082,
+            302.0633475029109,
+            8.078703229952126
+          ],
+          [
+            21.26276642289821,
+            13.802603429044972,
+            0.7097601491981779
+          ],
+          [
+            14.07582955177415,
+            16.44477619262438,
+            1.4569753735170472
+          ],
+          [
+            15.227769177832696,
+            26.321854037922943,
+            3.9174242844950875
+          ],
+          [
+            15.027476373581973,
+            34.23806815830885,
+            5.079945877691527
+          ],
+          [
+            11.083334785228981,
+            36.48338904558602,
+            5.989645755301471
+          ],
+          [
+            105.81953840464912,
+            562.2338442903124,
+            125.94661730954364
+          ]
+        ],
+        "rate_coordinates": [
+          [
+            4.014590166488161e-07,
+            1.1347551296742881e-07,
+            3.0457986474223815e-09
+          ],
+          [
+            -7.958199804790396e-08,
+            5.447057752306111e-08,
+            5.114056740522807e-09
+          ],
+          [
+            -6.281855723963161e-08,
+            -5.520161706724114e-08,
+            7.110760050240635e-08
+          ],
+          [
+            0.0001792055872643959,
+            0.0002986950640212556,
+            5.999936809591484e-05
+          ],
+          [
+            6.979360594817252e-06,
+            1.1885343474394231e-05,
+            2.071244598984213e-06
+          ],
+          [
+            1.4136788217510712e-07,
+            2.8069566751346197e-07,
+            4.510811002661894e-08
+          ],
+          [
+            2.343309995174258e-09,
+            5.951575045092059e-09,
+            9.710550637663002e-10
+          ]
+        ],
+        "algebraic_coordinates": [
+          0.0977130836737314,
+          0.17364436259436022,
+          -0.10794211775158354,
+          -0.041269669387985576,
+          -0.12353424976225219,
+          -0.13254518422001393,
+          -0.14177649631151656,
+          -7.0642186802448785,
+          -6.0752369043009224,
+          -1.1142871075724956,
+          -1.6601012199143779,
+          -0.029113840140218252,
+          -0.1698768786270401,
+          0.32168483852223845,
+          -0.2545086656160535,
+          0.5015683692652912,
+          -0.31212601419410696,
+          1.0913198888612845,
+          -0.09728763845992972,
+          -0.018077161564815394,
+          0.04708405091007591,
+          0.020403858693289496,
+          0.009153218399308332,
+          -0.0010848263595907913,
+          -0.026687557173000698,
+          -0.017265737602707793,
+          -0.005089118242911175,
+          0.02633838005482342,
+          0.030371516088720088,
+          -0.019390191606699036,
+          -7.081381330828528,
+          -6.079727961893086,
+          -0.035540653703210384
+        ],
+        "controller_memory": [
+          8.52395907628766e-14,
+          1.682436517231265e-14
+        ],
+        "level_fraction": [
+          0.4598989426849729,
+          0.42745331354037874
+        ],
+        "distillate_lbmolph": 2220.9523405260766,
+        "bottoms_lbmolph": 4922.021659694695,
+        "physical": {
+          "positive_inventory": true,
+          "positive_liquid_composition": true,
+          "positive_vapor_composition": true,
+          "positive_flows": true,
+          "physical_levels": true,
+          "ordered_temperature": true,
+          "ordered_pressure": true,
+          "negative_condenser_duty": true,
+          "hydraulic_height_below_spacing": true,
+          "all_finite": true
+        },
+        "gates": {
+          "success": true,
+          "residual": true,
+          "rank": true,
+          "condition": true,
+          "equilibrium": true,
+          "component_conservation": true,
+          "energy_conservation": true,
+          "controller_equations": true,
+          "physical": true
+        }
+      }
+    ]
+  },
+  "trajectory_comparison": {
+    "per_root": [
+      {
+        "index": 1,
+        "method": "backward_euler",
+        "metadata": {
+          "index": true,
+          "time": true,
+          "method": true,
+          "success": true,
+          "status": true,
+          "message": true,
+          "nfev": true,
+          "njev": true
+        },
+        "numeric_differences": {
+          "cost": 0.0,
+          "optimality": 0.0,
+          "initial_coordinates": 0.0,
+          "final_coordinates": 0.0,
+          "final_residual": 0.0,
+          "returned_jacobian": 0.0,
+          "inventory": 0.0,
+          "component_rate": 0.0,
+          "rate_coordinates": 0.0,
+          "energy_rate": 0.0,
+          "controller_memory": 0.0,
+          "algebraic_coordinates": 0.0,
+          "levels": 0.0,
+          "products": 0.0
+        },
+        "maximum_numeric_difference": 0.0
+      },
+      {
+        "index": 2,
+        "method": "bdf2",
+        "metadata": {
+          "index": true,
+          "time": true,
+          "method": true,
+          "success": true,
+          "status": true,
+          "message": true,
+          "nfev": true,
+          "njev": true
+        },
+        "numeric_differences": {
+          "cost": 0.0,
+          "optimality": 0.0,
+          "initial_coordinates": 0.0,
+          "final_coordinates": 0.0,
+          "final_residual": 0.0,
+          "returned_jacobian": 0.0,
+          "inventory": 0.0,
+          "component_rate": 0.0,
+          "rate_coordinates": 0.0,
+          "energy_rate": 0.0,
+          "controller_memory": 0.0,
+          "algebraic_coordinates": 0.0,
+          "levels": 0.0,
+          "products": 0.0
+        },
+        "maximum_numeric_difference": 0.0
+      }
+    ],
+    "all_metadata_equal": true,
+    "maximum_numeric_difference": 0.0
+  },
+  "matrix_comparison": {
+    "serial_count": 7,
+    "parallel_count": 7,
+    "metadata_equal": true,
+    "per_matrix_maximum_absolute_difference": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "maximum_absolute_difference": 0.0
+  },
+  "worker_ping_ids_diagnostic": [
+    4728,
+    7412,
+    23272,
+    26816
+  ],
+  "worker_evidence": [
+    {
+      "method": "backward_euler",
+      "root_epoch": "dd204_parallel:startup",
+      "state_id": "dd204_parallel:startup:jacobian",
+      "color_count": 17,
+      "task_count": 34,
+      "worker_ids": [
+        4728,
+        7412,
+        23272,
+        26816
+      ],
+      "basis_rebuilds": 4,
+      "logical_provider_calls": 1292,
+      "memo_hits": 910,
+      "memo_misses": 382,
+      "provider_pass": true,
+      "fallback_attempted": false
+    },
+    {
+      "method": "backward_euler",
+      "root_epoch": "dd204_parallel:startup",
+      "state_id": "dd204_parallel:startup:jacobian",
+      "color_count": 17,
+      "task_count": 34,
+      "worker_ids": [
+        4728,
+        7412,
+        23272,
+        26816
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 1156,
+      "memo_hits": 774,
+      "memo_misses": 382,
+      "provider_pass": true,
+      "fallback_attempted": false
+    },
+    {
+      "method": "backward_euler",
+      "root_epoch": "dd204_parallel:startup",
+      "state_id": "dd204_parallel:startup:jacobian",
+      "color_count": 17,
+      "task_count": 34,
+      "worker_ids": [
+        4728,
+        7412,
+        23272,
+        26816
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 1156,
+      "memo_hits": 774,
+      "memo_misses": 382,
+      "provider_pass": true,
+      "fallback_attempted": false
+    },
+    {
+      "method": "backward_euler",
+      "root_epoch": "dd204_parallel:startup",
+      "state_id": "dd204_parallel:startup:jacobian",
+      "color_count": 17,
+      "task_count": 34,
+      "worker_ids": [
+        4728,
+        7412,
+        23272,
+        26816
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 1156,
+      "memo_hits": 774,
+      "memo_misses": 382,
+      "provider_pass": true,
+      "fallback_attempted": false
+    },
+    {
+      "method": "bdf2",
+      "root_epoch": "dd204_parallel:bdf2_2",
+      "state_id": "dd204_parallel:bdf2_2:jacobian",
+      "color_count": 17,
+      "task_count": 34,
+      "worker_ids": [
+        4728,
+        7412,
+        23272,
+        26816
+      ],
+      "basis_rebuilds": 4,
+      "logical_provider_calls": 1156,
+      "memo_hits": 835,
+      "memo_misses": 321,
+      "provider_pass": true,
+      "fallback_attempted": false
+    },
+    {
+      "method": "bdf2",
+      "root_epoch": "dd204_parallel:bdf2_2",
+      "state_id": "dd204_parallel:bdf2_2:jacobian",
+      "color_count": 17,
+      "task_count": 34,
+      "worker_ids": [
+        4728,
+        7412,
+        23272,
+        26816
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 1156,
+      "memo_hits": 774,
+      "memo_misses": 382,
+      "provider_pass": true,
+      "fallback_attempted": false
+    },
+    {
+      "method": "bdf2",
+      "root_epoch": "dd204_parallel:bdf2_2",
+      "state_id": "dd204_parallel:bdf2_2:jacobian",
+      "color_count": 17,
+      "task_count": 34,
+      "worker_ids": [
+        4728,
+        7412,
+        23272,
+        26816
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 1156,
+      "memo_hits": 774,
+      "memo_misses": 382,
+      "provider_pass": true,
+      "fallback_attempted": false
+    }
+  ],
+  "worker_basis": {
+    "root_count": 2,
+    "rebuilds_by_root": {
+      "dd204_parallel:bdf2_2": 4,
+      "dd204_parallel:startup": 4
+    },
+    "pass": true
+  },
+  "provider": {
+    "serial": {
+      "provider_identity": "dwsim",
+      "interface_provider_identities": {},
+      "total_calls": 8466,
+      "counts": [
+        {
+          "provider_interface": "dwsim.declared_liquid_density",
+          "evaluation_kind": "jacobian",
+          "count": 1666
+        },
+        {
+          "provider_interface": "dwsim.declared_liquid_density",
+          "evaluation_kind": "residual",
+          "count": 77
+        },
+        {
+          "provider_interface": "dwsim.declared_phase_enthalpy",
+          "evaluation_kind": "jacobian",
+          "count": 3094
+        },
+        {
+          "provider_interface": "dwsim.declared_phase_enthalpy",
+          "evaluation_kind": "residual",
+          "count": 143
+        },
+        {
+          "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+          "evaluation_kind": "jacobian",
+          "count": 3332
+        },
+        {
+          "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+          "evaluation_kind": "residual",
+          "count": 154
+        }
+      ],
+      "violations": [],
+      "fallback_attempted": false,
+      "pass": true
+    },
+    "parallel_main": {
+      "provider_identity": "dwsim",
+      "interface_provider_identities": {},
+      "total_calls": 374,
+      "counts": [
+        {
+          "provider_interface": "dwsim.declared_liquid_density",
+          "evaluation_kind": "residual",
+          "count": 77
+        },
+        {
+          "provider_interface": "dwsim.declared_phase_enthalpy",
+          "evaluation_kind": "residual",
+          "count": 143
+        },
+        {
+          "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+          "evaluation_kind": "residual",
+          "count": 154
+        }
+      ],
+      "violations": [],
+      "fallback_attempted": false,
+      "pass": true
+    }
+  },
+  "logical_provider_calls": 17068,
+  "performance": {
+    "serial_trajectory_wall_sec": 9.543880600016564,
+    "parallel_trajectory_wall_sec": 7.36904499999946,
+    "parallel_ratio": 0.7721225053870299,
+    "solve_speedup": 1.295131268708125,
+    "startup_wall_sec_raw": 2.1855373999860603,
+    "startup_wall_sec_adjusted": 2.0355373999860604,
+    "total_governed_wall_sec": 25.378222500003176
+  },
+  "gates": {
+    "serial_complete": true,
+    "parallel_complete": true,
+    "methods": true,
+    "roots": true,
+    "matrix_count_and_metadata": true,
+    "matrix_equivalence": true,
+    "decision_and_endpoint_equivalence": true,
+    "worker_participation": true,
+    "worker_basis": true,
+    "provider": true,
+    "provider_calls": true,
+    "parallel_speed": true,
+    "startup_wall": true,
+    "wall_clock": true
+  },
+  "pass_gate": true,
+  "campaign_executed_once": true,
+  "retry_attempted": false,
+  "alternate_step_attempted": false,
+  "controller_tuning_attempted": false,
+  "longer_trajectory_attempted": false
+}

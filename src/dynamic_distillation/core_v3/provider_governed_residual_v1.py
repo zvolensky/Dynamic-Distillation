@@ -25,6 +25,7 @@ FRANCIS_C_US = 3.33
 SECONDS_PER_HOUR = 3600.0
 R_SI = 8.31446261815324
 PSIA_TO_PA = 6894.757293168
+MOL_M3_PER_LBMOL_FT3 = 453.59237 * 35.31466672148859
 
 
 @dataclass(frozen=True)
@@ -201,6 +202,71 @@ class IndependentPengRobinsonProvider:
         ):
             raise ValueError("invalid independent PR parameters")
         self.parameters = PengRobinsonParameters(tc, pc, omega, kij)
+
+    def phase_compressibility_roots(
+        self,
+        temperature_F: float,
+        pressure_psia: float,
+        composition: Sequence[float],
+    ) -> np.ndarray:
+        """Return ordered physical PR compressibility roots for one composition."""
+        z = normalize_composition(composition)
+        params = self.parameters
+        temperature_K = (float(temperature_F) - 32.0) * 5.0 / 9.0 + 273.15
+        pressure_Pa = float(pressure_psia) * PSIA_TO_PA
+        tc = params.critical_temperature_K
+        pc = params.critical_pressure_Pa
+        omega = params.acentric_factor
+        kappa = 0.37464 + 1.54226 * omega - 0.26992 * omega * omega
+        alpha = (1.0 + kappa * (1.0 - np.sqrt(temperature_K / tc))) ** 2
+        ai = 0.45724 * R_SI**2 * tc**2 * alpha / pc
+        bi = 0.07780 * R_SI * tc / pc
+        aij = np.sqrt(np.outer(ai, ai)) * (1.0 - params.binary_interaction)
+        amix = float(z @ aij @ z)
+        bmix = float(z @ bi)
+        A = amix * pressure_Pa / (R_SI**2 * temperature_K**2)
+        B = bmix * pressure_Pa / (R_SI * temperature_K)
+        roots = np.roots(
+            (
+                1.0,
+                -(1.0 - B),
+                A - 3.0 * B**2 - 2.0 * B,
+                -(A * B - B**2 - B**3),
+            )
+        )
+        physical = np.sort(
+            np.asarray(
+                [
+                    float(root.real)
+                    for root in roots
+                    if abs(float(root.imag)) <= 1.0e-9 and float(root.real) > B
+                ],
+                dtype=float,
+            )
+        )
+        if physical.size == 0:
+            raise RuntimeError("independent PR has no physical compressibility root")
+        return physical
+
+    def liquid_density_lbmol_ft3(
+        self,
+        temperature_F: float,
+        pressure_psia: float,
+        composition: Sequence[float],
+    ) -> float:
+        """Return molar density from the smallest physical PR root."""
+        temperature_K = (float(temperature_F) - 32.0) * 5.0 / 9.0 + 273.15
+        pressure_Pa = float(pressure_psia) * PSIA_TO_PA
+        liquid_z = float(
+            self.phase_compressibility_roots(
+                temperature_F, pressure_psia, composition
+            )[0]
+        )
+        density_mol_m3 = pressure_Pa / (liquid_z * R_SI * temperature_K)
+        density = density_mol_m3 / MOL_M3_PER_LBMOL_FT3
+        if not np.isfinite(density) or density <= 0.0:
+            raise RuntimeError("independent PR returned invalid liquid density")
+        return float(density)
 
     def phase_fugacity_coefficients(
         self,

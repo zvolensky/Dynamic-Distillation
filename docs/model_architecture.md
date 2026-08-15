@@ -2237,3 +2237,20 @@ The Francis relationship itself remains unchanged. Before another full-column
 Jacobian or root solve, a phase-explicit density calculation using the same PR
 parameters must be tested for smoothness and physical agreement. A provider
 change is not yet authorized.
+
+## DD-228 phase-explicit density candidate
+
+The independent, parameter-aligned PR validator now exposes ordered physical
+compressibility roots and a liquid molar density calculated from the smallest
+positive root. This is a validation capability only; the governing residual
+continues to use DWSIM density.
+
+At all DD-227 sample states, the candidate returns one smooth density near
+0.504 lbmol/ft3. Its central-difference derivative is stable across four step
+sizes to better than `5e-10` relative spread. No DWSIM call is needed for this
+check.
+
+The next authorized parity audit may use explicit property-level routing:
+DWSIM remains responsible for imposed-phase fugacity and phase enthalpy, while
+the aligned PR provider supplies liquid density. That routing must be recorded
+as such and is not a silent fallback. No root or timestep is authorized.

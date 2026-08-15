@@ -1,0 +1,297 @@
+{
+  "schema_id": "dd228-core-v3-aligned-pr-liquid-density-v1",
+  "classification": "aligned_pr_liquid_density_feasible",
+  "decision": "authorize_one_frozen_governing_density_parity_audit",
+  "target_owner": "stripping_volume_6",
+  "selection_rule": "smallest_positive_PR_compressibility_root",
+  "endpoints": {
+    "source_mapped_seed": {
+      "pressure_psia": 230.769,
+      "baseline": {
+        "temperature_F": 206.02380603583796,
+        "compressibility_roots": [
+          0.06416495258140988,
+          0.19601757097899145,
+          0.7023260262419022
+        ],
+        "selected_liquid_root": 0.06416495258140988,
+        "candidate_density_lbmol_ft3": 0.5034328199269243,
+        "saved_dwsim_density_lbmol_ft3": 0.46174789356810775,
+        "candidate_minus_dwsim_density_lbmol_ft3": 0.0416849263588166,
+        "candidate_dwsim_relative_difference": 0.09027637578744704
+      },
+      "steps": [
+        {
+          "step": 2e-05,
+          "candidate_density_derivative_per_F": -0.16694832953578764,
+          "plus": {
+            "temperature_F": 206.02580603583795,
+            "compressibility_roots": [
+              0.06416518537907155,
+              0.19601347893106108,
+              0.7023299981305545
+            ],
+            "selected_liquid_root": 0.06416518537907155,
+            "candidate_density_lbmol_ft3": 0.5034294809270684,
+            "saved_dwsim_density_lbmol_ft3": 0.5803667028502145,
+            "candidate_minus_dwsim_density_lbmol_ft3": -0.07693722192314612,
+            "candidate_dwsim_relative_difference": -0.13256656790491764
+          },
+          "minus": {
+            "temperature_F": 206.02180603583795,
+            "compressibility_roots": [
+              0.06416471979647412,
+              0.19602166311588684,
+              0.7023220542508805
+            ],
+            "selected_liquid_root": 0.06416471979647412,
+            "candidate_density_lbmol_ft3": 0.5034361588602498,
+            "saved_dwsim_density_lbmol_ft3": 0.4617070445121471,
+            "candidate_minus_dwsim_density_lbmol_ft3": 0.041729114348102725,
+            "candidate_dwsim_relative_difference": 0.09038006858265484
+          }
+        },
+        {
+          "step": 1e-05,
+          "candidate_density_derivative_per_F": -0.1669483295385632,
+          "plus": {
+            "temperature_F": 206.02480603583794,
+            "compressibility_roots": [
+              0.06416506897864996,
+              0.19601552494390592,
+              0.702328012199024
+            ],
+            "selected_liquid_root": 0.06416506897864996,
+            "candidate_density_lbmol_ft3": 0.5034311504353127,
+            "saved_dwsim_density_lbmol_ft3": 0.5803679147361007,
+            "candidate_minus_dwsim_density_lbmol_ft3": -0.076936764300788,
+            "candidate_dwsim_relative_difference": -0.13256550258429076
+          },
+          "minus": {
+            "temperature_F": 206.02280603583796,
+            "compressibility_roots": [
+              0.06416483618735128,
+              0.19601961703631848,
+              0.7023240402591872
+            ],
+            "selected_liquid_root": 0.06416483618735128,
+            "candidate_density_lbmol_ft3": 0.5034344894019035,
+            "saved_dwsim_density_lbmol_ft3": 0.46170459195348923,
+            "candidate_minus_dwsim_density_lbmol_ft3": 0.041729897448414266,
+            "candidate_dwsim_relative_difference": 0.09038224478525007
+          }
+        },
+        {
+          "step": 5e-06,
+          "candidate_density_derivative_per_F": -0.1669483295718699,
+          "plus": {
+            "temperature_F": 206.02430603583795,
+            "compressibility_roots": [
+              0.06416501077963226,
+              0.19601654795866846,
+              0.7023270192236618
+            ],
+            "selected_liquid_root": 0.06416501077963226,
+            "candidate_density_lbmol_ft3": 0.5034319851831974,
+            "saved_dwsim_density_lbmol_ft3": 0.5803685206764425,
+            "candidate_minus_dwsim_density_lbmol_ft3": -0.07693653549324508,
+            "candidate_dwsim_relative_difference": -0.13256496993250513
+          },
+          "minus": {
+            "temperature_F": 206.02330603583795,
+            "compressibility_roots": [
+              0.06416489438398286,
+              0.196018594004875,
+              0.702325033253743
+            ],
+            "selected_liquid_root": 0.06416489438398286,
+            "candidate_density_lbmol_ft3": 0.5034336546664931,
+            "saved_dwsim_density_lbmol_ft3": 0.4617138324448156,
+            "candidate_minus_dwsim_density_lbmol_ft3": 0.04171982222167753,
+            "candidate_dwsim_relative_difference": 0.09035861455734903
+          }
+        },
+        {
+          "step": 2.5e-06,
+          "candidate_density_derivative_per_F": -0.16694832949415428,
+          "plus": {
+            "temperature_F": 206.02405603583796,
+            "compressibility_roots": [
+              0.06416498168042163,
+              0.1960170594681349,
+              0.7023265227335806
+            ],
+            "selected_liquid_root": 0.06416498168042163,
+            "candidate_density_lbmol_ft3": 0.5034324025555807,
+            "saved_dwsim_density_lbmol_ft3": 0.5803688236459631,
+            "candidate_minus_dwsim_density_lbmol_ft3": -0.07693642109038235,
+            "candidate_dwsim_relative_difference": -0.1325647036087437
+          },
+          "minus": {
+            "temperature_F": 206.02355603583794,
+            "compressibility_roots": [
+              0.064164923482597,
+              0.19601808249123834,
+              0.7023255297486215
+            ],
+            "selected_liquid_root": 0.064164923482597,
+            "candidate_density_lbmol_ft3": 0.5034332372972282,
+            "saved_dwsim_density_lbmol_ft3": 0.46172500786766535,
+            "candidate_minus_dwsim_density_lbmol_ft3": 0.04170822942956287,
+            "candidate_dwsim_relative_difference": 0.09033131998238404
+          }
+        }
+      ],
+      "candidate_density_derivative_relative_spread": 4.655069741648692e-10,
+      "smooth": true,
+      "physical": true
+    },
+    "independent_smooth_topology_seed": {
+      "pressure_psia": 230.769,
+      "baseline": {
+        "temperature_F": 206.0244250444914,
+        "compressibility_roots": [
+          0.06400384239816136,
+          0.19169802690413698,
+          0.7070749310593185
+        ],
+        "selected_liquid_root": 0.06400384239816136,
+        "candidate_density_lbmol_ft3": 0.5046995894443835,
+        "saved_dwsim_density_lbmol_ft3": 0.5686678207089527,
+        "candidate_minus_dwsim_density_lbmol_ft3": -0.06396823126456919,
+        "candidate_dwsim_relative_difference": -0.11248786890177925
+      },
+      "steps": [
+        {
+          "step": 2e-05,
+          "candidate_density_derivative_per_F": -0.17077975462687076,
+          "plus": {
+            "temperature_F": 206.02642504449142,
+            "compressibility_roots": [
+              0.06400408326399364,
+              0.19169403618319086,
+              0.7070787927467882
+            ],
+            "selected_liquid_root": 0.06400408326399364,
+            "candidate_density_lbmol_ft3": 0.5046961738143725,
+            "saved_dwsim_density_lbmol_ft3": 0.5686654009740819,
+            "candidate_minus_dwsim_density_lbmol_ft3": -0.06396922715970943,
+            "candidate_dwsim_relative_difference": -0.11249009883515836
+          },
+          "minus": {
+            "temperature_F": 206.0224250444914,
+            "compressibility_roots": [
+              0.06400360154560103,
+              0.19170201770798245,
+              0.7070710692750056
+            ],
+            "selected_liquid_root": 0.06400360154560103,
+            "candidate_density_lbmol_ft3": 0.5047030050045576,
+            "saved_dwsim_density_lbmol_ft3": 0.4706089564931972,
+            "candidate_minus_dwsim_density_lbmol_ft3": 0.034094048511360386,
+            "candidate_dwsim_relative_difference": 0.07244666307546832
+          }
+        },
+        {
+          "step": 1e-05,
+          "candidate_density_derivative_per_F": -0.17077975465462633,
+          "plus": {
+            "temperature_F": 206.0254250444914,
+            "compressibility_roots": [
+              0.06400396282941848,
+              0.1916960315333019,
+              0.707076861915158
+            ],
+            "selected_liquid_root": 0.06400396282941848,
+            "candidate_density_lbmol_ft3": 0.5046978816381078,
+            "saved_dwsim_density_lbmol_ft3": 0.5686666108450149,
+            "candidate_minus_dwsim_density_lbmol_ft3": -0.0639687292069071,
+            "candidate_dwsim_relative_difference": -0.11248898385620397
+          },
+          "minus": {
+            "temperature_F": 206.0234250444914,
+            "compressibility_roots": [
+              0.06400372197022214,
+              0.1917000222956974,
+              0.7070730001792673
+            ],
+            "selected_liquid_root": 0.06400372197022214,
+            "candidate_density_lbmol_ft3": 0.5047012972332009,
+            "saved_dwsim_density_lbmol_ft3": 0.47062162035670724,
+            "candidate_minus_dwsim_density_lbmol_ft3": 0.03407967687649366,
+            "candidate_dwsim_relative_difference": 0.07241417606497338
+          }
+        },
+        {
+          "step": 5e-06,
+          "candidate_density_derivative_per_F": -0.17077975466017745,
+          "plus": {
+            "temperature_F": 206.02492504449143,
+            "compressibility_roots": [
+              0.06400390261337514,
+              0.19169702921612894,
+              0.7070758964902639
+            ],
+            "selected_liquid_root": 0.06400390261337514,
+            "candidate_density_lbmol_ft3": 0.5046987355434283,
+            "saved_dwsim_density_lbmol_ft3": 0.5686672157778582,
+            "candidate_minus_dwsim_density_lbmol_ft3": -0.06396848023442991,
+            "candidate_dwsim_relative_difference": -0.1124884263759251
+          },
+          "minus": {
+            "temperature_F": 206.02392504449142,
+            "compressibility_roots": [
+              0.06400378218377697,
+              0.19169902459732666,
+              0.7070739656223188
+            ],
+            "selected_liquid_root": 0.06400378218377697,
+            "candidate_density_lbmol_ft3": 0.5047004433409749,
+            "saved_dwsim_density_lbmol_ft3": 0.4706677825547406,
+            "candidate_minus_dwsim_density_lbmol_ft3": 0.03403266078623424,
+            "candidate_dwsim_relative_difference": 0.07230718151454545
+          }
+        },
+        {
+          "step": 2.5e-06,
+          "candidate_density_derivative_per_F": -0.17077975467127968,
+          "plus": {
+            "temperature_F": 206.0246750444914,
+            "compressibility_roots": [
+              0.06400387250566457,
+              0.19169752805948495,
+              0.7070754137755486
+            ],
+            "selected_liquid_root": 0.06400387250566457,
+            "candidate_density_lbmol_ft3": 0.5046991624944515,
+            "saved_dwsim_density_lbmol_ft3": 0.5686675182436238,
+            "candidate_minus_dwsim_density_lbmol_ft3": -0.06396835574917237,
+            "candidate_dwsim_relative_difference": -0.11248814763808537
+          },
+          "minus": {
+            "temperature_F": 206.02417504449141,
+            "compressibility_roots": [
+              0.06400381229086548,
+              0.191698525750084,
+              0.7070744483415752
+            ],
+            "selected_liquid_root": 0.06400381229086548,
+            "candidate_density_lbmol_ft3": 0.5047000163932248,
+            "saved_dwsim_density_lbmol_ft3": 0.5686681231738442,
+            "candidate_minus_dwsim_density_lbmol_ft3": -0.06396810678061937,
+            "candidate_dwsim_relative_difference": -0.11248759016700512
+          }
+        }
+      ],
+      "candidate_density_derivative_relative_spread": 2.600362149200694e-10,
+      "smooth": true,
+      "physical": true
+    }
+  },
+  "model_calls": 0,
+  "dwsim_provider_calls": 0,
+  "solver_calls": 0,
+  "timestep_calls": 0,
+  "dynamic_integration_calls": 0,
+  "pass_gate": true
+}

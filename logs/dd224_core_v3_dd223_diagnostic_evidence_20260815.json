@@ -1,0 +1,56 @@
+{
+  "schema_id": "dd224-core-v3-dd223-diagnostic-evidence-v1",
+  "campaign_id": "DD-224",
+  "generated_utc": "2026-08-15T17:02:12.458142+00:00",
+  "classification": "dd223_evidence_incomplete_for_static_localization",
+  "decision": "authorize_one_frozen_read_only_endpoint_replay_contract",
+  "source_classification_preserved": "full_c3c4_stationary_root_failed",
+  "source_decision_preserved": "stop_full_c3c4_root_path_without_retry",
+  "starts": {
+    "source_mapped_seed": {
+      "final_coordinates_saved": true,
+      "physical_state_saved": true,
+      "block_norms_saved": true,
+      "complete_residual_vector_saved": false,
+      "jacobian_spectra_saved": true,
+      "complete_jacobian_matrices_saved": false
+    },
+    "independent_smooth_topology_seed": {
+      "final_coordinates_saved": true,
+      "physical_state_saved": true,
+      "block_norms_saved": true,
+      "complete_residual_vector_saved": false,
+      "jacobian_spectra_saved": true,
+      "complete_jacobian_matrices_saved": false
+    }
+  },
+  "coordinate_ledger_available": true,
+  "static_localization_possible": false,
+  "read_only_endpoint_replay_possible": true,
+  "missing_evidence": [
+    "complete per-row raw and scaled endpoint residual vectors",
+    "complete endpoint Jacobian matrices at both frozen finite-difference steps"
+  ],
+  "required_replay_scope": {
+    "endpoints": [
+      "source_mapped_seed",
+      "independent_smooth_topology_seed"
+    ],
+    "coordinates": 160,
+    "jacobian_steps": [
+      1e-05,
+      5e-06
+    ],
+    "jacobian_mode": "colored",
+    "nonlinear_solve": false,
+    "state_advance": false,
+    "timestep": false,
+    "dynamic_integration": false
+  },
+  "model_calls": 0,
+  "provider_calls": 0,
+  "solver_calls": 0,
+  "timestep_calls": 0,
+  "dynamic_integration_calls": 0,
+  "pass_gate": true
+}

@@ -2172,3 +2172,17 @@ an initializer, or a dynamic starting state. DD-223 prohibits a retry,
 continuation, tolerance adjustment, or another direct-solver variation.
 Full-column dynamics remain stopped pending a separately governed static
 diagnosis or a materially different solver architecture.
+
+## DD-224 diagnostic-evidence boundary
+
+DD-223 retained enough evidence to prove failure, but not enough to localize
+it. The artifact includes endpoint coordinates, physical states, block norms,
+ranks, conditions, and singular values. It does not include individual
+residual rows or complete Jacobian matrices, so left/right singular directions
+and weak equation-variable combinations cannot be recovered after the fact.
+
+DD-224 makes no model, property, residual, Jacobian, solver, or timestep call.
+It preserves DD-223's failed classification and authorizes only an exact
+read-only replay of the two saved endpoints. That replay may capture the
+missing vectors and matrices but may not solve, modify, or advance either
+state.

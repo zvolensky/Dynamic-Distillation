@@ -2187,6 +2187,24 @@ read-only replay of the two saved endpoints. That replay may capture the
 missing vectors and matrices but may not solve, modify, or advance either
 state.
 
+## DD-229 explicit density-routing parity
+
+DD-229 evaluates the complete full-column residual and two colored Jacobians at
+both DD-223 endpoints with explicit mixed property ownership. DWSIM supplies
+imposed-phase fugacity and phase enthalpy. The parameter-aligned PR provider
+supplies liquid density from its smallest positive root.
+
+This removes the false hydraulic derivative. All matrices retain rank 160;
+conditions are `4.02e5-3.36e6`, spectrum changes are below `4e-9`, and complete
+matrix changes between finite-difference steps are about `1.5e-10` relative.
+The complete matrices are stored in compressed NPZ evidence rather than large
+expanded JSON arrays.
+
+The old endpoint residuals increase because their liquid flows were fitted to
+the discontinuous DWSIM density branches. They remain starting guesses only.
+One zero-call fixed coordinate-scaling design may use the four accepted DD-229
+matrices before a new root campaign is considered.
+
 ## DD-225 read-only endpoint evidence capture
 
 DD-225 re-evaluates the two exact DD-223 endpoints using the unchanged Core V3

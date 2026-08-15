@@ -2061,3 +2061,23 @@ second segment would interrupt BDF2 history. A continuation payload must own:
 A continuation call must begin directly with BDF2, retain the live session,
 advance unique root epochs, and preserve controller and conservation identity.
 That structural handoff is required before another live segment.
+
+## DD-218 five-minute dynamic execution
+
+DD-218 runs the accepted seven-volume controlled DAE continuously for 300
+simulated seconds using `0.25 s` BDF2 after one startup. All 1,200 roots close,
+and the first 60 seconds reproduce DD-217 exactly. Numerical rank,
+conditioning, equilibrium, conservation, controller equations, physicality,
+DWSIM ownership, worker participation, and timing remain accepted.
+
+The sole formal failure is a response-policy assumption inherited from the
+short disturbance proofs: total inventory was required to increase strictly
+for the entire horizon. The long run shows the expected controller transition.
+Inventory accumulates initially, peaks near `280 s`, and then decreases through
+the final four sampled intervals as bottoms withdrawal continues to rise. Exact
+external-flow recurrence still explains the inventory trajectory.
+
+This result separates dynamic model health from response classification. The
+model does not blow up or lose closure over five minutes. DD-218 nevertheless
+retains its formal failed label until a separately frozen zero-call policy
+adjudication evaluates the bounded controller reversal.

@@ -1,0 +1,51 @@
+{
+  "schema_id": "dd220-core-v3-bdf2-300s-controlled-response-jsonfix-contract-v1",
+  "result_schema_id": "dd220-core-v3-bdf2-300s-controlled-response-jsonfix-result-v1",
+  "campaign_id": "DD-220",
+  "preparation_base_commit": "47fdc23dac328e96328d19fc32b0d3f1723cce91",
+  "dd219_contract": {
+    "path": "logs/dd219_core_v3_bdf2_300s_controlled_response_contract_20260815.json",
+    "sha256": "bab3ff2118e3fdd445be8fb5b607f5514443f58cd2d4825fdb6d882d9e5f52fa",
+    "payload_sha256": "6f9403e3844758c8e9c100d865badfb0d080f4c7c1663c27bfada8ac403d43e9"
+  },
+  "dd219_aborted_result": {
+    "path": "docs/dd_219_core_v3_bdf2_300s_controlled_response_20260815.md",
+    "sha256": "217bd32af1f4fd1b9cdf811f130b5625cc970316f943a70d631ea2fd05f35e74"
+  },
+  "source": {
+    "path": "logs/dd218_core_v3_bdf2_300s_dynamic_production_20260815.json",
+    "sha256": "b84b6c13c68547cb7e056f97244356df3129c22d98f05fc5a138ad33a4de00e0",
+    "formal_classification": "five_minute_dynamic_production_failed",
+    "formal_failed_gates": [
+      "response"
+    ],
+    "completed_roots": 1200
+  },
+  "limits": {
+    "duration_seconds": 300.0,
+    "time_tolerance_seconds": 1e-12,
+    "minimum_sample_count": 61,
+    "maximum_inventory_excursion_lbmol": 1.0,
+    "minimum_peak_time_seconds": 240.0,
+    "maximum_peak_time_seconds": 295.0,
+    "minimum_consecutive_final_declines": 4,
+    "minimum_peak_minus_final_lbmol": 0.0001,
+    "monotonic_tolerance": 1e-09,
+    "minimum_level_fraction": 0.0,
+    "maximum_level_fraction": 1.0,
+    "global_inventory_identity_limit_lbmol": 1e-06,
+    "global_inventory_relative_limit": 1e-06
+  },
+  "implementation_sha256": {
+    "tools/adjudicate_core_v3_bdf2_300s_controlled_response.py": "df17aa13fe7ea4a50d82bfc2e32c22c7c946f7dba40ee83932946648daf4ef0d",
+    "tools/adjudicate_core_v3_bdf2_300s_controlled_response_jsonfix.py": "4f06a72259ab46ef6eae89ac9693c0808e02ba255c646095b284c687b7f79517",
+    "tests/test_core_v3_bdf2_300s_controlled_response_jsonfix.py": "6ce7719b7c20f53a8665fd1aaec6ec79ff56691902f93f9d8458bad7faaf18bc"
+  },
+  "allowed_change": "numpy_scalar_to_native_json_scalar_conversion_only",
+  "model_calls": 0,
+  "provider_calls": 0,
+  "solver_calls": 0,
+  "trajectory_calls": 0,
+  "campaign_executed": false,
+  "contract_payload_sha256": "c36ed07edf7157507dda0011d35ebecc657ad95023a98e272d7df0eeeb2a424c"
+}

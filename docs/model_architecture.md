@@ -2205,6 +2205,21 @@ the discontinuous DWSIM density branches. They remain starting guesses only.
 One zero-call fixed coordinate-scaling design may use the four accepted DD-229
 matrices before a new root campaign is considered.
 
+## DD-230 fixed full-column coordinate scaling
+
+DD-230 derives one coordinate scale from all four DD-229 matrices. Each scale
+is the inverse geometric-mean norm of that coordinate's Jacobian column across
+both endpoints and both finite-difference steps. The vector is normalized to a
+geometric mean of one and is fixed before any solve.
+
+The scale range is only 8.813:1. It improves all four conditions by 1.80-1.96x,
+leaving them between `2.05e5` and `1.86e6`. The design makes no live call and
+does not change residual scales or physical equations.
+
+One new stationary-root campaign may combine the explicit DD-229 density
+routing with this exact coordinate scale. No dynamic integration is authorized
+until that campaign reaches one common accepted physical root.
+
 ## DD-225 read-only endpoint evidence capture
 
 DD-225 re-evaluates the two exact DD-223 endpoints using the unchanged Core V3

@@ -595,12 +595,19 @@ def execute_start(
     upper_bounds: Sequence[float],
     fixed_scales: Sequence[float],
     settings: SteadyRootSettings,
+    call_audit: ProviderCallAudit | None = None,
+    coordinate_scale: Sequence[float] | None = None,
 ) -> dict[str, Any]:
     """Execute one frozen start. The DD-093 contract tool controls authorization."""
-    audit = ProviderCallAudit()
+    audit = call_audit if call_audit is not None else ProviderCallAudit()
     point0 = _vector(initial)
     lower = _vector(lower_bounds)
     upper = _vector(upper_bounds)
+    solver_scale: float | np.ndarray = settings.x_scale
+    if coordinate_scale is not None:
+        solver_scale = _vector(coordinate_scale)
+        if solver_scale.shape != point0.shape or np.any(solver_scale <= 0.0):
+            raise ValueError("coordinate scale must be positive and match the start")
     if settings.jacobian_mode not in {"uncolored", "colored"}:
         raise ValueError(f"unsupported steady-root Jacobian mode {settings.jacobian_mode!r}")
     initial_evaluation = evaluate_residual(
@@ -671,7 +678,7 @@ def execute_start(
         xtol=settings.xtol,
         gtol=settings.gtol,
         max_nfev=settings.max_nfev,
-        x_scale=settings.x_scale,
+        x_scale=solver_scale,
     )
     wall_clock = float(time.perf_counter() - started)
     endpoint = evaluate_residual(

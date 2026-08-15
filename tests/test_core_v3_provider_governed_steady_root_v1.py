@@ -245,3 +245,26 @@ def test_colored_steady_root_mode_matches_uncolored_endpoint_jacobians():
             atol=1.0e-7,
             rtol=1.0e-7,
         )
+
+
+def test_execute_start_accepts_frozen_coordinate_scale_and_explicit_audit():
+    provider, spec, reference = _fixture()
+    lower, upper = physical_bounds(spec, reference, SteadyRootSettings())
+    audit = ProviderCallAudit(provider_identity="qualified")
+
+    result = execute_start(
+        spec,
+        reference,
+        provider,
+        name="scaled_audit_smoke",
+        initial=np.zeros(40),
+        lower_bounds=lower,
+        upper_bounds=upper,
+        fixed_scales=np.ones(40),
+        settings=SteadyRootSettings(max_nfev=1, jacobian_mode="colored"),
+        call_audit=audit,
+        coordinate_scale=np.linspace(0.5, 1.5, 40),
+    )
+
+    assert result["provider_provenance"]["provider_identity"] == "qualified"
+    assert result["provider_provenance"]["pass"]

@@ -6,7 +6,8 @@ from dataclasses import dataclass
 
 import numpy as np
 from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import structural_rank
+
+from .structural_rank_v1 import structural_rank_fast
 
 from .terminal_inventory_control_contract_v1 import (
     TerminalInventoryControlContract,
@@ -138,7 +139,7 @@ def audit_controlled_bdf2_contract(
     controlled_audit = audit_terminal_inventory_control_contract(controlled)
     pattern = terminal_inventory_control_step_pattern(controlled)
     matrix = csr_matrix(np.asarray(pattern, dtype=np.int8))
-    rank = int(structural_rank(matrix))
+    rank = structural_rank_fast(matrix)
     all_history = (
         *contract.component_history_coordinates,
         *contract.energy_history_coordinates,

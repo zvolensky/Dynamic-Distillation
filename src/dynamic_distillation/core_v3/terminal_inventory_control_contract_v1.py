@@ -10,7 +10,8 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import structural_rank
+
+from .structural_rank_v1 import structural_rank_fast
 
 from .dynamic_dae_contract_v1 import (
     DAERow,
@@ -264,7 +265,7 @@ def audit_terminal_inventory_control_contract(
     unregistered_state = tuple(sorted(state_dependencies - set(state_names)))
     row_counts = np.asarray(matrix.getnnz(axis=1)).reshape((-1,))
     column_counts = np.asarray(matrix.getnnz(axis=0)).reshape((-1,))
-    rank = int(structural_rank(matrix))
+    rank = structural_rank_fast(matrix)
     expected = len(contract.base.rows) + 4
     top = contract.base.topology.top_volume
     bottom = contract.base.topology.bottom_volume

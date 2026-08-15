@@ -2101,3 +2101,26 @@ nonresponse gate remains passed, and inventory recurrence remains exact. This
 accepts the existing DD-218 science as a five-minute controlled dynamic run; it
 does not alter DD-218's frozen formal label or claim validation of a larger
 production column.
+
+## DD-221 full C3/C4 structural migration
+
+The full source topology contains 20 physical locations with feed on stage 12.
+Core V3 represents them as a reflux drum, ten generic rectifying volumes, one
+feed volume, seven generic stripping volumes, and a combined reboiler/sump.
+The generic topology builder maps stages 1 through 20 exactly once without
+adding source-stage conditionals to equation code.
+
+Every structural layer remains square and full-rank: the provider-governed
+registry is `160 x 160`, the uncontrolled dynamic DAE is `158 x 158`, and the
+terminal-controlled DAE and BDF2 step are both `162 x 162`. BDF2 retains 164
+complete history values across component inventories, derived energies, and
+controller memory. Component and energy telescoping remain structural
+invariants.
+
+The full pattern exposed an audit-performance defect in SciPy structural
+matching. Core V3 now uses an exact deterministic Hopcroft-Karp matcher for
+these structural audits, with regression equivalence on smaller patterns. No
+model equation or numerical residual changes. DD-221 is property-free and
+does not establish a full-column root; the next boundary is a frozen live
+residual and Jacobian readiness audit at a clearly labeled source-derived
+audit point.

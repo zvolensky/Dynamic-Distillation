@@ -11,7 +11,8 @@ from typing import Sequence
 
 import numpy as np
 from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import structural_rank
+
+from .structural_rank_v1 import structural_rank_fast
 
 from .provider_governed_registry_v1 import (
     ColumnTopology,
@@ -422,7 +423,7 @@ def audit_dynamic_dae_contract(
         for row, count in zip(contract.rows, row_counts, strict=True)
         if not count
     )
-    rank = int(structural_rank(matrix))
+    rank = structural_rank_fast(matrix)
     expected = (
         2
         * len(contract.topology.volume_ids)

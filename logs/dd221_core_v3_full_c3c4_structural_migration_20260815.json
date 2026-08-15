@@ -1,0 +1,503 @@
+{
+  "schema_id": "dd221-core-v3-full-c3c4-structural-migration-v1",
+  "campaign_id": "DD-221",
+  "generated_utc": "2026-08-15T14:29:14.543388+00:00",
+  "classification": "full_c3c4_structural_migration_passed",
+  "decision": "authorize_full_c3c4_source_mapping_and_live_readiness_contract",
+  "source": {
+    "workbook": "distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+    "sha256": "6b7932cdf67c352baeab5bf7b791fea6cd87039dc38524782b3458f17d811955",
+    "stage_count": 20,
+    "feed_stage_1based": 12,
+    "component_names": [
+      "n-Propane",
+      "n-Butane",
+      "n-Pentane"
+    ],
+    "source_stage_1based": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "seed_is_accepted_root": false
+  },
+  "topology": {
+    "volume_ids": [
+      "reflux_drum",
+      "rectifying_volume_1",
+      "rectifying_volume_2",
+      "rectifying_volume_3",
+      "rectifying_volume_4",
+      "rectifying_volume_5",
+      "rectifying_volume_6",
+      "rectifying_volume_7",
+      "rectifying_volume_8",
+      "rectifying_volume_9",
+      "rectifying_volume_10",
+      "feed_tray",
+      "stripping_volume_1",
+      "stripping_volume_2",
+      "stripping_volume_3",
+      "stripping_volume_4",
+      "stripping_volume_5",
+      "stripping_volume_6",
+      "stripping_volume_7",
+      "combined_reboiler_sump"
+    ],
+    "equilibrium_volume_ids": [
+      "rectifying_volume_1",
+      "rectifying_volume_2",
+      "rectifying_volume_3",
+      "rectifying_volume_4",
+      "rectifying_volume_5",
+      "rectifying_volume_6",
+      "rectifying_volume_7",
+      "rectifying_volume_8",
+      "rectifying_volume_9",
+      "rectifying_volume_10",
+      "feed_tray",
+      "stripping_volume_1",
+      "stripping_volume_2",
+      "stripping_volume_3",
+      "stripping_volume_4",
+      "stripping_volume_5",
+      "stripping_volume_6",
+      "stripping_volume_7",
+      "combined_reboiler_sump"
+    ],
+    "hydraulic_volume_ids": [
+      "rectifying_volume_1",
+      "rectifying_volume_2",
+      "rectifying_volume_3",
+      "rectifying_volume_4",
+      "rectifying_volume_5",
+      "rectifying_volume_6",
+      "rectifying_volume_7",
+      "rectifying_volume_8",
+      "rectifying_volume_9",
+      "rectifying_volume_10",
+      "feed_tray",
+      "stripping_volume_1",
+      "stripping_volume_2",
+      "stripping_volume_3",
+      "stripping_volume_4",
+      "stripping_volume_5",
+      "stripping_volume_6",
+      "stripping_volume_7"
+    ],
+    "terminal_volume_ids": [
+      "reflux_drum",
+      "combined_reboiler_sump"
+    ],
+    "liquid_links": [
+      [
+        "reflux_drum",
+        "rectifying_volume_1",
+        "R"
+      ],
+      [
+        "rectifying_volume_1",
+        "rectifying_volume_2",
+        "L[rectifying_volume_1]"
+      ],
+      [
+        "rectifying_volume_2",
+        "rectifying_volume_3",
+        "L[rectifying_volume_2]"
+      ],
+      [
+        "rectifying_volume_3",
+        "rectifying_volume_4",
+        "L[rectifying_volume_3]"
+      ],
+      [
+        "rectifying_volume_4",
+        "rectifying_volume_5",
+        "L[rectifying_volume_4]"
+      ],
+      [
+        "rectifying_volume_5",
+        "rectifying_volume_6",
+        "L[rectifying_volume_5]"
+      ],
+      [
+        "rectifying_volume_6",
+        "rectifying_volume_7",
+        "L[rectifying_volume_6]"
+      ],
+      [
+        "rectifying_volume_7",
+        "rectifying_volume_8",
+        "L[rectifying_volume_7]"
+      ],
+      [
+        "rectifying_volume_8",
+        "rectifying_volume_9",
+        "L[rectifying_volume_8]"
+      ],
+      [
+        "rectifying_volume_9",
+        "rectifying_volume_10",
+        "L[rectifying_volume_9]"
+      ],
+      [
+        "rectifying_volume_10",
+        "feed_tray",
+        "L[rectifying_volume_10]"
+      ],
+      [
+        "feed_tray",
+        "stripping_volume_1",
+        "L[feed_tray]"
+      ],
+      [
+        "stripping_volume_1",
+        "stripping_volume_2",
+        "L[stripping_volume_1]"
+      ],
+      [
+        "stripping_volume_2",
+        "stripping_volume_3",
+        "L[stripping_volume_2]"
+      ],
+      [
+        "stripping_volume_3",
+        "stripping_volume_4",
+        "L[stripping_volume_3]"
+      ],
+      [
+        "stripping_volume_4",
+        "stripping_volume_5",
+        "L[stripping_volume_4]"
+      ],
+      [
+        "stripping_volume_5",
+        "stripping_volume_6",
+        "L[stripping_volume_5]"
+      ],
+      [
+        "stripping_volume_6",
+        "stripping_volume_7",
+        "L[stripping_volume_6]"
+      ],
+      [
+        "stripping_volume_7",
+        "combined_reboiler_sump",
+        "L[stripping_volume_7]"
+      ]
+    ],
+    "vapor_links": [
+      [
+        "combined_reboiler_sump",
+        "stripping_volume_7",
+        "V[combined_reboiler_sump->stripping_volume_7]"
+      ],
+      [
+        "stripping_volume_7",
+        "stripping_volume_6",
+        "V[stripping_volume_7->stripping_volume_6]"
+      ],
+      [
+        "stripping_volume_6",
+        "stripping_volume_5",
+        "V[stripping_volume_6->stripping_volume_5]"
+      ],
+      [
+        "stripping_volume_5",
+        "stripping_volume_4",
+        "V[stripping_volume_5->stripping_volume_4]"
+      ],
+      [
+        "stripping_volume_4",
+        "stripping_volume_3",
+        "V[stripping_volume_4->stripping_volume_3]"
+      ],
+      [
+        "stripping_volume_3",
+        "stripping_volume_2",
+        "V[stripping_volume_3->stripping_volume_2]"
+      ],
+      [
+        "stripping_volume_2",
+        "stripping_volume_1",
+        "V[stripping_volume_2->stripping_volume_1]"
+      ],
+      [
+        "stripping_volume_1",
+        "feed_tray",
+        "V[stripping_volume_1->feed_tray]"
+      ],
+      [
+        "feed_tray",
+        "rectifying_volume_10",
+        "V[feed_tray->rectifying_volume_10]"
+      ],
+      [
+        "rectifying_volume_10",
+        "rectifying_volume_9",
+        "V[rectifying_volume_10->rectifying_volume_9]"
+      ],
+      [
+        "rectifying_volume_9",
+        "rectifying_volume_8",
+        "V[rectifying_volume_9->rectifying_volume_8]"
+      ],
+      [
+        "rectifying_volume_8",
+        "rectifying_volume_7",
+        "V[rectifying_volume_8->rectifying_volume_7]"
+      ],
+      [
+        "rectifying_volume_7",
+        "rectifying_volume_6",
+        "V[rectifying_volume_7->rectifying_volume_6]"
+      ],
+      [
+        "rectifying_volume_6",
+        "rectifying_volume_5",
+        "V[rectifying_volume_6->rectifying_volume_5]"
+      ],
+      [
+        "rectifying_volume_5",
+        "rectifying_volume_4",
+        "V[rectifying_volume_5->rectifying_volume_4]"
+      ],
+      [
+        "rectifying_volume_4",
+        "rectifying_volume_3",
+        "V[rectifying_volume_4->rectifying_volume_3]"
+      ],
+      [
+        "rectifying_volume_3",
+        "rectifying_volume_2",
+        "V[rectifying_volume_3->rectifying_volume_2]"
+      ],
+      [
+        "rectifying_volume_2",
+        "rectifying_volume_1",
+        "V[rectifying_volume_2->rectifying_volume_1]"
+      ],
+      [
+        "rectifying_volume_1",
+        "reflux_drum",
+        "V[rectifying_volume_1->reflux_drum]"
+      ]
+    ],
+    "top_volume": "reflux_drum",
+    "feed_volume": "feed_tray",
+    "bottom_volume": "combined_reboiler_sump"
+  },
+  "mapping": {
+    "rectifying_volume_count": 10,
+    "stripping_volume_count": 7,
+    "volume_to_source_stage_1based": {
+      "reflux_drum": 1,
+      "rectifying_volume_1": 2,
+      "rectifying_volume_2": 3,
+      "rectifying_volume_3": 4,
+      "rectifying_volume_4": 5,
+      "rectifying_volume_5": 6,
+      "rectifying_volume_6": 7,
+      "rectifying_volume_7": 8,
+      "rectifying_volume_8": 9,
+      "rectifying_volume_9": 10,
+      "rectifying_volume_10": 11,
+      "feed_tray": 12,
+      "stripping_volume_1": 13,
+      "stripping_volume_2": 14,
+      "stripping_volume_3": 15,
+      "stripping_volume_4": 16,
+      "stripping_volume_5": 17,
+      "stripping_volume_6": 18,
+      "stripping_volume_7": 19,
+      "combined_reboiler_sump": 20
+    }
+  },
+  "dimensions": {
+    "provider_governed_registry": 160,
+    "dynamic_dae": 158,
+    "terminal_controlled_dae": 162,
+    "controlled_bdf2": 162,
+    "bdf2_history_values": 164
+  },
+  "terminal_inputs": {
+    "geometry": {
+      "top_diameter_ft": 12.1,
+      "top_tangent_length_ft": 36.3,
+      "top_head_shape": "two_hemispherical",
+      "bottom_diameter_ft": 18.1759,
+      "bottom_height_ft": 12.0
+    },
+    "controllers": {
+      "top_kc": 0.5,
+      "top_ti_sec": 120.0,
+      "bottom_kc": 8.0,
+      "bottom_ti_sec": 120.0,
+      "product_rate_ratio_bounds": [
+        0.25,
+        2.0
+      ]
+    },
+    "top_ti_sec_provenance": "provisional value inherited from accepted reduced Core V3 proof; numerical tuning is not authorized by DD-221"
+  },
+  "audits": {
+    "registry": {
+      "unknown_count": 160,
+      "residual_count": 160,
+      "expected_count": 160,
+      "structural_rank": 160,
+      "structural_nullity": 0,
+      "zero_unknown_columns": [],
+      "zero_residual_rows": [],
+      "unregistered_dependencies": [],
+      "unregistered_property_quantities": [],
+      "imported_profile_dependencies": [],
+      "governing_tp_flash_uses": [],
+      "production_independent_pr_uses": [],
+      "mixed_basis_dependencies": [],
+      "unauthorized_property_uses": [],
+      "duplicate_authority_quantities": [],
+      "authority_fallbacks": [],
+      "fixed_condenser_duty_parameter_present": false,
+      "condenser_duty_unknown_count": 1,
+      "vapor_unknown_count": 19,
+      "francis_liquid_unknown_count": 18,
+      "full_fugacity_row_count": 57,
+      "condenser_bubble_row_count": 3,
+      "component_conservation_passed": true,
+      "energy_conservation_passed": true,
+      "prospective_acceptance_contract_passed": true,
+      "historical_acceptance_imported": false,
+      "core_v2_residual_owner_imported": false,
+      "live_property_evaluation_attempted": false,
+      "nonlinear_solve_attempted": false,
+      "dynamic_integration_attempted": false,
+      "pass_gate": true
+    },
+    "dynamic_dae": {
+      "component_count": 3,
+      "state_coordinate_count": 60,
+      "derivative_variable_count": 60,
+      "algebraic_variable_count": 98,
+      "solve_variable_count": 158,
+      "row_count": 158,
+      "expected_solve_count": 158,
+      "structural_rank": 158,
+      "structural_nullity": 0,
+      "zero_solve_columns": [],
+      "zero_rows": [],
+      "unregistered_solve_dependencies": [],
+      "unregistered_state_dependencies": [],
+      "component_balance_count": 60,
+      "energy_balance_count": 20,
+      "full_fugacity_count": 57,
+      "francis_count": 18,
+      "condenser_bubble_count": 3,
+      "vapor_link_count": 19,
+      "condenser_duty_count": 1,
+      "independent_internal_energy_coordinates": [],
+      "temperature_derivative_variables": [],
+      "terminal_amount_constraint_rows": [],
+      "controller_rows": [],
+      "profile_dependencies": [],
+      "fixed_product_parameters_present": true,
+      "component_conservation_passed": true,
+      "energy_conservation_passed": true,
+      "accepted_root_declared": true,
+      "preparation_only": true,
+      "pass_gate": true
+    },
+    "terminal_control": {
+      "component_count": 3,
+      "volume_count": 20,
+      "state_coordinate_count": 62,
+      "derivative_variable_count": 62,
+      "algebraic_variable_count": 100,
+      "solve_variable_count": 162,
+      "row_count": 162,
+      "expected_count": 162,
+      "structural_rank": 162,
+      "structural_nullity": 0,
+      "zero_rows": [],
+      "zero_columns": [],
+      "duplicate_variable_names": [],
+      "unregistered_solve_dependencies": [],
+      "unregistered_state_dependencies": [],
+      "controller_state_count": 2,
+      "controller_rate_count": 2,
+      "controller_output_count": 2,
+      "controller_row_count": 4,
+      "boundary_rows_own_live_product_outputs": true,
+      "fixed_product_parameters_removed": true,
+      "interior_rows_without_controller_dependencies": true,
+      "geometry_valid": true,
+      "controller_parameters_valid": true,
+      "base_contract_passed": true,
+      "preparation_only": true,
+      "pass_gate": true
+    },
+    "controlled_bdf2": {
+      "component_count": 3,
+      "volume_count": 20,
+      "differential_state_count": 62,
+      "derived_energy_history_count": 20,
+      "history_value_count": 164,
+      "expected_history_value_count": 164,
+      "solve_variable_count": 162,
+      "row_count": 162,
+      "structural_rank": 162,
+      "structural_nullity": 0,
+      "backward_euler_pattern_equal": true,
+      "two_history_levels": true,
+      "all_history_coordinates_unique": true,
+      "component_history_complete": true,
+      "energy_history_complete": true,
+      "controller_history_complete": true,
+      "existing_backward_euler_startup": true,
+      "constant_step_only": true,
+      "positive_inventory_endpoint": true,
+      "controlled_contract_passed": true,
+      "preparation_only": true,
+      "pass_gate": true
+    }
+  },
+  "gates": {
+    "source_is_20_stage_c3c4": true,
+    "source_map_is_complete": true,
+    "registry_passes": true,
+    "dynamic_dae_passes": true,
+    "terminal_control_passes": true,
+    "controlled_bdf2_passes": true,
+    "conservation_is_structural": true,
+    "interior_ownership_is_generic": true,
+    "property_free": true
+  },
+  "pass_gate": true,
+  "execution_prohibitions": {
+    "dwsim_started": false,
+    "property_call_attempted": false,
+    "residual_evaluation_attempted": false,
+    "jacobian_evaluation_attempted": false,
+    "nonlinear_solve_attempted": false,
+    "timestep_attempted": false,
+    "dynamic_integration_attempted": false
+  },
+  "next_gate": "one separately frozen full-source mapping and live residual/Jacobian readiness audit; the workbook profile is an audit point, not an accepted dynamic root"
+}

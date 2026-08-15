@@ -13,7 +13,8 @@ from typing import Iterable, Mapping, Sequence
 
 import numpy as np
 from scipy.sparse import csr_matrix
-from scipy.sparse.csgraph import structural_rank
+
+from .structural_rank_v1 import structural_rank_fast
 
 
 ARCHITECTURE_NAME = (
@@ -788,7 +789,7 @@ def audit_provider_governed_registry(
     residual_names = tuple(entry.name for entry in registry.residuals)
     row_nonzero = np.asarray(pattern.getnnz(axis=1)).reshape((-1,))
     column_nonzero = np.asarray(pattern.getnnz(axis=0)).reshape((-1,))
-    rank = int(structural_rank(pattern))
+    rank = structural_rank_fast(pattern)
     topology = registry.topology
     expected = 2 * len(topology.volume_ids) * (
         len(registry.component_names) + 1

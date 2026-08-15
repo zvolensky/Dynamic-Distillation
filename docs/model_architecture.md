@@ -2303,3 +2303,26 @@ The next authorized parity audit may use explicit property-level routing:
 DWSIM remains responsible for imposed-phase fugacity and phase enthalpy, while
 the aligned PR provider supplies liquid density. That routing must be recorded
 as such and is not a silent fallback. No root or timestep is authorized.
+
+## DD-232 full-column dynamic handoff
+
+The accepted DD-231 stationary root now has a complete property-free mapping
+into the full controlled dynamic ledger. Its liquid amounts and compositions
+become 60 component inventories. Temperatures, equilibrium compositions,
+liquid and vapor flows, bubble composition, and condenser duty become 98
+dynamic algebraic coordinates. The accepted distillate and bottoms rates are
+the two bumpless controller references.
+
+The dynamic seed uses zero component rates, zero PI rates, zero PI memories,
+and zero product log ratios. Both BDF2 component-history levels contain the
+same accepted inventories. The BDF2 contract also owns 40 internal-energy
+history values and four PI-memory history values, for 164 complete history
+coordinates. A moving BDF2 calculation will still require one accepted
+backward-Euler startup step.
+
+Internal-energy values and terminal level setpoints are not guessed in the
+property-free mapping. The next live audit must reconstruct them at the
+accepted root using DWSIM phase enthalpy and the aligned-PR smallest-root liquid
+density, copy identical energies into both history levels, and use the exact
+geometry-derived levels as the initial setpoints. It must then verify zero
+motion and a full-rank leading Jacobian. No timestep is authorized by DD-232.

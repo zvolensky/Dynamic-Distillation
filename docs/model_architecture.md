@@ -2149,3 +2149,26 @@ provider semantics pass. The source residual is finite but not small:
 section. The architecture is therefore live-ready, while the imported profile
 still requires a bounded full-column stationary solve before it can initialize
 dynamics. DD-222 authorizes that one frozen solve campaign only.
+
+## DD-223 full C3/C4 stationary-root stop
+
+The full stationary campaign applies the validated 15-color Jacobian to two
+independent 160-coordinate starts under the same transformed bounds and
+DWSIM-PR equations. Coloring reduces each derivative matrix from 320 to 30
+residual evaluations and keeps the complete two-start run to 236,304 logical
+property calls in `50.383 s`.
+
+Neither start establishes a root. The source-derived start improves the scaled
+residual from `0.547063` to `4.309924e-4`, while the independent smooth start
+stops at `1.231733e-2`. Their endpoints differ physically by `9.127158e-2`.
+Both remain positive, ordered, conservative, and away from bounds, but the
+live Jacobians become ill-conditioned (`1e9-2e10`) and step-sensitive. Thus
+the result is not a blow-up or a structural-rank failure; it is failure of the
+frozen direct bounded least-squares architecture to reach a reproducible root.
+
+The source endpoint's provisional `D=2458.205`, `B=4701.618 lbmol/h`, and
+`Q_C=-50.290339 MMBTU/h` are diagnostic only. They are not accepted products,
+an initializer, or a dynamic starting state. DD-223 prohibits a retry,
+continuation, tolerance adjustment, or another direct-solver variation.
+Full-column dynamics remain stopped pending a separately governed static
+diagnosis or a materially different solver architecture.

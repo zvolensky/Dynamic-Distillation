@@ -9,6 +9,9 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 from scipy.optimize import least_squares
 
+from dynamic_distillation.core_v3.colored_jacobian_v1 import (
+    colored_central_difference_jacobian,
+)
 from dynamic_distillation.core_v3.provider_call_audit_v1 import (
     ProviderCallAudit,
 )
@@ -18,6 +21,7 @@ from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
     OperatingSpec,
     PhysicalState,
     alr_coordinates,
+    audit_colored_numerical_jacobian,
     audit_numerical_jacobian,
     coordinate_layout,
     decode_coordinates,
@@ -25,6 +29,7 @@ from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
     evaluate_residual,
     normalize_composition,
     solve_local_bubble,
+    structural_pattern,
 )
 
 
@@ -36,6 +41,7 @@ class SteadyRootSettings:
     gtol: float = 1.0e-12
     max_nfev: int = 500
     x_scale: float = 1.0
+    jacobian_mode: str = "uncolored"
     solve_jacobian_step: float = 1.0e-5
     endpoint_jacobian_steps: tuple[float, float] = (1.0e-5, 5.0e-6)
     jacobian_coupling_tolerance: float = 1.0e-7
@@ -595,6 +601,8 @@ def execute_start(
     point0 = _vector(initial)
     lower = _vector(lower_bounds)
     upper = _vector(upper_bounds)
+    if settings.jacobian_mode not in {"uncolored", "colored"}:
+        raise ValueError(f"unsupported steady-root Jacobian mode {settings.jacobian_mode!r}")
     initial_evaluation = evaluate_residual(
         spec,
         reference,
@@ -619,16 +627,38 @@ def execute_start(
         ).scaled
 
     def jacobian(point: np.ndarray) -> np.ndarray:
-        return central_difference_jacobian(
-            spec,
-            reference,
-            provider,
-            audit,
+        if settings.jacobian_mode == "uncolored":
+            return central_difference_jacobian(
+                spec,
+                reference,
+                provider,
+                audit,
+                point,
+                fixed_scales=fixed_scales,
+                state_id=name,
+                step=settings.solve_jacobian_step,
+            )
+
+        def colored_objective(candidate: np.ndarray, state_id: str) -> np.ndarray:
+            return evaluate_residual(
+                spec,
+                reference,
+                provider,
+                audit,
+                candidate,
+                fixed_scales=fixed_scales,
+                state_id=state_id,
+                evaluation_kind="jacobian",
+            ).scaled
+
+        matrix, _groups = colored_central_difference_jacobian(
+            colored_objective,
             point,
-            fixed_scales=fixed_scales,
-            state_id=name,
+            pattern=structural_pattern(spec),
             step=settings.solve_jacobian_step,
+            state_id=name,
         )
+        return matrix
 
     started = time.perf_counter()
     result = least_squares(
@@ -654,20 +684,36 @@ def execute_start(
         state_id=name,
         evaluation_kind="residual",
     )
-    jacobians = [
-        audit_numerical_jacobian(
-            spec,
-            reference,
-            provider,
-            audit,
-            result.x,
-            fixed_scales=fixed_scales,
-            state_id=name,
-            step=step,
-            coupling_tolerance=settings.jacobian_coupling_tolerance,
-        )
-        for step in settings.endpoint_jacobian_steps
-    ]
+    if settings.jacobian_mode == "colored":
+        jacobians = [
+            audit_colored_numerical_jacobian(
+                spec,
+                reference,
+                provider,
+                audit,
+                result.x,
+                fixed_scales=fixed_scales,
+                state_id=name,
+                step=step,
+                coupling_tolerance=settings.jacobian_coupling_tolerance,
+            )[0]
+            for step in settings.endpoint_jacobian_steps
+        ]
+    else:
+        jacobians = [
+            audit_numerical_jacobian(
+                spec,
+                reference,
+                provider,
+                audit,
+                result.x,
+                fixed_scales=fixed_scales,
+                state_id=name,
+                step=step,
+                coupling_tolerance=settings.jacobian_coupling_tolerance,
+            )
+            for step in settings.endpoint_jacobian_steps
+        ]
     distance = np.minimum(result.x - lower, upper - result.x)
     state = endpoint.state
     topology = spec.topology

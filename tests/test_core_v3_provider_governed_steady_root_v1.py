@@ -27,6 +27,7 @@ def test_dd093_solver_settings_are_frozen():
     assert settings.ftol == settings.xtol == settings.gtol == 1.0e-12
     assert settings.max_nfev == 500
     assert settings.x_scale == 1.0
+    assert settings.jacobian_mode == "uncolored"
     assert settings.solve_jacobian_step == 1.0e-5
     assert settings.endpoint_jacobian_steps == (1.0e-5, 5.0e-6)
     assert settings.singular_value_relative_stability_tolerance == 0.25
@@ -203,3 +204,44 @@ def test_dd094_execute_start_serializes_complete_reporting_path():
     }
     assert len(result["endpoint_jacobians"]) == 2
     assert result["provider_provenance"]["pass"]
+
+
+def test_colored_steady_root_mode_matches_uncolored_endpoint_jacobians():
+    provider, spec, reference = _fixture()
+    lower, upper = physical_bounds(spec, reference, SteadyRootSettings())
+    scales = np.ones(40)
+    full = execute_start(
+        spec,
+        reference,
+        provider,
+        name="full_mode",
+        initial=np.zeros(40),
+        lower_bounds=lower,
+        upper_bounds=upper,
+        fixed_scales=scales,
+        settings=SteadyRootSettings(max_nfev=1),
+    )
+    colored = execute_start(
+        spec,
+        reference,
+        provider,
+        name="colored_mode",
+        initial=np.zeros(40),
+        lower_bounds=lower,
+        upper_bounds=upper,
+        fixed_scales=scales,
+        settings=SteadyRootSettings(max_nfev=1, jacobian_mode="colored"),
+    )
+
+    assert np.allclose(
+        colored["final_coordinates"], full["final_coordinates"], atol=1.0e-10
+    )
+    for colored_jacobian, full_jacobian in zip(
+        colored["endpoint_jacobians"], full["endpoint_jacobians"], strict=True
+    ):
+        assert np.allclose(
+            colored_jacobian.matrix,
+            full_jacobian.matrix,
+            atol=1.0e-7,
+            rtol=1.0e-7,
+        )

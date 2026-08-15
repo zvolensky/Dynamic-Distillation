@@ -2338,3 +2338,14 @@ numerically regular dynamic handoff under the governing provider split.
 This is still a zero-time result. The next gate is one stationary hold step,
 which must return the same state within frozen tolerances before any disturbance
 or moving trajectory is permitted.
+
+DD-234 passes that hold-step gate. One `0.25 s` backward-Euler startup step and
+two `0.125 s` refinement steps all return the accepted state exactly in saved
+arithmetic. Their residuals remain `8.26e-14`, all Jacobians retain rank 162,
+and the worst scaled condition is `1.05e7`. No inventory, energy, algebraic,
+controller, product, or level motion is introduced by the first full-column
+time advance.
+
+The accepted `0.25 s` endpoint and the DD-233 state now form a valid two-level
+history pair for a first moving BDF2 step. Only one small, separately frozen
+disturbance step is authorized next; a trajectory is not yet authorized.

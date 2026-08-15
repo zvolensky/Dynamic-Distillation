@@ -2186,3 +2186,18 @@ It preserves DD-223's failed classification and authorizes only an exact
 read-only replay of the two saved endpoints. That replay may capture the
 missing vectors and matrices but may not solve, modify, or advance either
 state.
+
+## DD-225 read-only endpoint evidence capture
+
+DD-225 re-evaluates the two exact DD-223 endpoints using the unchanged Core V3
+full-column equations, DWSIM PR provider, fixed residual scales, 15-color
+structure, and central-difference steps. It stores each complete residual
+vector and each complete scaled Jacobian matrix together with row, block, and
+coordinate ledgers and full singular vectors.
+
+The replay reproduces DD-223 exactly at the saved summary level: residual-norm
+and singular-spectrum differences are all zero, and all four matrices retain
+rank 160. It uses 12,474 logical provider calls in 6.169 seconds. It does not
+invoke a nonlinear solver or alter or advance either endpoint. The resulting
+artifact is diagnostic evidence only and is not an initializer or a dynamic
+state.

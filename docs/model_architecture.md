@@ -2081,3 +2081,23 @@ This result separates dynamic model health from response classification. The
 model does not blow up or lose closure over five minutes. DD-218 nevertheless
 retains its formal failed label until a separately frozen zero-call policy
 adjudication evaluates the bounded controller reversal.
+
+## DD-219 and DD-220 controlled-response adjudication
+
+DD-219 freezes a property-free policy for evaluating the saved DD-218 response
+as a controlled terminal-inventory trajectory instead of requiring inventory
+to increase forever. Its calculations complete, but result serialization
+aborts on a NumPy boolean scalar. No scientific result or live call is made.
+
+DD-220 preserves DD-219's evidence, thresholds, calculations, and gates. Its
+only change converts NumPy scalar values to native JSON scalar values before
+serialization. The single execution passes every gate with zero model,
+provider, solver, timestep, or trajectory calls.
+
+The accepted response accumulates only `0.267037 lbmol`, peaks at `280 s`, and
+then declines through four final samples as the bottoms controller increases
+withdrawal. Both terminal levels remain physical, every DD-218 root and
+nonresponse gate remains passed, and inventory recurrence remains exact. This
+accepts the existing DD-218 science as a five-minute controlled dynamic run; it
+does not alter DD-218's frozen formal label or claim validation of a larger
+production column.

@@ -1,0 +1,72 @@
+{
+  "schema_id": "dd220-core-v3-bdf2-300s-controlled-response-jsonfix-result-v1",
+  "campaign_id": "DD-220",
+  "classification": "controlled_five_minute_dynamics_accepted",
+  "decision": "accept_dd218_science_under_controlled_response_policy",
+  "contract_commit": "ce9f49dfb20df01607bb40d8feb93a0dafd9c3de",
+  "contract_payload_sha256": "c36ed07edf7157507dda0011d35ebecc657ad95023a98e272d7df0eeeb2a424c",
+  "source": {
+    "path": "logs/dd218_core_v3_bdf2_300s_dynamic_production_20260815.json",
+    "sha256": "b84b6c13c68547cb7e056f97244356df3129c22d98f05fc5a138ad33a4de00e0",
+    "formal_classification": "five_minute_dynamic_production_failed",
+    "formal_failed_gates": [
+      "response"
+    ],
+    "completed_roots": 1200
+  },
+  "dd218_formal_classification_unchanged": true,
+  "dd219_aborted_without_scientific_result": true,
+  "response_assessment": {
+    "metrics": {
+      "sample_count": 61,
+      "first_time_seconds": 0.25,
+      "final_time_seconds": 300.0,
+      "inventory_initial_lbmol": 2404.0216191103605,
+      "inventory_peak_lbmol": 2404.2886562994217,
+      "inventory_peak_time_seconds": 280.0,
+      "inventory_final_lbmol": 2404.28804863766,
+      "inventory_excursion_lbmol": 0.26703718906128415,
+      "peak_minus_final_lbmol": 0.0006076617619328317,
+      "consecutive_final_declines": 4,
+      "bottoms_initial_lbmolph": 4922.021659955409,
+      "bottoms_final_lbmolph": 4929.4047446280465,
+      "distillate_initial_lbmolph": 2220.9523405177997,
+      "distillate_final_lbmolph": 2220.948074145161,
+      "minimum_level_fraction": 0.42745331354698424,
+      "maximum_level_fraction": 0.45989894267745346
+    },
+    "gates": {
+      "sample_count": true,
+      "ordered_times": true,
+      "complete_horizon": true,
+      "bounded_inventory": true,
+      "late_peak": true,
+      "corrective_decline": true,
+      "bottoms_action": true,
+      "distillate_action": true,
+      "physical_levels": true,
+      "finite": true
+    },
+    "pass_gate": true
+  },
+  "conservation": {
+    "component_inventory_identity_max_abs_lbmol": 1.432098883924482e-11,
+    "total_inventory_relative_error": 6.153598466602261e-11
+  },
+  "gates": {
+    "source_response_only_failure": true,
+    "all_roots_complete": true,
+    "nonresponse_campaign_gates": true,
+    "endpoint_root_gates": true,
+    "inventory_identity": true,
+    "inventory_relative": true,
+    "controlled_response": true,
+    "zero_live_calls": true
+  },
+  "pass_gate": true,
+  "model_calls": 0,
+  "provider_calls": 0,
+  "solver_calls": 0,
+  "trajectory_calls": 0,
+  "campaign_executed_once": true
+}

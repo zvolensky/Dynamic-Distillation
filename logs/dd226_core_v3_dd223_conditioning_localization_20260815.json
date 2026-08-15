@@ -1,0 +1,1563 @@
+{
+  "schema_id": "dd226-core-v3-dd223-conditioning-localization-v1",
+  "source": "logs/dd225_core_v3_dd223_endpoint_replay_20260815.json",
+  "classification": "dd223_conditioning_localized",
+  "diagnosis": "mixed_scaling_and_nonsmooth_derivative_problem",
+  "decision": "design_a_bounded_derivative_and_scaling_correction_before_any_new_root_solve",
+  "worst_condition": 20926435143.99065,
+  "best_equilibrated_condition": 630.6282825242828,
+  "worst_step_relative_frobenius_difference": 0.9998257241356049,
+  "minimum_weakest_right_vector_alignment": 0.7120566936946913,
+  "coordinate_scaling_material": true,
+  "finite_difference_instability": true,
+  "endpoints": {
+    "source_mapped_seed": {
+      "scaled_residual_inf_norm": 0.0004309923610626369,
+      "top_scaled_residual_rows": [
+        {
+          "index": 125,
+          "name": "component_balance[stripping_volume_6,n-Propane]",
+          "value": -0.0004309923610626369,
+          "absolute": 0.0004309923610626369,
+          "block": "component_balance"
+        },
+        {
+          "index": 121,
+          "name": "component_balance[stripping_volume_5,n-Propane]",
+          "value": -0.0003837777388846001,
+          "absolute": 0.0003837777388846001,
+          "block": "component_balance"
+        },
+        {
+          "index": 129,
+          "name": "component_balance[stripping_volume_7,n-Propane]",
+          "value": -0.0003583294747407336,
+          "absolute": 0.0003583294747407336,
+          "block": "component_balance"
+        },
+        {
+          "index": 117,
+          "name": "component_balance[stripping_volume_4,n-Propane]",
+          "value": -0.00033868564065556557,
+          "absolute": 0.00033868564065556557,
+          "block": "component_balance"
+        },
+        {
+          "index": 95,
+          "name": "component_balance[rectifying_volume_9,n-Pentane]",
+          "value": 0.0003236722520205552,
+          "absolute": 0.0003236722520205552,
+          "block": "component_balance"
+        },
+        {
+          "index": 91,
+          "name": "component_balance[rectifying_volume_8,n-Pentane]",
+          "value": 0.0003103513927240952,
+          "absolute": 0.0003103513927240952,
+          "block": "component_balance"
+        },
+        {
+          "index": 113,
+          "name": "component_balance[stripping_volume_3,n-Propane]",
+          "value": -0.0002935543237755536,
+          "absolute": 0.0002935543237755536,
+          "block": "component_balance"
+        },
+        {
+          "index": 99,
+          "name": "component_balance[rectifying_volume_10,n-Pentane]",
+          "value": 0.0002875967390441948,
+          "absolute": 0.0002875967390441948,
+          "block": "component_balance"
+        },
+        {
+          "index": 115,
+          "name": "component_balance[stripping_volume_3,n-Pentane]",
+          "value": 0.0002643320308191887,
+          "absolute": 0.0002643320308191887,
+          "block": "component_balance"
+        },
+        {
+          "index": 87,
+          "name": "component_balance[rectifying_volume_7,n-Pentane]",
+          "value": 0.0002640350156415694,
+          "absolute": 0.0002640350156415694,
+          "block": "component_balance"
+        },
+        {
+          "index": 111,
+          "name": "component_balance[stripping_volume_2,n-Pentane]",
+          "value": 0.0002637147094198641,
+          "absolute": 0.0002637147094198641,
+          "block": "component_balance"
+        },
+        {
+          "index": 153,
+          "name": "francis_hydraulics[stripping_volume_6]",
+          "value": -0.0002635671901712336,
+          "absolute": 0.0002635671901712336,
+          "block": "francis_hydraulics"
+        },
+        {
+          "index": 133,
+          "name": "component_balance[combined_reboiler_sump,n-Propane]",
+          "value": -0.00026250024565677166,
+          "absolute": 0.00026250024565677166,
+          "block": "component_balance"
+        },
+        {
+          "index": 119,
+          "name": "component_balance[stripping_volume_4,n-Pentane]",
+          "value": 0.0002592710808591098,
+          "absolute": 0.0002592710808591098,
+          "block": "component_balance"
+        },
+        {
+          "index": 107,
+          "name": "component_balance[stripping_volume_1,n-Pentane]",
+          "value": 0.0002576058026756805,
+          "absolute": 0.0002576058026756805,
+          "block": "component_balance"
+        }
+      ],
+      "matrices": [
+        {
+          "condition": 10464120703.149855,
+          "largest_singular_value": 12254.339700266612,
+          "smallest_singular_value": 1.1710816463133757e-06,
+          "weak_coordinate_family_shares": {
+            "liquid_composition": 0.5000021281403982,
+            "condenser_bubble_composition": 0.4270040162511457,
+            "vapor_composition": 0.07299364466079841,
+            "liquid_inventory": 2.1064586640457426e-07,
+            "temperature": 1.8029582631905036e-10,
+            "vapor_flow": 5.480106295487505e-11,
+            "liquid_flow": 3.746334591152359e-11,
+            "bottoms_flow": 2.510935971792983e-11,
+            "condenser_duty": 3.1508350856919402e-12,
+            "distillate_flow": 9.70764237044929e-13
+          },
+          "weak_coordinate_owner_shares": {
+            "reflux_drum": 0.854010232694989,
+            "rectifying_volume_1": 0.12484418263822131,
+            "rectifying_volume_2": 0.017309812663895138,
+            "rectifying_volume_3": 0.003024128107202558,
+            "rectifying_volume_4": 0.0006215529990597137,
+            "rectifying_volume_5": 0.00014673052741268,
+            "rectifying_volume_6": 3.446480254493054e-05,
+            "rectifying_volume_7": 6.967534877489327e-06,
+            "rectifying_volume_8": 1.3886854816288382e-06,
+            "rectifying_volume_9": 2.691995798464323e-07,
+            "stripping_volume_6": 2.1232006905011849e-07,
+            "rectifying_volume_10": 4.23029408867585e-08,
+            "feed_tray": 2.2861868678476622e-09,
+            "stripping_volume_1": 2.2113896299749223e-09,
+            "stripping_volume_2": 2.123960652373487e-09,
+            "stripping_volume_3": 2.0269021469324362e-09,
+            "stripping_volume_4": 1.922549218696593e-09,
+            "stripping_volume_5": 1.8109352834100027e-09,
+            "stripping_volume_7": 1.5684793398749875e-09,
+            "combined_reboiler_sump": 1.4892906432438664e-09,
+            "column_boundary": 2.9230959040666697e-11,
+            "rectifying_volume_3->rectifying_volume_2": 6.614235356893214e-12,
+            "rectifying_volume_4->rectifying_volume_3": 6.4992631307955235e-12,
+            "rectifying_volume_5->rectifying_volume_4": 5.9957772750766634e-12,
+            "rectifying_volume_6->rectifying_volume_5": 5.498667161668108e-12,
+            "rectifying_volume_2->rectifying_volume_1": 5.210132361643932e-12,
+            "rectifying_volume_7->rectifying_volume_6": 4.996482845399116e-12,
+            "rectifying_volume_8->rectifying_volume_7": 4.369373191748683e-12,
+            "rectifying_volume_9->rectifying_volume_8": 3.4792678298764994e-12,
+            "rectifying_volume_10->rectifying_volume_9": 2.231861368086084e-12,
+            "rectifying_volume_1->reflux_drum": 1.5757903084868715e-12,
+            "combined_reboiler_sump->stripping_volume_7": 1.0817848237858025e-12,
+            "stripping_volume_6->stripping_volume_5": 1.0337588448084622e-12,
+            "stripping_volume_7->stripping_volume_6": 1.0216408996447653e-12,
+            "stripping_volume_5->stripping_volume_4": 1.0078709558033925e-12,
+            "stripping_volume_4->stripping_volume_3": 9.385067456045779e-13,
+            "stripping_volume_3->stripping_volume_2": 8.620983364059814e-13,
+            "stripping_volume_2->stripping_volume_1": 8.108423713389102e-13,
+            "stripping_volume_1->feed_tray": 7.94921749954001e-13,
+            "feed_tray->rectifying_volume_10": 7.787873978544639e-13
+          },
+          "weak_residual_block_shares": {
+            "component_balance": 0.9999995160951181,
+            "energy_balance": 4.6848478341103323e-07,
+            "full_phase_equilibrium": 1.0550796600811219e-08,
+            "condenser_bubble_fugacity": 4.869302233497329e-09,
+            "francis_hydraulics": 6.46500123963657e-20,
+            "terminal_amount_specification": 5.4408082932228605e-33
+          },
+          "weak_residual_owner_shares": {
+            "reflux_drum": 0.7525505666563247,
+            "rectifying_volume_1": 0.18973721990014172,
+            "rectifying_volume_2": 0.04266128495137853,
+            "rectifying_volume_3": 0.010744580963668737,
+            "rectifying_volume_4": 0.0030053037019655677,
+            "rectifying_volume_5": 0.0008998648926892654,
+            "rectifying_volume_6": 0.00027870189107704886,
+            "rectifying_volume_7": 8.663104492849997e-05,
+            "rectifying_volume_8": 2.6128881417643426e-05,
+            "rectifying_volume_9": 7.242657976956703e-06,
+            "rectifying_volume_10": 1.6382196150327026e-06,
+            "feed_tray": 2.2160725372566702e-07,
+            "combined_reboiler_sump": 9.167135962442602e-08,
+            "stripping_volume_1": 9.077798642175631e-08,
+            "stripping_volume_7": 7.898898387891165e-08,
+            "stripping_volume_6": 7.357536152380743e-08,
+            "stripping_volume_2": 7.102937275510443e-08,
+            "stripping_volume_5": 6.945903017540817e-08,
+            "stripping_volume_4": 6.720763784139161e-08,
+            "stripping_volume_3": 6.705252843507108e-08,
+            "n-Propane": 4.852418042756391e-09,
+            "n-Butane": 1.5713185639397188e-11,
+            "n-Pentane": 1.1710051015410396e-12
+          },
+          "top_weak_coordinates": [
+            {
+              "index": 21,
+              "name": "x_alr[reflux_drum,n-Butane]",
+              "value": 0.4620652753883194,
+              "absolute": 0.4620652753883194
+            },
+            {
+              "index": 158,
+              "name": "y_bubble_alr[reflux_drum,n-Butane]",
+              "value": 0.4620640618123884,
+              "absolute": 0.4620640618123884
+            },
+            {
+              "index": 20,
+              "name": "x_alr[reflux_drum,n-Propane]",
+              "value": 0.462062655620589,
+              "absolute": 0.462062655620589
+            },
+            {
+              "index": 157,
+              "name": "y_bubble_alr[reflux_drum,n-Propane]",
+              "value": 0.46206148836770977,
+              "absolute": 0.46206148836770977
+            },
+            {
+              "index": 23,
+              "name": "x_alr[rectifying_volume_1,n-Butane]",
+              "value": 0.17666879289532955,
+              "absolute": 0.17666879289532955
+            },
+            {
+              "index": 81,
+              "name": "y_alr[rectifying_volume_1,n-Butane]",
+              "value": 0.17666688961639432,
+              "absolute": 0.17666688961639432
+            },
+            {
+              "index": 22,
+              "name": "x_alr[rectifying_volume_1,n-Propane]",
+              "value": 0.1766659820587788,
+              "absolute": 0.1766659820587788
+            },
+            {
+              "index": 80,
+              "name": "y_alr[rectifying_volume_1,n-Propane]",
+              "value": 0.17666426105765992,
+              "absolute": 0.17666426105765992
+            },
+            {
+              "index": 25,
+              "name": "x_alr[rectifying_volume_2,n-Butane]",
+              "value": 0.06578620409728558,
+              "absolute": 0.06578620409728558
+            },
+            {
+              "index": 83,
+              "name": "y_alr[rectifying_volume_2,n-Butane]",
+              "value": 0.06578397937162081,
+              "absolute": 0.06578397937162081
+            },
+            {
+              "index": 24,
+              "name": "x_alr[rectifying_volume_2,n-Propane]",
+              "value": 0.06578261641810171,
+              "absolute": 0.06578261641810171
+            },
+            {
+              "index": 82,
+              "name": "y_alr[rectifying_volume_2,n-Propane]",
+              "value": 0.0657807222980174,
+              "absolute": 0.0657807222980174
+            }
+          ],
+          "top_weak_residual_rows": [
+            {
+              "index": 59,
+              "name": "component_balance[reflux_drum,n-Pentane]",
+              "value": 0.8674967097794668,
+              "absolute": 0.8674967097794668
+            },
+            {
+              "index": 63,
+              "name": "component_balance[rectifying_volume_1,n-Pentane]",
+              "value": 0.4355882752058954,
+              "absolute": 0.4355882752058954
+            },
+            {
+              "index": 67,
+              "name": "component_balance[rectifying_volume_2,n-Pentane]",
+              "value": 0.20654595067176026,
+              "absolute": 0.20654595067176026
+            },
+            {
+              "index": 71,
+              "name": "component_balance[rectifying_volume_3,n-Pentane]",
+              "value": 0.10365585613616975,
+              "absolute": 0.10365585613616975
+            },
+            {
+              "index": 75,
+              "name": "component_balance[rectifying_volume_4,n-Pentane]",
+              "value": 0.05482031287143225,
+              "absolute": 0.05482031287143225
+            },
+            {
+              "index": 79,
+              "name": "component_balance[rectifying_volume_5,n-Pentane]",
+              "value": 0.029997215574712882,
+              "absolute": 0.029997215574712882
+            },
+            {
+              "index": 83,
+              "name": "component_balance[rectifying_volume_6,n-Pentane]",
+              "value": 0.016693491545634747,
+              "absolute": 0.016693491545634747
+            },
+            {
+              "index": 87,
+              "name": "component_balance[rectifying_volume_7,n-Pentane]",
+              "value": 0.009306006070723441,
+              "absolute": 0.009306006070723441
+            },
+            {
+              "index": 91,
+              "name": "component_balance[rectifying_volume_8,n-Pentane]",
+              "value": 0.005108470764202421,
+              "absolute": 0.005108470764202421
+            },
+            {
+              "index": 95,
+              "name": "component_balance[rectifying_volume_9,n-Pentane]",
+              "value": 0.0026840144605233852,
+              "absolute": 0.0026840144605233852
+            },
+            {
+              "index": 99,
+              "name": "component_balance[rectifying_volume_10,n-Pentane]",
+              "value": 0.001261193611404235,
+              "absolute": 0.001261193611404235
+            },
+            {
+              "index": 103,
+              "name": "component_balance[feed_tray,n-Pentane]",
+              "value": 0.0004051937767069551,
+              "absolute": 0.0004051937767069551
+            }
+          ],
+          "linearized_correction_inf_norm": 73.27216523650412,
+          "top_linearized_correction_coordinates": [
+            {
+              "index": 17,
+              "name": "log_NL[stripping_volume_6]",
+              "value": 73.27216523650412,
+              "absolute": 73.27216523650412
+            },
+            {
+              "index": 21,
+              "name": "x_alr[reflux_drum,n-Butane]",
+              "value": -4.67648292083333,
+              "absolute": 4.67648292083333
+            },
+            {
+              "index": 158,
+              "name": "y_bubble_alr[reflux_drum,n-Butane]",
+              "value": -4.676305393324256,
+              "absolute": 4.676305393324256
+            },
+            {
+              "index": 20,
+              "name": "x_alr[reflux_drum,n-Propane]",
+              "value": -4.638251499665455,
+              "absolute": 4.638251499665455
+            },
+            {
+              "index": 157,
+              "name": "y_bubble_alr[reflux_drum,n-Propane]",
+              "value": -4.637744052757501,
+              "absolute": 4.637744052757501
+            },
+            {
+              "index": 23,
+              "name": "x_alr[rectifying_volume_1,n-Butane]",
+              "value": -4.027121765226893,
+              "absolute": 4.027121765226893
+            },
+            {
+              "index": 81,
+              "name": "y_alr[rectifying_volume_1,n-Butane]",
+              "value": -4.026669314399124,
+              "absolute": 4.026669314399124
+            },
+            {
+              "index": 22,
+              "name": "x_alr[rectifying_volume_1,n-Propane]",
+              "value": -3.991905464382648,
+              "absolute": 3.991905464382648
+            },
+            {
+              "index": 80,
+              "name": "y_alr[rectifying_volume_1,n-Propane]",
+              "value": -3.990766689702449,
+              "absolute": 3.990766689702449
+            },
+            {
+              "index": 25,
+              "name": "x_alr[rectifying_volume_2,n-Butane]",
+              "value": -2.986483454123353,
+              "absolute": 2.986483454123353
+            },
+            {
+              "index": 83,
+              "name": "y_alr[rectifying_volume_2,n-Butane]",
+              "value": -2.9857662972127623,
+              "absolute": 2.9857662972127623
+            },
+            {
+              "index": 24,
+              "name": "x_alr[rectifying_volume_2,n-Propane]",
+              "value": -2.957248333222411,
+              "absolute": 2.957248333222411
+            }
+          ],
+          "equilibrated": {
+            "condition": 1270.9475161632424,
+            "row_scale_min": 0.0007998763955788294,
+            "row_scale_max": 122024.21383136057,
+            "column_scale_min": 0.08888441412415216,
+            "column_scale_max": 528.0384258998679
+          },
+          "equilibration_condition_improvement": 8233322.438631547
+        },
+        {
+          "condition": 20926435143.99065,
+          "largest_singular_value": 24506.556313723395,
+          "smallest_singular_value": 1.1710812732841807e-06,
+          "weak_coordinate_family_shares": {
+            "liquid_composition": 0.5000018017947764,
+            "condenser_bubble_composition": 0.4270039466644281,
+            "vapor_composition": 0.07299338775543977,
+            "liquid_inventory": 8.634835986669772e-07,
+            "temperature": 1.80267242028654e-10,
+            "vapor_flow": 5.479271620723316e-11,
+            "liquid_flow": 3.746631720989323e-11,
+            "bottoms_flow": 2.5107852843191364e-11,
+            "condenser_duty": 3.151281119592483e-12,
+            "distillate_flow": 9.717886371223154e-13
+          },
+          "weak_coordinate_owner_shares": {
+            "reflux_drum": 0.8540100935764681,
+            "rectifying_volume_1": 0.12484387785569537,
+            "rectifying_volume_2": 0.0173096692329521,
+            "rectifying_volume_3": 0.003024082618111771,
+            "rectifying_volume_4": 0.0006215391478189747,
+            "rectifying_volume_5": 0.000146726125576706,
+            "rectifying_volume_6": 3.44634807191033e-05,
+            "rectifying_volume_7": 6.96720270663169e-06,
+            "rectifying_volume_8": 1.3886042739069583e-06,
+            "stripping_volume_6": 8.651570552729073e-07,
+            "rectifying_volume_9": 2.691802785404351e-07,
+            "rectifying_volume_10": 4.2299140213202314e-08,
+            "feed_tray": 2.2858863846055715e-09,
+            "stripping_volume_1": 2.2110067689299146e-09,
+            "stripping_volume_2": 2.123492786262552e-09,
+            "stripping_volume_3": 2.0263508184381784e-09,
+            "stripping_volume_4": 1.9219192520319755e-09,
+            "stripping_volume_5": 1.8102359880836978e-09,
+            "stripping_volume_7": 1.5677280753031327e-09,
+            "combined_reboiler_sump": 1.48855958073385e-09,
+            "column_boundary": 2.923092259990616e-11,
+            "rectifying_volume_3->rectifying_volume_2": 6.613249965116085e-12,
+            "rectifying_volume_4->rectifying_volume_3": 6.4983489067709316e-12,
+            "rectifying_volume_5->rectifying_volume_4": 5.994881647327327e-12,
+            "rectifying_volume_6->rectifying_volume_5": 5.497807705440581e-12,
+            "rectifying_volume_2->rectifying_volume_1": 5.209425228546201e-12,
+            "rectifying_volume_7->rectifying_volume_6": 4.995658752831334e-12,
+            "rectifying_volume_8->rectifying_volume_7": 4.36858725092471e-12,
+            "rectifying_volume_9->rectifying_volume_8": 3.478559870917522e-12,
+            "rectifying_volume_10->rectifying_volume_9": 2.2313071685907684e-12,
+            "rectifying_volume_1->reflux_drum": 1.5754430404280824e-12,
+            "combined_reboiler_sump->stripping_volume_7": 1.0818892944994225e-12,
+            "stripping_volume_6->stripping_volume_5": 1.0338479540202423e-12,
+            "stripping_volume_7->stripping_volume_6": 1.0218175546519343e-12,
+            "stripping_volume_5->stripping_volume_4": 1.0078757541199406e-12,
+            "stripping_volume_4->stripping_volume_3": 9.384006921931915e-13,
+            "stripping_volume_3->stripping_volume_2": 8.619011614368814e-13,
+            "stripping_volume_2->stripping_volume_1": 8.105863011443599e-13,
+            "stripping_volume_1->feed_tray": 7.946349914272143e-13,
+            "feed_tray->rectifying_volume_10": 7.784929668464317e-13
+          },
+          "weak_residual_block_shares": {
+            "component_balance": 0.999999556430519,
+            "energy_balance": 4.2900324991493473e-07,
+            "full_phase_equilibrium": 9.981850962060999e-09,
+            "condenser_bubble_fugacity": 4.5843804556023565e-09,
+            "francis_hydraulics": 2.6501871695724435e-19,
+            "terminal_amount_specification": 8.737149789511502e-33
+          },
+          "weak_residual_owner_shares": {
+            "reflux_drum": 0.7525522262454695,
+            "rectifying_volume_1": 0.18973817121086356,
+            "rectifying_volume_2": 0.04266044012668574,
+            "rectifying_volume_3": 0.010743888586949234,
+            "rectifying_volume_4": 0.0030048681159235593,
+            "rectifying_volume_5": 0.0008996034294340629,
+            "rectifying_volume_6": 0.00027854580500257154,
+            "rectifying_volume_7": 8.653732035517826e-05,
+            "rectifying_volume_8": 2.6072122159986584e-05,
+            "rectifying_volume_9": 7.20818191169133e-06,
+            "rectifying_volume_10": 1.6178978885051808e-06,
+            "feed_tray": 2.1209894508907717e-07,
+            "combined_reboiler_sump": 9.067567427652511e-08,
+            "stripping_volume_1": 8.542898539234626e-08,
+            "stripping_volume_7": 8.122976210668772e-08,
+            "stripping_volume_6": 7.707322396581105e-08,
+            "stripping_volume_5": 7.059147166117993e-08,
+            "stripping_volume_2": 6.761249522667418e-08,
+            "stripping_volume_4": 6.662806980187964e-08,
+            "stripping_volume_3": 6.503434859635722e-08,
+            "n-Propane": 4.568299838572964e-09,
+            "n-Butane": 1.490960658440765e-11,
+            "n-Pentane": 1.1710104449840744e-12
+          },
+          "top_weak_coordinates": [
+            {
+              "index": 21,
+              "name": "x_alr[reflux_drum,n-Butane]",
+              "value": 0.46206523807029665,
+              "absolute": 0.46206523807029665
+            },
+            {
+              "index": 158,
+              "name": "y_bubble_alr[reflux_drum,n-Butane]",
+              "value": 0.462064024384903,
+              "absolute": 0.462064024384903
+            },
+            {
+              "index": 20,
+              "name": "x_alr[reflux_drum,n-Propane]",
+              "value": 0.4620626176981545,
+              "absolute": 0.4620626176981545
+            },
+            {
+              "index": 157,
+              "name": "y_bubble_alr[reflux_drum,n-Propane]",
+              "value": 0.4620614504951213,
+              "absolute": 0.4620614504951213
+            },
+            {
+              "index": 23,
+              "name": "x_alr[rectifying_volume_1,n-Butane]",
+              "value": 0.176668577649239,
+              "absolute": 0.176668577649239
+            },
+            {
+              "index": 81,
+              "name": "y_alr[rectifying_volume_1,n-Butane]",
+              "value": 0.1766666742590447,
+              "absolute": 0.1766666742590447
+            },
+            {
+              "index": 22,
+              "name": "x_alr[rectifying_volume_1,n-Propane]",
+              "value": 0.17666576612610357,
+              "absolute": 0.17666576612610357
+            },
+            {
+              "index": 80,
+              "name": "y_alr[rectifying_volume_1,n-Propane]",
+              "value": 0.17666404500028096,
+              "absolute": 0.17666404500028096
+            },
+            {
+              "index": 25,
+              "name": "x_alr[rectifying_volume_2,n-Butane]",
+              "value": 0.06578593200631688,
+              "absolute": 0.06578593200631688
+            },
+            {
+              "index": 83,
+              "name": "y_alr[rectifying_volume_2,n-Butane]",
+              "value": 0.06578370726393193,
+              "absolute": 0.06578370726393193
+            },
+            {
+              "index": 24,
+              "name": "x_alr[rectifying_volume_2,n-Propane]",
+              "value": 0.06578234345267212,
+              "absolute": 0.06578234345267212
+            },
+            {
+              "index": 82,
+              "name": "y_alr[rectifying_volume_2,n-Propane]",
+              "value": 0.06578044928367896,
+              "absolute": 0.06578044928367896
+            }
+          ],
+          "top_weak_residual_rows": [
+            {
+              "index": 59,
+              "name": "component_balance[reflux_drum,n-Pentane]",
+              "value": 0.8674976674882564,
+              "absolute": 0.8674976674882564
+            },
+            {
+              "index": 63,
+              "name": "component_balance[rectifying_volume_1,n-Pentane]",
+              "value": 0.43558937372377227,
+              "absolute": 0.43558937372377227
+            },
+            {
+              "index": 67,
+              "name": "component_balance[rectifying_volume_2,n-Pentane]",
+              "value": 0.20654391678963735,
+              "absolute": 0.20654391678963735
+            },
+            {
+              "index": 71,
+              "name": "component_balance[rectifying_volume_3,n-Pentane]",
+              "value": 0.10365253526875441,
+              "absolute": 0.10365253526875441
+            },
+            {
+              "index": 75,
+              "name": "component_balance[rectifying_volume_4,n-Pentane]",
+              "value": 0.054816369880208535,
+              "absolute": 0.054816369880208535
+            },
+            {
+              "index": 79,
+              "name": "component_balance[rectifying_volume_5,n-Pentane]",
+              "value": 0.029992901780859105,
+              "absolute": 0.029992901780859105
+            },
+            {
+              "index": 83,
+              "name": "component_balance[rectifying_volume_6,n-Pentane]",
+              "value": 0.01668887830398115,
+              "absolute": 0.01668887830398115
+            },
+            {
+              "index": 87,
+              "name": "component_balance[rectifying_volume_7,n-Pentane]",
+              "value": 0.00930105045220426,
+              "absolute": 0.00930105045220426
+            },
+            {
+              "index": 91,
+              "name": "component_balance[rectifying_volume_8,n-Pentane]",
+              "value": 0.005103011787918587,
+              "absolute": 0.005103011787918587
+            },
+            {
+              "index": 95,
+              "name": "component_balance[rectifying_volume_9,n-Pentane]",
+              "value": 0.0026777181409475058,
+              "absolute": 0.0026777181409475058
+            },
+            {
+              "index": 99,
+              "name": "component_balance[rectifying_volume_10,n-Pentane]",
+              "value": 0.001253428476278946,
+              "absolute": 0.001253428476278946
+            },
+            {
+              "index": 103,
+              "name": "component_balance[feed_tray,n-Pentane]",
+              "value": 0.000394777554988558,
+              "absolute": 0.000394777554988558
+            }
+          ],
+          "linearized_correction_inf_norm": 146.52916036754578,
+          "top_linearized_correction_coordinates": [
+            {
+              "index": 17,
+              "name": "log_NL[stripping_volume_6]",
+              "value": 146.52916036754578,
+              "absolute": 146.52916036754578
+            },
+            {
+              "index": 21,
+              "name": "x_alr[reflux_drum,n-Butane]",
+              "value": -4.676482928744554,
+              "absolute": 4.676482928744554
+            },
+            {
+              "index": 158,
+              "name": "y_bubble_alr[reflux_drum,n-Butane]",
+              "value": -4.676305400174313,
+              "absolute": 4.676305400174313
+            },
+            {
+              "index": 20,
+              "name": "x_alr[reflux_drum,n-Propane]",
+              "value": -4.638251510082372,
+              "absolute": 4.638251510082372
+            },
+            {
+              "index": 157,
+              "name": "y_bubble_alr[reflux_drum,n-Propane]",
+              "value": -4.637744063821566,
+              "absolute": 4.637744063821566
+            },
+            {
+              "index": 23,
+              "name": "x_alr[rectifying_volume_1,n-Butane]",
+              "value": -4.027121771609501,
+              "absolute": 4.027121771609501
+            },
+            {
+              "index": 81,
+              "name": "y_alr[rectifying_volume_1,n-Butane]",
+              "value": -4.026669318389901,
+              "absolute": 4.026669318389901
+            },
+            {
+              "index": 22,
+              "name": "x_alr[rectifying_volume_1,n-Propane]",
+              "value": -3.991905473557904,
+              "absolute": 3.991905473557904
+            },
+            {
+              "index": 80,
+              "name": "y_alr[rectifying_volume_1,n-Propane]",
+              "value": -3.9907666964997377,
+              "absolute": 3.9907666964997377
+            },
+            {
+              "index": 25,
+              "name": "x_alr[rectifying_volume_2,n-Butane]",
+              "value": -2.986483459537559,
+              "absolute": 2.986483459537559
+            },
+            {
+              "index": 83,
+              "name": "y_alr[rectifying_volume_2,n-Butane]",
+              "value": -2.9857663023434133,
+              "absolute": 2.9857663023434133
+            },
+            {
+              "index": 24,
+              "name": "x_alr[rectifying_volume_2,n-Propane]",
+              "value": -2.9572483408851897,
+              "absolute": 2.9572483408851897
+            }
+          ],
+          "equilibrated": {
+            "condition": 1273.6521607212342,
+            "row_scale_min": 0.0005071803770631196,
+            "row_scale_max": 122024.21383698776,
+            "column_scale_min": 0.0707088751135478,
+            "column_scale_max": 831.7057812706237
+          },
+          "equilibration_condition_improvement": 16430259.209971886
+        }
+      ],
+      "finite_difference_step_comparison": {
+        "relative_frobenius_difference": 0.9998257241356049,
+        "maximum_entry_difference": 12252.216833294815,
+        "maximum_entry_difference_absolute": 12252.216833294815,
+        "maximum_difference_residual": "francis_hydraulics[stripping_volume_6]",
+        "maximum_difference_coordinate": "T[stripping_volume_6]",
+        "largest_singular_value_ratio_second_over_first": 1.9998267481674445,
+        "smallest_singular_value_ratio_second_over_first": 0.9999996814661076,
+        "weakest_right_vector_alignment": 0.9999998894154838,
+        "weakest_left_vector_alignment": 0.9999999960376675,
+        "five_weakest_right_subspace_minimum_cosine": 0.9999772399013473,
+        "five_weakest_left_subspace_minimum_cosine": 0.9999990693538293
+      }
+    },
+    "independent_smooth_topology_seed": {
+      "scaled_residual_inf_norm": 0.012317327966364889,
+      "top_scaled_residual_rows": [
+        {
+          "index": 99,
+          "name": "component_balance[rectifying_volume_10,n-Pentane]",
+          "value": 0.012317327966364889,
+          "absolute": 0.012317327966364889,
+          "block": "component_balance"
+        },
+        {
+          "index": 103,
+          "name": "component_balance[feed_tray,n-Pentane]",
+          "value": 0.006755397647446746,
+          "absolute": 0.006755397647446746,
+          "block": "component_balance"
+        },
+        {
+          "index": 107,
+          "name": "component_balance[stripping_volume_1,n-Pentane]",
+          "value": 0.005145874530612903,
+          "absolute": 0.005145874530612903,
+          "block": "component_balance"
+        },
+        {
+          "index": 111,
+          "name": "component_balance[stripping_volume_2,n-Pentane]",
+          "value": 0.004101068714268733,
+          "absolute": 0.004101068714268733,
+          "block": "component_balance"
+        },
+        {
+          "index": 115,
+          "name": "component_balance[stripping_volume_3,n-Pentane]",
+          "value": 0.0028691385612670635,
+          "absolute": 0.0028691385612670635,
+          "block": "component_balance"
+        },
+        {
+          "index": 153,
+          "name": "francis_hydraulics[stripping_volume_6]",
+          "value": 0.00197009832147957,
+          "absolute": 0.00197009832147957,
+          "block": "francis_hydraulics"
+        },
+        {
+          "index": 119,
+          "name": "component_balance[stripping_volume_4,n-Pentane]",
+          "value": 0.0014633373582516687,
+          "absolute": 0.0014633373582516687,
+          "block": "component_balance"
+        },
+        {
+          "index": 125,
+          "name": "component_balance[stripping_volume_6,n-Propane]",
+          "value": 0.0014215475412459962,
+          "absolute": 0.0014215475412459962,
+          "block": "component_balance"
+        },
+        {
+          "index": 129,
+          "name": "component_balance[stripping_volume_7,n-Propane]",
+          "value": 0.0013398813132934118,
+          "absolute": 0.0013398813132934118,
+          "block": "component_balance"
+        },
+        {
+          "index": 133,
+          "name": "component_balance[combined_reboiler_sump,n-Propane]",
+          "value": 0.0011076265327680196,
+          "absolute": 0.0011076265327680196,
+          "block": "component_balance"
+        },
+        {
+          "index": 121,
+          "name": "component_balance[stripping_volume_5,n-Propane]",
+          "value": 0.0010060342892081846,
+          "absolute": 0.0010060342892081846,
+          "block": "component_balance"
+        },
+        {
+          "index": 131,
+          "name": "component_balance[stripping_volume_7,n-Pentane]",
+          "value": -0.00091200868198607,
+          "absolute": 0.00091200868198607,
+          "block": "component_balance"
+        },
+        {
+          "index": 95,
+          "name": "component_balance[rectifying_volume_9,n-Pentane]",
+          "value": 0.000897866946850228,
+          "absolute": 0.000897866946850228,
+          "block": "component_balance"
+        },
+        {
+          "index": 135,
+          "name": "component_balance[combined_reboiler_sump,n-Pentane]",
+          "value": -0.0008445460824814534,
+          "absolute": 0.0008445460824814534,
+          "block": "component_balance"
+        },
+        {
+          "index": 127,
+          "name": "component_balance[stripping_volume_6,n-Pentane]",
+          "value": -0.0007440947158289555,
+          "absolute": 0.0007440947158289555,
+          "block": "component_balance"
+        }
+      ],
+      "matrices": [
+        {
+          "condition": 1196526160.6826406,
+          "largest_singular_value": 11677.578539881262,
+          "smallest_singular_value": 9.75956809270178e-06,
+          "weak_coordinate_family_shares": {
+            "liquid_composition": 0.4996144729779534,
+            "vapor_composition": 0.43317663665941486,
+            "condenser_bubble_composition": 0.06633097342451169,
+            "liquid_inventory": 0.0008778571177649441,
+            "temperature": 4.1782950917596445e-08,
+            "vapor_flow": 9.233481343573188e-09,
+            "liquid_flow": 4.2596350803334055e-09,
+            "bottoms_flow": 4.118435190490658e-09,
+            "condenser_duty": 3.4462695034670685e-10,
+            "distillate_flow": 8.12256141064945e-11
+          },
+          "weak_coordinate_owner_shares": {
+            "rectifying_volume_1": 0.28089480388937077,
+            "rectifying_volume_2": 0.23115846720486155,
+            "rectifying_volume_3": 0.1461035657661698,
+            "reflux_drum": 0.13266729564359542,
+            "rectifying_volume_4": 0.08762811534358345,
+            "rectifying_volume_5": 0.06118556596985793,
+            "rectifying_volume_6": 0.028347506459044755,
+            "rectifying_volume_9": 0.012985805057210469,
+            "rectifying_volume_7": 0.010974334281229096,
+            "rectifying_volume_8": 0.005594117399844872,
+            "rectifying_volume_10": 0.0015696308842162096,
+            "stripping_volume_6": 0.0008793558125232556,
+            "stripping_volume_4": 1.734320979706556e-06,
+            "stripping_volume_3": 1.6775846272321259e-06,
+            "stripping_volume_5": 1.6527903000202278e-06,
+            "stripping_volume_2": 1.4842298593752533e-06,
+            "stripping_volume_7": 1.3706706702750233e-06,
+            "combined_reboiler_sump": 1.3003560800159884e-06,
+            "stripping_volume_1": 1.2271019141128358e-06,
+            "feed_tray": 9.75456292777825e-07,
+            "column_boundary": 4.544287754943859e-09,
+            "rectifying_volume_4->rectifying_volume_3": 1.1191333068902167e-09,
+            "rectifying_volume_5->rectifying_volume_4": 1.0874197139354366e-09,
+            "rectifying_volume_6->rectifying_volume_5": 1.015069963125607e-09,
+            "rectifying_volume_3->rectifying_volume_2": 9.569810102745763e-10,
+            "rectifying_volume_7->rectifying_volume_6": 9.37330835996633e-10,
+            "rectifying_volume_8->rectifying_volume_7": 8.377582498276191e-10,
+            "rectifying_volume_9->rectifying_volume_8": 6.903296273719068e-10,
+            "rectifying_volume_2->rectifying_volume_1": 4.79771633985505e-10,
+            "rectifying_volume_10->rectifying_volume_9": 4.687136718225983e-10,
+            "combined_reboiler_sump->stripping_volume_7": 2.103097765933206e-10,
+            "stripping_volume_5->stripping_volume_4": 1.8438675894146833e-10,
+            "stripping_volume_6->stripping_volume_5": 1.8123339589248237e-10,
+            "stripping_volume_4->stripping_volume_3": 1.8024363426084578e-10,
+            "stripping_volume_7->stripping_volume_6": 1.792309594083629e-10,
+            "stripping_volume_3->stripping_volume_2": 1.7272707375373084e-10,
+            "stripping_volume_2->stripping_volume_1": 1.6772364264816672e-10,
+            "stripping_volume_1->feed_tray": 1.6771465543834993e-10,
+            "feed_tray->rectifying_volume_10": 1.675360306781574e-10,
+            "rectifying_volume_1->reflux_drum": 2.986740272820615e-11
+          },
+          "weak_residual_block_shares": {
+            "component_balance": 0.9999578331835304,
+            "energy_balance": 3.757009958637073e-05,
+            "full_phase_equilibrium": 4.392847152477884e-06,
+            "condenser_bubble_fugacity": 2.0386971303973138e-07,
+            "francis_hydraulics": 1.7595768445735697e-14,
+            "terminal_amount_specification": 1.6598075031819958e-35
+          },
+          "weak_residual_owner_shares": {
+            "rectifying_volume_1": 0.34006326095493933,
+            "reflux_drum": 0.28314385626693284,
+            "rectifying_volume_2": 0.20212019254654542,
+            "rectifying_volume_3": 0.0978242345199298,
+            "rectifying_volume_4": 0.04436728057825676,
+            "rectifying_volume_5": 0.01949791588529155,
+            "rectifying_volume_6": 0.00791883664332462,
+            "rectifying_volume_7": 0.0030758091812898725,
+            "rectifying_volume_8": 0.0011915405345905964,
+            "rectifying_volume_9": 0.0004634888553406253,
+            "rectifying_volume_10": 0.00011876854238738152,
+            "stripping_volume_6": 4.053881935685184e-05,
+            "stripping_volume_5": 3.13394875644277e-05,
+            "stripping_volume_4": 2.6396645033228297e-05,
+            "feed_tray": 2.3587661463663773e-05,
+            "stripping_volume_7": 2.2443066935564854e-05,
+            "stripping_volume_3": 2.210659764319819e-05,
+            "stripping_volume_2": 1.8454742275213273e-05,
+            "stripping_volume_1": 1.6522454098087653e-05,
+            "combined_reboiler_sump": 1.3222147087774425e-05,
+            "n-Propane": 2.0351248013004433e-07,
+            "n-Butane": 3.44668777647057e-10,
+            "n-Pentane": 1.2564132039977331e-11
+          },
+          "top_weak_coordinates": [
+            {
+              "index": 22,
+              "name": "x_alr[rectifying_volume_1,n-Propane]",
+              "value": -0.2650449085046342,
+              "absolute": 0.2650449085046342
+            },
+            {
+              "index": 80,
+              "name": "y_alr[rectifying_volume_1,n-Propane]",
+              "value": -0.26503174559930154,
+              "absolute": 0.26503174559930154
+            },
+            {
+              "index": 23,
+              "name": "x_alr[rectifying_volume_1,n-Butane]",
+              "value": -0.2649647850043374,
+              "absolute": 0.2649647850043374
+            },
+            {
+              "index": 81,
+              "name": "y_alr[rectifying_volume_1,n-Butane]",
+              "value": -0.26494873924610973,
+              "absolute": 0.26494873924610973
+            },
+            {
+              "index": 24,
+              "name": "x_alr[rectifying_volume_2,n-Propane]",
+              "value": -0.24043791887863952,
+              "absolute": 0.24043791887863952
+            },
+            {
+              "index": 82,
+              "name": "y_alr[rectifying_volume_2,n-Propane]",
+              "value": -0.24042197409973667,
+              "absolute": 0.24042197409973667
+            },
+            {
+              "index": 25,
+              "name": "x_alr[rectifying_volume_2,n-Butane]",
+              "value": -0.2403703578752503,
+              "absolute": 0.2403703578752503
+            },
+            {
+              "index": 83,
+              "name": "y_alr[rectifying_volume_2,n-Butane]",
+              "value": -0.2403485691661898,
+              "absolute": 0.2403485691661898
+            },
+            {
+              "index": 26,
+              "name": "x_alr[rectifying_volume_3,n-Propane]",
+              "value": -0.19114897553446616,
+              "absolute": 0.19114897553446616
+            },
+            {
+              "index": 84,
+              "name": "y_alr[rectifying_volume_3,n-Propane]",
+              "value": -0.19113186211030161,
+              "absolute": 0.19113186211030161
+            },
+            {
+              "index": 27,
+              "name": "x_alr[rectifying_volume_3,n-Butane]",
+              "value": -0.19110721052476573,
+              "absolute": 0.19110721052476573
+            },
+            {
+              "index": 85,
+              "name": "y_alr[rectifying_volume_3,n-Butane]",
+              "value": -0.19108185025582974,
+              "absolute": 0.19108185025582974
+            }
+          ],
+          "top_weak_residual_rows": [
+            {
+              "index": 63,
+              "name": "component_balance[rectifying_volume_1,n-Pentane]",
+              "value": -0.5831440676420208,
+              "absolute": 0.5831440676420208
+            },
+            {
+              "index": 59,
+              "name": "component_balance[reflux_drum,n-Pentane]",
+              "value": -0.5321100669033492,
+              "absolute": 0.5321100669033492
+            },
+            {
+              "index": 67,
+              "name": "component_balance[rectifying_volume_2,n-Pentane]",
+              "value": -0.44957167697441164,
+              "absolute": 0.44957167697441164
+            },
+            {
+              "index": 71,
+              "name": "component_balance[rectifying_volume_3,n-Pentane]",
+              "value": -0.3127607524363829,
+              "absolute": 0.3127607524363829
+            },
+            {
+              "index": 75,
+              "name": "component_balance[rectifying_volume_4,n-Pentane]",
+              "value": -0.21062481429466268,
+              "absolute": 0.21062481429466268
+            },
+            {
+              "index": 79,
+              "name": "component_balance[rectifying_volume_5,n-Pentane]",
+              "value": -0.13962046569267475,
+              "absolute": 0.13962046569267475
+            },
+            {
+              "index": 83,
+              "name": "component_balance[rectifying_volume_6,n-Pentane]",
+              "value": -0.08896743341291254,
+              "absolute": 0.08896743341291254
+            },
+            {
+              "index": 87,
+              "name": "component_balance[rectifying_volume_7,n-Pentane]",
+              "value": -0.055431023828069824,
+              "absolute": 0.055431023828069824
+            },
+            {
+              "index": 91,
+              "name": "component_balance[rectifying_volume_8,n-Pentane]",
+              "value": -0.03447829705954969,
+              "absolute": 0.03447829705954969
+            },
+            {
+              "index": 95,
+              "name": "component_balance[rectifying_volume_9,n-Pentane]",
+              "value": -0.021470977306905132,
+              "absolute": 0.021470977306905132
+            },
+            {
+              "index": 99,
+              "name": "component_balance[rectifying_volume_10,n-Pentane]",
+              "value": -0.01077048225228338,
+              "absolute": 0.01077048225228338
+            },
+            {
+              "index": 125,
+              "name": "component_balance[stripping_volume_6,n-Propane]",
+              "value": 0.004736650778557513,
+              "absolute": 0.004736650778557513
+            }
+          ],
+          "linearized_correction_inf_norm": 71.78688589434644,
+          "top_linearized_correction_coordinates": [
+            {
+              "index": 17,
+              "name": "log_NL[stripping_volume_6]",
+              "value": 71.78688589434644,
+              "absolute": 71.78688589434644
+            },
+            {
+              "index": 38,
+              "name": "x_alr[rectifying_volume_9,n-Propane]",
+              "value": -18.47250916853352,
+              "absolute": 18.47250916853352
+            },
+            {
+              "index": 96,
+              "name": "y_alr[rectifying_volume_9,n-Propane]",
+              "value": -18.470544441900692,
+              "absolute": 18.470544441900692
+            },
+            {
+              "index": 39,
+              "name": "x_alr[rectifying_volume_9,n-Butane]",
+              "value": -18.445450142166493,
+              "absolute": 18.445450142166493
+            },
+            {
+              "index": 97,
+              "name": "y_alr[rectifying_volume_9,n-Butane]",
+              "value": -18.43911734951053,
+              "absolute": 18.43911734951053
+            },
+            {
+              "index": 40,
+              "name": "x_alr[rectifying_volume_10,n-Propane]",
+              "value": -14.452192282474908,
+              "absolute": 14.452192282474908
+            },
+            {
+              "index": 41,
+              "name": "x_alr[rectifying_volume_10,n-Butane]",
+              "value": -14.448069886290735,
+              "absolute": 14.448069886290735
+            },
+            {
+              "index": 98,
+              "name": "y_alr[rectifying_volume_10,n-Propane]",
+              "value": -14.445264183072128,
+              "absolute": 14.445264183072128
+            },
+            {
+              "index": 99,
+              "name": "y_alr[rectifying_volume_10,n-Butane]",
+              "value": -14.435801307908001,
+              "absolute": 14.435801307908001
+            },
+            {
+              "index": 94,
+              "name": "y_alr[rectifying_volume_8,n-Propane]",
+              "value": -5.480452492705155,
+              "absolute": 5.480452492705155
+            },
+            {
+              "index": 36,
+              "name": "x_alr[rectifying_volume_8,n-Propane]",
+              "value": -5.478503066472098,
+              "absolute": 5.478503066472098
+            },
+            {
+              "index": 37,
+              "name": "x_alr[rectifying_volume_8,n-Butane]",
+              "value": -5.4312121038867,
+              "absolute": 5.4312121038867
+            }
+          ],
+          "equilibrated": {
+            "condition": 630.6282825242828,
+            "row_scale_min": 0.0008283604586157315,
+            "row_scale_max": 11388.455734474219,
+            "column_scale_min": 0.08955362762293724,
+            "column_scale_max": 494.8370222012941
+          },
+          "equilibration_condition_improvement": 1897355.6908884237
+        },
+        {
+          "condition": 2445819723.2229233,
+          "largest_singular_value": 23342.7892115127,
+          "smallest_singular_value": 9.54395329707836e-06,
+          "weak_coordinate_family_shares": {
+            "liquid_inventory": 0.5211855188796128,
+            "liquid_composition": 0.23942783303032183,
+            "vapor_composition": 0.21137067260189205,
+            "condenser_bubble_composition": 0.02801587910259909,
+            "temperature": 7.92263116671729e-08,
+            "vapor_flow": 1.097283119704129e-08,
+            "bottoms_flow": 2.910895315778015e-09,
+            "liquid_flow": 2.2706070106913336e-09,
+            "distillate_flow": 9.763959206073424e-10,
+            "condenser_duty": 2.8532859286075452e-11
+          },
+          "weak_coordinate_owner_shares": {
+            "stripping_volume_6": 0.5211896046296945,
+            "rectifying_volume_1": 0.12393128559756668,
+            "rectifying_volume_2": 0.10878391903281867,
+            "rectifying_volume_3": 0.07290784310306658,
+            "reflux_drum": 0.056033762465582525,
+            "rectifying_volume_4": 0.04615569236291956,
+            "rectifying_volume_5": 0.03393371023465041,
+            "rectifying_volume_6": 0.01654372109779168,
+            "rectifying_volume_9": 0.008949872742117436,
+            "rectifying_volume_7": 0.00674559418441515,
+            "rectifying_volume_8": 0.003630622054556157,
+            "rectifying_volume_10": 0.001171973349888831,
+            "combined_reboiler_sump": 4.320878791764351e-06,
+            "stripping_volume_7": 4.2607832328674e-06,
+            "stripping_volume_5": 3.753462676971881e-06,
+            "stripping_volume_4": 3.252142232536644e-06,
+            "stripping_volume_3": 2.6116660210422883e-06,
+            "stripping_volume_2": 1.933113152240139e-06,
+            "stripping_volume_1": 1.3454765456056694e-06,
+            "feed_tray": 9.067336231785679e-07,
+            "column_boundary": 3.915824095671433e-09,
+            "rectifying_volume_4->rectifying_volume_3": 1.2806976647689345e-09,
+            "rectifying_volume_5->rectifying_volume_4": 1.233353378646107e-09,
+            "rectifying_volume_6->rectifying_volume_5": 1.151507934940624e-09,
+            "rectifying_volume_3->rectifying_volume_2": 1.1290481301836596e-09,
+            "rectifying_volume_7->rectifying_volume_6": 1.0826522152247526e-09,
+            "rectifying_volume_8->rectifying_volume_7": 1.0105829248869072e-09,
+            "rectifying_volume_9->rectifying_volume_8": 9.022352121435547e-10,
+            "rectifying_volume_10->rectifying_volume_9": 7.152894902158439e-10,
+            "rectifying_volume_2->rectifying_volume_1": 6.732566076419913e-10,
+            "feed_tray->rectifying_volume_10": 3.9042077771533567e-10,
+            "stripping_volume_1->feed_tray": 3.672719302936174e-10,
+            "stripping_volume_2->stripping_volume_1": 3.2068088648809506e-10,
+            "stripping_volume_3->stripping_volume_2": 2.3934165425978177e-10,
+            "rectifying_volume_1->reflux_drum": 1.7178275513401654e-10,
+            "stripping_volume_4->stripping_volume_3": 1.4424038328810952e-10,
+            "stripping_volume_5->stripping_volume_4": 6.786424244733772e-11,
+            "combined_reboiler_sump->stripping_volume_7": 5.059339072314493e-11,
+            "stripping_volume_6->stripping_volume_5": 3.2521448891306914e-11,
+            "stripping_volume_7->stripping_volume_6": 9.49016914816854e-12
+          },
+          "weak_residual_block_shares": {
+            "component_balance": 0.9305573946969357,
+            "energy_balance": 0.05980931532344442,
+            "full_phase_equilibrium": 0.00936551410898185,
+            "condenser_bubble_fugacity": 0.00026777586064819636,
+            "francis_hydraulics": 9.990165310526057e-12,
+            "terminal_amount_specification": 2.1636484809468207e-34
+          },
+          "weak_residual_owner_shares": {
+            "rectifying_volume_1": 0.15580421840470163,
+            "reflux_drum": 0.12154025192748366,
+            "rectifying_volume_2": 0.11303715345118898,
+            "stripping_volume_6": 0.09071759191936866,
+            "stripping_volume_5": 0.0686878454252246,
+            "rectifying_volume_3": 0.06718537221469909,
+            "stripping_volume_4": 0.05657211318448907,
+            "stripping_volume_7": 0.05017780919305687,
+            "stripping_volume_3": 0.045891444351600336,
+            "rectifying_volume_4": 0.039657057521763336,
+            "stripping_volume_2": 0.03588384291859269,
+            "combined_reboiler_sump": 0.028205569100559845,
+            "stripping_volume_1": 0.026196351296679056,
+            "rectifying_volume_5": 0.02484927738376931,
+            "feed_tray": 0.01711887469596692,
+            "rectifying_volume_6": 0.01662377780297267,
+            "rectifying_volume_7": 0.012286626001093818,
+            "rectifying_volume_10": 0.010071251211598499,
+            "rectifying_volume_8": 0.01004925369207054,
+            "rectifying_volume_9": 0.009176542442472315,
+            "n-Propane": 0.0002674006203685545,
+            "n-Butane": 3.75236706176015e-07,
+            "n-Pentane": 3.573465867419322e-12
+          },
+          "top_weak_coordinates": [
+            {
+              "index": 17,
+              "name": "log_NL[stripping_volume_6]",
+              "value": 0.7219317929190809,
+              "absolute": 0.7219317929190809
+            },
+            {
+              "index": 22,
+              "name": "x_alr[rectifying_volume_1,n-Propane]",
+              "value": -0.176086575622223,
+              "absolute": 0.176086575622223
+            },
+            {
+              "index": 80,
+              "name": "y_alr[rectifying_volume_1,n-Propane]",
+              "value": -0.1760793585881032,
+              "absolute": 0.1760793585881032
+            },
+            {
+              "index": 23,
+              "name": "x_alr[rectifying_volume_1,n-Butane]",
+              "value": -0.17596080904921743,
+              "absolute": 0.17596080904921743
+            },
+            {
+              "index": 81,
+              "name": "y_alr[rectifying_volume_1,n-Butane]",
+              "value": -0.17595071711149154,
+              "absolute": 0.17595071711149154
+            },
+            {
+              "index": 24,
+              "name": "x_alr[rectifying_volume_2,n-Propane]",
+              "value": -0.1649826007197751,
+              "absolute": 0.1649826007197751
+            },
+            {
+              "index": 82,
+              "name": "y_alr[rectifying_volume_2,n-Propane]",
+              "value": -0.1649754066949891,
+              "absolute": 0.1649754066949891
+            },
+            {
+              "index": 25,
+              "name": "x_alr[rectifying_volume_2,n-Butane]",
+              "value": -0.1648517932207696,
+              "absolute": 0.1648517932207696
+            },
+            {
+              "index": 83,
+              "name": "y_alr[rectifying_volume_2,n-Butane]",
+              "value": -0.1648382772479084,
+              "absolute": 0.1648382772479084
+            },
+            {
+              "index": 26,
+              "name": "x_alr[rectifying_volume_3,n-Propane]",
+              "value": -0.135074418393501,
+              "absolute": 0.135074418393501
+            },
+            {
+              "index": 84,
+              "name": "y_alr[rectifying_volume_3,n-Propane]",
+              "value": -0.1350684233178175,
+              "absolute": 0.1350684233178175
+            },
+            {
+              "index": 27,
+              "name": "x_alr[rectifying_volume_3,n-Butane]",
+              "value": -0.13495081094672404,
+              "absolute": 0.13495081094672404
+            }
+          ],
+          "top_weak_residual_rows": [
+            {
+              "index": 63,
+              "name": "component_balance[rectifying_volume_1,n-Pentane]",
+              "value": -0.384815780142753,
+              "absolute": 0.384815780142753
+            },
+            {
+              "index": 59,
+              "name": "component_balance[reflux_drum,n-Pentane]",
+              "value": -0.3442344966800219,
+              "absolute": 0.3442344966800219
+            },
+            {
+              "index": 67,
+              "name": "component_balance[rectifying_volume_2,n-Pentane]",
+              "value": -0.32531593148320254,
+              "absolute": 0.32531593148320254
+            },
+            {
+              "index": 71,
+              "name": "component_balance[rectifying_volume_3,n-Pentane]",
+              "value": -0.24546169668152026,
+              "absolute": 0.24546169668152026
+            },
+            {
+              "index": 125,
+              "name": "component_balance[stripping_volume_6,n-Propane]",
+              "value": 0.2348240382208053,
+              "absolute": 0.2348240382208053
+            },
+            {
+              "index": 121,
+              "name": "component_balance[stripping_volume_5,n-Propane]",
+              "value": 0.20524331935020595,
+              "absolute": 0.20524331935020595
+            },
+            {
+              "index": 75,
+              "name": "component_balance[rectifying_volume_4,n-Pentane]",
+              "value": -0.18162006592027743,
+              "absolute": 0.18162006592027743
+            },
+            {
+              "index": 129,
+              "name": "component_balance[stripping_volume_7,n-Propane]",
+              "value": 0.18067584445737703,
+              "absolute": 0.18067584445737703
+            },
+            {
+              "index": 117,
+              "name": "component_balance[stripping_volume_4,n-Propane]",
+              "value": 0.179372470379406,
+              "absolute": 0.179372470379406
+            },
+            {
+              "index": 113,
+              "name": "component_balance[stripping_volume_3,n-Propane]",
+              "value": 0.155368943296459,
+              "absolute": 0.155368943296459
+            },
+            {
+              "index": 79,
+              "name": "component_balance[rectifying_volume_5,n-Pentane]",
+              "value": -0.13590604357307562,
+              "absolute": 0.13590604357307562
+            },
+            {
+              "index": 109,
+              "name": "component_balance[stripping_volume_2,n-Propane]",
+              "value": 0.13155293110425836,
+              "absolute": 0.13155293110425836
+            }
+          ],
+          "linearized_correction_inf_norm": 143.485214383452,
+          "top_linearized_correction_coordinates": [
+            {
+              "index": 17,
+              "name": "log_NL[stripping_volume_6]",
+              "value": 143.485214383452,
+              "absolute": 143.485214383452
+            },
+            {
+              "index": 38,
+              "name": "x_alr[rectifying_volume_9,n-Propane]",
+              "value": -18.472509167995042,
+              "absolute": 18.472509167995042
+            },
+            {
+              "index": 96,
+              "name": "y_alr[rectifying_volume_9,n-Propane]",
+              "value": -18.470544443571658,
+              "absolute": 18.470544443571658
+            },
+            {
+              "index": 39,
+              "name": "x_alr[rectifying_volume_9,n-Butane]",
+              "value": -18.445450146963744,
+              "absolute": 18.445450146963744
+            },
+            {
+              "index": 97,
+              "name": "y_alr[rectifying_volume_9,n-Butane]",
+              "value": -18.439117355887127,
+              "absolute": 18.439117355887127
+            },
+            {
+              "index": 40,
+              "name": "x_alr[rectifying_volume_10,n-Propane]",
+              "value": -14.45219228544518,
+              "absolute": 14.45219228544518
+            },
+            {
+              "index": 41,
+              "name": "x_alr[rectifying_volume_10,n-Butane]",
+              "value": -14.448069887498976,
+              "absolute": 14.448069887498976
+            },
+            {
+              "index": 98,
+              "name": "y_alr[rectifying_volume_10,n-Propane]",
+              "value": -14.445264185662607,
+              "absolute": 14.445264185662607
+            },
+            {
+              "index": 99,
+              "name": "y_alr[rectifying_volume_10,n-Butane]",
+              "value": -14.435801310392069,
+              "absolute": 14.435801310392069
+            },
+            {
+              "index": 94,
+              "name": "y_alr[rectifying_volume_8,n-Propane]",
+              "value": -5.480452494239115,
+              "absolute": 5.480452494239115
+            },
+            {
+              "index": 36,
+              "name": "x_alr[rectifying_volume_8,n-Propane]",
+              "value": -5.478503066421902,
+              "absolute": 5.478503066421902
+            },
+            {
+              "index": 37,
+              "name": "x_alr[rectifying_volume_8,n-Butane]",
+              "value": -5.431212109204463,
+              "absolute": 5.431212109204463
+            }
+          ],
+          "equilibrated": {
+            "condition": 639.6453943052676,
+            "row_scale_min": 0.0005246316069917531,
+            "row_scale_max": 11388.455735520232,
+            "column_scale_min": 0.07149579273535193,
+            "column_scale_max": 780.0958078273752
+          },
+          "equilibration_condition_improvement": 3823711.926948806
+        }
+      ],
+      "finite_difference_step_comparison": {
+        "relative_frobenius_difference": 0.9989397526886731,
+        "maximum_entry_difference": 11665.210907536804,
+        "maximum_entry_difference_absolute": 11665.210907536804,
+        "maximum_difference_residual": "francis_hydraulics[stripping_volume_6]",
+        "maximum_difference_coordinate": "T[stripping_volume_6]",
+        "largest_singular_value_ratio_second_over_first": 1.9989408875986074,
+        "smallest_singular_value_ratio_second_over_first": 0.9779073424586628,
+        "weakest_right_vector_alignment": 0.7120566936946913,
+        "weakest_left_vector_alignment": 0.7172123076476508,
+        "five_weakest_right_subspace_minimum_cosine": 0.9999476032718624,
+        "five_weakest_left_subspace_minimum_cosine": 0.9999971740887014
+      }
+    }
+  },
+  "model_calls": 0,
+  "provider_calls": 0,
+  "solver_calls": 0,
+  "timestep_calls": 0,
+  "dynamic_integration_calls": 0,
+  "pass_gate": true
+}

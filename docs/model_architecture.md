@@ -2201,3 +2201,22 @@ rank 160. It uses 12,474 logical provider calls in 6.169 seconds. It does not
 invoke a nonlinear solver or alter or advance either endpoint. The resulting
 artifact is diagnostic evidence only and is not an initializer or a dynamic
 state.
+
+## DD-226 full-column conditioning localization
+
+DD-226 reads only the complete DD-225 evidence. It performs no model or
+provider evaluation. The analysis separates the DD-223 conditioning failure
+into two numerical effects.
+
+The step-sensitive largest singular value comes from one local derivative:
+the Francis hydraulic residual in `stripping_volume_6` with respect to that
+volume's temperature. Halving the finite-difference step nearly doubles the
+entry. The weakest singular direction is instead a composition/material
+balance chain, dominated by n-pentane through the reflux drum and rectifying
+section. Diagnostic row-and-column equilibration lowers matrix conditions from
+billions to roughly 600-1,300.
+
+This result does not authorize a new root solve. A direct, one-coordinate
+perturbation must first determine whether the unstable hydraulic derivative is
+caused by colored-Jacobian grouping or by the underlying property/hydraulic
+evaluation. Physical equation changes remain unauthorized.

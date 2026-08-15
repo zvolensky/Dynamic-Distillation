@@ -2031,3 +2031,33 @@ uses no live provider or model call.
 Future production qualification may use one already-validated grid rather
 than rerunning a convergence pair. It must nevertheless freeze both segment
 latency and complete-session limits before execution and report both afterward.
+
+## DD-217 single-grid production segment
+
+The accepted production segment uses one backward-Euler startup followed by
+constant-step BDF2 at `0.25 s` for 60 simulated seconds. One reusable
+eight-worker session owns all 240 roots and closes only after the segment.
+Every accepted science record and integrated response reproduces DD-213's
+coarse validation path exactly.
+
+Active segment wall is `116.236862 s`, while startup and shutdown add
+`2.731425 s` and `15.024129 s`; complete session wall is `134.004839 s` with
+only `0.012423 s` unattributed. The production path therefore advances one
+simulated second per `1.9373` active wall seconds on this host. This is the
+accepted 60-second operating unit, not an unrestricted trajectory.
+
+Continuous production requires a method-aware continuation state. The current
+trajectory entry point always creates a backward-Euler startup from supplied
+initial inventory, controller memory, and solve coordinates. Reusing it for a
+second segment would interrupt BDF2 history. A continuation payload must own:
+
+- current and prior component inventories;
+- current and prior provider-derived internal energies;
+- current and prior controller memories;
+- current and prior solve coordinates;
+- the current physical template;
+- constant timestep and elapsed simulation time.
+
+A continuation call must begin directly with BDF2, retain the live session,
+advance unique root epochs, and preserve controller and conservation identity.
+That structural handoff is required before another live segment.

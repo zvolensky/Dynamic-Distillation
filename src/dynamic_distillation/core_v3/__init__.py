@@ -63,6 +63,11 @@ from dynamic_distillation.core_v3.provider_governed_steady_root_v1 import (
 from dynamic_distillation.core_v3.terminal_inventory_control_bdf2_parallel_v1 import (
     TerminalInventoryControlBDF2ParallelStepSolvers,
 )
+from dynamic_distillation.core_v3.terminal_inventory_control_bdf2_session_v1 import (
+    ProductionSessionSegmentEvidence,
+    ProductionSessionTiming,
+    TerminalInventoryControlBDF2ProductionSession,
+)
 
 __all__ = [
     "ARCHITECTURE_NAME",
@@ -90,12 +95,15 @@ __all__ = [
     "PersistentParallelJacobianEvidence",
     "ProviderCallAudit",
     "ProviderCallRecord",
+    "ProductionSessionSegmentEvidence",
+    "ProductionSessionTiming",
     "ProviderGovernedRegistry",
     "ResidualEvaluation",
     "ResidualRow",
     "RegistryAudit",
     "SteadyRootSettings",
     "TerminalInventoryControlBDF2ParallelStepSolvers",
+    "TerminalInventoryControlBDF2ProductionSession",
     "audit_numerical_jacobian",
     "audit_provider_governed_registry",
     "assess_inventory_refinement",

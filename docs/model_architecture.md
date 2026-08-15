@@ -1963,3 +1963,30 @@ The next architecture work may define a reusable production-session lifetime
 for the already caller-owned executor so worker teardown is paid once per
 session rather than once per trajectory segment. Longer integration and any
 equation, solver, grid, controller, or thermodynamic change remain unauthorized.
+
+## DD-214 reusable production-session lifecycle
+
+The parallel controlled-BDF2 backend can now be hosted by
+`TerminalInventoryControlBDF2ProductionSession`. This application-lifetime
+object constructs one caller-supplied executor and one accepted parallel step
+backend, then routes multiple uniquely named trajectories through them before
+an explicit final close. Worker startup, each trajectory call, and final
+shutdown have separate timing evidence.
+
+This layer owns resources, not physics. It composes the existing persistent
+colored Jacobian, method-aware parallel step solvers, and controlled BDF2
+trajectory. Equations, DWSIM provider ownership, finite differences, nonlinear
+solver, bounds, scales, controls, and accepted-state rules are unchanged.
+Unique trajectory names prevent root-epoch collisions in worker basis caches;
+even a failed name remains reserved. A closed session cannot be restarted or
+expose its dead backend.
+
+Startup pings are warm-up evidence rather than a worker-participation proof.
+Operating-system scheduling may assign those tasks to fewer than all workers.
+The governing all-worker gate remains attached to every Jacobian matrix, where
+the accepted coordinator enforces both participation and exactly-once basis
+reconstruction per root.
+
+DD-214 is property-free. A short live proof must establish the lifecycle with
+real DWSIM workers before production recipes adopt it. Longer integration is
+still outside the authorized boundary.

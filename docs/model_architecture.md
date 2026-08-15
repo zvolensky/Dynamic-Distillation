@@ -2124,3 +2124,28 @@ model equation or numerical residual changes. DD-221 is property-free and
 does not establish a full-column root; the next boundary is a frozen live
 residual and Jacobian readiness audit at a clearly labeled source-derived
 audit point.
+
+## DD-222 full C3/C4 live readiness
+
+The full source mapper now transfers all 20 liquid holdups, liquid and vapor
+compositions, temperatures, pressures, liquid and vapor flows, feed, products,
+duties, and hydraulic geometry into the same generic Core V3 numerical
+contract used by the reduced model. The reflux-drum temperature and incipient
+vapor are reconstructed from DWSIM PR fugacity equality, and condenser energy
+closure gives `Q_C = -49.640294 MMBTU/h`. This reconstruction does not promote
+the source workbook profile to an accepted steady root.
+
+The `160 x 160` live Jacobian has only 15 structural colors. Two colored
+central-difference matrices plus 17 individually differenced sentinel columns
+therefore require 97 residual evaluations instead of 643 for two complete
+uncolored matrices. The sentinel columns cover the first and last coordinate
+in every repeated state/flow family plus both products and condenser duty.
+Every sentinel agrees exactly with the colored matrix at the audit point.
+
+Both live matrices are full rank with condition `3.080727e6`, stable spectra,
+complete condenser rank, and no missing registered coupling. Conservation and
+provider semantics pass. The source residual is finite but not small:
+`0.547063` scaled, led by Francis liquid-hydraulic mismatches in the stripping
+section. The architecture is therefore live-ready, while the imported profile
+still requires a bounded full-column stationary solve before it can initialize
+dynamics. DD-222 authorizes that one frozen solve campaign only.

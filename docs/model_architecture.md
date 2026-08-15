@@ -2326,3 +2326,15 @@ accepted root using DWSIM phase enthalpy and the aligned-PR smallest-root liquid
 density, copy identical energies into both history levels, and use the exact
 geometry-derived levels as the initial setpoints. It must then verify zero
 motion and a full-rank leading Jacobian. No timestep is authorized by DD-232.
+
+DD-233 completes that live audit. At identical current and prior histories, the
+full controlled BDF2 residual is `8.26e-14` and every component, energy, and PI
+rate is exactly zero. The reconstructed top and bottom levels are 43.96% and
+52.84%. Both scaled `162 x 162` leading Jacobians have rank 162 and condition
+about `5.80e6`; their spectra are stable and 15 direct-column checks match the
+colored assembly exactly. The accepted stationary root is therefore a clean,
+numerically regular dynamic handoff under the governing provider split.
+
+This is still a zero-time result. The next gate is one stationary hold step,
+which must return the same state within frozen tolerances before any disturbance
+or moving trajectory is permitted.

@@ -2220,6 +2220,22 @@ One new stationary-root campaign may combine the explicit DD-229 density
 routing with this exact coordinate scale. No dynamic integration is authorized
 until that campaign reaches one common accepted physical root.
 
+## DD-231 accepted full-column stationary root
+
+DD-231 combines the explicit DD-229 density routing and fixed DD-230 coordinate
+scale with the unchanged full-column equation system. Both independent starts
+converge to one common root with residuals below `9e-14` and physical agreement
+of `5.95e-13`. Endpoint matrices retain rank 160 and condition about `6.20e5`.
+
+The stationary flow solution is `D=2431.550` and `B=4711.424 lbmol/h`, with
+`Q_C=-50.0522 MMBTU/h` and specified `Q_R=54.7060 MMBTU/h`. Distillate propane
+and butane fractions are `0.897031/0.102937`; bottoms propane is `0.042411`.
+
+This establishes a reproducible full-column algebraic root. It does not itself
+create dynamic history or authorize a timestep. The next architecture task is
+to map this root into the controlled BDF2 DAE state and history contract while
+retaining explicit DWSIM fugacity/enthalpy and aligned-PR density ownership.
+
 ## DD-225 read-only endpoint evidence capture
 
 DD-225 re-evaluates the two exact DD-223 endpoints using the unchanged Core V3

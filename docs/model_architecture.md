@@ -2008,3 +2008,26 @@ The reusable lifecycle is accepted, but DD-213's original formal wall failure
 stands. Before another long trajectory, a frozen qualification must state both
 the active-segment latency gate and complete-session lifecycle gate. Neither
 may be redefined after observing a result.
+
+## DD-216 executable timing policy
+
+Reusable-session performance is governed by
+`ProductionSessionTimingLimits` and `assess_production_session_timing`. A
+contract identifies every active segment by unique ordered name and gives each
+one its own wall limit. Startup, aggregate active work, final shutdown,
+complete session lifetime, and unattributed overhead have independent limits.
+
+The assessor requires segment completion, finite nonnegative observations,
+exact name/order agreement, equality of summed segments with the session's
+active timer, presence of final shutdown and total wall, and a closed timing
+identity. Passing active work cannot hide a slow lifecycle, and passing total
+wall cannot hide one slow segment.
+
+Applied statically to DD-215, all gates pass. The complete `33.928759 s`
+session is explained by `3.015291 s` startup, `22.602660 s` active work,
+`8.309981 s` shutdown, and `0.000827 s` unattributed orchestration. This audit
+uses no live provider or model call.
+
+Future production qualification may use one already-validated grid rather
+than rerunning a convergence pair. It must nevertheless freeze both segment
+latency and complete-session limits before execution and report both afterward.

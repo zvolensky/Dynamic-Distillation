@@ -22,6 +22,13 @@ from dynamic_distillation.core_v3.physical_refinement_policy_v1 import (
     InventoryRefinementLimits,
     assess_inventory_refinement,
 )
+from dynamic_distillation.core_v3.production_session_timing_policy_v1 import (
+    ProductionSegmentTimingAssessment,
+    ProductionSegmentTimingLimit,
+    ProductionSessionTimingAssessment,
+    ProductionSessionTimingLimits,
+    assess_production_session_timing,
+)
 from dynamic_distillation.core_v3.persistent_parallel_colored_jacobian_v1 import (
     PersistentParallelColoredJacobian,
     PersistentParallelJacobianEvidence,
@@ -97,6 +104,10 @@ __all__ = [
     "ProviderCallRecord",
     "ProductionSessionSegmentEvidence",
     "ProductionSessionTiming",
+    "ProductionSegmentTimingAssessment",
+    "ProductionSegmentTimingLimit",
+    "ProductionSessionTimingAssessment",
+    "ProductionSessionTimingLimits",
     "ProviderGovernedRegistry",
     "ResidualEvaluation",
     "ResidualRow",
@@ -107,6 +118,7 @@ __all__ = [
     "audit_numerical_jacobian",
     "audit_provider_governed_registry",
     "assess_inventory_refinement",
+    "assess_production_session_timing",
     "build_provider_governed_registry",
     "coordinate_layout",
     "decode_coordinates",

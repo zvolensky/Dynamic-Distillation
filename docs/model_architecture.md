@@ -1990,3 +1990,21 @@ reconstruction per root.
 DD-214 is property-free. A short live proof must establish the lifecycle with
 real DWSIM workers before production recipes adopt it. Longer integration is
 still outside the authorized boundary.
+
+DD-215 provides the live lifecycle proof. One eight-worker session completes
+two independently named controlled BDF2 paths, remains open between them, and
+closes once afterward. Every root and scientific gate passes, every Jacobian
+uses all eight workers, and all worker-basis epochs are unique and complete.
+
+Session timing is now an explicit four-part contract: startup, active segment
+work, final shutdown, and total lifetime. DD-215 measures `3.015 s` startup,
+`22.603 s` active trajectories, `8.310 s` shutdown, and `33.929 s` total. The
+session architecture amortizes lifecycle cost across continuation segments; it
+does not alter or accelerate an individual nonlinear root. Production code and
+reports must retain all timing categories, even when a segment-latency gate
+excludes final teardown. Complete-session wall remains separately reportable.
+
+The reusable lifecycle is accepted, but DD-213's original formal wall failure
+stands. Before another long trajectory, a frozen qualification must state both
+the active-segment latency gate and complete-session lifecycle gate. Neither
+may be redefined after observing a result.

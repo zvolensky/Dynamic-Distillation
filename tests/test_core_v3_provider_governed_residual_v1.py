@@ -8,6 +8,7 @@ from dynamic_distillation.core_v3.provider_governed_residual_v1 import (
     NumericalReference,
     OperatingSpec,
     PhysicalState,
+    audit_colored_numerical_jacobian,
     audit_numerical_jacobian,
     coordinate_layout,
     decode_coordinates,
@@ -156,6 +157,39 @@ def test_dd092_pattern_assigns_qc_only_to_drum_energy():
             if row.name == "energy_balance[reflux_drum]"
         )
     ]
+
+
+def test_colored_jacobian_matches_uncolored_provider_governed_audit():
+    provider, spec, reference = _fixture()
+    point = np.zeros(len(coordinate_layout(spec).names))
+    scales = np.ones(point.size)
+    full = audit_numerical_jacobian(
+        spec,
+        reference,
+        provider,
+        ProviderCallAudit(),
+        point,
+        fixed_scales=scales,
+        state_id="full",
+        step=1.0e-6,
+        coupling_tolerance=1.0e-7,
+    )
+    colored, groups = audit_colored_numerical_jacobian(
+        spec,
+        reference,
+        provider,
+        ProviderCallAudit(),
+        point,
+        fixed_scales=scales,
+        state_id="colored",
+        step=1.0e-6,
+        coupling_tolerance=1.0e-7,
+    )
+
+    assert len(groups) < point.size
+    assert np.allclose(colored.matrix, full.matrix, atol=1.0e-7, rtol=1.0e-7)
+    assert colored.rank == full.rank
+    assert colored.bubble_rank == full.bubble_rank
 
 
 def test_dd092_local_bubble_solve_uses_only_direct_fugacity():

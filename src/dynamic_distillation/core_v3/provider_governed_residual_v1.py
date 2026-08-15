@@ -8,6 +8,9 @@ from typing import Any, Sequence
 import numpy as np
 from scipy.optimize import least_squares
 
+from dynamic_distillation.core_v3.colored_jacobian_v1 import (
+    colored_central_difference_jacobian,
+)
 from dynamic_distillation.core_v3.provider_call_audit_v1 import (
     ProviderCallAudit,
 )
@@ -927,55 +930,14 @@ def _rank_condition_singular(
     return rank, condition, singular
 
 
-def audit_numerical_jacobian(
+def _jacobian_audit(
     spec: OperatingSpec,
-    reference: NumericalReference,
-    provider: Any,
-    call_audit: ProviderCallAudit,
-    coordinates: Sequence[float],
+    baseline: ResidualEvaluation,
+    matrix: np.ndarray,
     *,
-    fixed_scales: Sequence[float],
-    state_id: str,
     step: float,
     coupling_tolerance: float,
 ) -> JacobianAudit:
-    point = np.asarray(coordinates, dtype=float).reshape((-1,))
-    baseline = evaluate_residual(
-        spec,
-        reference,
-        provider,
-        call_audit,
-        point,
-        fixed_scales=fixed_scales,
-        state_id=state_id,
-        evaluation_kind="jacobian",
-    )
-    dimension = point.size
-    matrix = np.empty((dimension, dimension), dtype=float)
-    for column in range(dimension):
-        delta = np.zeros_like(point)
-        delta[column] = float(step)
-        plus = evaluate_residual(
-            spec,
-            reference,
-            provider,
-            call_audit,
-            point + delta,
-            fixed_scales=fixed_scales,
-            state_id=state_id,
-            evaluation_kind="jacobian",
-        ).scaled
-        minus = evaluate_residual(
-            spec,
-            reference,
-            provider,
-            call_audit,
-            point - delta,
-            fixed_scales=fixed_scales,
-            state_id=state_id,
-            evaluation_kind="jacobian",
-        ).scaled
-        matrix[:, column] = (plus - minus) / (2.0 * float(step))
     pattern = structural_pattern(spec)
     rows = baseline.rows
     layout = coordinate_layout(spec)
@@ -1039,6 +1001,120 @@ def audit_numerical_jacobian(
                 bubble_column_norm <= coupling_tolerance
             )
         ),
+    )
+
+
+def audit_numerical_jacobian(
+    spec: OperatingSpec,
+    reference: NumericalReference,
+    provider: Any,
+    call_audit: ProviderCallAudit,
+    coordinates: Sequence[float],
+    *,
+    fixed_scales: Sequence[float],
+    state_id: str,
+    step: float,
+    coupling_tolerance: float,
+) -> JacobianAudit:
+    point = np.asarray(coordinates, dtype=float).reshape((-1,))
+    baseline = evaluate_residual(
+        spec,
+        reference,
+        provider,
+        call_audit,
+        point,
+        fixed_scales=fixed_scales,
+        state_id=state_id,
+        evaluation_kind="jacobian",
+    )
+    dimension = point.size
+    matrix = np.empty((dimension, dimension), dtype=float)
+    for column in range(dimension):
+        delta = np.zeros_like(point)
+        delta[column] = float(step)
+        plus = evaluate_residual(
+            spec,
+            reference,
+            provider,
+            call_audit,
+            point + delta,
+            fixed_scales=fixed_scales,
+            state_id=state_id,
+            evaluation_kind="jacobian",
+        ).scaled
+        minus = evaluate_residual(
+            spec,
+            reference,
+            provider,
+            call_audit,
+            point - delta,
+            fixed_scales=fixed_scales,
+            state_id=state_id,
+            evaluation_kind="jacobian",
+        ).scaled
+        matrix[:, column] = (plus - minus) / (2.0 * float(step))
+    return _jacobian_audit(
+        spec,
+        baseline,
+        matrix,
+        step=step,
+        coupling_tolerance=coupling_tolerance,
+    )
+
+
+def audit_colored_numerical_jacobian(
+    spec: OperatingSpec,
+    reference: NumericalReference,
+    provider: Any,
+    call_audit: ProviderCallAudit,
+    coordinates: Sequence[float],
+    *,
+    fixed_scales: Sequence[float],
+    state_id: str,
+    step: float,
+    coupling_tolerance: float,
+) -> tuple[JacobianAudit, tuple[tuple[int, ...], ...]]:
+    point = np.asarray(coordinates, dtype=float).reshape((-1,))
+    baseline = evaluate_residual(
+        spec,
+        reference,
+        provider,
+        call_audit,
+        point,
+        fixed_scales=fixed_scales,
+        state_id=state_id,
+        evaluation_kind="jacobian",
+    )
+    pattern = structural_pattern(spec)
+
+    def objective(candidate: np.ndarray, candidate_state_id: str) -> np.ndarray:
+        return evaluate_residual(
+            spec,
+            reference,
+            provider,
+            call_audit,
+            candidate,
+            fixed_scales=fixed_scales,
+            state_id=candidate_state_id,
+            evaluation_kind="jacobian",
+        ).scaled
+
+    matrix, groups = colored_central_difference_jacobian(
+        objective,
+        point,
+        pattern=pattern,
+        step=step,
+        state_id=state_id,
+    )
+    return (
+        _jacobian_audit(
+            spec,
+            baseline,
+            matrix,
+            step=step,
+            coupling_tolerance=coupling_tolerance,
+        ),
+        groups,
     )
 
 
@@ -1237,6 +1313,7 @@ __all__ = [
     "ResidualEvaluation",
     "ResidualRow",
     "alr_coordinates",
+    "audit_colored_numerical_jacobian",
     "audit_numerical_jacobian",
     "composition_from_alr",
     "coordinate_layout",

@@ -2220,3 +2220,20 @@ This result does not authorize a new root solve. A direct, one-coordinate
 perturbation must first determine whether the unstable hydraulic derivative is
 caused by colored-Jacobian grouping or by the underlying property/hydraulic
 evaluation. Physical equation changes remain unauthorized.
+
+## DD-227 direct hydraulic-derivative diagnosis
+
+DD-227 perturbs only the coordinate selected from DD-226's evidence. Direct
+one-column derivatives reproduce the saved colored entries exactly, clearing
+the structural coloring implementation.
+
+The discontinuity is in DWSIM's declared liquid density. Temperature changes
+of only a few millionths of a degree switch the returned density between
+roughly 0.46-0.47 and 0.57-0.58 lbmol/ft3. That nonphysical jump propagates
+through liquid volume, height, weir head, and Francis flow. It explains the
+large, step-dependent Jacobian entry and the inflated condition number.
+
+The Francis relationship itself remains unchanged. Before another full-column
+Jacobian or root solve, a phase-explicit density calculation using the same PR
+parameters must be tested for smoothness and physical agreement. A provider
+change is not yet authorized.

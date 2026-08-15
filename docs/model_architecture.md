@@ -2349,3 +2349,21 @@ time advance.
 The accepted `0.25 s` endpoint and the DD-233 state now form a valid two-level
 history pair for a first moving BDF2 step. Only one small, separately frozen
 disturbance step is authorized next; a trajectory is not yet authorized.
+
+DD-235 passes the first moving-step gate. Feed component rates and total feed
+enthalpy are increased together by 0.1%, preserving composition and specific
+enthalpy. One `0.25 s` backward-Euler step and two `0.125 s` refinement steps
+all converge with residuals below `1.28e-12`, full rank 162, and worst condition
+`1.05e7`.
+
+The column accumulates `4.960399e-4 lbmol` over the quarter second, exactly the
+small positive response expected from the external component balance. The
+full and refined endpoints differ by at most `2.49e-6 lbmol` in any component,
+and the component inventory identity closes below `4.43e-13 lbmol`. Equilibrium,
+energy and component conservation, discrete kinematics, controller equations,
+and provider ownership all remain valid.
+
+This establishes a locally accurate moving response for the complete 20-stage
+controlled model. It authorizes one separately frozen short trajectory using
+the same 0.1% feed disturbance. It does not yet establish sustained dynamic
+stability, controller quality, or long-run performance.

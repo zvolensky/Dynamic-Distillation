@@ -472,6 +472,11 @@ call ledger identifies Jacobian perturbations as the dominant cost. Reuse the
 existing persistent parallel Jacobian architecture next; do not extend the
 serial trajectory or add controllers yet.
 
+DD-251 freezes the first qualification benchmark: one serial and one
+eight-worker matrix at the accepted DD-249 moving endpoint. Passing permits
+parallel step-solver integration; failure retains the serial scientific path
+and requires a different performance strategy.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

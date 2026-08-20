@@ -2560,3 +2560,8 @@ time. Almost all calls belong to finite-difference Jacobian perturbations. The
 next architecture task is performance qualification of the already accepted
 persistent parallel colored-Jacobian machinery against this 258-variable
 successor. Longer trajectories and controllers remain blocked meanwhile.
+
+DD-251 freezes a direct benchmark of that path at the accepted DD-249 moving
+endpoint. It compares one serial 28-color matrix with one eight-worker matrix
+and requires numerical equivalence, isolated provider ownership, and at least
+25% lower matrix wall time. It performs no solve or state advance.

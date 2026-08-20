@@ -1,0 +1,49 @@
+{
+  "schema_id": "dd251-core-v3-c3c4-vapor-holdup-parallel-jacobian-contract-v1",
+  "sources": {
+    "logs/dd249_core_v3_c3c4_vapor_holdup_small_moving_step_20260820.json": "86d86a1744b8728ebe0cbc4152c4da7f806398f915d25410f6a18cde200e3bd4",
+    "logs/dd249_core_v3_c3c4_vapor_holdup_small_moving_step_20260820.npz": "a05f901732342c384e3640f752805ccb7e84af444256e35bc1790985165a7f23",
+    "logs/dd250_core_v3_c3c4_vapor_holdup_short_trajectory_20260820.json": "e8c0cc8a101d8d5746286a863f237b061c4afe65430664e46c5a0d9902dc522c"
+  },
+  "implementation_sha256": {
+    "tools/benchmark_core_v3_vapor_holdup_parallel_jacobian.py": "edb47e9b278c6dd6d891465f80536d2ecbe2d7af039cd995f97098b91c18a697",
+    "src/dynamic_distillation/core_v3/parallel_colored_jacobian_v1.py": "8459e9deb6ce1be25d409a0b7d1d224e67b7ed153946cc58fd7b6740c59fc76b",
+    "src/dynamic_distillation/core_v3/colored_jacobian_v1.py": "d30f8439d26ca8859318c3091cca034320b6e147dd00afba4940abb6ecb541f9",
+    "src/dynamic_distillation/core_v3/vapor_holdup_implicit_residual_v1.py": "2b53dbd5dbe1c48934a0678387cde7cc0fef1c774b00b24f43df5b61945943b7"
+  },
+  "benchmark": {
+    "state": "DD-249 accepted full 0.25 s endpoint",
+    "matrix_shape": [
+      258,
+      258
+    ],
+    "color_count": 28,
+    "task_count": 56,
+    "difference_step": 1e-05,
+    "worker_count": 8,
+    "spawn_context": true,
+    "startup_ping_delay_sec": 0.15,
+    "matrix_absolute_limit": 1e-10,
+    "matrix_relative_limit": 1e-10,
+    "spectrum_relative_limit": 1e-08,
+    "rank": 258,
+    "condition_limit": 100000000.0,
+    "parallel_time_ratio_limit": 0.75,
+    "logical_call_limit_each": 20000,
+    "wall_clock_limit_sec": 180.0
+  },
+  "hard_stops": [
+    "a source or implementation hash changes",
+    "workers do not own isolated provider instances",
+    "the serial and parallel matrices differ outside the frozen numerical limits",
+    "rank, condition, provider ownership, call, or wall gates fail",
+    "eight workers do not reduce matrix wall time by at least 25 percent",
+    "a solve, state advance, controller, or trajectory occurs"
+  ],
+  "property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false,
+  "trajectory_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "e5d441e8fb0a0d9de25ad006ef61cc44b2aaf5455c8184d075a03db26e70f915"
+}

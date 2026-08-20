@@ -1,0 +1,12 @@
+{
+  "schema_id": "dd261-core-v3-c3c4-vapor-holdup-thirty-second-recovery-v1",
+  "contract_payload_sha256": "24808c50ac573dca1e7983b217830157db7e380816b167e85ad9fd28012fc60f",
+  "status": "complete",
+  "completed_endpoint_count": 120,
+  "last_time_sec": 30.0,
+  "journal_file_count": 39,
+  "result_path": "logs/dd261_core_v3_c3c4_vapor_holdup_thirty_second_resume_20260820.json",
+  "evidence_path": "logs/dd261_core_v3_c3c4_vapor_holdup_thirty_second_resume_20260820.npz",
+  "result_sha256": "7a56f99d24a8e13eda9192d7b38a7a4c5eab8eab5ca08bedcf4f4ef14a8e23b3",
+  "evidence_sha256": "705e8a66b2767d2b7852eef0e31569138bda4a557e377457dee83b39e59b933a"
+}

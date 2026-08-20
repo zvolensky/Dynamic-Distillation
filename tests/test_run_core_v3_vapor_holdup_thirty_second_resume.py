@@ -35,3 +35,21 @@ def test_dd261_saved_contract_is_a_journaled_continuation_not_a_rerun():
     assert saved["trajectory"]["final_time_sec"] == 30.0
     assert saved["reporting"]["immutable_unique_endpoint_journal"]
     assert not saved["reporting"]["single_live_recovery_replacement"]
+
+
+def test_dd261_result_is_complete_and_only_the_aggregate_balance_formula_failed():
+    saved = json.loads((dd261.ROOT / dd261.RESULT).read_text(encoding="utf-8"))
+
+    assert not saved["pass_gate"]
+    assert len(saved["prior_endpoint_reports"]) == 81
+    assert len(saved["continuation_endpoint_reports"]) == 39
+    assert len(saved["journal_files"]) == 39
+    assert not saved["gates"]["component_identity"]
+    assert not saved["gates"]["energy_identity"]
+    assert all(
+        value
+        for name, value in saved["gates"].items()
+        if name not in {"component_identity", "energy_identity"}
+    )
+    assert all(saved["refinement_gates"].values())
+    assert all(saved["continuity_gates"].values())

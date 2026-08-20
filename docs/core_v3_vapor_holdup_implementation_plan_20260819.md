@@ -527,6 +527,12 @@ is not accepted. Do not tune the threshold or add fixed-refresh schedules. One
 standard Broyden-update experiment is the final low-cost reuse option before a
 larger derivative or nonlinear-solver redesign.
 
+DD-256 freezes the standard good-Broyden update with no tuning choices. One
+finite-difference matrix is built at the start of each root; later matrix
+requests use only the observed coordinate and residual changes. The unchanged
+DD-254 endpoint reference and DD-255 efficiency gates decide the result. This
+is the final bounded low-cost reuse test.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

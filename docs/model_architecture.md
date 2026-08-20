@@ -2642,3 +2642,10 @@ standard rank-one Broyden secant update whenever SciPy requests a later matrix
 inside the same root. The update uses already evaluated root coordinates and
 residuals, performs no finite-difference property calls, and is reset from a
 fresh full matrix at every new time endpoint.
+
+DD-256 freezes this as the final inexpensive reuse test. It applies the
+standard good-Broyden rank-one formula to the scaled residual and transformed
+coordinates at each later Jacobian request. The latest secant relation is
+checked directly, and each new endpoint root starts again from a complete live
+finite-difference matrix. No damping, periodic refresh, alternate update, or
+cross-root matrix memory is permitted. Failure closes this optimization path.

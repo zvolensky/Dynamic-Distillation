@@ -2852,5 +2852,15 @@ level rises toward setpoint while D falls to `2501.18 lbmol/h`; the sump level
 falls toward setpoint while B rises to `4820.04 lbmol/h`. Conservation,
 continuity, local refinement, provider ownership, and physical product-bound
 checks all pass. This accepts the controlled vapor-holdup architecture through
-30 seconds, while leaving longer horizons and controller tuning as separate
-future decisions.
+30 seconds only for inventory, level-control, hydraulic, conservation, and
+timestep behavior under the inherited fixed `220.44 psia` top-pressure anchor.
+It does not validate reflux-drum pressure dynamics.
+
+DD-272 defines the pressure-dynamic structural successor. The
+`P[reflux_drum]-P_anchor=0` row is removed and replaced by
+`Q_C-Q_C_specified=0`. Condenser duty remains coupled to the reflux-drum total
+energy balance, while absolute pressure becomes an outcome of conserved vapor
+inventory, temperature, EOS free-volume closure, and vapor pressure-drop
+hydraulics. The C3/C4 system remains `262 x 262` and structurally full rank; a
+generic two-component construction also passes. This is a structural result
+only, and no pressure-dynamic timestep is yet accepted.

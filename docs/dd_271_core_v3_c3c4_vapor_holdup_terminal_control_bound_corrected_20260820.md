@@ -12,3 +12,12 @@
 - Wall clock: `136.129 s`
 - Gates: `{'source_replay_parity': True, 'new_endpoints': True, 'nominal_complete': True, 'refinement_complete': True, 'drum_level_monotonic_toward_setpoint': True, 'sump_level_monotonic_toward_setpoint': True, 'distillate_monotonic': True, 'bottoms_monotonic': True, 'component_identity_nominal': True, 'component_identity_refined': True, 'energy_identity_nominal': True, 'energy_identity_refined': True, 'continuity': True, 'controller_aware_refinement_identity': True, 'refinement': True, 'provider': True, 'calls': True, 'wall': True, 'product_outputs_within_contract_bounds': True, 'one_fresh_jacobian_per_new_root': True, 'journals_complete': True, 'no_retry_or_alternate': True}`
 - Retry, alternate grid, tuning change, parallel worker, or extension: `False`
+
+## Scope correction
+
+The reflux-drum pressure remained fixed at `220.44 psia` through the entire
+trajectory because the inherited pressure-anchor equation was still active.
+DD-271 therefore validates vapor/liquid inventory integration, terminal level
+control, hydraulics, conservation, and local timestep refinement only under a
+fixed top-pressure boundary. It does not validate reflux-drum pressure dynamics
+or condenser-duty pressure control.

@@ -711,6 +711,17 @@ D/B are `2501.182520/4820.038284 lbmol/h`; drum/sump levels are
 incorrect short-test bound. Controlled vapor-holdup dynamics are now accepted
 through 30 seconds without tuning.
 
+That acceptance excludes pressure dynamics. DD-271 retained the fixed
+`220.44 psia` reflux-drum pressure anchor, so it validates inventories, level
+controllers, hydraulics, conservation, and timestep behavior only under a fixed
+top-pressure boundary.
+
+DD-272 begins the pressure-dynamic successor. It replaces the pressure anchor
+one-for-one with a specified condenser-duty equation while retaining `Q_C` in
+the top energy balance. The C3/C4 system remains `262 x 262` and full rank, and
+the generic two-component construction also passes. A live fixed-duty residual
+and Jacobian audit is required before any pressure-dynamic timestep.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

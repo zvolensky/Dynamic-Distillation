@@ -429,7 +429,8 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 - [x] Pass stationary hold and refined moving-step gates (`DD-248` and `DD-249`).
 - [x] Run a short open-loop trajectory before adding controllers (`DD-250`).
 - [x] Qualify a persistent parallel Jacobian path (`DD-251`).
-- [ ] Integrate and qualify the persistent parallel path across repeated vapor-holdup steps (`DD-254`).
+- [x] Integrate and qualify the persistent parallel path across repeated vapor-holdup steps; rejected on trajectory speed (`DD-254`).
+- [ ] Reduce repeated finite-difference Jacobian builds without changing the accepted dynamic equations.
 
 The stationary initializer solves distillate and bottoms rates so the reflux
 drum and sump remain at their geometry-derived target inventories. This is not
@@ -504,6 +505,13 @@ the next reference basis. Passing proves that parallelism survives repeated
 state handoff and gives a meaningful trajectory-level wall-time benefit. It
 does not solve the remaining call-count problem; that requires fewer Jacobian
 builds or a derivative strategy change after DD-254.
+
+DD-254 preserves the science exactly but rejects the persistent pool: four
+parallel steps take `31.04 s` after startup versus `27.17 s` serial, despite
+identical work and endpoints. The dominant cost is now explicit: 25 Jacobian
+builds account for 168,000 of 174,480 calls. Stop process-parallel variants.
+Test one fresh Jacobian held fixed within each endpoint root before considering
+automatic differentiation or a different nonlinear solver.
 
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 

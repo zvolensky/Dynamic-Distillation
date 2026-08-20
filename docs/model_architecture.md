@@ -2606,3 +2606,17 @@ one-time startup is reported separately and must remain small enough that the
 complete one-second benchmark is not slower by more than 25%. This gate does
 not reduce property-call count and does not authorize controllers or a longer
 physical trajectory.
+
+DD-254 executes once and rejects the persistent-parallel trajectory on
+performance alone. The serial and parallel paths are bit-for-bit identical at
+all four accepted endpoints, including all 25 Jacobians, while both perform
+exactly 174,480 logical property calls. Parallel dispatch takes `31.04 s`
+after startup versus `27.17 s` serial, and adjusted pool startup adds `9.02 s`.
+The persistent parallel path is therefore not adopted for this successor.
+
+The call ledger makes the next target unambiguous: 25 Jacobian builds consume
+168,000 of 174,480 calls. Further worker-count, scheduling, or startup variants
+are out of scope. A bounded modified-Newton experiment may instead compute one
+fresh full-rank Jacobian per endpoint root and hold it fixed only during that
+root. It must reproduce the accepted DD-254 endpoint and conservation evidence
+without loosening the physical or residual gates.

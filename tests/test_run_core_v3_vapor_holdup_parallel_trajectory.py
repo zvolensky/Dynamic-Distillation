@@ -33,3 +33,21 @@ def test_dd254_saved_contract_freezes_persistent_parallel_trajectory():
     assert saved["trajectory"]["persistent_pool_count"] == 1
     assert saved["trajectory"]["color_count"] == 28
     assert saved["limits"]["parallel_trajectory_time_ratio"] == 0.75
+
+
+def test_dd254_saved_result_rejects_only_parallel_speed():
+    saved = json.loads((dd254.ROOT / dd254.RESULT).read_text(encoding="utf-8"))
+
+    assert not saved["pass_gate"]
+    assert saved["decision"] == "retain_serial_vapor_holdup_step_path"
+    assert not saved["gates"]["parallel_speed"]
+    assert not saved["gates"]["governed_speed"]
+    assert all(
+        passed
+        for gate, passed in saved["gates"].items()
+        if gate not in {"parallel_speed", "governed_speed"}
+    )
+    assert saved["comparison"]["serial_logical_work"] == 174480
+    assert saved["comparison"]["parallel_logical_work"] == 174480
+    assert max(saved["comparison"]["matrix_max_abs_differences"]) == 0.0
+    assert max(saved["comparison"]["coordinate_max_abs_differences"]) == 0.0

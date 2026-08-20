@@ -1,0 +1,671 @@
+{
+  "schema_id": "dd254-core-v3-c3c4-vapor-holdup-parallel-trajectory-result-v1",
+  "classification": "persistent_parallel_vapor_holdup_trajectory_failed",
+  "decision": "retain_serial_vapor_holdup_step_path",
+  "contract_commit": "51076423120af717d2042a707e16d2804a2d1b15",
+  "contract_payload_sha256": "57fe7d9bb5967c1d46854213e21cf6e5f580ab3d0f89f85cf44a1197e3a65000",
+  "serial": {
+    "wall_clock_sec": 27.168700400041416,
+    "endpoints": [
+      {
+        "index": 1,
+        "time_sec": 0.25,
+        "success": true,
+        "status": 3,
+        "nfev": 12,
+        "njev": 6,
+        "cost": 1.8480108175944473e-25,
+        "optimality": 1.2467927865989583e-11,
+        "scaled_residual_inf_norm": 3.9388325920803336e-13,
+        "jacobian_rank": 258,
+        "jacobian_condition": 11362294.382225621,
+        "maximum_fugacity_residual": 5.995204332975827e-15,
+        "maximum_eos_relative_residual": 1.5646551880993414e-15,
+        "physical_pass": true
+      },
+      {
+        "index": 2,
+        "time_sec": 0.5,
+        "success": true,
+        "status": 3,
+        "nfev": 15,
+        "njev": 7,
+        "cost": 3.9065881534000654e-25,
+        "optimality": 4.619736852191508e-11,
+        "scaled_residual_inf_norm": 5.145294030164488e-13,
+        "jacobian_rank": 258,
+        "jacobian_condition": 11362159.638977906,
+        "maximum_fugacity_residual": 5.6510351953422065e-14,
+        "maximum_eos_relative_residual": 4.7366679251894056e-15,
+        "physical_pass": true
+      },
+      {
+        "index": 3,
+        "time_sec": 0.75,
+        "success": true,
+        "status": 3,
+        "nfev": 13,
+        "njev": 5,
+        "cost": 8.886262584507945e-25,
+        "optimality": 6.554841304750306e-11,
+        "scaled_residual_inf_norm": 7.284391770990111e-13,
+        "jacobian_rank": 258,
+        "jacobian_condition": 11362079.370152934,
+        "maximum_fugacity_residual": 5.906386491006007e-14,
+        "maximum_eos_relative_residual": 4.736668011791937e-15,
+        "physical_pass": true
+      },
+      {
+        "index": 4,
+        "time_sec": 1.0,
+        "success": true,
+        "status": 3,
+        "nfev": 10,
+        "njev": 7,
+        "cost": 1.1772680734381959e-24,
+        "optimality": 3.627764428025059e-11,
+        "scaled_residual_inf_norm": 1.4380631104982762e-12,
+        "jacobian_rank": 258,
+        "jacobian_condition": 11362022.683949783,
+        "maximum_fugacity_residual": 4.218847493575586e-15,
+        "maximum_eos_relative_residual": 9.960832178878143e-16,
+        "physical_pass": true
+      }
+    ],
+    "response": {
+      "component_inventory_change_lbmol": [
+        0.0006613844419083303,
+        0.0011023096811069166,
+        0.00022046536708325527
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0006613844416875796,
+        0.0011023096812009371,
+        0.0002204653670541982
+      ],
+      "component_inventory_identity_max_abs_lbmol": 2.207507180523871e-13,
+      "total_inventory_change_lbmol": 0.0019841594900985022,
+      "expected_total_inventory_change_lbmol": 0.001984159489942715,
+      "stored_energy_change_BTU": -10.66184905017144,
+      "expected_stored_energy_change_BTU": -10.661849054548785,
+      "energy_identity_relative": 4.1056149702854456e-10
+    },
+    "main_provider_calls": 174480
+  },
+  "parallel": {
+    "wall_clock_sec": 31.03733600000851,
+    "endpoints": [
+      {
+        "index": 1,
+        "time_sec": 0.25,
+        "success": true,
+        "status": 3,
+        "nfev": 12,
+        "njev": 6,
+        "cost": 1.8480108175944473e-25,
+        "optimality": 1.2467927865989583e-11,
+        "scaled_residual_inf_norm": 3.9388325920803336e-13,
+        "jacobian_rank": 258,
+        "jacobian_condition": 11362294.382225621,
+        "maximum_fugacity_residual": 5.995204332975827e-15,
+        "maximum_eos_relative_residual": 1.5646551880993414e-15,
+        "physical_pass": true
+      },
+      {
+        "index": 2,
+        "time_sec": 0.5,
+        "success": true,
+        "status": 3,
+        "nfev": 15,
+        "njev": 7,
+        "cost": 3.9065881534000654e-25,
+        "optimality": 4.619736852191508e-11,
+        "scaled_residual_inf_norm": 5.145294030164488e-13,
+        "jacobian_rank": 258,
+        "jacobian_condition": 11362159.638977906,
+        "maximum_fugacity_residual": 5.6510351953422065e-14,
+        "maximum_eos_relative_residual": 4.7366679251894056e-15,
+        "physical_pass": true
+      },
+      {
+        "index": 3,
+        "time_sec": 0.75,
+        "success": true,
+        "status": 3,
+        "nfev": 13,
+        "njev": 5,
+        "cost": 8.886262584507945e-25,
+        "optimality": 6.554841304750306e-11,
+        "scaled_residual_inf_norm": 7.284391770990111e-13,
+        "jacobian_rank": 258,
+        "jacobian_condition": 11362079.370152934,
+        "maximum_fugacity_residual": 5.906386491006007e-14,
+        "maximum_eos_relative_residual": 4.736668011791937e-15,
+        "physical_pass": true
+      },
+      {
+        "index": 4,
+        "time_sec": 1.0,
+        "success": true,
+        "status": 3,
+        "nfev": 10,
+        "njev": 7,
+        "cost": 1.1772680734381959e-24,
+        "optimality": 3.627764428025059e-11,
+        "scaled_residual_inf_norm": 1.4380631104982762e-12,
+        "jacobian_rank": 258,
+        "jacobian_condition": 11362022.683949783,
+        "maximum_fugacity_residual": 4.218847493575586e-15,
+        "maximum_eos_relative_residual": 9.960832178878143e-16,
+        "physical_pass": true
+      }
+    ],
+    "response": {
+      "component_inventory_change_lbmol": [
+        0.0006613844419083303,
+        0.0011023096811069166,
+        0.00022046536708325527
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0006613844416875796,
+        0.0011023096812009371,
+        0.0002204653670541982
+      ],
+      "component_inventory_identity_max_abs_lbmol": 2.207507180523871e-13,
+      "total_inventory_change_lbmol": 0.0019841594900985022,
+      "expected_total_inventory_change_lbmol": 0.001984159489942715,
+      "stored_energy_change_BTU": -10.66184905017144,
+      "expected_stored_energy_change_BTU": -10.661849054548785,
+      "energy_identity_relative": 4.1056149702854456e-10
+    },
+    "main_provider_calls": 6480,
+    "worker_provider_calls": 168000
+  },
+  "comparison": {
+    "matrix_max_abs_differences": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "coordinate_max_abs_differences": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "residual_max_abs_differences": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "response_absolute_difference_lbmol": 0.0,
+    "serial_logical_work": 174480,
+    "parallel_logical_work": 174480,
+    "parallel_trajectory_time_ratio": 1.1423931046757465,
+    "parallel_trajectory_speedup": 0.8753554235464657,
+    "governed_time_ratio_including_startup": 1.4744833911868436
+  },
+  "parallel_jacobian_evidence": [
+    {
+      "root_epoch": "dd254:parallel:root_1",
+      "state_id": "dd254:parallel:root_1:jacobian:1",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 8,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_1",
+      "state_id": "dd254:parallel:root_1:jacobian:2",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_1",
+      "state_id": "dd254:parallel:root_1:jacobian:3",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_1",
+      "state_id": "dd254:parallel:root_1:jacobian:4",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_1",
+      "state_id": "dd254:parallel:root_1:jacobian:5",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_1",
+      "state_id": "dd254:parallel:root_1:jacobian:6",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_2",
+      "state_id": "dd254:parallel:root_2:jacobian:7",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 8,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_2",
+      "state_id": "dd254:parallel:root_2:jacobian:8",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_2",
+      "state_id": "dd254:parallel:root_2:jacobian:9",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_2",
+      "state_id": "dd254:parallel:root_2:jacobian:10",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_2",
+      "state_id": "dd254:parallel:root_2:jacobian:11",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_2",
+      "state_id": "dd254:parallel:root_2:jacobian:12",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_2",
+      "state_id": "dd254:parallel:root_2:jacobian:13",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_3",
+      "state_id": "dd254:parallel:root_3:jacobian:14",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 8,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_3",
+      "state_id": "dd254:parallel:root_3:jacobian:15",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_3",
+      "state_id": "dd254:parallel:root_3:jacobian:16",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_3",
+      "state_id": "dd254:parallel:root_3:jacobian:17",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_3",
+      "state_id": "dd254:parallel:root_3:jacobian:18",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_4",
+      "state_id": "dd254:parallel:root_4:jacobian:19",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 8,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_4",
+      "state_id": "dd254:parallel:root_4:jacobian:20",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_4",
+      "state_id": "dd254:parallel:root_4:jacobian:21",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_4",
+      "state_id": "dd254:parallel:root_4:jacobian:22",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_4",
+      "state_id": "dd254:parallel:root_4:jacobian:23",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_4",
+      "state_id": "dd254:parallel:root_4:jacobian:24",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    },
+    {
+      "root_epoch": "dd254:parallel:root_4",
+      "state_id": "dd254:parallel:root_4:jacobian:25",
+      "worker_ids": [
+        195784,
+        206780,
+        207432,
+        209012,
+        209148,
+        209412,
+        209656,
+        209916
+      ],
+      "basis_rebuilds": 0,
+      "logical_provider_calls": 6720
+    }
+  ],
+  "startup_process_ids": [
+    195784,
+    207432,
+    209012,
+    209148,
+    209412,
+    209656,
+    209916
+  ],
+  "startup_wall_sec_raw": 9.17246149998391,
+  "startup_wall_sec_adjusted": 9.02246149998391,
+  "total_wall_clock_sec": 76.59728830005042,
+  "gates": {
+    "paths_complete": true,
+    "scientific_endpoints": true,
+    "solver_decisions": true,
+    "jacobians_exact": true,
+    "coordinates_exact": true,
+    "residuals_exact": true,
+    "response_exact": true,
+    "component_identity": true,
+    "energy_identity": true,
+    "process_isolation": true,
+    "evolving_basis": true,
+    "provider": true,
+    "logical_work_parity": true,
+    "provider_calls": true,
+    "parallel_speed": false,
+    "governed_speed": false,
+    "wall_clock": true,
+    "no_retry_or_controller": true
+  },
+  "pass_gate": false,
+  "campaign_executed_once": true,
+  "retry_attempted": false,
+  "alternate_grid_attempted": false,
+  "controller_attempted": false,
+  "longer_trajectory_attempted": false
+}

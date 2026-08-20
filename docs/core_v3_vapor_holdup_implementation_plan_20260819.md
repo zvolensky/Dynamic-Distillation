@@ -429,7 +429,7 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 - [x] Pass stationary hold and refined moving-step gates (`DD-248` and `DD-249`).
 - [x] Run a short open-loop trajectory before adding controllers (`DD-250`).
 - [x] Qualify a persistent parallel Jacobian path (`DD-251`).
-- [ ] Integrate the qualified persistent parallel path into vapor-holdup stepping.
+- [ ] Integrate and qualify the persistent parallel path across repeated vapor-holdup steps (`DD-254`).
 
 The stationary initializer solves distillate and bottoms rates so the reflux
 drum and sump remain at their geometry-derived target inventories. This is not
@@ -496,6 +496,14 @@ DD-253 passes without live calls. Persistent parallel stepping is now
 authorized for a separately frozen trajectory. After integration, the next
 performance target is fewer Jacobian builds and nonlinear iterations, because
 parallel execution reduces wall time but not the 41,760-call root workload.
+
+DD-254 freezes four serial and four persistent-parallel `0.25 s` endpoints over
+the same one-second disturbed interval. One eight-worker pool remains alive
+across all roots, and every worker receives the complete accepted endpoint as
+the next reference basis. Passing proves that parallelism survives repeated
+state handoff and gives a meaningful trajectory-level wall-time benefit. It
+does not solve the remaining call-count problem; that requires fewer Jacobian
+builds or a derivative strategy change after DD-254.
 
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 

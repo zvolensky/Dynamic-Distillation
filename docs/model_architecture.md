@@ -2591,3 +2591,18 @@ and parallel total logical work are exactly equal at 41,760 calls. The
 solver-level parallel implementation is therefore accepted as exact and
 faster. One persistent-parallel trajectory may now be frozen. This decision
 does not claim that the remaining finite-difference call count is economical.
+
+DD-254 freezes that trajectory-level qualification. It repeats the accepted
+four-step nominal DD-250 path once serially and once with a single persistent
+eight-worker pool. At each accepted endpoint, the complete liquid inventory,
+vapor inventory, total energy, pressure, traffic, phase-transfer, temperature,
+and condenser-duty reference is handed to every worker for the next root. Only
+finite-difference perturbations run remotely; SciPy's residual evaluations,
+trust-region decisions, and state acceptance remain in the main process.
+
+Passing requires exact logical-work parity and equivalent scientific results,
+plus at least 25% lower trajectory wall after pool startup. The adjusted
+one-time startup is reported separately and must remain small enough that the
+complete one-second benchmark is not slower by more than 25%. This gate does
+not reduce property-call count and does not authorize controllers or a longer
+physical trajectory.

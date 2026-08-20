@@ -1,0 +1,82 @@
+{
+  "schema_id": "dd269-core-v3-c3c4-vapor-holdup-terminal-control-five-second-contract-v1",
+  "authorization": "DD-268 authorizes one separately frozen longer controlled trajectory",
+  "sources": {
+    "logs/dd267_core_v3_c3c4_vapor_holdup_terminal_control_short_trajectory_20260820.json": "6ccf0e29d94af93ec28ef98b5f0016b574146e8788d30b9742d8380a03eb1277",
+    "logs/dd267_core_v3_c3c4_vapor_holdup_terminal_control_short_trajectory_20260820.npz": "05a4e654cf2fdfe12c88b38420a65d24b07147f445c9b53b4410b0e0fdaf9722",
+    "logs/dd268_core_v3_c3c4_vapor_holdup_terminal_control_short_trajectory_adjudication_20260820.json": "9af89b814917c3d537e51f31c665334762e4d5b7be80763bcd04986a0560f468"
+  },
+  "implementation_sha256": {
+    "tools/run_core_v3_vapor_holdup_terminal_control_five_second_trajectory.py": "66d8021056488728faa8ffc947684659aed9f27a0a7c5936833c6d4bf4d5b77e",
+    "tools/run_core_v3_vapor_holdup_terminal_control_short_trajectory.py": "f14d409de03ce8954d710c9a0d62a698cb9d0e625482759b707c2cae0aee31ce",
+    "src/dynamic_distillation/core_v3/vapor_holdup_terminal_control_implicit_residual_v1.py": "624cf42116dbda15bf45b30bd71eb42d207f23b8c3d85c6748d912a3415505c5",
+    "src/dynamic_distillation/core_v3/vapor_holdup_implicit_residual_v1.py": "2b53dbd5dbe1c48934a0678387cde7cc0fef1c774b00b24f43df5b61945943b7",
+    "src/dynamic_distillation/core_v3/colored_jacobian_v1.py": "d30f8439d26ca8859318c3091cca034320b6e147dd00afba4940abb6ecb541f9"
+  },
+  "trajectory": {
+    "accepted_source_time_sec": 1.0,
+    "source_replay_steps": 4,
+    "nominal_continuation_steps": 16,
+    "nominal_step_sec": 0.25,
+    "nominal_final_time_sec": 5.0,
+    "refinement_start_sec": 4.75,
+    "refined_steps": 2,
+    "refined_step_sec": 0.125
+  },
+  "solver": {
+    "method": "least_squares_trf_one_fresh_jacobian_per_root",
+    "difference_step": 1e-05,
+    "expected_color_count": 16,
+    "x_scale": 1.0,
+    "ftol": 1e-11,
+    "xtol": 1e-11,
+    "gtol": 1e-11,
+    "max_nfev_per_root": 40,
+    "acceptance_basis": "residual and physical gates; SciPy termination status is reported"
+  },
+  "limits": {
+    "scaled_residual": 1e-08,
+    "controller_residual": 1e-10,
+    "rank": 262,
+    "condition": 100000000.0,
+    "component_identity_lbmol": 1e-06,
+    "controller_aware_refinement_identity_lbmol": 1e-06,
+    "maximum_step_temperature_F": 0.01,
+    "maximum_step_pressure_psia": 0.01,
+    "maximum_step_composition": 0.0001,
+    "maximum_step_flow_relative": 0.001,
+    "maximum_step_phase_inventory_relative": 0.001,
+    "maximum_step_duty_relative": 0.001,
+    "maximum_step_product_relative": 0.001,
+    "refinement_component_l1_lbmol": 0.0005,
+    "refinement_temperature_F": 0.0001,
+    "refinement_pressure_psia": 0.0001,
+    "refinement_flow_relative": 0.0001,
+    "refinement_phase_transfer_scaled": 0.001,
+    "refinement_duty_relative": 0.0001,
+    "refinement_level_fraction": 1e-06,
+    "refinement_product_relative": 1e-05,
+    "logical_provider_calls": 150000,
+    "wall_clock_sec": 180.0
+  },
+  "energy_identity": {
+    "volume_count": 20,
+    "energy_residual_scale_BTUph": 54706000.0,
+    "aggregate_bound_from_scaled_residual": true
+  },
+  "hard_stops": [
+    "the saved one-second source cannot be replayed exactly enough to continue",
+    "any new endpoint exceeds a residual, rank, condition, physical, controller, or continuity limit",
+    "level or product direction reverses while the corresponding level error retains its sign",
+    "component or residual-consistent energy conservation fails",
+    "nominal/refined inventory difference is not explained by integrated boundary histories",
+    "a non-inventory refinement limit fails",
+    "more than one Jacobian is built in any new root",
+    "a retry, alternate grid, tuning change, fallback, parallel worker, or extension occurs"
+  ],
+  "property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "trajectory_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "a818e2c85622d7ad80da1726805eea55234e486543f46324d0c8f406aa36ddd2"
+}

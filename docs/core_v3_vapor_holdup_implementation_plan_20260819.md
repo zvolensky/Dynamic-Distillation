@@ -661,6 +661,14 @@ controlled trajectory is scientifically accepted. The next contract may extend
 the controlled horizon while retaining immutable endpoint journals, one fresh
 Jacobian per root, controller-aware conservation/refinement, and no tuning.
 
+DD-269 freezes that extension at five simulated seconds. It replays the saved
+one-second path without solving, advances 16 new quarter-second roots, and
+repeats the final interval with two eighth-second roots. The controller-aware
+boundary-integration identity replaces the fixed-boundary aggregate inventory
+test from the outset. Eighteen immutable endpoint journals and a complete final
+profile are required. Controller tuning and a longer horizon remain outside the
+contract.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

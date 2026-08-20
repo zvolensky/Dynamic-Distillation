@@ -26,3 +26,14 @@ def test_dd256_saved_contract_freezes_broyden_update():
     assert saved["method"]["parallel_workers"] == 0
     assert saved["trajectory"]["steps_per_path"] == 4
     assert saved["limits"]["coordinate_absolute_difference"] == 1.0e-9
+
+
+def test_dd256_saved_result_records_abort_without_state_advance():
+    saved = json.loads((dd256.ROOT / dd256.RESULT).read_text(encoding="utf-8"))
+
+    assert not saved["pass_gate"]
+    assert saved["decision"] == "retire_low_cost_jacobian_reuse"
+    assert saved["accepted_endpoint_count"] == 0
+    assert not saved["state_advance_accepted"]
+    assert not saved["retry_attempted"]
+    assert saved["failure"]["exception_type"] == "RuntimeError"

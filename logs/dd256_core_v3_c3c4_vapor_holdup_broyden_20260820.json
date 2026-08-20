@@ -1,0 +1,24 @@
+{
+  "schema_id": "dd256-core-v3-c3c4-vapor-holdup-broyden-result-v1",
+  "classification": "broyden_vapor_holdup_trajectory_aborted_before_endpoint",
+  "decision": "retire_low_cost_jacobian_reuse",
+  "contract_commit": "cb01432",
+  "failure": {
+    "exception_type": "RuntimeError",
+    "message": "DD-256 Broyden coordinate step is too small",
+    "mechanism": "SciPy requested a later Jacobian at unchanged coordinates, leaving no nonzero secant for the frozen mandatory update",
+    "contract_hard_stop": "a root skips a requested secant update"
+  },
+  "campaign_executed_once": true,
+  "result_metrics_available": false,
+  "accepted_endpoint_count": 0,
+  "state_advance_accepted": false,
+  "retry_attempted": false,
+  "implementation_changed_after_failure": false,
+  "alternate_update_attempted": false,
+  "damping_or_reset_attempted": false,
+  "parallel_worker_attempted": false,
+  "controller_attempted": false,
+  "longer_trajectory_attempted": false,
+  "pass_gate": false
+}

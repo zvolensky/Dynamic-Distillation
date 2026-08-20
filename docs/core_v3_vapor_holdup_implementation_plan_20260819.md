@@ -431,7 +431,8 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 - [x] Qualify a persistent parallel Jacobian path (`DD-251`).
 - [x] Integrate and qualify the persistent parallel path across repeated vapor-holdup steps; rejected on trajectory speed (`DD-254`).
 - [x] Test one fresh Jacobian per root; scientifically clean but rejected by the frozen endpoint-equivalence gate (`DD-255`).
-- [ ] Test one fresh Jacobian plus no-property-call secant updates within each root.
+- [x] Test one fresh Jacobian plus secant updates; aborted on a same-coordinate callback and retired (`DD-256`).
+- [ ] Choose between the accepted slower serial dynamics and a separately scoped derivative/solver redesign.
 
 The stationary initializer solves distillate and bottoms rates so the reflux
 drum and sump remain at their geometry-derived target inventories. This is not
@@ -532,6 +533,13 @@ finite-difference matrix is built at the start of each root; later matrix
 requests use only the observed coordinate and residual changes. The unchanged
 DD-254 endpoint reference and DD-255 efficiency gates decide the result. This
 is the final bounded low-cost reuse test.
+
+DD-256 stops before an endpoint when SciPy requests another Jacobian at the
+same point and the mandatory secant has zero length. The no-skip hard stop is
+applied, so there is no corrected Broyden rerun. The accepted full-refresh
+serial solver is retained. The next project decision is whether to spend the
+known wall time on a modest physical trajectory or begin a separate derivative
+and nonlinear-solver redesign.
 
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 

@@ -2649,3 +2649,15 @@ coordinates at each later Jacobian request. The latest secant relation is
 checked directly, and each new endpoint root starts again from a complete live
 finite-difference matrix. No damping, periodic refresh, alternate update, or
 cross-root matrix memory is permitted. Failure closes this optimization path.
+
+DD-256 aborts before accepting an endpoint because SciPy requests a later
+Jacobian at the same coordinate vector. The corresponding secant denominator
+is zero, and the frozen contract does not permit silently reusing the matrix,
+resetting it, or changing formulas. The campaign is not rerun. This is an
+interface mismatch between the chosen Broyden callback and SciPy's trust-region
+request sequence, not evidence against the physical residual.
+
+The reliable dynamic path remains DD-254's serial full-refresh solver. Further
+performance work must change the derivative infrastructure or nonlinear solver
+as an explicit architecture project; it must not continue as refresh-schedule
+or Broyden variants.

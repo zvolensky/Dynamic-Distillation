@@ -2814,3 +2814,19 @@ path difference is explained by the different integrated D/B histories to
 about `3.45e-11 lbmol`, and every non-inventory refinement metric passes. The
 one-second controlled architecture is scientifically accepted; a longer run
 still requires a new frozen contract.
+
+DD-269 extends the same controlled architecture to five seconds without tuning.
+The saved first second is replayed to reconstruct the continuation basis, then
+16 new quarter-second roots and two final eighth-second refinement roots are
+solved. Every new root uses one fresh 16-color Jacobian, remains rank 262 and
+physical, and closes below `1.61e-12`. Distillate falls smoothly to
+`2516.657110 lbmol/h`; bottoms rises to `4658.612086 lbmol/h`. Drum level rises
+to `0.440778910` and sump level falls to `0.523297543`, both toward the 50%
+setpoints. Component and controller-aware refinement identities close below
+`3.44e-11` and `2.92e-13 lbmol`.
+
+The five-second campaign requires 101,160 DWSIM calls and `29.187 s` wall, or
+`0.137` newly simulated seconds per wall second. This is still expensive, but
+it is practical enough for bounded development trajectories. Five-second
+controlled dynamics are accepted; longer operation and any controller tuning
+remain separate decisions.

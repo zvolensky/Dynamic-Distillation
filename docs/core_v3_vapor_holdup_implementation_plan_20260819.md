@@ -669,6 +669,16 @@ test from the outset. Eighteen immutable endpoint journals and a complete final
 profile are required. Controller tuning and a longer horizon remain outside the
 contract.
 
+DD-269 passes all 16 new nominal roots, both refined roots, and every physical,
+control, conservation, continuity, provider, journal, call, and wall gate. At
+five seconds, D/B are `2516.657110/4658.612086 lbmol/h`; drum/sump levels are
+`0.440778910/0.523297543`, still moving smoothly toward 50%. The final residual
+is `1.27e-12`, and controller-aware refinement closes to `2.92e-13 lbmol`.
+Execution takes 101,160 calls and `29.187 s`. Five-second controlled dynamics
+are accepted. The next bounded extension should target a materially longer
+horizon without changing tuning, retaining one fresh Jacobian per root and
+immutable journals.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

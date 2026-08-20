@@ -1,0 +1,1996 @@
+{
+  "schema_id": "dd269-core-v3-c3c4-vapor-holdup-terminal-control-five-second-result-v1",
+  "classification": "vapor_holdup_terminal_control_five_second_passed",
+  "decision": "authorize_separately_frozen_extended_controlled_trajectory_contract",
+  "contract_commit": "4b3e35ce645f7d309513da0609ade8506e60d32f",
+  "contract_payload_sha256": "a818e2c85622d7ad80da1726805eea55234e486543f46324d0c8f406aa36ddd2",
+  "source_replay_parity": {
+    "distillate_lbmolph": 0.0,
+    "bottoms_lbmolph": 0.0,
+    "level_fraction": 0.0
+  },
+  "nominal_endpoints": [
+    {
+      "index": 1,
+      "time_sec": 0.25,
+      "source_from_dd265_dd266": true,
+      "scaled_residual_inf_norm": 4.220186714902158e-10,
+      "level_fraction": [
+        0.44077866257450454,
+        0.523315120557669
+      ],
+      "distillate_lbmolph": 2519.6082684395155,
+      "bottoms_lbmolph": 4625.003901595657
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 14,
+      "njev": 9,
+      "function_calls_observed": 46,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 5.385942526007371e-13,
+      "controller_residual_inf_norm": 4.773959005888173e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11422542.129672997,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 4.87890977618477e-18,
+      "level_fraction": [
+        0.44077866727781256,
+        0.5233149455378826
+      ],
+      "controller_memory_endpoint": [
+        0.029487292187712264,
+        -0.1857445009472193
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467555530091142,
+        0.0015543297025254672
+      ],
+      "product_log_ratio": [
+        -0.00012337417338142636,
+        0.0007750633558454016
+      ],
+      "distillate_lbmolph": 2519.452847325593,
+      "bottoms_lbmolph": 4626.794967804852,
+      "index": 2,
+      "time_sec": 0.5
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 1,
+      "scipy_message": "`gtol` termination condition is satisfied.",
+      "nfev": 8,
+      "njev": 8,
+      "function_calls_observed": 40,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 7.551908275133007e-13,
+      "controller_residual_inf_norm": 3.4416913763379853e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11422588.676384216,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 7.589415207398531e-19,
+      "level_fraction": [
+        0.4407786738925691,
+        0.5233146846221465
+      ],
+      "controller_memory_endpoint": [
+        0.029425603306350356,
+        -0.18535592287018354
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467555254476281,
+        0.0015543123081430696
+      ],
+      "product_log_ratio": [
+        -0.0001850597473650116,
+        0.001161554106984808
+      ],
+      "distillate_lbmolph": 2519.2974382238804,
+      "bottoms_lbmolph": 4628.583526875833,
+      "index": 3,
+      "time_sec": 0.75
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 9,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 1.1697456480898647e-12,
+      "controller_residual_inf_norm": 1.0547118733938987e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11422671.054044224,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 3.415236843329339e-18,
+      "level_fraction": [
+        0.44077868213183136,
+        0.5233143384462194
+      ],
+      "controller_memory_endpoint": [
+        0.029363914433571014,
+        -0.18496735056274655
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675549111736973,
+        0.0015542892297479712
+      ],
+      "product_log_ratio": [
+        -0.00024674450051335745,
+        0.001547357007010019
+      ],
+      "distillate_lbmolph": 2519.142040776172,
+      "bottoms_lbmolph": 4630.369592335973,
+      "index": 4,
+      "time_sec": 1.0
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 9,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 7.547959171198982e-13,
+      "controller_residual_inf_norm": 7.13318293321663e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11422768.776442155,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 3.957337929572091e-18,
+      "level_fraction": [
+        0.440778691752343,
+        0.523313907605884
+      ],
+      "controller_memory_endpoint": [
+        0.029302225570813037,
+        -0.18457878543598183
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467554510319031,
+        0.0015542605070588847
+      ],
+      "product_log_ratio": [
+        -0.00030842855301538763,
+        0.001932475411083293
+      ],
+      "distillate_lbmolph": 2518.9866546787403,
+      "bottoms_lbmolph": 4632.153176307105,
+      "index": 5,
+      "time_sec": 1.25
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 14,
+      "njev": 10,
+      "function_calls_observed": 46,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 3.800718307359811e-13,
+      "controller_residual_inf_norm": 8.18789480661053e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11422884.865778422,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.2522535092207576e-17,
+      "level_fraction": [
+        0.44077870254395557,
+        0.5233133926267505
+      ],
+      "controller_memory_endpoint": [
+        0.029240536719296325,
+        -0.18419022889220268
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675540606685227,
+        0.0015542261751166299
+      ],
+      "product_log_ratio": [
+        -0.0003701120087259459,
+        0.0023169121217929316
+      ],
+      "distillate_lbmolph": 2518.831279669074,
+      "bottoms_lbmolph": 4633.934288378205,
+      "index": 6,
+      "time_sec": 1.5
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 7,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 1.1603653472341429e-12,
+      "controller_residual_inf_norm": 3.552713678800501e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423015.555174276,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.8431436932253575e-18,
+      "level_fraction": [
+        0.44077871432581395,
+        0.5233127939756794
+      ],
+      "controller_memory_endpoint": [
+        0.029178847880052382,
+        -0.18380168232594135
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467553569757758,
+        0.0015541862650453246
+      ],
+      "product_log_ratio": [
+        -0.00043179495704071463,
+        0.002700669479497591
+      ],
+      "distillate_lbmolph": 2518.675915521145,
+      "bottoms_lbmolph": 4635.712936019221,
+      "index": 7,
+      "time_sec": 1.75
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 8,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 5.315234269367312e-13,
+      "controller_residual_inf_norm": 8.770761894538737e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423158.836584719,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.3173056395698879e-17,
+      "level_fraction": [
+        0.44077872694251374,
+        0.5233121120695353
+      ],
+      "controller_memory_endpoint": [
+        0.029117159053950833,
+        -0.18341314712478246
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467553044061923,
+        0.0015541408046356147
+      ],
+      "product_log_ratio": [
+        -0.0004934774747922433,
+        0.003083749431491304
+      ],
+      "distillate_lbmolph": 2518.5205620406214,
+      "bottoms_lbmolph": 4637.489124897662,
+      "index": 8,
+      "time_sec": 2.0
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 10,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 4.713654664605033e-13,
+      "controller_residual_inf_norm": 2.1649348980190553e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423312.895406125,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 6.613633252161577e-18,
+      "level_fraction": [
+        0.44077874026063946,
+        0.5233113472823039
+      ],
+      "controller_memory_endpoint": [
+        0.029055470241722333,
+        -0.1830246246700774
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675524891400267,
+        0.001554089818820241
+      ],
+      "product_log_ratio": [
+        -0.000555159627957987,
+        0.0034661535883515207
+      ],
+      "distillate_lbmolph": 2518.3652190605567,
+      "bottoms_lbmolph": 4639.262859136475,
+      "index": 9,
+      "time_sec": 2.25
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 8,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 4.197854874330443e-13,
+      "controller_residual_inf_norm": 4.6629367034256575e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423476.188377146,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 6.993104012531504e-18,
+      "level_fraction": [
+        0.44077875416574297,
+        0.5233104999511237
+      ],
+      "controller_memory_endpoint": [
+        0.028993781443978316,
+        -0.18263611633755866
+      ],
+      "controller_rate_per_sec": [
+        -0.000246755190976072,
+        0.0015540333300749496
+      ],
+      "product_log_ratio": [
+        -0.0006168414731503258,
+        0.0038478832714353038
+      ],
+      "distillate_lbmolph": 2518.2098864376276,
+      "bottoms_lbmolph": 4641.03414153146,
+      "index": 10,
+      "time_sec": 2.5
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 7,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 5.629542444591935e-13,
+      "controller_residual_inf_norm": 6.189493362285248e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423647.364236573,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.8973538018496328e-18,
+      "level_fraction": [
+        0.4407787685597233,
+        0.5233095703814177
+      ],
+      "controller_memory_endpoint": [
+        0.028932092661228027,
+        -0.18224762349786838
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467551310011518,
+        0.0015539713587611268
+      ],
+      "product_log_ratio": [
+        -0.0006785230589101876,
+        0.004228939553466839
+      ],
+      "distillate_lbmolph": 2518.054564048871,
+      "bottoms_lbmolph": 4642.802973737122,
+      "index": 11,
+      "time_sec": 2.75
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 14,
+      "njev": 9,
+      "function_calls_observed": 46,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 5.673124241671153e-13,
+      "controller_residual_inf_norm": 1.942890293094024e-16,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423825.339006426,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.0679391398982219e-17,
+      "level_fraction": [
+        0.44077878335857873,
+        0.5233085588513228
+      ],
+      "controller_memory_endpoint": [
+        0.028870403893893212,
+        -0.18185914751701301
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675506933925524,
+        0.0015539039234215163
+      ],
+      "product_log_ratio": [
+        -0.0007402044268174166,
+        0.0046093232935689515
+      ],
+      "distillate_lbmolph": 2517.8992517888805,
+      "bottoms_lbmolph": 4644.569356427158,
+      "index": 12,
+      "time_sec": 3.0
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 8,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 7.928099197382221e-13,
+      "controller_residual_inf_norm": 6.106226635438361e-16,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424009.08128343,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 3.144186300207963e-18,
+      "level_fraction": [
+        0.44077879849045154,
+        0.5233074656155051
+      ],
+      "controller_memory_endpoint": [
+        0.028808715142320765,
+        -0.1814706897567546
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467550062897856,
+        0.0015538310410336694
+      ],
+      "product_log_ratio": [
+        -0.0008018856124535122,
+        0.004989035167285736
+      ],
+      "distillate_lbmolph": 2517.74394956738,
+      "bottoms_lbmolph": 4646.333289432054,
+      "index": 13,
+      "time_sec": 3.25
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 7,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 1.851465491032463e-12,
+      "controller_residual_inf_norm": 1.1657341758564144e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424197.783552976,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 6.830473686658678e-18,
+      "level_fraction": [
+        0.4407788138939546,
+        0.5233062909084308
+      ],
+      "controller_memory_endpoint": [
+        0.028747026406793635,
+        -0.18108225157494742
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467549421085236,
+        0.0015537527272287128
+      ],
+      "product_log_ratio": [
+        -0.0008635666462292012,
+        0.005368075692498129
+      ],
+      "distillate_lbmolph": 2517.588657307131,
+      "bottoms_lbmolph": 4648.094771857914,
+      "index": 14,
+      "time_sec": 3.5
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 7,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 4.182700046792958e-13,
+      "controller_residual_inf_norm": 1.3600232051658168e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424390.686098434,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.0137290312739466e-17,
+      "level_fraction": [
+        0.4407788295167263,
+        0.523305034947206
+      ],
+      "controller_memory_endpoint": [
+        0.028685337687540224,
+        -0.18069383432582733
+      ],
+      "controller_rate_per_sec": [
+        -0.000246754877013639,
+        0.0015536689964803913
+      ],
+      "product_log_ratio": [
+        -0.0009252475540964475,
+        0.005746445251819613
+      ],
+      "distillate_lbmolph": 2517.43337494214,
+      "bottoms_lbmolph": 4649.853802189206,
+      "index": 15,
+      "time_sec": 3.75
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 8,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 3.6826618531938053e-13,
+      "controller_residual_inf_norm": 1.6375789613221059e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424587.182048202,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 2.1141942363467336e-18,
+      "level_fraction": [
+        0.4407788453141827,
+        0.5233036979340014
+      ],
+      "controller_memory_endpoint": [
+        0.028623648984742497,
+        -0.18030543936026064
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467548111909053,
+        0.0015535798622667767
+      ],
+      "product_log_ratio": [
+        -0.0009869283581661413,
+        0.0061241441117525575
+      ],
+      "distillate_lbmolph": 2517.278102416098,
+      "bottoms_lbmolph": 4651.6103783766775,
+      "index": 16,
+      "time_sec": 4.0
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 8,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 1.5416592552937072e-12,
+      "controller_residual_inf_norm": 2.609024107869118e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424786.729079623,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 2.0057740190981832e-18,
+      "level_fraction": [
+        0.44077886124844445,
+        0.5233022800581655
+      ],
+      "controller_memory_endpoint": [
+        0.028561960298542962,
+        -0.1799170680259579
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467547447981472,
+        0.0015534853372110105
+      ],
+      "product_log_ratio": [
+        -0.001048609077234706,
+        0.006501172439363346
+      ],
+      "distillate_lbmolph": 2517.122839681053,
+      "bottoms_lbmolph": 4653.364497913933,
+      "index": 17,
+      "time_sec": 4.25
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 1,
+      "scipy_message": "`gtol` termination condition is satisfied.",
+      "nfev": 10,
+      "njev": 9,
+      "function_calls_observed": 42,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 2.130613616779945e-13,
+      "controller_residual_inf_norm": 1.6375789613221059e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424988.837882398,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 7.697835424647081e-18,
+      "level_fraction": [
+        0.44077887728741316,
+        0.5233007814980231
+      ],
+      "controller_memory_endpoint": [
+        0.028500271629050684,
+        -0.17952872166765751
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467546779691119,
+        0.0015533854332015237
+      ],
+      "product_log_ratio": [
+        -0.0011102897272427447,
+        0.006877530316525351
+      ],
+      "distillate_lbmolph": 2516.9675866962534,
+      "bottoms_lbmolph": 4655.116157902869,
+      "index": 18,
+      "time_sec": 4.5
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 14,
+      "njev": 10,
+      "function_calls_observed": 46,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 2.7120703499753426e-13,
+      "controller_residual_inf_norm": 5.551115123125783e-16,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11425193.116159948,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.1817803680091998e-17,
+      "level_fraction": [
+        0.4407788934039692,
+        0.5232992024224412
+      ],
+      "controller_memory_endpoint": [
+        0.028438582976346483,
+        -0.1791404016272835
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675461081679695,
+        0.0015532801614960763
+      ],
+      "product_log_ratio": [
+        -0.0011719703216690794,
+        0.007253217752245663
+      ],
+      "distillate_lbmolph": 2516.812343427152,
+      "bottoms_lbmolph": 4656.865355110346,
+      "index": 19,
+      "time_sec": 4.75
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 7,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 1.2678217156575862e-12,
+      "controller_residual_inf_norm": 3.247402347028583e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11425399.242462082,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 6.179952383167375e-18,
+      "level_fraction": [
+        0.4407789095752894,
+        0.5232975429921715
+      ],
+      "controller_memory_endpoint": [
+        0.02837689434048741,
+        -0.17875210924408064
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675454343629256,
+        0.0015531695328114578
+      ],
+      "product_log_ratio": [
+        -0.0012336508718676976,
+        0.007628234693294296
+      ],
+      "distillate_lbmolph": 2516.6571098445584,
+      "bottoms_lbmolph": 4658.612086017063,
+      "index": 20,
+      "time_sec": 5.0
+    }
+  ],
+  "new_endpoint_reports": [
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 9,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 7.547959171198982e-13,
+      "controller_residual_inf_norm": 7.13318293321663e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11422768.776442155,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 3.957337929572091e-18,
+      "level_fraction": [
+        0.440778691752343,
+        0.523313907605884
+      ],
+      "controller_memory_endpoint": [
+        0.029302225570813037,
+        -0.18457878543598183
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467554510319031,
+        0.0015542605070588847
+      ],
+      "product_log_ratio": [
+        -0.00030842855301538763,
+        0.001932475411083293
+      ],
+      "distillate_lbmolph": 2518.9866546787403,
+      "bottoms_lbmolph": 4632.153176307105,
+      "index": 5,
+      "time_sec": 1.25
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 14,
+      "njev": 10,
+      "function_calls_observed": 46,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 3.800718307359811e-13,
+      "controller_residual_inf_norm": 8.18789480661053e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11422884.865778422,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.2522535092207576e-17,
+      "level_fraction": [
+        0.44077870254395557,
+        0.5233133926267505
+      ],
+      "controller_memory_endpoint": [
+        0.029240536719296325,
+        -0.18419022889220268
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675540606685227,
+        0.0015542261751166299
+      ],
+      "product_log_ratio": [
+        -0.0003701120087259459,
+        0.0023169121217929316
+      ],
+      "distillate_lbmolph": 2518.831279669074,
+      "bottoms_lbmolph": 4633.934288378205,
+      "index": 6,
+      "time_sec": 1.5
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 7,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 1.1603653472341429e-12,
+      "controller_residual_inf_norm": 3.552713678800501e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423015.555174276,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.8431436932253575e-18,
+      "level_fraction": [
+        0.44077871432581395,
+        0.5233127939756794
+      ],
+      "controller_memory_endpoint": [
+        0.029178847880052382,
+        -0.18380168232594135
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467553569757758,
+        0.0015541862650453246
+      ],
+      "product_log_ratio": [
+        -0.00043179495704071463,
+        0.002700669479497591
+      ],
+      "distillate_lbmolph": 2518.675915521145,
+      "bottoms_lbmolph": 4635.712936019221,
+      "index": 7,
+      "time_sec": 1.75
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 8,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 5.315234269367312e-13,
+      "controller_residual_inf_norm": 8.770761894538737e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423158.836584719,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.3173056395698879e-17,
+      "level_fraction": [
+        0.44077872694251374,
+        0.5233121120695353
+      ],
+      "controller_memory_endpoint": [
+        0.029117159053950833,
+        -0.18341314712478246
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467553044061923,
+        0.0015541408046356147
+      ],
+      "product_log_ratio": [
+        -0.0004934774747922433,
+        0.003083749431491304
+      ],
+      "distillate_lbmolph": 2518.5205620406214,
+      "bottoms_lbmolph": 4637.489124897662,
+      "index": 8,
+      "time_sec": 2.0
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 10,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 4.713654664605033e-13,
+      "controller_residual_inf_norm": 2.1649348980190553e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423312.895406125,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 6.613633252161577e-18,
+      "level_fraction": [
+        0.44077874026063946,
+        0.5233113472823039
+      ],
+      "controller_memory_endpoint": [
+        0.029055470241722333,
+        -0.1830246246700774
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675524891400267,
+        0.001554089818820241
+      ],
+      "product_log_ratio": [
+        -0.000555159627957987,
+        0.0034661535883515207
+      ],
+      "distillate_lbmolph": 2518.3652190605567,
+      "bottoms_lbmolph": 4639.262859136475,
+      "index": 9,
+      "time_sec": 2.25
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 8,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 4.197854874330443e-13,
+      "controller_residual_inf_norm": 4.6629367034256575e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423476.188377146,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 6.993104012531504e-18,
+      "level_fraction": [
+        0.44077875416574297,
+        0.5233104999511237
+      ],
+      "controller_memory_endpoint": [
+        0.028993781443978316,
+        -0.18263611633755866
+      ],
+      "controller_rate_per_sec": [
+        -0.000246755190976072,
+        0.0015540333300749496
+      ],
+      "product_log_ratio": [
+        -0.0006168414731503258,
+        0.0038478832714353038
+      ],
+      "distillate_lbmolph": 2518.2098864376276,
+      "bottoms_lbmolph": 4641.03414153146,
+      "index": 10,
+      "time_sec": 2.5
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 7,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 5.629542444591935e-13,
+      "controller_residual_inf_norm": 6.189493362285248e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423647.364236573,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.8973538018496328e-18,
+      "level_fraction": [
+        0.4407787685597233,
+        0.5233095703814177
+      ],
+      "controller_memory_endpoint": [
+        0.028932092661228027,
+        -0.18224762349786838
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467551310011518,
+        0.0015539713587611268
+      ],
+      "product_log_ratio": [
+        -0.0006785230589101876,
+        0.004228939553466839
+      ],
+      "distillate_lbmolph": 2518.054564048871,
+      "bottoms_lbmolph": 4642.802973737122,
+      "index": 11,
+      "time_sec": 2.75
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 14,
+      "njev": 9,
+      "function_calls_observed": 46,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 5.673124241671153e-13,
+      "controller_residual_inf_norm": 1.942890293094024e-16,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11423825.339006426,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.0679391398982219e-17,
+      "level_fraction": [
+        0.44077878335857873,
+        0.5233085588513228
+      ],
+      "controller_memory_endpoint": [
+        0.028870403893893212,
+        -0.18185914751701301
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675506933925524,
+        0.0015539039234215163
+      ],
+      "product_log_ratio": [
+        -0.0007402044268174166,
+        0.0046093232935689515
+      ],
+      "distillate_lbmolph": 2517.8992517888805,
+      "bottoms_lbmolph": 4644.569356427158,
+      "index": 12,
+      "time_sec": 3.0
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 8,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 7.928099197382221e-13,
+      "controller_residual_inf_norm": 6.106226635438361e-16,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424009.08128343,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 3.144186300207963e-18,
+      "level_fraction": [
+        0.44077879849045154,
+        0.5233074656155051
+      ],
+      "controller_memory_endpoint": [
+        0.028808715142320765,
+        -0.1814706897567546
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467550062897856,
+        0.0015538310410336694
+      ],
+      "product_log_ratio": [
+        -0.0008018856124535122,
+        0.004989035167285736
+      ],
+      "distillate_lbmolph": 2517.74394956738,
+      "bottoms_lbmolph": 4646.333289432054,
+      "index": 13,
+      "time_sec": 3.25
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 7,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 1.851465491032463e-12,
+      "controller_residual_inf_norm": 1.1657341758564144e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424197.783552976,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 6.830473686658678e-18,
+      "level_fraction": [
+        0.4407788138939546,
+        0.5233062909084308
+      ],
+      "controller_memory_endpoint": [
+        0.028747026406793635,
+        -0.18108225157494742
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467549421085236,
+        0.0015537527272287128
+      ],
+      "product_log_ratio": [
+        -0.0008635666462292012,
+        0.005368075692498129
+      ],
+      "distillate_lbmolph": 2517.588657307131,
+      "bottoms_lbmolph": 4648.094771857914,
+      "index": 14,
+      "time_sec": 3.5
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 7,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 4.182700046792958e-13,
+      "controller_residual_inf_norm": 1.3600232051658168e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424390.686098434,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.0137290312739466e-17,
+      "level_fraction": [
+        0.4407788295167263,
+        0.523305034947206
+      ],
+      "controller_memory_endpoint": [
+        0.028685337687540224,
+        -0.18069383432582733
+      ],
+      "controller_rate_per_sec": [
+        -0.000246754877013639,
+        0.0015536689964803913
+      ],
+      "product_log_ratio": [
+        -0.0009252475540964475,
+        0.005746445251819613
+      ],
+      "distillate_lbmolph": 2517.43337494214,
+      "bottoms_lbmolph": 4649.853802189206,
+      "index": 15,
+      "time_sec": 3.75
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 8,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 3.6826618531938053e-13,
+      "controller_residual_inf_norm": 1.6375789613221059e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424587.182048202,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 2.1141942363467336e-18,
+      "level_fraction": [
+        0.4407788453141827,
+        0.5233036979340014
+      ],
+      "controller_memory_endpoint": [
+        0.028623648984742497,
+        -0.18030543936026064
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467548111909053,
+        0.0015535798622667767
+      ],
+      "product_log_ratio": [
+        -0.0009869283581661413,
+        0.0061241441117525575
+      ],
+      "distillate_lbmolph": 2517.278102416098,
+      "bottoms_lbmolph": 4651.6103783766775,
+      "index": 16,
+      "time_sec": 4.0
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 8,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 1.5416592552937072e-12,
+      "controller_residual_inf_norm": 2.609024107869118e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424786.729079623,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 2.0057740190981832e-18,
+      "level_fraction": [
+        0.44077886124844445,
+        0.5233022800581655
+      ],
+      "controller_memory_endpoint": [
+        0.028561960298542962,
+        -0.1799170680259579
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467547447981472,
+        0.0015534853372110105
+      ],
+      "product_log_ratio": [
+        -0.001048609077234706,
+        0.006501172439363346
+      ],
+      "distillate_lbmolph": 2517.122839681053,
+      "bottoms_lbmolph": 4653.364497913933,
+      "index": 17,
+      "time_sec": 4.25
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 1,
+      "scipy_message": "`gtol` termination condition is satisfied.",
+      "nfev": 10,
+      "njev": 9,
+      "function_calls_observed": 42,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 2.130613616779945e-13,
+      "controller_residual_inf_norm": 1.6375789613221059e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11424988.837882398,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 7.697835424647081e-18,
+      "level_fraction": [
+        0.44077887728741316,
+        0.5233007814980231
+      ],
+      "controller_memory_endpoint": [
+        0.028500271629050684,
+        -0.17952872166765751
+      ],
+      "controller_rate_per_sec": [
+        -0.0002467546779691119,
+        0.0015533854332015237
+      ],
+      "product_log_ratio": [
+        -0.0011102897272427447,
+        0.006877530316525351
+      ],
+      "distillate_lbmolph": 2516.9675866962534,
+      "bottoms_lbmolph": 4655.116157902869,
+      "index": 18,
+      "time_sec": 4.5
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 14,
+      "njev": 10,
+      "function_calls_observed": 46,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 2.7120703499753426e-13,
+      "controller_residual_inf_norm": 5.551115123125783e-16,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11425193.116159948,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 1.1817803680091998e-17,
+      "level_fraction": [
+        0.4407788934039692,
+        0.5232992024224412
+      ],
+      "controller_memory_endpoint": [
+        0.028438582976346483,
+        -0.1791404016272835
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675461081679695,
+        0.0015532801614960763
+      ],
+      "product_log_ratio": [
+        -0.0011719703216690794,
+        0.007253217752245663
+      ],
+      "distillate_lbmolph": 2516.812343427152,
+      "bottoms_lbmolph": 4656.865355110346,
+      "index": 19,
+      "time_sec": 4.75
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 12,
+      "njev": 7,
+      "function_calls_observed": 44,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 1.2678217156575862e-12,
+      "controller_residual_inf_norm": 3.247402347028583e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 11425399.242462082,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 6.179952383167375e-18,
+      "level_fraction": [
+        0.4407789095752894,
+        0.5232975429921715
+      ],
+      "controller_memory_endpoint": [
+        0.02837689434048741,
+        -0.17875210924408064
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675454343629256,
+        0.0015531695328114578
+      ],
+      "product_log_ratio": [
+        -0.0012336508718676976,
+        0.007628234693294296
+      ],
+      "distillate_lbmolph": 2516.6571098445584,
+      "bottoms_lbmolph": 4658.612086017063,
+      "index": 20,
+      "time_sec": 5.0
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 31,
+      "njev": 16,
+      "function_calls_observed": 63,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 5.763189925455752e-11,
+      "controller_residual_inf_norm": 6.5780714209040525e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 45504265.659292035,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 7.94178091345632e-18,
+      "level_fraction": [
+        0.44077890148635845,
+        0.5232983927749848
+      ],
+      "controller_memory_endpoint": [
+        0.02840773865420396,
+        -0.17894624835415865
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675457714017405,
+        0.0015532261849989318
+      ],
+      "product_log_ratio": [
+        -0.0012028106026164818,
+        0.007440893845713215
+      ],
+      "distillate_lbmolph": 2516.7347254242754,
+      "bottoms_lbmolph": 4657.73941942592,
+      "index": 1,
+      "time_sec": 4.875
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 9,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 2.107011274713238e-12,
+      "controller_residual_inf_norm": 3.9968028886505635e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 45504285.33499532,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 7.860465750519907e-18,
+      "level_fraction": [
+        0.4407789095665063,
+        0.5232975630361492
+      ],
+      "controller_memory_endpoint": [
+        0.02837689433626985,
+        -0.17875210199552408
+      ],
+      "controller_rate_per_sec": [
+        -0.000246754543472892,
+        0.001553170869076644
+      ],
+      "product_log_ratio": [
+        -0.0012336508804771877,
+        0.00762840229367318
+      ],
+      "distillate_lbmolph": 2516.657109822891,
+      "bottoms_lbmolph": 4658.61286680228,
+      "index": 2,
+      "time_sec": 5.0
+    }
+  ],
+  "refined_endpoints": [
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 31,
+      "njev": 16,
+      "function_calls_observed": 63,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 5.763189925455752e-11,
+      "controller_residual_inf_norm": 6.5780714209040525e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 45504265.659292035,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 7.94178091345632e-18,
+      "level_fraction": [
+        0.44077890148635845,
+        0.5232983927749848
+      ],
+      "controller_memory_endpoint": [
+        0.02840773865420396,
+        -0.17894624835415865
+      ],
+      "controller_rate_per_sec": [
+        -0.00024675457714017405,
+        0.0015532261849989318
+      ],
+      "product_log_ratio": [
+        -0.0012028106026164818,
+        0.007440893845713215
+      ],
+      "distillate_lbmolph": 2516.7347254242754,
+      "bottoms_lbmolph": 4657.73941942592,
+      "index": 1,
+      "time_sec": 4.875
+    },
+    {
+      "scipy_success": true,
+      "scipy_status": 3,
+      "scipy_message": "`xtol` termination condition is satisfied.",
+      "nfev": 13,
+      "njev": 9,
+      "function_calls_observed": 45,
+      "jacobian_build_count": 1,
+      "color_count": 16,
+      "scaled_residual_inf_norm": 2.107011274713238e-12,
+      "controller_residual_inf_norm": 3.9968028886505635e-15,
+      "jacobian_rank": 262,
+      "jacobian_condition": 45504285.33499532,
+      "physical_pass": true,
+      "controller_memory_recurrence_error": 7.860465750519907e-18,
+      "level_fraction": [
+        0.4407789095665063,
+        0.5232975630361492
+      ],
+      "controller_memory_endpoint": [
+        0.02837689433626985,
+        -0.17875210199552408
+      ],
+      "controller_rate_per_sec": [
+        -0.000246754543472892,
+        0.001553170869076644
+      ],
+      "product_log_ratio": [
+        -0.0012336508804771877,
+        0.00762840229367318
+      ],
+      "distillate_lbmolph": 2516.657109822891,
+      "bottoms_lbmolph": 4658.61286680228,
+      "index": 2,
+      "time_sec": 5.0
+    }
+  ],
+  "nominal_response": {
+    "actual_component_change_lbmol": [
+      0.001068706907400907,
+      -0.020280034672495617,
+      -0.004450413646141276
+    ],
+    "expected_component_change_lbmol": [
+      0.0010687069015827533,
+      -0.02028003463818591,
+      -0.004450413634176671
+    ],
+    "component_identity_max_abs_lbmol": 3.4309707852564486e-11,
+    "actual_energy_change_BTU": 96.40989977348363,
+    "expected_energy_change_BTU": 96.4098978356391,
+    "energy_identity_absolute_BTU": 1.9378445301754255e-06
+  },
+  "refined_response": {
+    "actual_component_change_lbmol": [
+      0.0010674155577150568,
+      -0.020256361028156533,
+      -0.004445217112458469
+    ],
+    "expected_component_change_lbmol": [
+      0.0010674155516048405,
+      -0.020256360993843953,
+      -0.0044452171004894575
+    ],
+    "component_identity_max_abs_lbmol": 3.4312580554640704e-11,
+    "actual_energy_change_BTU": 96.29000770149287,
+    "expected_energy_change_BTU": 96.29000576675132,
+    "energy_identity_absolute_BTU": 1.934741547415797e-06
+  },
+  "energy_identity_bound_BTU": 0.015196111111111112,
+  "continuity": {
+    "temperature_F": 2.7043889218703043e-05,
+    "pressure_psia": 1.7836230227885608e-05,
+    "composition": 2.9937322909567854e-07,
+    "flow_relative": 1.8442098274354008e-05,
+    "phase_inventory_relative": 3.180698707744259e-06,
+    "duty_relative": 1.7955315145725888e-05,
+    "product_relative": 0.00038795632411157786
+  },
+  "refinement": {
+    "component_max_lbmol": 2.1949689994471555e-05,
+    "component_l1_lbmol": 3.1973620654547966e-05,
+    "signed_total_lbmol": 2.757882833604071e-05,
+    "temperature_F": 4.5362793343883823e-07,
+    "pressure_psia": 2.7222682774663554e-08,
+    "flow_relative": 3.159579752551321e-08,
+    "phase_transfer_scaled": 2.5538012830757964e-08,
+    "duty_relative": 2.070824109356176e-07,
+    "level_fraction": 2.0043977699835125e-08,
+    "product_relative": 1.67600365049997e-07
+  },
+  "controller_aware_refinement_unexplained_component_lbmol": [
+    -2.920625980645797e-13,
+    2.8727020762175925e-15,
+    4.40619762898109e-15
+  ],
+  "controller_aware_refinement_unexplained_max_abs_lbmol": 2.920625980645797e-13,
+  "final_profile": [
+    {
+      "volume": "reflux_drum",
+      "temperature_F": 120.44647643287861,
+      "pressure_psia": 220.44,
+      "liquid_inventory_lbmol": 1388.9010711019173,
+      "vapor_inventory_lbmol": 138.50476644256918,
+      "liquid_flow_lbmolph": null,
+      "vapor_flow_lbmolph": null,
+      "liquid_mole_fraction": [
+        0.8795303497225574,
+        0.12042779880233954,
+        4.185147510310372e-05
+      ],
+      "vapor_mole_fraction": [
+        0.9460594689149954,
+        0.05393091774751245,
+        9.613337492286319e-06
+      ]
+    },
+    {
+      "volume": "rectifying_volume_1",
+      "temperature_F": 129.94544131647174,
+      "pressure_psia": 220.48766931124916,
+      "liquid_inventory_lbmol": 38.031643589165675,
+      "vapor_inventory_lbmol": 49.26521758861081,
+      "liquid_flow_lbmolph": 5659.619494213056,
+      "vapor_flow_lbmolph": 8470.065157746667,
+      "liquid_mole_fraction": [
+        0.7548480792907082,
+        0.24498716618389874,
+        0.00016475452539316788
+      ],
+      "vapor_mole_fraction": [
+        0.8795312988047588,
+        0.12042685030213342,
+        4.185089310790691e-05
+      ]
+    },
+    {
+      "volume": "rectifying_volume_2",
+      "temperature_F": 141.0365235488554,
+      "pressure_psia": 220.53696244974086,
+      "liquid_inventory_lbmol": 34.29430574699413,
+      "vapor_inventory_lbmol": 12.749860627854138,
+      "liquid_flow_lbmolph": 5439.114661282285,
+      "vapor_flow_lbmolph": 8177.25722706092,
+      "liquid_mole_fraction": [
+        0.6223064522392774,
+        0.3772502371474164,
+        0.00044331061330617726
+      ],
+      "vapor_mole_fraction": [
+        0.7932587841670947,
+        0.2066143238004621,
+        0.00012689203244311772
+      ]
+    },
+    {
+      "volume": "rectifying_volume_3",
+      "temperature_F": 151.4100803165693,
+      "pressure_psia": 220.58611118517024,
+      "liquid_inventory_lbmol": 33.363072966718384,
+      "vapor_inventory_lbmol": 12.531733230043038,
+      "liquid_flow_lbmolph": 5314.455743466604,
+      "vapor_flow_lbmolph": 7956.796485423666,
+      "liquid_mole_fraction": [
+        0.509647624075462,
+        0.4893642740341036,
+        0.000988101890434421
+      ],
+      "vapor_mole_fraction": [
+        0.7037431041357123,
+        0.29594068668664114,
+        0.0003162091776465433
+      ]
+    },
+    {
+      "volume": "rectifying_volume_4",
+      "temperature_F": 159.43448955831641,
+      "pressure_psia": 220.63555669008272,
+      "liquid_inventory_lbmol": 32.785965303788295,
+      "vapor_inventory_lbmol": 12.376486599961812,
+      "liquid_flow_lbmolph": 5257.672792231654,
+      "vapor_flow_lbmolph": 7832.161658336763,
+      "liquid_mole_fraction": [
+        0.4291903403802754,
+        0.5688475051066443,
+        0.001962154513080334
+      ],
+      "vapor_mole_fraction": [
+        0.6286150875733492,
+        0.3707011587333657,
+        0.0006837536932851105
+      ]
+    },
+    {
+      "volume": "rectifying_volume_5",
+      "temperature_F": 164.88231164681346,
+      "pressure_psia": 220.68533920106304,
+      "liquid_inventory_lbmol": 32.39051691049869,
+      "vapor_inventory_lbmol": 12.282867381664222,
+      "liquid_flow_lbmolph": 5233.414793101981,
+      "vapor_flow_lbmolph": 7775.386501890208,
+      "liquid_mole_fraction": [
+        0.37782848288352494,
+        0.6185381710149209,
+        0.003633346101554026
+      ],
+      "vapor_mole_fraction": [
+        0.5750931883215752,
+        0.4235668047480145,
+        0.0013400069304102876
+      ]
+    },
+    {
+      "volume": "rectifying_volume_6",
+      "temperature_F": 168.34479748321965,
+      "pressure_psia": 220.73546898256367,
+      "liquid_inventory_lbmol": 32.17725521011575,
+      "vapor_inventory_lbmol": 12.224616538197047,
+      "liquid_flow_lbmolph": 5219.696214764008,
+      "vapor_flow_lbmolph": 7751.127035646229,
+      "liquid_mole_fraction": [
+        0.3469905452858678,
+        0.6465526715111882,
+        0.006456783202943949
+      ],
+      "vapor_mole_fraction": [
+        0.5408802783416858,
+        0.4566536028210544,
+        0.0024661188372596178
+      ]
+    },
+    {
+      "volume": "rectifying_volume_7",
+      "temperature_F": 170.55737799449784,
+      "pressure_psia": 220.78583934053475,
+      "liquid_inventory_lbmol": 32.03898261355028,
+      "vapor_inventory_lbmol": 12.187752164786623,
+      "liquid_flow_lbmolph": 5205.483743884782,
+      "vapor_flow_lbmolph": 7737.402401207719,
+      "liquid_mole_fraction": [
+        0.32886094776176583,
+        0.6599404678889922,
+        0.011198584349241954
+      ],
+      "vapor_mole_fraction": [
+        0.5203713665816139,
+        0.4752603830867994,
+        0.004368250331586612
+      ]
+    },
+    {
+      "volume": "rectifying_volume_8",
+      "temperature_F": 172.12913074095437,
+      "pressure_psia": 220.8362886834313,
+      "liquid_inventory_lbmol": 31.889489513551958,
+      "vapor_inventory_lbmol": 12.162919315589294,
+      "liquid_flow_lbmolph": 5184.182336725938,
+      "vapor_flow_lbmolph": 7723.181870172214,
+      "liquid_mole_fraction": [
+        0.3179243777478979,
+        0.6629490765096748,
+        0.01912654574242724
+      ],
+      "vapor_mole_fraction": [
+        0.5084741186544837,
+        0.48396631797712186,
+        0.007559563368394552
+      ]
+    },
+    {
+      "volume": "rectifying_volume_9",
+      "temperature_F": 173.53117045050848,
+      "pressure_psia": 220.88666829936923,
+      "liquid_inventory_lbmol": 31.68697537067204,
+      "vapor_inventory_lbmol": 12.141111749462613,
+      "liquid_flow_lbmolph": 5149.447484967299,
+      "vapor_flow_lbmolph": 7701.87209433616,
+      "liquid_mole_fraction": [
+        0.3105884204835268,
+        0.6571202985476571,
+        0.03229128096881616
+      ],
+      "vapor_mole_fraction": [
+        0.5016112528565952,
+        0.4855043183279257,
+        0.012884428815479099
+      ]
+    },
+    {
+      "volume": "rectifying_volume_10",
+      "temperature_F": 175.16995576500645,
+      "pressure_psia": 220.93687265488808,
+      "liquid_inventory_lbmol": 31.415034520934746,
+      "vapor_inventory_lbmol": 12.112303060229152,
+      "liquid_flow_lbmolph": 5092.964270039888,
+      "vapor_flow_lbmolph": 7667.130223429253,
+      "liquid_mole_fraction": [
+        0.30444901278328995,
+        0.6416648896474266,
+        0.05388609756928347
+      ],
+      "vapor_mole_fraction": [
+        0.4975175739182416,
+        0.4807868768963883,
+        0.0216955491853702
+      ]
+    },
+    {
+      "volume": "feed_tray",
+      "temperature_F": 177.476706507294,
+      "pressure_psia": 221.0119504056881,
+      "liquid_inventory_lbmol": 45.86962009267888,
+      "vapor_inventory_lbmol": 10.903368612534061,
+      "liquid_flow_lbmolph": 12218.662011283574,
+      "vapor_flow_lbmolph": 7610.642837324171,
+      "liquid_mole_fraction": [
+        0.29770038898732454,
+        0.6137667112564464,
+        0.0885328997562289
+      ],
+      "vapor_mole_fraction": [
+        0.4947980003339646,
+        0.46913773612900544,
+        0.03606426353702997
+      ]
+    },
+    {
+      "volume": "stripping_volume_1",
+      "temperature_F": 180.9801557887971,
+      "pressure_psia": 221.08759141287112,
+      "liquid_inventory_lbmol": 45.676746578780225,
+      "vapor_inventory_lbmol": 10.849988732576257,
+      "liquid_flow_lbmolph": 12239.664436567064,
+      "vapor_flow_lbmolph": 7593.350589231485,
+      "liquid_mole_fraction": [
+        0.2690546544530384,
+        0.6410488236199438,
+        0.08989652192701798
+      ],
+      "vapor_mole_fraction": [
+        0.4572102723132894,
+        0.5048465441016636,
+        0.03794318358504688
+      ]
+    },
+    {
+      "volume": "stripping_volume_2",
+      "temperature_F": 185.1769880042678,
+      "pressure_psia": 221.16428144664212,
+      "liquid_inventory_lbmol": 45.4995743883249,
+      "vapor_inventory_lbmol": 10.78494945431526,
+      "liquid_flow_lbmolph": 12277.010943972387,
+      "vapor_flow_lbmolph": 7614.329933749086,
+      "liquid_mole_fraction": [
+        0.23552657006367164,
+        0.6729854074393585,
+        0.09148802249696995
+      ],
+      "vapor_mole_fraction": [
+        0.4107365611909135,
+        0.5489894122801486,
+        0.040274026528937676
+      ]
+    },
+    {
+      "volume": "stripping_volume_3",
+      "temperature_F": 189.9335426496391,
+      "pressure_psia": 221.24224498417652,
+      "liquid_inventory_lbmol": 45.29292507373945,
+      "vapor_inventory_lbmol": 10.716230242082048,
+      "liquid_flow_lbmolph": 12334.258339994149,
+      "vapor_flow_lbmolph": 7651.6473352810635,
+      "liquid_mole_fraction": [
+        0.1985593145797601,
+        0.7080944307508287,
+        0.09334625466941125
+      ],
+      "vapor_mole_fraction": [
+        0.35626479427346525,
+        0.6006662030817936,
+        0.04306900264474109
+      ]
+    },
+    {
+      "volume": "stripping_volume_4",
+      "temperature_F": 195.01201598466443,
+      "pressure_psia": 221.31180550949207,
+      "liquid_inventory_lbmol": 53.46493231964824,
+      "vapor_inventory_lbmol": 12.087206736725975,
+      "liquid_flow_lbmolph": 12409.970965419823,
+      "vapor_flow_lbmolph": 7708.859291175385,
+      "liquid_mole_fraction": [
+        0.16032592671195092,
+        0.7439380249521764,
+        0.09573604833587258
+      ],
+      "vapor_mole_fraction": [
+        0.2962369823748822,
+        0.6573621762111777,
+        0.04640084141394013
+      ]
+    },
+    {
+      "volume": "stripping_volume_5",
+      "temperature_F": 200.15639686876435,
+      "pressure_psia": 221.38274485400646,
+      "liquid_inventory_lbmol": 53.16703219456449,
+      "vapor_inventory_lbmol": 12.014517279886176,
+      "liquid_flow_lbmolph": 12496.005182525418,
+      "vapor_flow_lbmolph": 7784.525301079003,
+      "liquid_mole_fraction": [
+        0.12324743952199808,
+        0.7771706015523921,
+        0.0995819589256098
+      ],
+      "vapor_mole_fraction": [
+        0.23435393880079416,
+        0.7149800835699498,
+        0.05066597762925604
+      ]
+    },
+    {
+      "volume": "stripping_volume_6",
+      "temperature_F": 205.22544702956176,
+      "pressure_psia": 221.45566564345685,
+      "liquid_inventory_lbmol": 53.199890814107924,
+      "vapor_inventory_lbmol": 11.917608626016648,
+      "liquid_flow_lbmolph": 12573.673741330558,
+      "vapor_flow_lbmolph": 7870.507670832342,
+      "liquid_mole_fraction": [
+        0.08938468334181565,
+        0.80310515828973,
+        0.10751015836845433
+      ],
+      "vapor_mole_fraction": [
+        0.17469259953196012,
+        0.7680445217363308,
+        0.057262878731709224
+      ]
+    },
+    {
+      "volume": "stripping_volume_7",
+      "temperature_F": 210.42175111911124,
+      "pressure_psia": 221.52993081679242,
+      "liquid_inventory_lbmol": 52.76526245353931,
+      "vapor_inventory_lbmol": 11.850439681098804,
+      "liquid_flow_lbmolph": 12608.705806718577,
+      "vapor_flow_lbmolph": 7948.123191223353,
+      "liquid_mole_fraction": [
+        0.06002843150599333,
+        0.8137325261919995,
+        0.12623904230200705
+      ],
+      "vapor_mole_fraction": [
+        0.12063595346991736,
+        0.8091492801838123,
+        0.07021476634627037
+      ]
+    },
+    {
+      "volume": "combined_reboiler_sump",
+      "temperature_F": 216.66273172566818,
+      "pressure_psia": 221.55525504476975,
+      "liquid_inventory_lbmol": 793.9734452234634,
+      "vapor_inventory_lbmol": 73.97843538531487,
+      "liquid_flow_lbmolph": null,
+      "vapor_flow_lbmolph": 7983.108702361513,
+      "liquid_mole_fraction": [
+        0.03564217274428431,
+        0.7927111292678106,
+        0.17164669798790505
+      ],
+      "vapor_mole_fraction": [
+        0.07414544952339615,
+        0.8259031518215184,
+        0.09995139865508544
+      ]
+    }
+  ],
+  "component_names": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "provider": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {
+      "declared_liquid_density": "aligned_pr"
+    },
+    "total_calls": 101160,
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true,
+    "grouped_record_summary": [
+      {
+        "provider_interface": "aligned_pr.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "quantity": "liquid_density",
+        "group_count": 16420,
+        "call_count": 16420
+      },
+      {
+        "provider_interface": "aligned_pr.declared_liquid_density",
+        "evaluation_kind": "residual",
+        "quantity": "liquid_density",
+        "group_count": 440,
+        "call_count": 440
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "quantity": "phase_enthalpy",
+        "group_count": 16420,
+        "call_count": 32840
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "residual",
+        "quantity": "phase_enthalpy",
+        "group_count": 440,
+        "call_count": 880
+      },
+      {
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "evaluation_kind": "jacobian",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 16420,
+        "call_count": 16420
+      },
+      {
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "evaluation_kind": "residual",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 440,
+        "call_count": 440
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "condenser_bubble_equilibrium",
+        "group_count": 821,
+        "call_count": 1642
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "stage_fugacity_equilibrium",
+        "group_count": 15599,
+        "call_count": 31198
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "quantity": "condenser_bubble_equilibrium",
+        "group_count": 22,
+        "call_count": 44
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "quantity": "stage_fugacity_equilibrium",
+        "group_count": 418,
+        "call_count": 836
+      }
+    ]
+  },
+  "logical_provider_calls": 101160,
+  "wall_clock_sec": 29.18747980002081,
+  "simulation_wall_ratio": 0.13704506272573586,
+  "gates": {
+    "source_replay_parity": true,
+    "new_endpoints": true,
+    "nominal_complete": true,
+    "refinement_complete": true,
+    "drum_level_monotonic_toward_setpoint": true,
+    "sump_level_monotonic_toward_setpoint": true,
+    "distillate_monotonic": true,
+    "bottoms_monotonic": true,
+    "component_identity_nominal": true,
+    "component_identity_refined": true,
+    "energy_identity_nominal": true,
+    "energy_identity_refined": true,
+    "continuity": true,
+    "controller_aware_refinement_identity": true,
+    "refinement": true,
+    "provider": true,
+    "calls": true,
+    "wall": true,
+    "one_fresh_jacobian_per_new_root": true,
+    "journals_complete": true,
+    "no_retry_or_alternate": true
+  },
+  "pass_gate": true,
+  "campaign_executed_once": true,
+  "retry_attempted": false,
+  "alternate_grid_attempted": false,
+  "tuning_change_attempted": false,
+  "parallel_worker_attempted": false,
+  "longer_trajectory_attempted": false
+}

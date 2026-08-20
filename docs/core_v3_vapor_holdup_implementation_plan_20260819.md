@@ -679,6 +679,16 @@ are accepted. The next bounded extension should target a materially longer
 horizon without changing tuning, retaining one fresh Jacobian per root and
 immutable journals.
 
+## DD-270 Thirty-Second Controlled Continuation
+
+DD-270 is the bounded duration test authorized by DD-269. It replays the 20
+saved nominal endpoints through five seconds without solving, then advances
+exactly 100 additional `0.25 s` roots to 30 seconds. The last interval is also
+resolved as two `0.125 s` roots. Controller parameters and every physical and
+numerical setting remain unchanged. Each new root receives one fresh 16-color
+Jacobian, and all 102 new roots must be journaled before any longer controlled
+horizon or tuning work can be considered.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

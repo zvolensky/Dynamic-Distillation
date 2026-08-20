@@ -734,6 +734,12 @@ machine precision. The accepted endpoint condenser duty is
 `-50.894826 MMBTU/h`. A separately frozen 30-second fixed-duty
 pressure-dynamic continuation is now authorized.
 
+DD-274 freezes that single continuation. It starts from the accepted DD-271
+handoff, fixes condenser duty at `-50.894826 MMBTU/h`, retains the drum and sump
+geometry-based level controllers, and leaves pressure control off. The nominal
+path is 120 steps of `0.25 s`, followed by a two-half-step refinement of the
+last interval. No retry or alternate run is authorized.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

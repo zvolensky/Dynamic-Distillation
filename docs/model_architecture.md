@@ -2870,3 +2870,10 @@ handoff. Two finite-difference Jacobians remain rank 262 with condition about
 `1.07e7`, and the new duty-specification row has its exact unit derivative.
 The handoff condenser duty is `-50.894826 MMBTU/h`. No root is solved, but one
 separately frozen 30-second pressure-dynamic continuation is authorized.
+
+DD-274 freezes the first pressure-dynamic trajectory. Condenser duty replaces
+the former absolute-pressure specification and remains fixed at the DD-271
+handoff value. Consequently, reflux-drum pressure is now an outcome of the
+conserved vapor and energy states, EOS closure, and the top vapor-link pressure
+drop. Both terminal level controllers remain active; no pressure controller is
+present in this diagnostic run.

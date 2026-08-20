@@ -1,0 +1,78 @@
+{
+  "schema_id": "dd274-core-v3-c3c4-vapor-holdup-dynamic-pressure-thirty-second-contract-v1",
+  "authorization": "DD-273 authorizes one frozen thirty-second fixed-duty pressure-dynamic trajectory",
+  "sources": {
+    "logs/dd273_core_v3_vapor_holdup_dynamic_pressure_residual_20260820.json": "dc198941f10106508cf2b2671d8a8fe9c6e7c2b1a9ce4b65393a6e6052605c06",
+    "logs/dd273_core_v3_vapor_holdup_dynamic_pressure_residual_20260820.npz": "09181809787ea984ec708b90cfb4cd188fe132de650b9ee75a404188bc0ae64d",
+    "logs/dd271_core_v3_c3c4_vapor_holdup_terminal_control_bound_corrected_20260820.json": "1a68a5cb8aeac962d5f851d149c7a6e2f13b4ff0846329ebc5132fa30fdc7045",
+    "logs/dd271_core_v3_c3c4_vapor_holdup_terminal_control_bound_corrected_20260820.npz": "7674173ebf1a95452262cb1d3a7bf7aefb6969d862f9de502c975614038285ab"
+  },
+  "implementation_sha256": {
+    "tools/run_core_v3_vapor_holdup_dynamic_pressure_thirty_second_trajectory.py": "73eafe0452f29bbd9741e5e355766b097d6e2a82c17ed2ad91128eb5e9e49d3b",
+    "tools/audit_core_v3_vapor_holdup_dynamic_pressure_residual.py": "46528b53f1946155082dae2d944bcef93519d341210d26f3d35508994a00b17b",
+    "src/dynamic_distillation/core_v3/vapor_holdup_dynamic_pressure_contract_v1.py": "465877602443c382294a18e3b26c2fe1ab802681680d4a0c9bafb30a0e149799",
+    "src/dynamic_distillation/core_v3/vapor_holdup_dynamic_pressure_implicit_residual_v1.py": "9407a5dbc79adbae0a614a50a8190ba2d9003ffc71834172a0c7c86328de8a78",
+    "src/dynamic_distillation/core_v3/vapor_holdup_terminal_control_implicit_residual_v1.py": "624cf42116dbda15bf45b30bd71eb42d207f23b8c3d85c6748d912a3415505c5"
+  },
+  "trajectory": {
+    "accepted_handoff": "DD-271 endpoint at 30 seconds",
+    "nominal_steps": 120,
+    "nominal_step_sec": 0.25,
+    "nominal_final_time_sec": 30.0,
+    "refinement_start_sec": 29.75,
+    "refined_steps": 2,
+    "refined_step_sec": 0.125,
+    "specified_condenser_duty_BTUph": -50894825.691564746,
+    "pressure_controller_active": false,
+    "terminal_level_controllers_active": true
+  },
+  "solver": {
+    "method": "least_squares_trf_one_fresh_jacobian_per_root",
+    "difference_step": 1e-05,
+    "expected_color_count": 16,
+    "x_scale": 1.0,
+    "ftol": 1e-11,
+    "xtol": 1e-11,
+    "gtol": 1e-11,
+    "max_nfev_per_root": 40
+  },
+  "limits": {
+    "scaled_residual": 1e-08,
+    "controller_residual": 1e-10,
+    "fixed_duty_relative_error": 1e-10,
+    "rank": 262,
+    "condition": 100000000.0,
+    "component_identity_lbmol": 1e-06,
+    "energy_identity_BTU": 0.1,
+    "controller_aware_refinement_identity_lbmol": 1e-06,
+    "maximum_step_temperature_F": 0.01,
+    "maximum_step_pressure_psia": 0.01,
+    "maximum_step_composition": 0.0001,
+    "maximum_step_flow_relative": 0.001,
+    "maximum_step_phase_inventory_relative": 0.001,
+    "maximum_step_product_relative": 0.001,
+    "maximum_total_pressure_drift_psia": 5.0,
+    "refinement_component_l1_lbmol": 0.0005,
+    "refinement_temperature_F": 0.0001,
+    "refinement_pressure_psia": 0.0001,
+    "refinement_flow_relative": 0.0001,
+    "refinement_phase_transfer_scaled": 0.001,
+    "refinement_level_fraction": 1e-06,
+    "refinement_product_relative": 1e-05,
+    "logical_provider_calls": 750000,
+    "wall_clock_sec": 900.0
+  },
+  "hard_stops": [
+    "the accepted DD-271 handoff cannot be replayed",
+    "any root fails residual, rank, condition, physical, controller, fixed-duty, or continuity gates",
+    "pressure becomes nonpositive, unordered, discontinuous, or drifts by more than five psi",
+    "component or residual-consistent energy conservation fails",
+    "the final half-step refinement fails",
+    "a retry, alternate grid, tuning change, fallback, pressure controller, or extension occurs"
+  ],
+  "property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "trajectory_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "2e7bcfb70df658152ff2d369e91ef4243d01f3e798b3824f1f0056db6cf3c68b"
+}

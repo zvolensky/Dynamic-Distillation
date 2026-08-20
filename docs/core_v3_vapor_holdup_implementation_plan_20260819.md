@@ -483,6 +483,10 @@ speedup. The eight-worker pool must remain alive across roots to amortize its
 `11.69 s` startup. Integrate it next, then address Jacobian count and nonlinear
 iteration count separately.
 
+DD-252 freezes one serial/parallel moving-root comparison. It tests the actual
+trust-region solve, not only a standalone matrix, while explicitly prohibiting
+state acceptance or a second endpoint.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

@@ -2572,3 +2572,9 @@ retaining rank, condition, provider ownership, and logical work. The adjusted
 worker startup is `11.69 s`, so the pool must persist across roots. Integration
 into the step solver is now authorized; finite-difference call count remains a
 separate performance problem.
+
+DD-252 freezes solver-level integration at one moving root. Serial and parallel
+paths retain separate main-process providers and identical SciPy settings; the
+parallel path delegates only finite-difference residual tasks to the persistent
+workers. Exact solver decisions and endpoint equivalence are required before a
+parallel trajectory can be authorized.

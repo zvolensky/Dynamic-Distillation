@@ -2864,3 +2864,9 @@ inventory, temperature, EOS free-volume closure, and vapor pressure-drop
 hydraulics. The C3/C4 system remains `262 x 262` and structurally full rank; a
 generic two-component construction also passes. This is a structural result
 only, and no pressure-dynamic timestep is yet accepted.
+
+DD-273 validates the live fixed-duty successor residual at the accepted DD-271
+handoff. Two finite-difference Jacobians remain rank 262 with condition about
+`1.07e7`, and the new duty-specification row has its exact unit derivative.
+The handoff condenser duty is `-50.894826 MMBTU/h`. No root is solved, but one
+separately frozen 30-second pressure-dynamic continuation is authorized.

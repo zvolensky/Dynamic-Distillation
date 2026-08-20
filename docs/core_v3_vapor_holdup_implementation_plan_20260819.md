@@ -728,6 +728,12 @@ first pressure-dynamic predictor plus two finite-difference Jacobians. No root
 solve or timestep is permitted. Passing authorizes a separately frozen
 30-second fixed-duty pressure-dynamic continuation.
 
+DD-273 passes. The released-pressure residual is finite, both Jacobians remain
+rank 262 with condition about `1.07e7`, and finite-difference stability is near
+machine precision. The accepted endpoint condenser duty is
+`-50.894826 MMBTU/h`. A separately frozen 30-second fixed-duty
+pressure-dynamic continuation is now authorized.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

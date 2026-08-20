@@ -2839,3 +2839,9 @@ coordinate predicts `0.0102523` against an inherited absolute upper bound of
 the PI controller to about one percent cumulative output movement. DD-270 is
 therefore a bound-semantics abort, not a physical or numerical instability. Its
 accepted journals are preserved and the campaign is not rerun.
+
+DD-271 corrects the mismatch by applying the same bound semantics already used
+by the other Core V3 terminal-control steppers: cumulative output coordinates
+are bounded by the logarithms of the contract's physical product-rate ratios.
+For the C3/C4 case these are `log(0.25)` and `log(2.0)`. The correction is
+generic and does not alter controller tuning or the underlying column equations.

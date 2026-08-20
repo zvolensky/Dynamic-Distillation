@@ -117,8 +117,9 @@ def _bounds(contract) -> tuple[np.ndarray, np.ndarray]:
     base_algebraic_stop = base_algebraic_start + base_algebraic_count
     lower[tight_algebraic_start:base_algebraic_stop] = -0.01
     upper[tight_algebraic_start:base_algebraic_stop] = 0.01
-    lower[base_algebraic_stop:] = -0.01
-    upper[base_algebraic_stop:] = 0.01
+    product_low, product_high = contract.controllers.product_rate_ratio_bounds
+    lower[base_algebraic_stop:] = np.log(product_low)
+    upper[base_algebraic_stop:] = np.log(product_high)
     return lower, upper
 
 

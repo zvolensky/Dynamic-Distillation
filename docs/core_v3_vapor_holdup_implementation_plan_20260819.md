@@ -696,6 +696,13 @@ the short-handoff perturbation bound also acts as an unintended permanent
 one-percent controller-authority limit. DD-270 is not rerun. A successor may
 correct only the product-coordinate bound semantics under a new frozen contract.
 
+DD-271 applies that one correction generically. The output-coordinate limits
+are the logarithms of the controller contract's existing physical product-rate
+ratios, `(0.25, 2.0)`. Every non-product bound and all controller, model,
+timestep, solver, and provider settings remain unchanged. DD-271 must replay
+the accepted history through `6.5 s`, solve only the remaining 94 nominal roots
+and two refinement roots, and stop at 30 seconds.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

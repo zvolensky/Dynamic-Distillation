@@ -1,0 +1,103 @@
+{
+  "schema_id": "dd271-core-v3-c3c4-vapor-holdup-terminal-control-bound-corrected-contract-v1",
+  "authorization": "DD-270 authorizes one separately frozen product-bound semantics correction",
+  "sources": {
+    "logs/dd269_core_v3_c3c4_vapor_holdup_terminal_control_five_second_20260820.json": "fdf5ea5f3f2b9d659e3d8b3b7d1ca3e8b4305c220b9df35a0cb336d174ba4501",
+    "logs/dd269_core_v3_c3c4_vapor_holdup_terminal_control_five_second_20260820.npz": "f0382e792c05505b41a20ee120eb98a991c5a7dfcb0854e5bcaea84e18795edb",
+    "logs/dd270_core_v3_c3c4_vapor_holdup_terminal_control_thirty_second_20260820.json": "60639ee8d30f58e7f5653e3c82b5b4684bf7f22da20a4bc526017e251653ee18",
+    "logs/dd270_core_v3_c3c4_vapor_holdup_terminal_control_thirty_second_journal_20260820/endpoint_21.json": "354e6f0efd386c0e7c4c1121f972a028a4287a6674d1a74057579bcfa66d5eaa",
+    "logs/dd270_core_v3_c3c4_vapor_holdup_terminal_control_thirty_second_journal_20260820/endpoint_22.json": "8ab1a4e3838cbdff04fc1bae310599197a60de5aba680c988259f29f02f64bef",
+    "logs/dd270_core_v3_c3c4_vapor_holdup_terminal_control_thirty_second_journal_20260820/endpoint_23.json": "bef21f8184f3eec268f8c014fe7ac6fe9558b6ce38f703ec3aef8d50ee19acab",
+    "logs/dd270_core_v3_c3c4_vapor_holdup_terminal_control_thirty_second_journal_20260820/endpoint_24.json": "c4b3d03aba4e6708bdcada92ad38da75171da6c36eac9c8b3b860868500d5a27",
+    "logs/dd270_core_v3_c3c4_vapor_holdup_terminal_control_thirty_second_journal_20260820/endpoint_25.json": "703bd644907b2679b3140e28246be8e75572288cdc1cb4446f6cd577230c6087",
+    "logs/dd270_core_v3_c3c4_vapor_holdup_terminal_control_thirty_second_journal_20260820/endpoint_26.json": "cf0ef5fbcd9f74ef7413bafef960a460b1ef658ef492bb6702f148a904183b83"
+  },
+  "implementation_sha256": {
+    "tools/run_core_v3_vapor_holdup_terminal_control_thirty_second_bound_corrected.py": "ff11413d2a81d9df5188d2681b2a41e7329409eb6ce1ff06b8d17a22cd7ba163",
+    "tools/run_core_v3_vapor_holdup_terminal_control_thirty_second_trajectory.py": "275f1d951f2cfeff7ef1edcf14e6724d684a89e77dbd4f10ee4f78e614a407c8",
+    "tools/run_core_v3_vapor_holdup_terminal_control_five_second_trajectory.py": "66d8021056488728faa8ffc947684659aed9f27a0a7c5936833c6d4bf4d5b77e",
+    "tools/run_core_v3_vapor_holdup_terminal_control_short_trajectory.py": "f14d409de03ce8954d710c9a0d62a698cb9d0e625482759b707c2cae0aee31ce",
+    "tools/run_core_v3_vapor_holdup_terminal_control_stationary_hold.py": "caed9ac6f1a4242fe95abc9206bb82b63e813497fb608459c04dbb6728617ab5",
+    "src/dynamic_distillation/core_v3/vapor_holdup_terminal_control_implicit_residual_v1.py": "624cf42116dbda15bf45b30bd71eb42d207f23b8c3d85c6748d912a3415505c5",
+    "src/dynamic_distillation/core_v3/vapor_holdup_implicit_residual_v1.py": "2b53dbd5dbe1c48934a0678387cde7cc0fef1c774b00b24f43df5b61945943b7",
+    "src/dynamic_distillation/core_v3/colored_jacobian_v1.py": "d30f8439d26ca8859318c3091cca034320b6e147dd00afba4940abb6ecb541f9"
+  },
+  "trajectory": {
+    "accepted_source_time_sec": 6.5,
+    "source_replay_steps": 26,
+    "nominal_continuation_steps": 94,
+    "nominal_step_sec": 0.25,
+    "nominal_final_time_sec": 30.0,
+    "refinement_start_sec": 29.75,
+    "refined_steps": 2,
+    "refined_step_sec": 0.125
+  },
+  "solver": {
+    "method": "least_squares_trf_one_fresh_jacobian_per_root",
+    "difference_step": 1e-05,
+    "expected_color_count": 16,
+    "x_scale": 1.0,
+    "ftol": 1e-11,
+    "xtol": 1e-11,
+    "gtol": 1e-11,
+    "max_nfev_per_root": 40,
+    "acceptance_basis": "residual and physical gates; SciPy termination status is reported"
+  },
+  "corrected_product_bounds": {
+    "source": "contract.controllers.product_rate_ratio_bounds",
+    "rate_ratio": [
+      0.25,
+      2.0
+    ],
+    "log_ratio": [
+      -1.3862943611198906,
+      0.6931471805599453
+    ],
+    "all_other_bounds_unchanged": true
+  },
+  "limits": {
+    "scaled_residual": 1e-08,
+    "controller_residual": 1e-10,
+    "rank": 262,
+    "condition": 100000000.0,
+    "component_identity_lbmol": 1e-06,
+    "controller_aware_refinement_identity_lbmol": 1e-06,
+    "maximum_step_temperature_F": 0.01,
+    "maximum_step_pressure_psia": 0.01,
+    "maximum_step_composition": 0.0001,
+    "maximum_step_flow_relative": 0.001,
+    "maximum_step_phase_inventory_relative": 0.001,
+    "maximum_step_duty_relative": 0.001,
+    "maximum_step_product_relative": 0.001,
+    "refinement_component_l1_lbmol": 0.0005,
+    "refinement_temperature_F": 0.0001,
+    "refinement_pressure_psia": 0.0001,
+    "refinement_flow_relative": 0.0001,
+    "refinement_phase_transfer_scaled": 0.001,
+    "refinement_duty_relative": 0.0001,
+    "refinement_level_fraction": 1e-06,
+    "refinement_product_relative": 1e-05,
+    "logical_provider_calls": 750000,
+    "wall_clock_sec": 900.0
+  },
+  "energy_identity": {
+    "volume_count": 20,
+    "energy_residual_scale_BTUph": 54706000.0,
+    "aggregate_bound_from_scaled_residual": true
+  },
+  "hard_stops": [
+    "the saved one-second source cannot be replayed exactly enough to continue",
+    "any new endpoint exceeds a residual, rank, condition, physical, controller, or continuity limit",
+    "level or product direction reverses while the corresponding level error retains its sign",
+    "component or residual-consistent energy conservation fails",
+    "nominal/refined inventory difference is not explained by integrated boundary histories",
+    "a non-inventory refinement limit fails",
+    "more than one Jacobian is built in any new root",
+    "a retry, alternate grid, tuning change, fallback, parallel worker, or extension occurs"
+  ],
+  "property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "trajectory_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "ab4c5252e36cf0f998b83a20c764112f0635071b9376e0b6a31efd3f932f7769"
+}

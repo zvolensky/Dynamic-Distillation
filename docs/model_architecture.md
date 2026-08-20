@@ -2845,3 +2845,12 @@ by the other Core V3 terminal-control steppers: cumulative output coordinates
 are bounded by the logarithms of the contract's physical product-rate ratios.
 For the C3/C4 case these are `log(0.25)` and `log(2.0)`. The correction is
 generic and does not alter controller tuning or the underlying column equations.
+
+The DD-271 execution validates that correction. The complete 30-second path
+remains physical and full rank, with a final residual of `8.96e-13`. The drum
+level rises toward setpoint while D falls to `2501.18 lbmol/h`; the sump level
+falls toward setpoint while B rises to `4820.04 lbmol/h`. Conservation,
+continuity, local refinement, provider ownership, and physical product-bound
+checks all pass. This accepts the controlled vapor-holdup architecture through
+30 seconds, while leaving longer horizons and controller tuning as separate
+future decisions.

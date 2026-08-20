@@ -703,6 +703,14 @@ timestep, solver, and provider settings remain unchanged. DD-271 must replay
 the accepted history through `6.5 s`, solve only the remaining 94 nominal roots
 and two refinement roots, and stop at 30 seconds.
 
+DD-271 passes every gate. All 94 new nominal roots and two refined roots close
+cleanly, remain physical and full rank, and reach 30 seconds. At the endpoint,
+D/B are `2501.182520/4820.038284 lbmol/h`; drum/sump levels are
+`0.440780761/0.522746983`. Controller-aware refinement closes to
+`3.12e-13 lbmol`. The result confirms that DD-270's stop was solely the
+incorrect short-test bound. Controlled vapor-holdup dynamics are now accepted
+through 30 seconds without tuning.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

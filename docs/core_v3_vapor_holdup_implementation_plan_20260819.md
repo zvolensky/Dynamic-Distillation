@@ -647,6 +647,20 @@ product outputs persist across roots. The run must stop on any direction,
 continuity, conservation, physicality, provider, or refinement failure; no
 controller tuning or longer horizon is part of DD-267.
 
+DD-267 completes all nominal and refined endpoints. Every new root is physical,
+full rank, conservative, and below `1.61e-12` residual. One fresh Jacobian per
+root limits the campaign to 27,600 DWSIM calls and `7.713 s`. Levels and product
+flows move smoothly and monotonically in the intended directions. DD-267 remains
+formally failed because its aggregate refinement gate incorrectly assumes fixed
+external product rates.
+
+DD-268 adjudicates that one metric without a live call. The nominal/refined
+inventory difference agrees with the difference in integrated D/B histories to
+`6.63e-14 lbmol`; both paths independently conserve components. The one-second
+controlled trajectory is scientifically accepted. The next contract may extend
+the controlled horizon while retaining immutable endpoint journals, one fresh
+Jacobian per root, controller-aware conservation/refinement, and no tuning.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

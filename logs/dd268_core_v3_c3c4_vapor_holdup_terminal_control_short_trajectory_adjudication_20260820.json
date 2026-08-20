@@ -1,0 +1,69 @@
+{
+  "schema_id": "dd268-core-v3-c3c4-vapor-holdup-terminal-control-short-trajectory-adjudication-v1",
+  "classification": "controlled_refinement_adjudication_passed",
+  "source": {
+    "path": "logs/dd267_core_v3_c3c4_vapor_holdup_terminal_control_short_trajectory_20260820.json",
+    "sha256": "6ccf0e29d94af93ec28ef98b5f0016b574146e8788d30b9742d8380a03eb1277",
+    "classification_preserved": "vapor_holdup_terminal_control_short_trajectory_failed",
+    "failed_gates": [
+      "refinement"
+    ]
+  },
+  "controller_aware_refinement": {
+    "actual_path_component_difference_lbmol": [
+      1.2695319320243925e-06,
+      -2.4214190275984038e-05,
+      -5.3135491266884105e-06
+    ],
+    "expected_boundary_component_difference_lbmol": [
+      1.269531865683383e-06,
+      -2.4214190270283953e-05,
+      -5.3135491147789375e-06
+    ],
+    "unexplained_component_difference_lbmol": [
+      6.63410095629903e-14,
+      -5.700084501625291e-15,
+      -1.1909472973775648e-14
+    ],
+    "unexplained_component_max_abs_lbmol": 6.63410095629903e-14,
+    "actual_signed_total_difference_lbmol": -2.8258207470648056e-05,
+    "expected_signed_total_difference_lbmol": -2.8258207519379508e-05,
+    "signed_total_explanation_error_lbmol": 4.873145208758936e-14,
+    "interpretation": "Nominal and refined backward-Euler paths use slightly different controller outputs. Their inventory difference is therefore expected to equal the difference in integrated external D/B flows, not zero as in the earlier fixed-boundary open-loop gate."
+  },
+  "saved_refinement": {
+    "component_max_lbmol": 2.306069245605613e-05,
+    "component_l1_lbmol": 3.308161382106073e-05,
+    "signed_total_lbmol": 2.8258207470648056e-05,
+    "temperature_F": 3.3171724567182537e-07,
+    "pressure_psia": 3.52252641278028e-07,
+    "flow_relative": 4.108988737948438e-07,
+    "phase_transfer_scaled": 4.425587764453013e-07,
+    "duty_relative": 4.4081026706783167e-07,
+    "level_fraction": 2.115543007441545e-08,
+    "product_relative": 1.7103906479611864e-07
+  },
+  "saved_performance": {
+    "logical_provider_calls": 27600,
+    "wall_clock_sec": 7.712711000000127,
+    "simulation_wall_ratio": 0.09724207221040536
+  },
+  "gates": {
+    "source_formally_failed": true,
+    "only_refinement_failed": true,
+    "all_non_refinement_gates_passed": true,
+    "nominal_component_conservation": true,
+    "refined_component_conservation": true,
+    "path_difference_explained_by_boundary_integration": true,
+    "signed_difference_explained_by_boundary_integration": true,
+    "predeclared_component_l1_limit_passed": true,
+    "all_non_inventory_refinement_limits_passed": true,
+    "no_new_provider_calls": true,
+    "no_new_solve_or_state_advance": true
+  },
+  "property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false,
+  "pass_gate": true,
+  "decision": "accept_dd267_scientifically_and_authorize_longer_controlled_trajectory_contract"
+}

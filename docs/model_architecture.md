@@ -2795,3 +2795,22 @@ allowed by the already frozen scaled residual contract. DD-266 therefore
 accepts the saved endpoint scientifically without changing DD-265's historical
 classification. The architecture now authorizes a separately frozen short
 controlled trajectory, not an unrestricted simulation campaign.
+
+DD-267 carries the two PI memories and absolute log-product outputs through one
+simulated second. It reuses the accepted first endpoint, advances three further
+quarter-second roots, and repeats the final interval as two eighth-second roots.
+Each new root builds one fresh 16-color Jacobian and holds it only inside that
+root. All five new roots are physical, full rank, conservative, and below
+`1.61e-12` residual. D decreases smoothly to `2519.142041 lbmol/h`; B increases
+to `4630.369592 lbmol/h`; drum and sump levels move monotonically toward 50%.
+The new method needs 27,600 provider calls and `7.713 s` wall.
+
+DD-267 formally fails because its fixed-boundary refinement rule expects the
+nominal and refined paths to have the same aggregate inventory. That assumption
+is invalid once the controller outputs themselves are integrated at different
+timesteps. DD-268 performs no new calls and proves that the complete observed
+path difference is explained by the different integrated D/B histories to
+`6.63e-14 lbmol` componentwise. Both paths separately conserve components to
+about `3.45e-11 lbmol`, and every non-inventory refinement metric passes. The
+one-second controlled architecture is scientifically accepted; a longer run
+still requires a new frozen contract.

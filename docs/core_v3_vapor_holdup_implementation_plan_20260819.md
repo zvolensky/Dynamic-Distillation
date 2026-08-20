@@ -446,6 +446,11 @@ the current/previous total two-phase energies, which must be reconstructed from
 the same live provider basis used by the root before a zero-motion residual can
 be evaluated.
 
+DD-247 completes that reconstruction and proves exact zero inventory motion at
+the accepted root. The full implicit Jacobian is rank 258 with condition about
+`1.14e7`. One frozen stationary hold step is next; a disturbance remains
+unauthorized until that step is accepted without state movement.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

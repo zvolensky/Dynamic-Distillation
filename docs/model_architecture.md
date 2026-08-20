@@ -2509,3 +2509,11 @@ levels. They are not guessed or inherited from the reduced model. One live
 zero-motion audit must reconstruct them from the accepted liquid/vapor
 inventories and provider enthalpies, copy them into both history levels, and
 prove that the complete successor residual and Jacobian remain motionless.
+
+DD-247 performs that live reconstruction and passes. At a nominal `0.25 s`
+implicit step, both phase-inventory rate arrays are exactly zero and the full
+scaled residual remains `3.05e-11`. The current and previous `U_L+U_V` values
+are identical in all 20 volumes. Both numerical dynamic Jacobians retain rank
+258 and condition about `1.14e7`, with stable finite differences and no empty
+row or column. This authorizes a separately frozen stationary hold step, not a
+moving trajectory.

@@ -2677,3 +2677,9 @@ so the run has no scientific classification and no accepted state advance.
 The frozen implementation is not patched or rerun. A separately versioned
 successor is allowed only with a property-free preflight test of the complete
 20-volume profile mapping.
+
+DD-258 freezes that reporting-safe successor without changing the numerical
+campaign. Its preflight decodes the real 258-coordinate endpoint and maps all
+20 volumes, 19 tuple-based vapor links, and three-component phase compositions
+without a property or solver call. The full five-second campaign may execute
+once only after that preflight and contract commit.

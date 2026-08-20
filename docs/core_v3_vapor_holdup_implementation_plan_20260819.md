@@ -552,6 +552,10 @@ tuple representation of vapor links before evidence is saved. The campaign is
 unclassified and is not rerun. A corrected successor must first exercise the
 reporter against all 20 topology volumes without property or solver calls.
 
+DD-258 provides the separately versioned successor. Its property-free preflight
+passes for every volume and vapor link while the DD-257 science and limits stay
+unchanged. One execution is authorized after the contract is committed.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

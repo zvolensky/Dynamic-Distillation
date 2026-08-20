@@ -527,7 +527,10 @@ def build_vapor_holdup_dae_contract(
                     f"P[{source}]",
                     f"P[{destination}]",
                 ),
-                vapor_state_by_volume[source],
+                (
+                    *liquid_state_by_volume[source],
+                    *vapor_state_by_volume[source],
+                ),
             )
         )
     rows.append(

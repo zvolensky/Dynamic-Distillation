@@ -10,6 +10,7 @@ from dynamic_distillation.core_v3.vapor_holdup_geometry_v1 import (
 from dynamic_distillation.core_v3.vapor_holdup_properties_v1 import (
     audit_vapor_holdup_properties,
     evaluate_vapor_holdup_properties,
+    evaluate_vapor_holdup_trial_properties,
 )
 
 
@@ -159,3 +160,28 @@ def test_property_gate_rejects_fallback_marker():
 
     assert not gate.pass_gate
     assert gate.provider_fallback_attempted
+
+
+def test_trial_properties_preserve_supplied_vapor_inventory_and_report_eos_error():
+    inventory = np.asarray([[14.0, 6.0], [12.0, 18.0]])
+    vapor_inventory = np.asarray([[1.6, 0.4], [2.5, 2.5]])
+    audit = ProviderCallAudit()
+
+    result = evaluate_vapor_holdup_trial_properties(
+        _geometry(),
+        inventory,
+        vapor_inventory,
+        [100.0, 150.0],
+        [200.0, 220.0],
+        _Provider(),
+        audit,
+        state_id="trial",
+    )
+
+    assert np.array_equal(result.vapor_component_inventory_lbmol, vapor_inventory)
+    assert np.allclose(result.vapor_moles_lbmol, [2.0, 5.0])
+    assert np.any(np.abs(result.eos_volume_residual_ft3) > 1.0e-6)
+    assert np.allclose(
+        result.total_stored_energy_BTU,
+        result.liquid_stored_energy_BTU + result.vapor_stored_energy_BTU,
+    )

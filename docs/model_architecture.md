@@ -2452,3 +2452,30 @@ This proves that explicit vapor storage and phase transfer are compatible with
 the accepted stationary balance. The next implementation must assemble these
 rows with full fugacity equilibrium, EOS, Francis hydraulics, pressure-drop,
 and pressure-anchor rows in the complete 258-equation numerical residual.
+
+DD-240 completes that `258 x 258` implicit endpoint residual. At the inherited
+DD-231 reference, every previously solved block closes to numerical precision.
+The new pressure-drop rows alone retain a visible `0.620424 psia` mismatch
+because DD-231 prescribed the pressure profile. DD-241 then proves that the
+complete endpoint Jacobian is full rank at two difference steps, with condition
+about `1.32e6`, stable spectra, and no missing numerical coupling.
+
+That endpoint formulation is suitable for an implicit dynamic step, but it is
+not the stationary initializer: its first 120 unknowns are inventory changes
+over a timestep. DD-242 therefore defines a separate steady-state ownership
+ledger. It solves `N_L` and `N_V` directly with zero accumulation. Distillate
+and bottoms rates are solved algebraic variables, and geometry-based reflux-
+drum and sump inventory targets close the two terminal liquid-level degrees of
+freedom. Reflux and reboiler duty remain fixed operating specifications.
+
+The resulting five-volume system is `65 x 65`, and the full C3/C4 system is
+`260 x 260`; both are structurally full rank. DD-243 implements the live
+stationary residual, and DD-244 proves that its two numerical Jacobians retain
+rank `260`, condition about `6.52e4`, stable spectra, and exact direct-column
+agreement. The stationary formulation is therefore better conditioned than
+the implicit endpoint formulation at the inherited starting point.
+
+One bounded stationary root campaign is now authorized. A dynamic timestep is
+still prohibited until a root closes, remains physical and interior, preserves
+provider ownership and conservation, and passes an independent endpoint
+Jacobian audit. Historical Core V3 V1 equations and evidence remain unchanged.

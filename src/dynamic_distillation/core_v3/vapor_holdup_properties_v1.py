@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Sequence
 
 import numpy as np
@@ -257,6 +257,60 @@ def evaluate_vapor_holdup_properties(
     )
 
 
+def evaluate_vapor_holdup_trial_properties(
+    geometry: Sequence[VaporControlVolumeGeometry],
+    liquid_component_inventory_lbmol: Sequence[Sequence[float]],
+    vapor_component_inventory_lbmol: Sequence[Sequence[float]],
+    temperature_F: Sequence[float],
+    pressure_psia: Sequence[float],
+    provider: Any,
+    call_audit: ProviderCallAudit,
+    *,
+    state_id: str,
+    evaluation_kind: str = "residual",
+) -> VaporHoldupPropertyEvaluation:
+    """Evaluate a trial two-phase state without reconstructing its vapor amount."""
+    liquid_inventory = np.asarray(liquid_component_inventory_lbmol, dtype=float)
+    vapor_inventory = np.asarray(vapor_component_inventory_lbmol, dtype=float)
+    if liquid_inventory.ndim != 2 or vapor_inventory.shape != liquid_inventory.shape:
+        raise ValueError("liquid and vapor component inventories must share a 2-D shape")
+    if (
+        np.any(~np.isfinite(liquid_inventory))
+        or np.any(~np.isfinite(vapor_inventory))
+        or np.any(liquid_inventory <= 0.0)
+        or np.any(vapor_inventory <= 0.0)
+    ):
+        raise ValueError("trial phase inventories must be positive and finite")
+    liquid_x = liquid_inventory / np.sum(liquid_inventory, axis=1, keepdims=True)
+    vapor_y = vapor_inventory / np.sum(vapor_inventory, axis=1, keepdims=True)
+    base = evaluate_vapor_holdup_properties(
+        geometry,
+        liquid_inventory,
+        liquid_x,
+        vapor_y,
+        temperature_F,
+        pressure_psia,
+        provider,
+        call_audit,
+        state_id=state_id,
+        evaluation_kind=evaluation_kind,
+    )
+    vapor_moles = np.sum(vapor_inventory, axis=1)
+    reconstructed_volume = vapor_moles * base.vapor_molar_volume_ft3_lbmol
+    eos_residual = base.free_volume.free_vapor_volume_ft3 - reconstructed_volume
+    eos_relative = eos_residual / base.free_volume.free_vapor_volume_ft3
+    vapor_energy = vapor_moles * base.vapor_internal_energy_BTU_lbmol
+    return replace(
+        base,
+        vapor_moles_lbmol=vapor_moles,
+        vapor_component_inventory_lbmol=vapor_inventory.copy(),
+        vapor_stored_energy_BTU=vapor_energy,
+        total_stored_energy_BTU=base.liquid_stored_energy_BTU + vapor_energy,
+        eos_volume_residual_ft3=eos_residual,
+        eos_relative_residual=eos_relative,
+    )
+
+
 def audit_vapor_holdup_properties(
     evaluation: VaporHoldupPropertyEvaluation,
     call_audit: ProviderCallAudit,
@@ -339,4 +393,5 @@ __all__ = [
     "VaporHoldupPropertyEvaluation",
     "audit_vapor_holdup_properties",
     "evaluate_vapor_holdup_properties",
+    "evaluate_vapor_holdup_trial_properties",
 ]

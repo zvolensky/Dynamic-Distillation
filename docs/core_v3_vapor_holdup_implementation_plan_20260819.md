@@ -413,6 +413,29 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 8. Add controllers only after the uncontrolled vapor-pressure model passes.
 9. Validate against an external dynamic benchmark with reproducible vapor inventory and pressure traces.
 
+## Current progress through DD-244
+
+- [x] Freeze vapor control-volume topology and pressure/volume ownership (`DD-236`).
+- [x] Map physical tray, drum, sump, and reboiler geometry (`DD-237`).
+- [x] Reconstruct live vapor inventory, EOS, and two-phase energy (`DD-238`).
+- [x] Prove separate liquid/vapor conservation and phase-transfer cancellation (`DD-239`).
+- [x] Assemble the complete 258-row implicit endpoint residual (`DD-240`).
+- [x] Pass the two-step 258-row endpoint Jacobian audit (`DD-241`).
+- [x] Define a true stationary initializer with terminal level closure (`DD-242`).
+- [x] Assemble its complete 260-row live residual (`DD-243`).
+- [x] Pass the two-step stationary Jacobian audit (`DD-244`).
+- [ ] Execute one frozen bounded stationary root campaign.
+- [ ] Map an accepted root into the successor dynamic history/state schema.
+- [ ] Pass stationary hold and refined moving-step gates.
+- [ ] Run a short open-loop trajectory before adding controllers.
+
+The stationary initializer solves distillate and bottoms rates so the reflux
+drum and sump remain at their geometry-derived target inventories. This is not
+controller execution; it is the steady algebraic closure required to select a
+unique operating point. The pressure profile, vapor traffic, both phase
+inventories, phase transfer, temperatures, condenser duty, and product rates
+remain coupled solve quantities.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

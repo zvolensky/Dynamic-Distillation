@@ -76,6 +76,39 @@ def _rank_condition(matrix: np.ndarray) -> tuple[int, float, np.ndarray]:
     return rank, condition, singular
 
 
+def compact_provider_report(report: dict[str, Any]) -> dict[str, Any]:
+    """Replace per-state grouped records with exact route-level totals."""
+    compact = dict(report)
+    records = compact.pop("grouped_records", [])
+    grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for record in records:
+        key = (
+            str(record["provider_interface"]),
+            str(record["evaluation_kind"]),
+            str(record["quantity"]),
+        )
+        item = grouped.setdefault(
+            key,
+            {
+                "provider_interface": key[0],
+                "evaluation_kind": key[1],
+                "quantity": key[2],
+                "group_count": 0,
+                "call_count": 0,
+            },
+        )
+        item["group_count"] += 1
+        item["call_count"] += int(record["count"])
+    compact["grouped_record_summary"] = [
+        grouped[key] for key in sorted(grouped)
+    ]
+    if sum(item["call_count"] for item in compact["grouped_record_summary"]) != int(
+        compact["total_calls"]
+    ):
+        raise RuntimeError("provider report compaction changed the call total")
+    return compact
+
+
 def _load_and_validate_contract(path: Path) -> dict[str, Any]:
     contract = json.loads(path.read_text(encoding="utf-8"))
     expected = contract.pop("contract_payload_sha256")
@@ -250,7 +283,7 @@ def execute(contract_path: Path) -> tuple[dict[str, Any], dict[str, np.ndarray]]
         and matrix_change < limits["endpoint_matrix_relative_change"]
     )
     wall = time.perf_counter() - started
-    provider_report = audit.report()
+    provider_report = compact_provider_report(audit.report())
     physical_pass = bool(
         np.all(endpoint.liquid_component_inventory_lbmol > 0.0)
         and np.all(endpoint.vapor_component_inventory_lbmol > 0.0)

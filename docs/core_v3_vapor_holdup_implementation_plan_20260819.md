@@ -425,7 +425,7 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 - [x] Assemble its complete 260-row live residual (`DD-243`).
 - [x] Pass the two-step stationary Jacobian audit (`DD-244`).
 - [x] Execute one frozen bounded stationary root campaign (`DD-245`).
-- [ ] Map an accepted root into the successor dynamic history/state schema.
+- [x] Map an accepted root into the successor dynamic history/state schema (`DD-246`).
 - [ ] Pass stationary hold and refined moving-step gates.
 - [ ] Run a short open-loop trajectory before adding controllers.
 
@@ -440,6 +440,11 @@ DD-245 accepted the full stationary root at a scaled residual of `3.05e-11`.
 The endpoint remains full rank and physical, and the complete campaign required
 23.437 seconds. The next work is mapping only: no new physics, root solve, or
 time advance is needed to define the successor's current state and BDF2 history.
+
+DD-246 maps all root values without property calls. The only deferred data are
+the current/previous total two-phase energies, which must be reconstructed from
+the same live provider basis used by the root before a zero-motion residual can
+be evaluated.
 
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 

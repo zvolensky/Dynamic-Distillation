@@ -2497,3 +2497,15 @@ The next architecture boundary is a property-free dynamic handoff. It must map
 all 120 conserved phase inventories and all stationary algebraic quantities into
 explicit current/history ownership, preserve terminal level targets and product
 references, and reconstruct both-phase stored energy before any hold step.
+
+DD-246 completes the property-free portion of that handoff. The accepted root's
+260 coordinates are consumed exactly once as 120 conserved phase inventories,
+138 dynamic algebraic values, and two fixed stationary product references. All
+120 initial inventory rates are zero. Both BDF2 component-history levels repeat
+the root exactly.
+
+The remaining 40 history values are `U_total[j]` at the current and previous
+levels. They are not guessed or inherited from the reduced model. One live
+zero-motion audit must reconstruct them from the accepted liquid/vapor
+inventories and provider enthalpies, copy them into both history levels, and
+prove that the complete successor residual and Jacobian remain motionless.

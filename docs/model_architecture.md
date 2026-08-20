@@ -2479,3 +2479,21 @@ One bounded stationary root campaign is now authorized. A dynamic timestep is
 still prohibited until a root closes, remains physical and interior, preserves
 provider ownership and conservation, and passes an independent endpoint
 Jacobian audit. Historical Core V3 V1 equations and evidence remain unchanged.
+
+DD-245 executes that single frozen campaign and accepts the first complete
+stationary root with resident vapor holdup. The pressure profile now comes from
+the pressure-drop equations: it rises smoothly from `220.44 psia` at the reflux
+drum to `221.556 psia` at the combined reboiler/sump, instead of inheriting the
+old prescribed `232.06 psia` bottom pressure. The root contains `463.640 lbmol`
+of resident vapor and `2907.909 lbmol` of liquid.
+
+The stationary products are `2519.764 lbmol/h` distillate and `4623.210 lbmol/h`
+bottoms, with `Q_C=-50.9973 MMBTU/h`. Top liquid composition is approximately
+`0.879530 propane / 0.120428 n-butane / 0.0000419 n-pentane`; bottom liquid is
+`0.035642 propane / 0.792711 n-butane / 0.171647 n-pentane`. These are model
+results, not imposed ChemSep acceptance values.
+
+The next architecture boundary is a property-free dynamic handoff. It must map
+all 120 conserved phase inventories and all stationary algebraic quantities into
+explicit current/history ownership, preserve terminal level targets and product
+references, and reconstruct both-phase stored energy before any hold step.

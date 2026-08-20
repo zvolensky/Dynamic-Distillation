@@ -424,7 +424,7 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 - [x] Define a true stationary initializer with terminal level closure (`DD-242`).
 - [x] Assemble its complete 260-row live residual (`DD-243`).
 - [x] Pass the two-step stationary Jacobian audit (`DD-244`).
-- [ ] Execute one frozen bounded stationary root campaign.
+- [x] Execute one frozen bounded stationary root campaign (`DD-245`).
 - [ ] Map an accepted root into the successor dynamic history/state schema.
 - [ ] Pass stationary hold and refined moving-step gates.
 - [ ] Run a short open-loop trajectory before adding controllers.
@@ -435,6 +435,11 @@ controller execution; it is the steady algebraic closure required to select a
 unique operating point. The pressure profile, vapor traffic, both phase
 inventories, phase transfer, temperatures, condenser duty, and product rates
 remain coupled solve quantities.
+
+DD-245 accepted the full stationary root at a scaled residual of `3.05e-11`.
+The endpoint remains full rank and physical, and the complete campaign required
+23.437 seconds. The next work is mapping only: no new physics, root solve, or
+time advance is needed to define the successor's current state and BDF2 history.
 
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 

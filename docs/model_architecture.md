@@ -2764,3 +2764,17 @@ ledger to a full-rank `262 x 262` controlled ledger. Fixed product-flow
 parameters are absent from the controlled contract. DD-263 is property-free and
 does not authorize a timestep. A live zero-motion reconstruction and bumpless
 PI-memory audit is required before controlled integration.
+
+DD-264 performs that live handoff audit at the accepted stationary root. DWSIM
+liquid density and the workbook vessels reconstruct a `0.440779` reflux-drum
+level and `0.523315` sump level. Because these differ from the workbook 50%
+setpoints, the PI memories are initialized to cancel the proportional terms at
+activation. Distillate and bottoms therefore remain exactly
+`2519.763702/4623.210298 lbmol/h`, and all physical inventory rates remain zero.
+The controller integrators are intentionally nonzero and begin a smooth level
+correction after activation; this is not an instantaneous product-flow jump.
+
+The complete live controlled residual closes at `3.05e-11`, both numerical
+Jacobians retain rank 262 with condition about `1.14e7`, and provider ownership
+passes without fallback. A stationary controlled hold step is the next required
+gate before any moving controlled trajectory.

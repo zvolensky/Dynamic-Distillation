@@ -612,6 +612,17 @@ live zero-motion audit that reconstructs both levels from DWSIM liquid density
 and initializes the two PI memories for bumpless stationary outputs. Do not run
 a controlled trajectory until that audit passes.
 
+DD-264 completes the live zero-time handoff. Workbook geometry and DWSIM liquid
+density give initial drum/sump levels of `0.440779/0.523315`. The PI memories
+cancel the initial proportional terms, preserving the stationary distillate and
+bottoms rates exactly while all physical inventory rates remain zero. Since the
+levels differ from the 50% setpoints, the PI integrators have finite nonzero
+rates and will begin a smooth correction after activation. The full live
+`262 x 262` Jacobian remains rank 262 and provider-clean. Next, freeze one
+stationary controlled hold step. It must accept the first implicit endpoint
+without a product jump, clipping, fallback, or unintended physical motion
+beyond the declared PI correction.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

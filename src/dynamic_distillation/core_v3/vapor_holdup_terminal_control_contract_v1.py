@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Any, Mapping
+from math import acos, pi, sqrt
+from typing import Any, Mapping, Sequence
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -136,6 +137,80 @@ def terminal_geometry_from_specs(
             sump_diameter, sump_height
         ),
         provenance="normalized C3/C4 workbook terminal dimensions",
+    )
+
+
+def horizontal_drum_liquid_volume_ft3(
+    depth_ft: float,
+    geometry: VaporHoldupTerminalGeometry,
+) -> float:
+    radius = 0.5 * float(geometry.drum_diameter_ft)
+    depth = float(depth_ft)
+    if not 0.0 <= depth <= 2.0 * radius:
+        raise ValueError("horizontal-drum liquid depth is outside the vessel")
+    radicand = max(0.0, 2.0 * radius * depth - depth * depth)
+    segment_area = (
+        radius * radius * acos((radius - depth) / radius)
+        - (radius - depth) * sqrt(radicand)
+    )
+    shell_volume = segment_area * float(geometry.drum_tangent_length_ft)
+    paired_head_volume = pi * depth * depth * (radius - depth / 3.0)
+    return shell_volume + paired_head_volume
+
+
+def horizontal_drum_level_fraction(
+    liquid_volume_ft3: float,
+    geometry: VaporHoldupTerminalGeometry,
+) -> float:
+    volume = float(liquid_volume_ft3)
+    total = float(geometry.drum_gross_capacity_ft3)
+    if not np.isfinite(volume) or volume < 0.0 or volume > total:
+        raise ValueError("horizontal-drum liquid volume is outside the vessel")
+    low = 0.0
+    high = float(geometry.drum_diameter_ft)
+    for _ in range(80):
+        midpoint = 0.5 * (low + high)
+        if horizontal_drum_liquid_volume_ft3(midpoint, geometry) < volume:
+            low = midpoint
+        else:
+            high = midpoint
+    return 0.5 * (low + high) / float(geometry.drum_diameter_ft)
+
+
+def vertical_sump_level_fraction(
+    liquid_volume_ft3: float,
+    geometry: VaporHoldupTerminalGeometry,
+) -> float:
+    volume = float(liquid_volume_ft3)
+    total = float(geometry.sump_gross_capacity_ft3)
+    if not np.isfinite(volume) or volume < 0.0 or volume > total:
+        raise ValueError("sump liquid volume is outside the vessel")
+    return volume / total
+
+
+def terminal_level_fractions(
+    liquid_component_inventory_lbmol: Sequence[Sequence[float]],
+    liquid_density_lbmol_ft3: Sequence[float],
+    geometry: VaporHoldupTerminalGeometry,
+) -> np.ndarray:
+    inventory = np.asarray(liquid_component_inventory_lbmol, dtype=float)
+    density = np.asarray(liquid_density_lbmol_ft3, dtype=float).reshape((-1,))
+    if (
+        inventory.ndim != 2
+        or density.shape != (inventory.shape[0],)
+        or np.any(inventory <= 0.0)
+        or np.any(density <= 0.0)
+        or np.any(~np.isfinite(inventory))
+        or np.any(~np.isfinite(density))
+    ):
+        raise ValueError("terminal inventory or density is invalid")
+    liquid_volume = np.sum(inventory, axis=1) / density
+    return np.asarray(
+        (
+            horizontal_drum_level_fraction(float(liquid_volume[0]), geometry),
+            vertical_sump_level_fraction(float(liquid_volume[-1]), geometry),
+        ),
+        dtype=float,
     )
 
 
@@ -480,6 +555,10 @@ __all__ = [
     "VaporHoldupTerminalGeometry",
     "audit_vapor_holdup_terminal_control_contract",
     "build_vapor_holdup_terminal_control_contract",
+    "horizontal_drum_level_fraction",
+    "horizontal_drum_liquid_volume_ft3",
     "level_controllers_from_specs",
+    "terminal_level_fractions",
     "terminal_geometry_from_specs",
+    "vertical_sump_level_fraction",
 ]

@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
@@ -17,7 +18,9 @@ from dynamic_distillation.core_v3.vapor_holdup_geometry_v1 import (
 from dynamic_distillation.core_v3.vapor_holdup_terminal_control_contract_v1 import (
     audit_vapor_holdup_terminal_control_contract,
     build_vapor_holdup_terminal_control_contract,
+    horizontal_drum_level_fraction,
     level_controllers_from_specs,
+    terminal_level_fractions,
     terminal_geometry_from_specs,
 )
 from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
@@ -83,6 +86,21 @@ def test_full_c3c4_terminal_control_contract_is_square_and_full_rank():
     assert audit.boundary_rows_own_product_outputs
     assert audit.fixed_product_parameters_removed
     assert audit.pass_gate
+
+
+def test_terminal_level_geometry_is_invertible_and_excludes_reboiler_extension():
+    _contract, geometry, _controllers = _actual_contract()
+    density = np.ones(20)
+    inventory = np.ones((20, 3))
+    inventory[0] *= 0.5 * geometry.drum_gross_capacity_ft3 / 3.0
+    inventory[-1] *= 0.5 * geometry.sump_gross_capacity_ft3 / 3.0
+
+    levels = terminal_level_fractions(inventory, density, geometry)
+
+    assert horizontal_drum_level_fraction(
+        0.5 * geometry.drum_gross_capacity_ft3, geometry
+    ) == pytest.approx(0.5)
+    assert levels == pytest.approx((0.5, 0.5))
 
 
 def test_terminal_control_contract_remains_generic_in_component_count():

@@ -44,3 +44,21 @@ def test_dd259_saved_contract_uses_physical_duty_replay_and_recovery():
     assert saved["first_second_reference"]["non_duty_coordinate_absolute_difference"] == 1.0e-9
     assert saved["first_second_reference"]["condenser_duty_relative_difference"] == 1.0e-8
     assert saved["reporting"]["incremental_recovery_after_each_endpoint"]
+
+
+def test_dd259_saved_result_passes_all_science_and_recovery_gates():
+    saved = json.loads((dd259.ROOT / dd259.RESULT).read_text(encoding="utf-8"))
+    recovery = json.loads((dd259.ROOT / dd259.RECOVERY).read_text(encoding="utf-8"))
+
+    assert saved["pass_gate"]
+    assert all(saved["gates"].values())
+    assert saved["decision"] == (
+        "accept_modified_newton_vapor_holdup_dynamics_through_five_seconds"
+    )
+    assert len(saved["endpoints"]) == 20
+    assert len(saved["final_stage_profile"]) == 20
+    assert saved["logical_provider_calls"] == 165480
+    assert saved["wall_clock_sec"] < 60.0
+    assert saved["response"]["component_inventory_identity_max_abs_lbmol"] < 1.0e-12
+    assert recovery["status"] == "complete"
+    assert recovery["completed_endpoint_count"] == 20

@@ -570,6 +570,13 @@ physical relative duty limit, and writes atomic recovery evidence after every
 accepted endpoint. Its complete JSON/NPZ/profile serialization path must pass
 before the contract is frozen.
 
+DD-259 passes all 20 endpoints and all reporting/recovery gates. Five-second
+modified-Newton dynamics are now accepted with worst residual `1.72e-12`, exact
+component conservation to `7.35e-13 lbmol`, 165,480 calls, and `55.77 s` wall.
+The full final stage profile is serialized. The next dynamic work may extend
+the open-loop horizon under a separately frozen contract; controller addition
+still follows a longer uncontrolled response and timestep/refinement decision.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

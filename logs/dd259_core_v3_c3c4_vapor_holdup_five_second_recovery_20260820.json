@@ -1,0 +1,11 @@
+{
+  "schema_id": "dd259-core-v3-c3c4-vapor-holdup-endpoint-recovery-v1",
+  "contract_payload_sha256": "2c718f13eb66e2c03d940631a86a30356e9300865ae1b1996c5c1f399d872de1",
+  "status": "complete",
+  "completed_endpoint_count": 20,
+  "last_time_sec": 5.0,
+  "result_path": "logs/dd259_core_v3_c3c4_vapor_holdup_five_second_20260820.json",
+  "evidence_path": "logs/dd259_core_v3_c3c4_vapor_holdup_five_second_20260820.npz",
+  "result_sha256": "2dacd6b8186ad79914d534ae587104b1c66836be329bc85dbd37c11ba96ce3af",
+  "evidence_sha256": "b199861056faf58515a53bdbb05bd4bb37ea761456d838e614c64148175d8bd8"
+}

@@ -1,0 +1,866 @@
+{
+  "schema_id": "dd259-core-v3-c3c4-vapor-holdup-five-second-recovery-result-v1",
+  "classification": "recoverable_five_second_vapor_holdup_trajectory_passed",
+  "decision": "accept_modified_newton_vapor_holdup_dynamics_through_five_seconds",
+  "contract_commit": "bc383a633f96fa78934925f4f2a3b84a2d52b42f",
+  "contract_payload_sha256": "2c718f13eb66e2c03d940631a86a30356e9300865ae1b1996c5c1f399d872de1",
+  "component_names": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "operating_inputs": {
+    "reflux_lbmolph": 5952.48,
+    "distillate_lbmolph": 2519.763701913325,
+    "bottoms_lbmolph": 4623.21029792288,
+    "reboiler_duty_BTUph": 54706000.0
+  },
+  "final_condenser_duty_BTUph": -51000816.92241414,
+  "endpoints": [
+    {
+      "index": 1,
+      "time_sec": 0.25,
+      "success": true,
+      "status": 3,
+      "nfev": 16,
+      "njev": 7,
+      "cost": 3.281785493086014e-25,
+      "optimality": 3.4312452198720374e-11,
+      "scaled_residual_inf_norm": 4.797690647280324e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11362512.025297936,
+      "maximum_fugacity_residual": 3.9657166439602726e-13,
+      "maximum_eos_relative_residual": 5.663347370740565e-14,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 2,
+      "time_sec": 0.5,
+      "success": true,
+      "status": 3,
+      "nfev": 15,
+      "njev": 10,
+      "cost": 1.485328272781856e-25,
+      "optimality": 3.028218386469131e-11,
+      "scaled_residual_inf_norm": 3.731961594261845e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11362076.73938725,
+      "maximum_fugacity_residual": 2.8865798640254027e-15,
+      "maximum_eos_relative_residual": 1.3387493275318168e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 3,
+      "time_sec": 0.75,
+      "success": true,
+      "status": 3,
+      "nfev": 15,
+      "njev": 8,
+      "cost": 4.535246139435034e-26,
+      "optimality": 1.1078499414390002e-11,
+      "scaled_residual_inf_norm": 1.5890440360418908e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11362024.945175491,
+      "maximum_fugacity_residual": 3.9968028886505714e-15,
+      "maximum_eos_relative_residual": 1.4022426365068223e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 4,
+      "time_sec": 1.0,
+      "success": true,
+      "status": 3,
+      "nfev": 13,
+      "njev": 9,
+      "cost": 8.257649242074272e-25,
+      "optimality": 6.955889519825859e-11,
+      "scaled_residual_inf_norm": 9.318673470789688e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361999.092972284,
+      "maximum_fugacity_residual": 4.440892098500617e-15,
+      "maximum_eos_relative_residual": 1.0802025343521691e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 5,
+      "time_sec": 1.25,
+      "success": true,
+      "status": 3,
+      "nfev": 15,
+      "njev": 8,
+      "cost": 1.0063941564921964e-25,
+      "optimality": 2.4429747145333575e-11,
+      "scaled_residual_inf_norm": 3.3958176635606753e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361965.979698949,
+      "maximum_fugacity_residual": 2.6645352591003792e-15,
+      "maximum_eos_relative_residual": 1.1156346709418109e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 6,
+      "time_sec": 1.5,
+      "success": true,
+      "status": 1,
+      "nfev": 7,
+      "njev": 7,
+      "cost": 5.688727161360295e-25,
+      "optimality": 9.946384523768895e-12,
+      "scaled_residual_inf_norm": 8.275093720416258e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361932.625038153,
+      "maximum_fugacity_residual": 3.441691376337991e-15,
+      "maximum_eos_relative_residual": 6.045516414373797e-16,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 7,
+      "time_sec": 1.75,
+      "success": true,
+      "status": 3,
+      "nfev": 10,
+      "njev": 7,
+      "cost": 1.241350512553992e-24,
+      "optimality": 9.729991153369341e-11,
+      "scaled_residual_inf_norm": 1.3243306906147202e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361902.425789252,
+      "maximum_fugacity_residual": 5.3290705182007656e-15,
+      "maximum_eos_relative_residual": 1.0016018976517851e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 8,
+      "time_sec": 2.0,
+      "success": true,
+      "status": 3,
+      "nfev": 14,
+      "njev": 9,
+      "cost": 1.000549557572829e-24,
+      "optimality": 1.707135025128934e-11,
+      "scaled_residual_inf_norm": 1.2746313714512138e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361876.063336514,
+      "maximum_fugacity_residual": 4.996003610813217e-15,
+      "maximum_eos_relative_residual": 1.8517758943811424e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 9,
+      "time_sec": 2.25,
+      "success": true,
+      "status": 3,
+      "nfev": 13,
+      "njev": 9,
+      "cost": 1.508589755989625e-25,
+      "optimality": 2.0508732477330295e-11,
+      "scaled_residual_inf_norm": 3.14752953292913e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361853.321922103,
+      "maximum_fugacity_residual": 4.218847493575586e-15,
+      "maximum_eos_relative_residual": 1.1156466305177374e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 10,
+      "time_sec": 2.5,
+      "success": true,
+      "status": 3,
+      "nfev": 13,
+      "njev": 10,
+      "cost": 2.460552872608596e-25,
+      "optimality": 4.31124720874221e-11,
+      "scaled_residual_inf_norm": 6.279779796280935e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361833.827490935,
+      "maximum_fugacity_residual": 2.8865798640254113e-15,
+      "maximum_eos_relative_residual": 1.0040844141231359e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 11,
+      "time_sec": 2.75,
+      "success": true,
+      "status": 3,
+      "nfev": 11,
+      "njev": 4,
+      "cost": 2.5804908660403845e-24,
+      "optimality": 3.7156511709780206e-11,
+      "scaled_residual_inf_norm": 1.7168121143755509e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361817.151502337,
+      "maximum_fugacity_residual": 5.1070259132757335e-15,
+      "maximum_eos_relative_residual": 1.3888319992687788e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 12,
+      "time_sec": 3.0,
+      "success": true,
+      "status": 3,
+      "nfev": 12,
+      "njev": 8,
+      "cost": 4.478946408853505e-25,
+      "optimality": 6.56703749689868e-11,
+      "scaled_residual_inf_norm": 8.109472328165707e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361802.896845106,
+      "maximum_fugacity_residual": 3.330669073875464e-15,
+      "maximum_eos_relative_residual": 1.229381116578959e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 13,
+      "time_sec": 3.25,
+      "success": true,
+      "status": 3,
+      "nfev": 11,
+      "njev": 5,
+      "cost": 3.446962129847597e-25,
+      "optimality": 3.74597880893175e-11,
+      "scaled_residual_inf_norm": 5.981601649122482e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361790.743942948,
+      "maximum_fugacity_residual": 6.772360450213478e-15,
+      "maximum_eos_relative_residual": 9.258880364408766e-16,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 14,
+      "time_sec": 3.5,
+      "success": true,
+      "status": 1,
+      "nfev": 6,
+      "njev": 5,
+      "cost": 2.1822771128643853e-25,
+      "optimality": 6.131197629684152e-12,
+      "scaled_residual_inf_norm": 5.884223571273608e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361780.396247486,
+      "maximum_fugacity_residual": 3.885780586188056e-15,
+      "maximum_eos_relative_residual": 9.258880553538338e-16,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 15,
+      "time_sec": 3.75,
+      "success": true,
+      "status": 3,
+      "nfev": 12,
+      "njev": 8,
+      "cost": 1.722615461268289e-25,
+      "optimality": 2.6046009241969267e-11,
+      "scaled_residual_inf_norm": 3.4307045888295843e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361771.627472883,
+      "maximum_fugacity_residual": 3.9968028886505714e-15,
+      "maximum_eos_relative_residual": 1.0040953538989984e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 16,
+      "time_sec": 4.0,
+      "success": true,
+      "status": 3,
+      "nfev": 12,
+      "njev": 6,
+      "cost": 1.3169196354793701e-24,
+      "optimality": 2.779513367009402e-11,
+      "scaled_residual_inf_norm": 1.1381658693469169e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361764.182777407,
+      "maximum_fugacity_residual": 3.330669073875464e-15,
+      "maximum_eos_relative_residual": 1.2019222994150129e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 17,
+      "time_sec": 4.25,
+      "success": true,
+      "status": 3,
+      "nfev": 12,
+      "njev": 5,
+      "cost": 7.759995988758669e-25,
+      "optimality": 2.2093726703441402e-11,
+      "scaled_residual_inf_norm": 8.668989747728904e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361757.89923574,
+      "maximum_fugacity_residual": 3.885780586188056e-15,
+      "maximum_eos_relative_residual": 1.6068559834048457e-15,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 18,
+      "time_sec": 4.5,
+      "success": true,
+      "status": 3,
+      "nfev": 16,
+      "njev": 4,
+      "cost": 2.0218765431206146e-24,
+      "optimality": 2.433878026606619e-11,
+      "scaled_residual_inf_norm": 1.3107293028716007e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361752.630360153,
+      "maximum_fugacity_residual": 1.3107293028716007e-12,
+      "maximum_eos_relative_residual": 1.4773285558664257e-13,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 19,
+      "time_sec": 4.75,
+      "success": true,
+      "status": 3,
+      "nfev": 12,
+      "njev": 6,
+      "cost": 8.038860906832946e-25,
+      "optimality": 4.411882642772878e-11,
+      "scaled_residual_inf_norm": 7.88028328450582e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361748.195086721,
+      "maximum_fugacity_residual": 5.7731597280507974e-15,
+      "maximum_eos_relative_residual": 9.258881529311457e-16,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    },
+    {
+      "index": 20,
+      "time_sec": 5.0,
+      "success": true,
+      "status": 1,
+      "nfev": 4,
+      "njev": 4,
+      "cost": 5.018613485923268e-25,
+      "optimality": 9.291952390947977e-12,
+      "scaled_residual_inf_norm": 6.933676649769042e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361744.514785552,
+      "maximum_fugacity_residual": 4.440892098500617e-15,
+      "maximum_eos_relative_residual": 7.865798726594593e-16,
+      "physical_pass": true,
+      "jacobian_build_count": 1
+    }
+  ],
+  "inventory_change_by_endpoint_lbmol": [
+    0.0004960398723596882,
+    0.0009920797447193763,
+    0.0014881196161695698,
+    0.0019841594894387526,
+    0.002480199363162683,
+    0.0029762392350676237,
+    0.003472279107882059,
+    0.003968318979787,
+    0.0044643588526014355,
+    0.004960398724961124,
+    0.005456438597320812,
+    0.0059524784696805,
+    0.006448518341585441,
+    0.006944558214854624,
+    0.0074405980881238065,
+    0.007936637959119253,
+    0.008432677831933688,
+    0.008928717704293376,
+    0.009424757576198317,
+    0.009920797450831742
+  ],
+  "response": {
+    "component_inventory_change_lbmol": [
+      0.0033069027598633394,
+      0.00551153397471893,
+      0.0011023607149194688
+    ],
+    "expected_component_inventory_change_lbmol": [
+      0.0033069027605983955,
+      0.0055115339742061375,
+      0.0011023607149090804
+    ],
+    "component_inventory_identity_max_abs_lbmol": 7.350561131991284e-13,
+    "total_inventory_change_lbmol": 0.009920797449501738,
+    "expected_total_inventory_change_lbmol": 0.009920797449713612,
+    "stored_energy_change_BTU": -54.9351190396992,
+    "expected_stored_energy_change_BTU": -54.935119031934676,
+    "energy_identity_relative": 1.4133994674119096e-10
+  },
+  "first_second_comparison": {
+    "non_duty_coordinate_max_abs_difference": 1.2984328906455304e-10,
+    "condenser_duty_relative_difference": 5.979725148852039e-10,
+    "liquid_inventory_max_abs_difference_lbmol": 8.86757334228605e-12,
+    "vapor_inventory_max_abs_difference_lbmol": 6.821210263296962e-13,
+    "total_response_absolute_difference_lbmol": 6.597495987026303e-13
+  },
+  "final_stage_profile": [
+    {
+      "volume": "reflux_drum",
+      "temperature_F": 120.44647682992581,
+      "pressure_psia": 220.44,
+      "liquid_inventory_lbmol": 1388.9006668829459,
+      "vapor_inventory_lbmol": 138.50479567774354,
+      "liquid_flow_out_lbmolph": null,
+      "vapor_flow_out_lbmolph": null,
+      "liquid_mole_fractions": [
+        0.8795303442702079,
+        0.12042780425142527,
+        4.185147836677312e-05
+      ],
+      "vapor_mole_fractions": [
+        0.9460594662641337,
+        0.05393092039758443,
+        9.613338281828858e-06
+      ]
+    },
+    {
+      "volume": "rectifying_volume_1",
+      "temperature_F": 129.9456396637116,
+      "pressure_psia": 220.48768643430992,
+      "liquid_inventory_lbmol": 38.031613414497784,
+      "vapor_inventory_lbmol": 49.26520344055276,
+      "liquid_flow_out_lbmolph": 5659.61277422497,
+      "vapor_flow_out_lbmolph": 8472.78936094234,
+      "liquid_mole_fractions": [
+        0.7548456656980557,
+        0.24498957667805324,
+        0.00016475762389114878
+      ],
+      "vapor_mole_fractions": [
+        0.8795298827630159,
+        0.12042826546849719,
+        4.1851768486912164e-05
+      ]
+    },
+    {
+      "volume": "rectifying_volume_2",
+      "temperature_F": 141.0368669594929,
+      "pressure_psia": 220.53699645828382,
+      "liquid_inventory_lbmol": 34.294274164424074,
+      "vapor_inventory_lbmol": 12.749855215696153,
+      "liquid_flow_out_lbmolph": 5439.110133884708,
+      "vapor_flow_out_lbmolph": 8179.908512855481,
+      "liquid_mole_fractions": [
+        0.6223026955284895,
+        0.37725398477138755,
+        0.0004433197001229783
+      ],
+      "vapor_mole_fractions": [
+        0.7932560580636994,
+        0.206617046837741,
+        0.00012689509855969306
+      ]
+    },
+    {
+      "volume": "rectifying_volume_3",
+      "temperature_F": 151.41039725631273,
+      "pressure_psia": 220.58616201477352,
+      "liquid_inventory_lbmol": 33.36305787141638,
+      "vapor_inventory_lbmol": 12.531729573723577,
+      "liquid_flow_out_lbmolph": 5314.456948344107,
+      "vapor_flow_out_lbmolph": 7959.394131897124,
+      "liquid_mole_fractions": [
+        0.5096445399534288,
+        0.4893673406169138,
+        0.0009881194296573613
+      ],
+      "vapor_mole_fractions": [
+        0.7037403944686276,
+        0.29594338969167544,
+        0.00031621583969700676
+      ]
+    },
+    {
+      "volume": "rectifying_volume_4",
+      "temperature_F": 159.43473492883507,
+      "pressure_psia": 220.63562446016223,
+      "liquid_inventory_lbmol": 32.78596225813476,
+      "vapor_inventory_lbmol": 12.376485607194349,
+      "liquid_flow_out_lbmolph": 5257.677104583288,
+      "vapor_flow_out_lbmolph": 7834.733382038919,
+      "liquid_mole_fractions": [
+        0.42918822467191325,
+        0.5688495896628717,
+        0.001962185665214981
+      ],
+      "vapor_mole_fractions": [
+        0.6286129434956627,
+        0.37070329026294563,
+        0.0006837662413917163
+      ]
+    },
+    {
+      "volume": "rectifying_volume_5",
+      "temperature_F": 164.88248874260475,
+      "pressure_psia": 220.6854240995909,
+      "liquid_inventory_lbmol": 32.39051997184585,
+      "vapor_inventory_lbmol": 12.282868915470274,
+      "liquid_flow_out_lbmolph": 5233.420028788962,
+      "vapor_flow_out_lbmolph": 7777.949814666129,
+      "liquid_mole_fractions": [
+        0.37782717076580663,
+        0.6185394294357616,
+        0.003633399798431883
+      ],
+      "vapor_mole_fractions": [
+        0.5750917219316029,
+        0.42356824907661594,
+        0.001340028991781279
+      ]
+    },
+    {
+      "volume": "rectifying_volume_6",
+      "temperature_F": 168.3449271483471,
+      "pressure_psia": 220.73557119003047,
+      "liquid_inventory_lbmol": 32.1772608627088,
+      "vapor_inventory_lbmol": 12.224620133353834,
+      "liquid_flow_out_lbmolph": 5219.701461076299,
+      "vapor_flow_out_lbmolph": 7753.691109670401,
+      "liquid_mole_fractions": [
+        0.3469897815479089,
+        0.6465533438168379,
+        0.00645687463525319
+      ],
+      "vapor_mole_fractions": [
+        0.5408793634726291,
+        0.45665447999288283,
+        0.0024661565344880954
+      ]
+    },
+    {
+      "volume": "rectifying_volume_7",
+      "temperature_F": 170.55748166957574,
+      "pressure_psia": 220.78595900586222,
+      "liquid_inventory_lbmol": 32.038989094530564,
+      "vapor_inventory_lbmol": 12.187757378017924,
+      "liquid_flow_out_lbmolph": 5205.48878172731,
+      "vapor_flow_out_lbmolph": 7739.971722304585,
+      "liquid_mole_fractions": [
+        0.32886052083657846,
+        0.6599407399179722,
+        0.011198739245449308
+      ],
+      "vapor_mole_fractions": [
+        0.52037082617187,
+        0.475260859628171,
+        0.004368314199958885
+      ]
+    },
+    {
+      "volume": "rectifying_volume_8",
+      "temperature_F": 172.12922497123265,
+      "pressure_psia": 220.8364259245355,
+      "liquid_inventory_lbmol": 31.889495682782215,
+      "vapor_inventory_lbmol": 12.162925821088,
+      "liquid_flow_out_lbmolph": 5184.187093086906,
+      "vapor_flow_out_lbmolph": 7725.758318872877,
+      "liquid_mole_fractions": [
+        0.3179241466096224,
+        0.6629490460884477,
+        0.01912680730192981
+      ],
+      "vapor_mole_fractions": [
+        0.5084738146722624,
+        0.4839665139471713,
+        0.007559671380566416
+      ]
+    },
+    {
+      "volume": "rectifying_volume_9",
+      "temperature_F": 173.53126260183194,
+      "pressure_psia": 220.886823205833,
+      "liquid_inventory_lbmol": 31.686979922578082,
+      "vapor_inventory_lbmol": 12.141119414802064,
+      "liquid_flow_out_lbmolph": 5149.45162344822,
+      "vapor_flow_out_lbmolph": 7704.455593973429,
+      "liquid_mole_fractions": [
+        0.31058834569153354,
+        0.657119929285325,
+        0.03229172502314146
+      ],
+      "vapor_mole_fractions": [
+        0.5016111591447945,
+        0.4855042285751823,
+        0.012884612280023258
+      ]
+    },
+    {
+      "volume": "rectifying_volume_10",
+      "temperature_F": 175.17000618640424,
+      "pressure_psia": 220.93704527215917,
+      "liquid_inventory_lbmol": 31.415033423552515,
+      "vapor_inventory_lbmol": 12.112312705610076,
+      "liquid_flow_out_lbmolph": 5092.965407925672,
+      "vapor_flow_out_lbmolph": 7669.718477592974,
+      "liquid_mole_fractions": [
+        0.3044495319873293,
+        0.6416634891924647,
+        0.053886978820205836
+      ],
+      "vapor_mole_fractions": [
+        0.49751829117542273,
+        0.4807858077477479,
+        0.02169590107682948
+      ]
+    },
+    {
+      "volume": "feed_tray",
+      "temperature_F": 177.47649796118642,
+      "pressure_psia": 221.01215230046247,
+      "liquid_inventory_lbmol": 45.87646524576758,
+      "vapor_inventory_lbmol": 10.902843561957319,
+      "liquid_flow_out_lbmolph": 12222.445688568974,
+      "vapor_flow_out_lbmolph": 7613.22797530221,
+      "liquid_mole_fractions": [
+        0.2977042631650185,
+        0.6137591054542489,
+        0.08853663138073253
+      ],
+      "vapor_mole_fractions": [
+        0.49480352752108203,
+        0.4691308270786038,
+        0.03606564540031417
+      ]
+    },
+    {
+      "volume": "stripping_volume_1",
+      "temperature_F": 180.98015277581007,
+      "pressure_psia": 221.08781352163672,
+      "liquid_inventory_lbmol": 45.679107763052116,
+      "vapor_inventory_lbmol": 10.849814618468013,
+      "liquid_flow_out_lbmolph": 12240.976354450144,
+      "vapor_flow_out_lbmolph": 7595.688241919721,
+      "liquid_mole_fractions": [
+        0.2690556735499917,
+        0.641047245165097,
+        0.08989708128491135
+      ],
+      "vapor_mole_fractions": [
+        0.4572116320175346,
+        0.5048449739328227,
+        0.03794339404964278
+      ]
+    },
+    {
+      "volume": "stripping_volume_2",
+      "temperature_F": 185.17714312485853,
+      "pressure_psia": 221.16452004135007,
+      "liquid_inventory_lbmol": 45.50019898207559,
+      "vapor_inventory_lbmol": 10.784910532296948,
+      "liquid_flow_out_lbmolph": 12277.364851439672,
+      "vapor_flow_out_lbmolph": 7616.5091318973045,
+      "liquid_mole_fractions": [
+        0.23552616395480014,
+        0.6729857471617507,
+        0.09148808888344916
+      ],
+      "vapor_mole_fractions": [
+        0.4107358756713154,
+        0.5489900266125994,
+        0.04027409771608509
+      ]
+    },
+    {
+      "volume": "stripping_volume_3",
+      "temperature_F": 189.93377077043976,
+      "pressure_psia": 221.24249936714548,
+      "liquid_inventory_lbmol": 45.29308233027297,
+      "vapor_inventory_lbmol": 10.716228096136206,
+      "liquid_flow_out_lbmolph": 12334.354738038903,
+      "vapor_flow_out_lbmolph": 7653.788358877465,
+      "liquid_mole_fractions": [
+        0.19855838502586437,
+        0.7080953340412663,
+        0.09334628093286937
+      ],
+      "vapor_mole_fractions": [
+        0.35626326503782624,
+        0.6006676465515725,
+        0.04306908841060131
+      ]
+    },
+    {
+      "volume": "stripping_volume_4",
+      "temperature_F": 195.01225593108654,
+      "pressure_psia": 221.312072218039,
+      "liquid_inventory_lbmol": 53.46499917928841,
+      "vapor_inventory_lbmol": 12.08721376864479,
+      "liquid_flow_out_lbmolph": 12410.014506354637,
+      "vapor_flow_out_lbmolph": 7711.022079873322,
+      "liquid_mole_fractions": [
+        0.16032497655888345,
+        0.7439389403751233,
+        0.09573608306599331
+      ],
+      "vapor_mole_fractions": [
+        0.29623533228281607,
+        0.6573637286263011,
+        0.04640093909088287
+      ]
+    },
+    {
+      "volume": "stripping_volume_5",
+      "temperature_F": 200.15665080153505,
+      "pressure_psia": 221.38302451910906,
+      "liquid_inventory_lbmol": 53.16708488329938,
+      "vapor_inventory_lbmol": 12.01452604139987,
+      "liquid_flow_out_lbmolph": 12496.042475340902,
+      "vapor_flow_out_lbmolph": 7786.737296766598,
+      "liquid_mole_fractions": [
+        0.12324647195487042,
+        0.7771714825192949,
+        0.09958204552583474
+      ],
+      "vapor_mole_fractions": [
+        0.23435217628935018,
+        0.7149817120533305,
+        0.05066611165731928
+      ]
+    },
+    {
+      "volume": "stripping_volume_6",
+      "temperature_F": 205.2257115731497,
+      "pressure_psia": 221.45595900117388,
+      "liquid_inventory_lbmol": 53.19994291999032,
+      "vapor_inventory_lbmol": 11.917617944329402,
+      "liquid_flow_out_lbmolph": 12573.711286076143,
+      "vapor_flow_out_lbmolph": 7872.776793266286,
+      "liquid_mole_fractions": [
+        0.08938376597177738,
+        0.8031058403404514,
+        0.10751039368777132
+      ],
+      "vapor_mole_fractions": [
+        0.17469085658103511,
+        0.7680460393547875,
+        0.05726310406417732
+      ]
+    },
+    {
+      "volume": "stripping_volume_7",
+      "temperature_F": 210.42202639286637,
+      "pressure_psia": 221.53023862368607,
+      "liquid_inventory_lbmol": 52.76531104608257,
+      "vapor_inventory_lbmol": 11.85044964455672,
+      "liquid_flow_out_lbmolph": 12608.742490506711,
+      "vapor_flow_out_lbmolph": 7950.449931529003,
+      "liquid_mole_fractions": [
+        0.06002765636929076,
+        0.8137327108810652,
+        0.12623963274964403
+      ],
+      "vapor_mole_fractions": [
+        0.12063442635822369,
+        0.8091503620050134,
+        0.07021521163676288
+      ]
+    },
+    {
+      "volume": "combined_reboiler_sump",
+      "temperature_F": 216.6628618701868,
+      "pressure_psia": 221.55557788491512,
+      "liquid_inventory_lbmol": 794.0001269437961,
+      "vapor_inventory_lbmol": 73.9762530410492,
+      "liquid_flow_out_lbmolph": null,
+      "vapor_flow_out_lbmolph": 7985.484546583005,
+      "liquid_mole_fractions": [
+        0.03564220208872091,
+        0.7927111635193552,
+        0.17164663439192393
+      ],
+      "vapor_mole_fractions": [
+        0.07414546419104248,
+        0.8259031327615276,
+        0.09995140304742989
+      ]
+    }
+  ],
+  "provider": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {
+      "declared_liquid_density": "aligned_pr"
+    },
+    "total_calls": 165480,
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true,
+    "grouped_record_summary": [
+      {
+        "provider_interface": "aligned_pr.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "quantity": "liquid_density",
+        "group_count": 23200,
+        "call_count": 27580
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "quantity": "phase_enthalpy",
+        "group_count": 23200,
+        "call_count": 55160
+      },
+      {
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "evaluation_kind": "jacobian",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 23200,
+        "call_count": 27580
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "condenser_bubble_equilibrium",
+        "group_count": 1160,
+        "call_count": 2758
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "stage_fugacity_equilibrium",
+        "group_count": 22040,
+        "call_count": 52402
+      }
+    ]
+  },
+  "logical_provider_calls": 165480,
+  "wall_clock_sec": 55.7695416000206,
+  "simulation_time_sec": 5.0,
+  "simulation_to_wall_ratio": 0.0896546727218958,
+  "gates": {
+    "path_complete": true,
+    "scientific_endpoints": true,
+    "one_fresh_jacobian_per_root": true,
+    "first_second_non_duty_coordinates": true,
+    "first_second_condenser_duty": true,
+    "first_second_phase_inventories": true,
+    "first_second_response": true,
+    "positive_monotonic_accumulation": true,
+    "component_identity": true,
+    "energy_identity": true,
+    "provider": true,
+    "report_complete": true,
+    "call_count": true,
+    "wall_clock": true,
+    "no_retry_or_controller": true
+  },
+  "pass_gate": true,
+  "campaign_executed_once": true,
+  "recovery_endpoint_count": 20,
+  "retry_attempted": false,
+  "alternate_step_attempted": false,
+  "parallel_worker_attempted": false,
+  "controller_attempted": false,
+  "longer_trajectory_attempted": false
+}

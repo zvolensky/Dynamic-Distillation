@@ -2704,3 +2704,17 @@ strict JSON and atomic JSON/NPZ preflights before freeze. During execution, each
 accepted endpoint atomically replaces a recovery file containing its reports,
 coordinates, and complete next-step reference. Final artifacts are validated
 before atomic replacement.
+
+DD-259 executes successfully. All 20 roots retain the complete 258-variable
+liquid/vapor inventory, phase-transfer, pressure/EOS, energy, equilibrium, and
+traffic coupling. The first second reproduces DD-254 within the new block-aware
+limits, and the complete five-second path conserves the imposed component and
+energy accumulation. One fresh Jacobian per root reduces the campaign to
+165,480 logical calls and `55.77 s` wall while preserving residual closure below
+`1.72e-12`.
+
+The final state retains `2907.920 lbmol` liquid and `463.640 lbmol` vapor across
+the column. Pressure remains ordered from `220.44 psia` in the reflux drum to
+`221.55558 psia` in the combined reboiler/sump. The solved condenser duty is
+`-51.000817 MMBTU/h`. Atomic result, evidence, and completed recovery artifacts
+now establish five seconds as the accepted vapor-holdup dynamic boundary.

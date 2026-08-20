@@ -2877,3 +2877,11 @@ handoff value. Consequently, reflux-drum pressure is now an outcome of the
 conserved vapor and energy states, EOS closure, and the top vapor-link pressure
 drop. Both terminal level controllers remain active; no pressure controller is
 present in this diagnostic run.
+
+The DD-274 execution confirms that coupling numerically. With fixed condenser
+duty and no pressure controller, drum, top-tray, and bottom pressures all move
+smoothly downward by about `0.007-0.008 psia` over 30 seconds while retaining
+the complete ordered pressure profile. The final drum-to-top-tray pressure drop
+is `0.047538 psia`. Thus the reflux drum is no longer an artificial pressure
+anchor; its pressure responds through the same vapor-inventory and energy
+equations as the rest of the column.

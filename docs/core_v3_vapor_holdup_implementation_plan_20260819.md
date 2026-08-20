@@ -740,6 +740,14 @@ geometry-based level controllers, and leaves pressure control off. The nominal
 path is 120 steps of `0.25 s`, followed by a two-half-step refinement of the
 last interval. No retry or alternate run is authorized.
 
+DD-274 passes. Over 30 seconds, reflux-drum pressure falls smoothly by
+`0.006879 psia`, top-tray pressure falls by `0.006917 psia`, and bottom pressure
+falls by `0.007903 psia`. The pressure profile remains positive and ordered;
+the top-link pressure drop remains about `0.04754 psia`. All numerical,
+physical, conservation, controller, provider, and refinement gates pass. This
+authorizes assessment of a longer pressure-dynamic hold, but no longer run is
+performed by DD-274.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

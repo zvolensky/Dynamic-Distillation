@@ -492,6 +492,11 @@ mis-scoped accounting gates. DD-253 is a zero-call adjudication: it checks all
 eight workers on governing tasks and exact total-work parity without repeating
 the solve.
 
+DD-253 passes without live calls. Persistent parallel stepping is now
+authorized for a separately frozen trajectory. After integration, the next
+performance target is fewer Jacobian builds and nonlinear iterations, because
+parallel execution reduces wall time but not the 41,760-call root workload.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

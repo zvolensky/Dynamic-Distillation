@@ -1,0 +1,41 @@
+{
+  "schema_id": "dd253-core-v3-vapor-holdup-parallel-first-root-adjudication-result-v1",
+  "classification": "parallel_first_root_accounting_adjudication_passed",
+  "decision": "authorize_persistent_parallel_vapor_holdup_trajectory_contract",
+  "contract_commit": "4e72672ee51b116a787f0c8c4509b1848e159b99",
+  "contract_payload_sha256": "e5abf0d06c4bfdf652ce8f946417db81dc7b4415f5f6e710ccd43e508b51f36b",
+  "source_classification": "vapor_holdup_parallel_first_root_failed",
+  "source_failed_gates": [
+    "process_isolation",
+    "provider_calls"
+  ],
+  "governing_jacobian_count": 6,
+  "worker_count_each": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+  ],
+  "serial_logical_work": 41760,
+  "parallel_logical_work": 41760,
+  "logical_work_difference": 0,
+  "parallel_solve_speedup": 1.64936303393246,
+  "gates": {
+    "source_failure_is_accounting_only": true,
+    "all_original_science_gates": true,
+    "governing_worker_participation": true,
+    "logical_work_parity": true,
+    "provider_ownership": true,
+    "parallel_speed": true,
+    "zero_call_adjudication": true
+  },
+  "property_calls": 0,
+  "rerun_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false,
+  "controller_attempted": false,
+  "trajectory_attempted": false,
+  "pass_gate": true
+}

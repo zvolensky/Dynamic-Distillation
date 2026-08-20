@@ -2585,3 +2585,9 @@ uses all eight workers, while the failed participation test inspected startup
 pings. Serial and parallel total logical work are both 41,760 calls, while the
 failed call limit was scoped below a complete six-Jacobian root. DD-253 freezes
 one zero-call adjudication of those two semantics; DD-252 is not rerun.
+
+DD-253 passes. Every governing DD-252 matrix used all eight workers, and serial
+and parallel total logical work are exactly equal at 41,760 calls. The
+solver-level parallel implementation is therefore accepted as exact and
+faster. One persistent-parallel trajectory may now be frozen. This decision
+does not claim that the remaining finite-difference call count is economical.

@@ -428,7 +428,8 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 - [x] Map an accepted root into the successor dynamic history/state schema (`DD-246`).
 - [x] Pass stationary hold and refined moving-step gates (`DD-248` and `DD-249`).
 - [x] Run a short open-loop trajectory before adding controllers (`DD-250`).
-- [ ] Qualify and integrate a persistent parallel Jacobian path before extending duration.
+- [x] Qualify a persistent parallel Jacobian path (`DD-251`).
+- [ ] Integrate the qualified persistent parallel path into vapor-holdup stepping.
 
 The stationary initializer solves distillate and bottoms rates so the reflux
 drum and sump remain at their geometry-derived target inventories. This is not
@@ -476,6 +477,11 @@ DD-251 freezes the first qualification benchmark: one serial and one
 eight-worker matrix at the accepted DD-249 moving endpoint. Passing permits
 parallel step-solver integration; failure retains the serial scientific path
 and requires a different performance strategy.
+
+DD-251 passes with exact serial/parallel matrix equality and `3.93x` matrix
+speedup. The eight-worker pool must remain alive across roots to amortize its
+`11.69 s` startup. Integrate it next, then address Jacobian count and nonlinear
+iteration count separately.
 
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 

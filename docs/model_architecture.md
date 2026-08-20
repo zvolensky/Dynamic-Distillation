@@ -2565,3 +2565,10 @@ DD-251 freezes a direct benchmark of that path at the accepted DD-249 moving
 endpoint. It compares one serial 28-color matrix with one eight-worker matrix
 and requires numerical equivalence, isolated provider ownership, and at least
 25% lower matrix wall time. It performs no solve or state advance.
+
+DD-251 passes with exact matrix identity. Eight isolated workers reduce one
+representative matrix from `1.843 s` to `0.469 s`, a `3.93x` speedup, while
+retaining rank, condition, provider ownership, and logical work. The adjusted
+worker startup is `11.69 s`, so the pool must persist across roots. Integration
+into the step solver is now authorized; finite-difference call count remains a
+separate performance problem.

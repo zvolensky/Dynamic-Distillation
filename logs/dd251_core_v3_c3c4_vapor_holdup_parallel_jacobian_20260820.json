@@ -1,0 +1,72 @@
+{
+  "schema_id": "dd251-core-v3-c3c4-vapor-holdup-parallel-jacobian-result-v1",
+  "classification": "vapor_holdup_parallel_jacobian_qualified",
+  "decision": "authorize_persistent_parallel_vapor_holdup_step_integration",
+  "contract_commit": "27ce28e21b7b2855edde1c0ced1b6dbcd0e97df6",
+  "contract_payload_sha256": "e5d441e8fb0a0d9de25ad006ef61cc44b2aaf5455c8184d075a03db26e70f915",
+  "serial": {
+    "wall_clock_sec": 1.8428089000517502,
+    "logical_provider_calls": 6720,
+    "matrix_sha256": "170375da105ad3439a87b8b491d761c56c56a9b7fc5880a8939447c04b1628d6",
+    "rank": 258,
+    "condition": 11362294.382225621
+  },
+  "parallel": {
+    "wall_clock_sec": 0.46911399997770786,
+    "logical_provider_calls": 6720,
+    "matrix_sha256": "170375da105ad3439a87b8b491d761c56c56a9b7fc5880a8939447c04b1628d6",
+    "rank": 258,
+    "condition": 11362294.382225621,
+    "worker_ids": [
+      190144,
+      194952,
+      198548,
+      200468,
+      200880,
+      201792,
+      201956,
+      202212
+    ],
+    "ping_worker_ids": [
+      190144,
+      194952,
+      198548,
+      200468,
+      200880,
+      201792,
+      201956,
+      202212
+    ]
+  },
+  "comparison": {
+    "matrix_max_abs_difference": 0.0,
+    "matrix_relative_difference": 0.0,
+    "spectrum_relative_difference": 0.0,
+    "parallel_time_ratio": 0.25456464854523664,
+    "speedup": 3.9282752169820547
+  },
+  "startup_wall_sec_raw": 11.838189300033264,
+  "startup_wall_sec_adjusted": 11.688189300033264,
+  "total_wall_clock_sec": 22.226639899949078,
+  "gates": {
+    "task_shape": true,
+    "process_isolation": true,
+    "matrix_absolute": true,
+    "matrix_relative": true,
+    "spectrum": true,
+    "rank": true,
+    "condition": true,
+    "provider": true,
+    "provider_calls": true,
+    "meaningful_speed": true,
+    "wall_clock": true,
+    "no_solve_or_state_advance": true
+  },
+  "pass_gate": true,
+  "campaign_executed_once": true,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false,
+  "controller_attempted": false,
+  "trajectory_attempted": false,
+  "retry_attempted": false
+}

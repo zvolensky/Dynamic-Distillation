@@ -14,3 +14,16 @@ def test_dd251_saved_contract_freezes_exact_parallel_matrix_benchmark():
     assert saved["benchmark"]["task_count"] == 56
     assert saved["benchmark"]["worker_count"] == 8
     assert saved["benchmark"]["parallel_time_ratio_limit"] == 0.75
+
+
+def test_dd251_saved_result_qualifies_exact_parallel_jacobian():
+    saved = json.loads((dd251.ROOT / dd251.RESULT).read_text(encoding="utf-8"))
+
+    assert saved["pass_gate"]
+    assert all(saved["gates"].values())
+    assert saved["serial"]["matrix_sha256"] == saved["parallel"]["matrix_sha256"]
+    assert saved["comparison"]["matrix_max_abs_difference"] == 0.0
+    assert saved["serial"]["rank"] == saved["parallel"]["rank"] == 258
+    assert saved["comparison"]["speedup"] > 1.0
+    assert not saved["nonlinear_solve_attempted"]
+    assert not saved["state_advance_attempted"]

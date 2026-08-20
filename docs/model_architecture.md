@@ -2746,3 +2746,21 @@ parity are exact. DD-262 therefore accepts the 30-second open-loop vapor-holdup
 trajectory scientifically while preserving DD-260 and DD-261's historical
 classifications. Structural terminal level-control ownership may be designed
 next; controllers are not yet part of an accepted vapor-holdup trajectory.
+
+### Workbook-backed vapor-holdup level control
+
+DD-263 adds terminal level-control ownership as a separate successor contract.
+It reads the C3/C4 vessel dimensions through the normalized Excel loader: a
+`12.1 ft` diameter by `36.3 ft` tangent-length horizontal reflux drum with two
+hemispherical heads, and an `18.1759 ft` diameter by `12 ft` vertical sump. The
+corresponding gross liquid capacities are `5101.729438 ft3` and
+`3113.601134 ft3`. The reboiler vapor extension remains available to the bottom
+vapor EOS but is not counted as sump liquid-level volume.
+
+The drum controller owns distillate flow and the sump controller owns bottoms
+flow. Product composition is always the live liquid composition of the vessel.
+Two PI memories and two product-rate outputs enlarge the open-loop `258 x 258`
+ledger to a full-rank `262 x 262` controlled ledger. Fixed product-flow
+parameters are absent from the controlled contract. DD-263 is property-free and
+does not authorize a timestep. A live zero-motion reconstruction and bumpless
+PI-memory audit is required before controlled integration.

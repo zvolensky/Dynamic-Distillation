@@ -601,6 +601,17 @@ therefore scientifically accepted. The next work may define terminal level-
 control ownership structurally; a live controlled trajectory still requires a
 separately frozen contract.
 
+DD-263 completes that structural design using the terminal dimensions already
+stored in the C3/C4 workbook. The reflux drum is `12.1 x 36.3 ft` with two
+hemispherical heads; the vertical sump is `18.1759 x 12 ft`. The Excel loader,
+not duplicated controller constants, owns these values. Drum level manipulates
+distillate and sump level manipulates bottoms, with live terminal liquid
+composition used for each product. The property-free controlled ledger is
+`262 x 262`, full rank, and generic in component count. Next, perform one frozen
+live zero-motion audit that reconstructs both levels from DWSIM liquid density
+and initializes the two PI memories for bumpless stationary outputs. Do not run
+a controlled trajectory until that audit passes.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

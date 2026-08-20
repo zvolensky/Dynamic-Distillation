@@ -1,0 +1,76 @@
+{
+  "schema_id": "dd262-core-v3-c3c4-vapor-holdup-thirty-second-balance-adjudication-result-v1",
+  "classification": "thirty_second_balance_adjudication_passed",
+  "decision": "accept_dd261_scientific_trajectory_through_thirty_seconds",
+  "contract_commit": "ae03339a9fe3f8486e8daa239ce39c65ea491618",
+  "contract_payload_sha256": "1b93f3a9ee8694e8ae31516c866ae676ee7eb2fdd22fd03f7e52b49398c95df8",
+  "dd261_formal_classification_preserved": "journaled_thirty_second_vapor_holdup_trajectory_failed",
+  "endpoint_count": 120,
+  "actual_component_inventory_change_lbmol": [
+    0.01984114493631206,
+    0.03306852549380146,
+    0.006615114268862693
+  ],
+  "expected_component_inventory_change_lbmol": [
+    0.019841144937405002,
+    0.03306852549208388,
+    0.0066151142687939325
+  ],
+  "component_inventory_identity_max_abs_lbmol": 1.7175774691402523e-12,
+  "actual_stored_energy_change_BTU": -334.46192688896554,
+  "expected_stored_energy_change_BTU": -334.46192687573955,
+  "energy_identity_relative": 3.9544069374480396e-11,
+  "endpoint81_reference_parity_max_abs": 0.0,
+  "final_state_parity_max_abs": 0.0,
+  "provider": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {
+      "declared_liquid_density": "aligned_pr"
+    },
+    "total_calls": 9600,
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true,
+    "grouped_record_summary": [
+      {
+        "provider_interface": "aligned_pr.declared_liquid_density",
+        "evaluation_kind": "residual",
+        "quantity": "liquid_density",
+        "group_count": 2400,
+        "call_count": 2400
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "residual",
+        "quantity": "phase_enthalpy",
+        "group_count": 2400,
+        "call_count": 4800
+      },
+      {
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "evaluation_kind": "residual",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 2400,
+        "call_count": 2400
+      }
+    ]
+  },
+  "provider_calls": 9600,
+  "wall_clock_sec": 3.017386000021361,
+  "gates": {
+    "coordinate_count": true,
+    "endpoint81_parity": true,
+    "final_state_parity": true,
+    "component_identity": true,
+    "energy_identity": true,
+    "provider": true,
+    "provider_calls": true,
+    "wall_clock": true,
+    "no_solve_or_state_advance": true
+  },
+  "pass_gate": true,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false,
+  "retry_attempted": false,
+  "controller_attempted": false
+}

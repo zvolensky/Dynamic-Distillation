@@ -24,3 +24,17 @@ def test_dd262_saved_contract_is_read_only_and_preserves_dd261():
     assert saved["authorization"]["preserve_dd261_classification"]
     assert saved["replay"]["endpoint_count"] == 120
     assert saved["replay"]["properties"].startswith("live DWSIM")
+
+
+def test_dd262_saved_result_accepts_the_scientific_trajectory():
+    saved = json.loads((dd262.ROOT / dd262.RESULT).read_text(encoding="utf-8"))
+
+    assert saved["pass_gate"]
+    assert all(saved["gates"].values())
+    assert saved["decision"] == "accept_dd261_scientific_trajectory_through_thirty_seconds"
+    assert saved["component_inventory_identity_max_abs_lbmol"] < 1.0e-11
+    assert saved["energy_identity_relative"] < 1.0e-10
+    assert saved["endpoint81_reference_parity_max_abs"] == 0.0
+    assert saved["final_state_parity_max_abs"] == 0.0
+    assert not saved["nonlinear_solve_attempted"]
+    assert not saved["state_advance_attempted"]

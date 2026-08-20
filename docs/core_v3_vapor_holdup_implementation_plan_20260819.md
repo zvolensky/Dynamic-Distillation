@@ -577,6 +577,30 @@ The full final stage profile is serialized. The next dynamic work may extend
 the open-loop horizon under a separately frozen contract; controller addition
 still follows a longer uncontrolled response and timestep/refinement decision.
 
+DD-260 freezes that longer response at 30 seconds with 120 nominal `0.25 s`
+endpoints and a local two-step `0.125 s` refinement at the final interval. The
+numerical path remains clean through endpoint 81 (`20.25 s`), but Windows denies
+atomic replacement of the single live recovery file while it is being inspected.
+DD-260 stops as required. Its complete endpoint-81 temporary recovery is
+preserved byte-for-byte; DD-260 is not rerun or reclassified.
+
+DD-261 resumes from that exact state under a new contract and writes each of the
+remaining 39 endpoints once to a separate immutable journal file. The combined
+120-endpoint path and final refinement complete. Every root, physical,
+equilibrium, EOS, continuity, provider, rank, condition, refinement, call, and
+wall gate passes. Its aggregate component and energy gates fail only because the
+reporter multiplies the final boundary rates by all 30 seconds instead of summing
+the changing rates at each endpoint. DD-261's formal failure is preserved.
+
+DD-262 performs the frozen read-only adjudication. It decodes the exact 120 saved
+states, replays properties without a solve or state advance, and sums every
+endpoint's boundary rates over `0.25 s`. Component conservation closes to
+`1.72e-12 lbmol` and energy conservation to `3.95e-11` relative. Endpoint-81 and
+final-state parity are exact. The 30-second open-loop vapor-holdup trajectory is
+therefore scientifically accepted. The next work may define terminal level-
+control ownership structurally; a live controlled trajectory still requires a
+separately frozen contract.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

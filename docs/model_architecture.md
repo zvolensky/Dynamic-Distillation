@@ -2718,3 +2718,31 @@ the column. Pressure remains ordered from `220.44 psia` in the reflux drum to
 `221.55558 psia` in the combined reboiler/sump. The solved condenser duty is
 `-51.000817 MMBTU/h`. Atomic result, evidence, and completed recovery artifacts
 now establish five seconds as the accepted vapor-holdup dynamic boundary.
+
+DD-260 extends the unchanged open-loop architecture toward 30 seconds. All 81
+completed endpoints through `20.25 s` remain physical, full rank, and closed
+below `1.72e-12`, but Windows blocks replacement of the single atomic recovery
+file after writing endpoint 81. This is a reporting/recovery collision, not a
+scientific failure. The complete temporary recovery is preserved and DD-260 is
+not rerun.
+
+DD-261 resumes from the preserved endpoint under a separately frozen contract.
+Each remaining endpoint is written to a unique immutable journal file, removing
+live-file replacement contention. The trajectory reaches all 120 nominal
+endpoints and the final local refinement. Worst residual is `1.82e-12`, worst
+condition is `1.136251e7`, inventory accumulation is positive and monotonic,
+the final refinement passes every inherited DD-249 limit, and pressure and
+temperature remain ordered. The final condenser duty is
+`-51.000770 MMBTU/h`. DD-261 remains formally failed because its aggregate
+report incorrectly treats the final changing product/enthalpy rates as constant
+over the complete horizon.
+
+DD-262 adjudicates only that reporting formula. The saved coordinates are
+decoded sequentially and live DWSIM properties are replayed at all 120 endpoints
+without a nonlinear solve or state advance. Summed endpoint boundary rates match
+the actual component inventory change within `1.72e-12 lbmol` and the stored-
+energy change within `3.95e-11` relative. Recovered endpoint-81 and final-state
+parity are exact. DD-262 therefore accepts the 30-second open-loop vapor-holdup
+trajectory scientifically while preserving DD-260 and DD-261's historical
+classifications. Structural terminal level-control ownership may be designed
+next; controllers are not yet part of an accepted vapor-holdup trajectory.

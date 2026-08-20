@@ -426,7 +426,7 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 - [x] Pass the two-step stationary Jacobian audit (`DD-244`).
 - [x] Execute one frozen bounded stationary root campaign (`DD-245`).
 - [x] Map an accepted root into the successor dynamic history/state schema (`DD-246`).
-- [ ] Pass stationary hold and refined moving-step gates.
+- [ ] Pass stationary hold and refined moving-step gates (hold passed in `DD-248`; moving step pending).
 - [ ] Run a short open-loop trajectory before adding controllers.
 
 The stationary initializer solves distillate and bottoms rates so the reflux
@@ -450,6 +450,11 @@ DD-247 completes that reconstruction and proves exact zero inventory motion at
 the accepted root. The full implicit Jacobian is rank 258 with condition about
 `1.14e7`. One frozen stationary hold step is next; a disturbance remains
 unauthorized until that step is accepted without state movement.
+
+DD-248 accepts that hold step with exactly zero movement. The next contract may
+apply one small feed disturbance and compare one `0.25 s` endpoint against two
+successive `0.125 s` endpoints. A trajectory remains unauthorized until this
+local response is conservative, physical, and timestep-consistent.
 
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 

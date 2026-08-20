@@ -2517,3 +2517,11 @@ are identical in all 20 volumes. Both numerical dynamic Jacobians retain rank
 258 and condition about `1.14e7`, with stable finite differences and no empty
 row or column. This authorizes a separately frozen stationary hold step, not a
 moving trajectory.
+
+DD-248 accepts the first actual successor timestep. One `0.25 s` backward-Euler
+solve returns the exact stationary coordinate vector in one function and one
+Jacobian evaluation. Coordinate movement and all liquid/vapor inventory rates
+are exactly zero, while the residual and Jacobian evidence reproduce DD-247.
+This proves a clean dynamic hold. It does not yet prove response accuracy; the
+next gate is one small physical disturbance with full-versus-refined timestep
+comparison.

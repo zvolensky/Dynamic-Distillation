@@ -556,6 +556,13 @@ DD-258 provides the separately versioned successor. Its property-free preflight
 passes for every volume and vapor link while the DD-257 science and limits stay
 unchanged. One execution is authorized after the contract is committed.
 
+DD-258 reaches JSON serialization after its solve and profile construction, but
+a NumPy boolean in the gate mapping is not serializable. No admissible evidence
+is retained. The predeclared serialization hard stop ends five-second extension
+work without a rerun or another reporting successor. The implementation plan
+returns to the accepted DD-254 one-second dynamic boundary; any future extension
+requires a newly scoped campaign rather than continuation of DD-257/DD-258.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

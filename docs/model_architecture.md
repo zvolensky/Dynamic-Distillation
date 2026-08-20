@@ -2683,3 +2683,10 @@ campaign. Its preflight decodes the real 258-coordinate endpoint and maps all
 20 volumes, 19 tuple-based vapor links, and three-component phase compositions
 without a property or solver call. The full five-second campaign may execute
 once only after that preflight and contract commit.
+
+DD-258's solve and corrected profile construction return, but JSON serialization
+then rejects a NumPy boolean retained by a gate comparison. Because no result
+or NPZ evidence is written, the campaign cannot be classified scientifically.
+The frozen serialization hard stop is applied: no patch, rerun, or DD-259
+reporting variant is allowed. The accepted dynamic boundary remains DD-254's
+one-second, four-endpoint full-refresh serial trajectory.

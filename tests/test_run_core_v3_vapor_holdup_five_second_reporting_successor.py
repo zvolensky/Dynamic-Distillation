@@ -36,3 +36,15 @@ def test_dd258_saved_contract_preserves_dd257_science_and_freezes_reporter():
     assert saved["trajectory"]["steps_per_path"] == 20
     assert saved["reporter"]["preflight_requires_all_volumes"] == 20
     assert saved["reporter"]["preflight_requires_all_vapor_links"] == 19
+
+
+def test_dd258_saved_result_records_serialization_hard_stop():
+    saved = json.loads((dd258.ROOT / dd258.RESULT).read_text(encoding="utf-8"))
+
+    assert not saved["pass_gate"]
+    assert saved["decision"] == "stop_five_second_extension_work"
+    assert saved["failure"]["exception_type"] == "TypeError"
+    assert saved["accepted_endpoint_count"] == 0
+    assert not saved["state_advance_accepted"]
+    assert not saved["retry_attempted"]
+    assert not saved["successor_attempted"]

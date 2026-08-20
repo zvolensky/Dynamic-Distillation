@@ -1,0 +1,21 @@
+{
+  "schema_id": "dd258-core-v3-c3c4-vapor-holdup-five-second-successor-result-v1",
+  "classification": "five_second_vapor_holdup_successor_aborted_during_serialization",
+  "decision": "stop_five_second_extension_work",
+  "contract_commit": "577c2db",
+  "failure": {
+    "exception_type": "TypeError",
+    "message": "Object of type bool is not JSON serializable",
+    "mechanism": "at least one gate comparison retained a NumPy bool scalar in the assembled report",
+    "location": "json.dumps(report) after the 20-endpoint solve and profile construction"
+  },
+  "campaign_executed_once": true,
+  "result_metrics_available": false,
+  "accepted_endpoint_count": 0,
+  "state_advance_accepted": false,
+  "retry_attempted": false,
+  "successor_attempted": false,
+  "implementation_changed_after_failure": false,
+  "controller_attempted": false,
+  "pass_gate": false
+}

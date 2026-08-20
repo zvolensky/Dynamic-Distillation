@@ -1,0 +1,54 @@
+{
+  "schema_id": "dd273-core-v3-vapor-holdup-dynamic-pressure-residual-contract-v1",
+  "authorization": "DD-272 authorizes one live fixed-duty residual and Jacobian audit",
+  "sources": {
+    "logs/dd271_core_v3_c3c4_vapor_holdup_terminal_control_bound_corrected_20260820.json": "1a68a5cb8aeac962d5f851d149c7a6e2f13b4ff0846329ebc5132fa30fdc7045",
+    "logs/dd271_core_v3_c3c4_vapor_holdup_terminal_control_bound_corrected_20260820.npz": "7674173ebf1a95452262cb1d3a7bf7aefb6969d862f9de502c975614038285ab",
+    "logs/dd272_core_v3_vapor_holdup_dynamic_pressure_contract_20260820.json": "7c1546ff474fadd788e88d024d1f83e75ccd2b2ca98eda775148381b6d47c369"
+  },
+  "implementation_sha256": {
+    "tools/audit_core_v3_vapor_holdup_dynamic_pressure_residual.py": "46528b53f1946155082dae2d944bcef93519d341210d26f3d35508994a00b17b",
+    "src/dynamic_distillation/core_v3/vapor_holdup_dynamic_pressure_contract_v1.py": "465877602443c382294a18e3b26c2fe1ab802681680d4a0c9bafb30a0e149799",
+    "src/dynamic_distillation/core_v3/vapor_holdup_dynamic_pressure_implicit_residual_v1.py": "9407a5dbc79adbae0a614a50a8190ba2d9003ffc71834172a0c7c86328de8a78",
+    "src/dynamic_distillation/core_v3/vapor_holdup_implicit_residual_v1.py": "2b53dbd5dbe1c48934a0678387cde7cc0fef1c774b00b24f43df5b61945943b7",
+    "src/dynamic_distillation/core_v3/vapor_holdup_terminal_control_implicit_residual_v1.py": "624cf42116dbda15bf45b30bd71eb42d207f23b8c3d85c6748d912a3415505c5"
+  },
+  "audit": {
+    "source_replay_steps": 120,
+    "proposed_timestep_sec": 0.25,
+    "specified_condenser_duty": "accepted DD-271 endpoint duty",
+    "jacobian_steps": [
+      1e-05,
+      5e-06
+    ],
+    "solver_attempted": false
+  },
+  "limits": {
+    "source_product_parity": 1e-10,
+    "source_level_parity": 1e-10,
+    "finite_predictor_residual": 0.1,
+    "rank": 262,
+    "condition": 100000000.0,
+    "spectrum_relative_change": 0.0001,
+    "matrix_relative_change": 0.0001,
+    "duty_row_derivative_error": 1e-08,
+    "logical_provider_calls": 30000,
+    "wall_clock_sec": 180.0
+  },
+  "hard_stops": [
+    "saved DD-271 endpoint cannot be replayed",
+    "successor structure is not full rank",
+    "residual is nonfinite or exceeds the frozen predictor limit",
+    "either Jacobian loses rank or exceeds the conditioning limit",
+    "Jacobian spectra or matrices are step-size sensitive",
+    "the fixed-duty row lacks its exact local derivative",
+    "provider ownership or no-fallback gate fails",
+    "a nonlinear solve, timestep, retry, tuning, or fallback occurs"
+  ],
+  "property_evaluation_attempted": false,
+  "residual_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "7198e9f5a6252136252891b964d15960531783d46c4324715af5db04b199f8d3"
+}

@@ -722,6 +722,12 @@ the top energy balance. The C3/C4 system remains `262 x 262` and full rank, and
 the generic two-component construction also passes. A live fixed-duty residual
 and Jacobian audit is required before any pressure-dynamic timestep.
 
+DD-273 freezes that live readiness audit. It reconstructs the accepted DD-271
+handoff, fixes condenser duty at its endpoint value, and evaluates the proposed
+first pressure-dynamic predictor plus two finite-difference Jacobians. No root
+solve or timestep is permitted. Passing authorizes a separately frozen
+30-second fixed-duty pressure-dynamic continuation.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

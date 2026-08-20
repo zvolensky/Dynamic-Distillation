@@ -547,6 +547,11 @@ full-rank, conservative, physical, and provider-clean. A final 20-volume profile
 is mandatory. This spends known wall time to advance dynamic validation while
 leaving any broader derivative redesign as a later, separately scoped project.
 
+DD-257's solve returns, but its post-solve profile writer fails on the actual
+tuple representation of vapor links before evidence is saved. The campaign is
+unclassified and is not rerun. A corrected successor must first exercise the
+reporter against all 20 topology volumes without property or solver calls.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

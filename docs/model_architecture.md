@@ -2669,3 +2669,11 @@ DD-254 exactly, after which the same open-loop disturbance continues to five
 seconds. The result includes a complete final profile for all 20 physical
 volumes. This is a repeated-dynamics validation, not a process settling run;
 controllers remain absent and the process-scale time horizon remains pending.
+
+DD-257 reaches the post-solve reporting phase but then aborts because its stage
+profile formatter assumes vapor-link objects while the topology stores
+`(source, destination, link_name)` tuples. No endpoint evidence was serialized,
+so the run has no scientific classification and no accepted state advance.
+The frozen implementation is not patched or rerun. A separately versioned
+successor is allowed only with a property-free preflight test of the complete
+20-volume profile mapping.

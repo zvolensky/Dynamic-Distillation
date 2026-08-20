@@ -623,6 +623,22 @@ stationary controlled hold step. It must accept the first implicit endpoint
 without a product jump, clipping, fallback, or unintended physical motion
 beyond the declared PI correction.
 
+DD-265 implements that first controlled endpoint. The physical result is clean:
+D moves slightly down, B moves slightly up, and both levels begin moving toward
+50% while all other column changes remain microscopic. The endpoint residual is
+`4.22e-10`, the Jacobian is full rank, and provider ownership passes. DD-265 is
+formally failed because the fixed solver budget expires before SciPy declares
+success and a near-zero-response energy ratio is stricter than the governing
+residual allows. The formal failure is preserved.
+
+DD-266 completes a zero-call adjudication. The `1.94e-6 BTU` energy discrepancy
+is 392 times smaller than the aggregate error bound implied by the frozen
+energy-row scaling and residual tolerance. The first controlled endpoint is
+scientifically accepted. Next, define one short controlled trajectory with
+immutable endpoint evidence, controller-memory continuity, level/product
+direction gates, conservation, and a final local timestep check. Do not yet
+authorize a long controlled run or controller tuning campaign.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

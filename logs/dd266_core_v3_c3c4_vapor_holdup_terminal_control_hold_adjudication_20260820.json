@@ -1,0 +1,62 @@
+{
+  "schema_id": "dd266-core-v3-c3c4-vapor-holdup-terminal-control-hold-adjudication-v1",
+  "classification": "vapor_holdup_terminal_control_hold_adjudication_passed",
+  "source": {
+    "path": "logs/dd265_core_v3_c3c4_vapor_holdup_terminal_control_hold_20260820.json",
+    "sha256": "32ebb07d1476ee40b46eaf847d3bebd4032f1a13faf9e9a916186ab50b70b37a",
+    "classification_preserved": "vapor_holdup_terminal_control_hold_failed",
+    "failed_gates": [
+      "energy_identity",
+      "solver"
+    ]
+  },
+  "endpoint": {
+    "scaled_residual_inf_norm": 4.220186714902158e-10,
+    "controller_residual_inf_norm": 1.3405943022348765e-14,
+    "distillate_lbmolph": 2519.6082684395155,
+    "bottoms_lbmolph": 4625.003901595657,
+    "level_fraction": [
+      0.44077866257450454,
+      0.523315120557669
+    ],
+    "jacobian_rank": [
+      262,
+      262
+    ],
+    "jacobian_condition": [
+      11422538.538460031,
+      11422538.553192215
+    ]
+  },
+  "energy_adjudication": {
+    "actual_change_BTU": 0.42977391701424494,
+    "expected_change_BTU": 0.4297719789185147,
+    "absolute_error_BTU": 1.938095730236178e-06,
+    "residual_consistent_bound_BTU": 0.0007598055555555556,
+    "margin_ratio": 392.0371649871831,
+    "basis": "20 energy rows times the frozen 1e-8 scaled-residual limit, the inherited 54,706,000 BTU/h energy scale, and the 0.25 s step"
+  },
+  "solver_adjudication": {
+    "scipy_success_preserved": false,
+    "status_preserved": 0,
+    "message_preserved": "The maximum number of function evaluations is exceeded.",
+    "interpretation": "The fixed evaluation budget ended before SciPy declared termination, but the saved endpoint already satisfies the frozen nonlinear residual and all physical/Jacobian gates."
+  },
+  "gates": {
+    "source_is_formally_failed": true,
+    "only_expected_formal_failures": true,
+    "solver_stopped_only_at_fixed_evaluation_limit": true,
+    "accepted_endpoint_residual": true,
+    "controller_residual": true,
+    "all_other_dd265_gates": true,
+    "energy_error_within_residual_contract": true,
+    "component_identity": true,
+    "no_new_provider_calls": true,
+    "no_new_solve_or_state_advance": true
+  },
+  "property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false,
+  "pass_gate": true,
+  "decision": "accept_dd265_endpoint_scientifically_and_authorize_short_controlled_trajectory_contract"
+}

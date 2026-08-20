@@ -2778,3 +2778,20 @@ The complete live controlled residual closes at `3.05e-11`, both numerical
 Jacobians retain rank 262 with condition about `1.14e7`, and provider ownership
 passes without fallback. A stationary controlled hold step is the next required
 gate before any moving controlled trajectory.
+
+DD-265 adds the actual backward-Euler PI-memory update while leaving the 258-row
+physical column residual unchanged. At the first `0.25 s` endpoint, the drum
+controller lowers D by `0.155433 lbmol/h` and the sump controller raises B by
+`1.793604 lbmol/h`. Drum and sump levels move toward their 50% setpoints by only
+`2.51e-9` and `-8.80e-8` fraction. Temperature and pressure move by less than
+`3e-6` in their engineering units. Thus controller activation is smooth rather
+than stationary, as required by the nonzero initial level errors.
+
+DD-265 remains formally failed because its fixed TRF budget ends before SciPy
+sets a success status and because a near-zero-response energy ratio is too
+strict. DD-266 performs no new calls or solve. It shows that the absolute energy
+identity error, `1.94e-6 BTU`, is 392 times below the maximum aggregate error
+allowed by the already frozen scaled residual contract. DD-266 therefore
+accepts the saved endpoint scientifically without changing DD-265's historical
+classification. The architecture now authorizes a separately frozen short
+controlled trajectory, not an unrestricted simulation campaign.

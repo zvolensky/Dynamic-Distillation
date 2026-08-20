@@ -563,6 +563,13 @@ work without a rerun or another reporting successor. The implementation plan
 returns to the accepted DD-254 one-second dynamic boundary; any future extension
 requires a newly scoped campaign rather than continuation of DD-257/DD-258.
 
+The user authorizes that newly scoped campaign as DD-259. Historical failures
+remain unchanged. DD-259 uses the scientifically clean and materially faster
+DD-255 root method, replaces the universal duty-coordinate comparison with a
+physical relative duty limit, and writes atomic recovery evidence after every
+accepted endpoint. Its complete JSON/NPZ/profile serialization path must pass
+before the contract is frozen.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

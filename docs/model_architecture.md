@@ -2690,3 +2690,17 @@ or NPZ evidence is written, the campaign cannot be classified scientifically.
 The frozen serialization hard stop is applied: no patch, rerun, or DD-259
 reporting variant is allowed. The accepted dynamic boundary remains DD-254's
 one-second, four-endpoint full-refresh serial trajectory.
+
+After DD-258, the user explicitly authorizes one new campaign rather than a
+historical reclassification. DD-259 uses DD-255's demonstrated one-matrix-per-
+root method. First-second replay keeps `1e-9` for all non-duty coordinates but
+compares condenser duty at `1e-8` relative, a physical limit of roughly
+`0.51 BTU/h` at the current duty. Liquid/vapor inventory replay remains gated
+on DD-250's established physical limit.
+
+DD-259 also changes evidence durability. A complete representative report,
+including the actual 20-volume stage profile and NumPy scalar types, must pass
+strict JSON and atomic JSON/NPZ preflights before freeze. During execution, each
+accepted endpoint atomically replaces a recovery file containing its reports,
+coordinates, and complete next-step reference. Final artifacts are validated
+before atomic replacement.

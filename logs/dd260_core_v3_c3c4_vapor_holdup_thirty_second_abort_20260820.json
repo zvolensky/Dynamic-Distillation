@@ -1,0 +1,19 @@
+{
+  "schema_id": "dd260-core-v3-c3c4-vapor-holdup-thirty-second-abort-v1",
+  "classification": "recovery_atomic_replace_abort",
+  "decision": "preserve_endpoint_81_and_do_not_rerun_dd260",
+  "contract_commit": "8867ba6",
+  "completed_endpoint_count": 81,
+  "last_time_sec": 20.25,
+  "logical_provider_calls": 665520,
+  "worst_scaled_residual_inf_norm": 1.7168121143755509e-12,
+  "worst_jacobian_condition": 11362512.025297936,
+  "all_endpoint_solves_succeeded": true,
+  "all_endpoints_physical": true,
+  "all_endpoint_ranks": 258,
+  "failure": "PermissionError WinError 5 replacing the recovery JSON after endpoint 81",
+  "scientific_failure_observed": false,
+  "rerun_attempted": false,
+  "preserved_recovery": "logs/dd260_core_v3_c3c4_vapor_holdup_aborted_endpoint81_20260820.json",
+  "preserved_recovery_sha256": "ca5322f58f6a9ee5944dd98fbc1428bce4afa88c8d82122d6672b2f9674a99ea"
+}

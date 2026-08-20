@@ -2620,3 +2620,11 @@ are out of scope. A bounded modified-Newton experiment may instead compute one
 fresh full-rank Jacobian per endpoint root and hold it fixed only during that
 root. It must reproduce the accepted DD-254 endpoint and conservation evidence
 without loosening the physical or residual gates.
+
+DD-255 freezes that modified-Newton test. The finite-difference matrix is still
+rebuilt from live endpoint equations at the start of every time-step root, so
+the method does not assume one Jacobian for the whole trajectory. Within a
+single root, SciPy may request the Jacobian repeatedly but receives the same
+fresh matrix. Acceptance requires all four roots to recover the saved DD-254
+serial endpoints within `1e-9` transformed coordinates while cutting logical
+work below 30% and wall below 65% of the serial baseline.

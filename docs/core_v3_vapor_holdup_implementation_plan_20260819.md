@@ -513,6 +513,12 @@ builds account for 168,000 of 174,480 calls. Stop process-parallel variants.
 Test one fresh Jacobian held fixed within each endpoint root before considering
 automatic differentiation or a different nonlinear solver.
 
+DD-255 freezes the first bounded call-count experiment. It computes one fresh
+full Jacobian at each new endpoint and reuses it only during that endpoint's
+nonlinear iterations. The saved DD-254 serial coordinates are the numerical
+reference. Failure ends fixed-Jacobian reuse; success authorizes integration of
+this modified-Newton step path before any longer physical trajectory.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

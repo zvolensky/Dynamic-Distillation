@@ -487,6 +487,11 @@ DD-252 freezes one serial/parallel moving-root comparison. It tests the actual
 trust-region solve, not only a standalone matrix, while explicitly prohibiting
 state acceptance or a second endpoint.
 
+DD-252 proves exact solver-level equivalence and a `1.65x` speedup but fails two
+mis-scoped accounting gates. DD-253 is a zero-call adjudication: it checks all
+eight workers on governing tasks and exact total-work parity without repeating
+the solve.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

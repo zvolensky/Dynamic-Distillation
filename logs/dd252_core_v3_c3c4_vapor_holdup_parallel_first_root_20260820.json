@@ -1,0 +1,175 @@
+{
+  "schema_id": "dd252-core-v3-c3c4-vapor-holdup-parallel-first-root-result-v1",
+  "classification": "vapor_holdup_parallel_first_root_failed",
+  "decision": "retain_serial_vapor_holdup_solver",
+  "contract_commit": "be62805710f21cbc5362fad907722e406f8387a8",
+  "contract_payload_sha256": "b093f0462388f86e4e9bddea0ca54c9ac7de6632b9dfc990621d92d0fd58356f",
+  "serial": {
+    "success": true,
+    "status": 3,
+    "message": "`xtol` termination condition is satisfied.",
+    "nfev": 12,
+    "njev": 6,
+    "cost": 1.8480108175944473e-25,
+    "optimality": 1.2467927865989583e-11,
+    "scaled_residual_inf_norm": 3.9388325920803336e-13,
+    "rank": 258,
+    "condition": 11362294.382225621,
+    "wall_clock_sec": 6.2734158000093885
+  },
+  "parallel": {
+    "success": true,
+    "status": 3,
+    "message": "`xtol` termination condition is satisfied.",
+    "nfev": 12,
+    "njev": 6,
+    "cost": 1.8480108175944473e-25,
+    "optimality": 1.2467927865989583e-11,
+    "scaled_residual_inf_norm": 3.9388325920803336e-13,
+    "rank": 258,
+    "condition": 11362294.382225621,
+    "wall_clock_sec": 3.8035384999820963
+  },
+  "comparison": {
+    "jacobian_count": 6,
+    "jacobian_max_abs_difference": 0.0,
+    "coordinate_max_abs_difference": 0.0,
+    "residual_max_abs_difference": 0.0,
+    "parallel_solve_time_ratio": 0.6062946600759994,
+    "parallel_solve_speedup": 1.64936303393246
+  },
+  "worker_evidence": [
+    {
+      "worker_ids": [
+        11788,
+        13468,
+        180504,
+        185940,
+        188232,
+        198596,
+        203388,
+        203396
+      ],
+      "logical_provider_calls": 6720,
+      "provider_pass": true,
+      "fallback_attempted": false,
+      "color_count": 28,
+      "task_count": 56
+    },
+    {
+      "worker_ids": [
+        11788,
+        13468,
+        180504,
+        185940,
+        188232,
+        198596,
+        203388,
+        203396
+      ],
+      "logical_provider_calls": 6720,
+      "provider_pass": true,
+      "fallback_attempted": false,
+      "color_count": 28,
+      "task_count": 56
+    },
+    {
+      "worker_ids": [
+        11788,
+        13468,
+        180504,
+        185940,
+        188232,
+        198596,
+        203388,
+        203396
+      ],
+      "logical_provider_calls": 6720,
+      "provider_pass": true,
+      "fallback_attempted": false,
+      "color_count": 28,
+      "task_count": 56
+    },
+    {
+      "worker_ids": [
+        11788,
+        13468,
+        180504,
+        185940,
+        188232,
+        198596,
+        203388,
+        203396
+      ],
+      "logical_provider_calls": 6720,
+      "provider_pass": true,
+      "fallback_attempted": false,
+      "color_count": 28,
+      "task_count": 56
+    },
+    {
+      "worker_ids": [
+        11788,
+        13468,
+        180504,
+        185940,
+        188232,
+        198596,
+        203388,
+        203396
+      ],
+      "logical_provider_calls": 6720,
+      "provider_pass": true,
+      "fallback_attempted": false,
+      "color_count": 28,
+      "task_count": 56
+    },
+    {
+      "worker_ids": [
+        11788,
+        13468,
+        180504,
+        185940,
+        188232,
+        198596,
+        203388,
+        203396
+      ],
+      "logical_provider_calls": 6720,
+      "provider_pass": true,
+      "fallback_attempted": false,
+      "color_count": 28,
+      "task_count": 56
+    }
+  ],
+  "worker_logical_provider_calls": 40320,
+  "serial_main_provider_calls": 41760,
+  "parallel_main_provider_calls": 1440,
+  "startup_wall_sec_raw": 8.522779899998568,
+  "startup_wall_sec_adjusted": 8.372779899998568,
+  "total_wall_clock_sec": 26.333409600018058,
+  "gates": {
+    "root_success": true,
+    "root_residual": true,
+    "rank": true,
+    "condition": true,
+    "solver_decisions": true,
+    "jacobian_count": true,
+    "jacobian_equivalence": true,
+    "coordinate_equivalence": true,
+    "residual_equivalence": true,
+    "process_isolation": false,
+    "worker_tasks": true,
+    "provider": true,
+    "provider_calls": false,
+    "meaningful_speed": true,
+    "wall_clock": true,
+    "no_state_advance": true
+  },
+  "pass_gate": false,
+  "campaign_executed_once": true,
+  "state_advance_attempted": false,
+  "controller_attempted": false,
+  "trajectory_attempted": false,
+  "retry_attempted": false
+}

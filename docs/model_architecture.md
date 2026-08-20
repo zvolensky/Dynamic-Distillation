@@ -2578,3 +2578,10 @@ paths retain separate main-process providers and identical SciPy settings; the
 parallel path delegates only finite-difference residual tasks to the persistent
 workers. Exact solver decisions and endpoint equivalence are required before a
 parallel trajectory can be authorized.
+
+DD-252 reproduces the complete moving root exactly and is `1.65x` faster, but
+its frozen result fails two bookkeeping gates. Every governing matrix actually
+uses all eight workers, while the failed participation test inspected startup
+pings. Serial and parallel total logical work are both 41,760 calls, while the
+failed call limit was scoped below a complete six-Jacobian root. DD-253 freezes
+one zero-call adjudication of those two semantics; DD-252 is not rerun.

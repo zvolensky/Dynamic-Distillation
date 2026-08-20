@@ -1,0 +1,44 @@
+{
+  "schema_id": "dd253-core-v3-vapor-holdup-parallel-first-root-adjudication-contract-v1",
+  "source": "logs/dd252_core_v3_c3c4_vapor_holdup_parallel_first_root_20260820.json",
+  "source_sha256": "4ece0d4b593f2bdbdf0e759074330e61e822ee9712d72be4c2dafe4cd353e864",
+  "implementation_sha256": "c2988888ee220b1e227e52aceb6bc19c4b8bb1ed298d250577e6661762605876",
+  "adjudication": {
+    "numerical_gates_must_remain_true": [
+      "root_success",
+      "root_residual",
+      "rank",
+      "condition",
+      "solver_decisions",
+      "jacobian_count",
+      "jacobian_equivalence",
+      "coordinate_equivalence",
+      "residual_equivalence",
+      "worker_tasks",
+      "provider",
+      "meaningful_speed",
+      "wall_clock",
+      "no_state_advance"
+    ],
+    "worker_participation_rule": "all eight workers appear in every governing Jacobian",
+    "logical_work_rule": "serial main calls equal parallel main plus worker calls",
+    "required_worker_count": 8,
+    "required_work_difference": 0,
+    "provider_ownership_must_pass": true,
+    "parallel_time_ratio_limit": 0.75,
+    "property_calls": 0,
+    "rerun": false
+  },
+  "hard_stops": [
+    "DD-252 numerical, physical, provider, or speed evidence changes",
+    "any governing Jacobian omits a worker",
+    "serial and parallel total logical work differ",
+    "DD-252 is rerun or any property, solve, state, controller, or trajectory call occurs"
+  ],
+  "property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false,
+  "trajectory_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "e5abf0d06c4bfdf652ce8f946417db81dc7b4415f5f6e710ccd43e508b51f36b"
+}

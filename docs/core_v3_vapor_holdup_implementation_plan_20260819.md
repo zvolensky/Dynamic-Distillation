@@ -427,7 +427,7 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 - [x] Execute one frozen bounded stationary root campaign (`DD-245`).
 - [x] Map an accepted root into the successor dynamic history/state schema (`DD-246`).
 - [x] Pass stationary hold and refined moving-step gates (`DD-248` and `DD-249`).
-- [ ] Run a short open-loop trajectory before adding controllers.
+- [ ] Run a short open-loop trajectory before adding controllers (`DD-250` frozen).
 
 The stationary initializer solves distillate and bottoms rates so the reflux
 drum and sump remain at their geometry-derived target inventories. This is not
@@ -460,6 +460,10 @@ DD-249 passes that moving comparison. The full and refined paths both reproduce
 the exact imposed inventory accumulation, remain full rank and physical, and
 agree closely in every frozen comparison. One short open-loop trajectory may
 now be frozen; controllers remain out of scope.
+
+DD-250 freezes that trajectory at one simulated second, with four nominal and
+eight refined endpoints. This deliberately tests repeated stepping and
+timestep consistency without yet spending time on a process-scale run.
 
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 

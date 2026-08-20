@@ -2541,3 +2541,10 @@ pressure differences are below `6.5e-7 F` and `1.1e-6 psia`. All three
 Jacobians remain full rank. This authorizes a short, separately frozen
 open-loop trajectory, but it does not yet authorize controllers or production
 dynamic use.
+
+DD-250 freezes the first multi-endpoint test at one simulated second. It repeats
+the DD-249 feed increase on four `0.25 s` endpoints and eight `0.125 s`
+endpoints. Every endpoint is solved with the same coupled liquid/vapor model,
+and the paths are compared at each common time. Product rates and operating
+inputs remain fixed and no controller is active. This is a startup-trajectory
+gate, not a claim about slow column settling.

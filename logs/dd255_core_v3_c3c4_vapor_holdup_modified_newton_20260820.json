@@ -1,0 +1,222 @@
+{
+  "schema_id": "dd255-core-v3-c3c4-vapor-holdup-modified-newton-result-v1",
+  "classification": "modified_newton_vapor_holdup_trajectory_failed",
+  "decision": "retain_full_jacobian_refresh_per_iteration",
+  "contract_commit": "1b378ae9e0dc3a01af8a0df6f5a520c7cc8bce22",
+  "contract_payload_sha256": "51408ed56e5da4f323e33b98d317202880e5980b0bd0095ff3dd412adeed95fd",
+  "endpoints": [
+    {
+      "index": 1,
+      "time_sec": 0.25,
+      "success": true,
+      "status": 3,
+      "nfev": 16,
+      "njev": 7,
+      "cost": 3.281785493086014e-25,
+      "optimality": 3.4312452198720374e-11,
+      "scaled_residual_inf_norm": 4.797690647280324e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11362512.025297936,
+      "maximum_fugacity_residual": 3.9657166439602726e-13,
+      "maximum_eos_relative_residual": 5.663347370740565e-14,
+      "physical_pass": true
+    },
+    {
+      "index": 2,
+      "time_sec": 0.5,
+      "success": true,
+      "status": 3,
+      "nfev": 15,
+      "njev": 10,
+      "cost": 1.485328272781856e-25,
+      "optimality": 3.028218386469131e-11,
+      "scaled_residual_inf_norm": 3.731961594261845e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11362076.73938725,
+      "maximum_fugacity_residual": 2.8865798640254027e-15,
+      "maximum_eos_relative_residual": 1.3387493275318168e-15,
+      "physical_pass": true
+    },
+    {
+      "index": 3,
+      "time_sec": 0.75,
+      "success": true,
+      "status": 3,
+      "nfev": 15,
+      "njev": 8,
+      "cost": 4.535246139435034e-26,
+      "optimality": 1.1078499414390002e-11,
+      "scaled_residual_inf_norm": 1.5890440360418908e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11362024.945175491,
+      "maximum_fugacity_residual": 3.9968028886505714e-15,
+      "maximum_eos_relative_residual": 1.4022426365068223e-15,
+      "physical_pass": true
+    },
+    {
+      "index": 4,
+      "time_sec": 1.0,
+      "success": true,
+      "status": 3,
+      "nfev": 13,
+      "njev": 9,
+      "cost": 8.257649242074272e-25,
+      "optimality": 6.955889519825859e-11,
+      "scaled_residual_inf_norm": 9.318673470789688e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11361999.092972284,
+      "maximum_fugacity_residual": 4.440892098500617e-15,
+      "maximum_eos_relative_residual": 1.0802025343521691e-15,
+      "physical_pass": true
+    }
+  ],
+  "response": {
+    "component_inventory_change_lbmol": [
+      0.000661384441727142,
+      0.0011023096811833,
+      0.0002204653670712874
+    ],
+    "expected_component_inventory_change_lbmol": [
+      0.0006613844416889472,
+      0.0011023096812016635,
+      0.00022046536705209817
+    ],
+    "component_inventory_identity_max_abs_lbmol": 3.8194707813188344e-14,
+    "total_inventory_change_lbmol": 0.0019841594899817293,
+    "expected_total_inventory_change_lbmol": 0.001984159489942709,
+    "stored_energy_change_BTU": -10.66184912621975,
+    "expected_stored_energy_change_BTU": -10.66184912120587,
+    "energy_identity_relative": 4.702635565680531e-10
+  },
+  "jacobian_build_counts": {
+    "dd254:modified_newton:root_1": 1,
+    "dd254:modified_newton:root_2": 1,
+    "dd254:modified_newton:root_3": 1,
+    "dd254:modified_newton:root_4": 1
+  },
+  "jacobian_callback_counts": {
+    "dd254:modified_newton:root_1": 7,
+    "dd254:modified_newton:root_2": 10,
+    "dd254:modified_newton:root_3": 8,
+    "dd254:modified_newton:root_4": 9
+  },
+  "coordinate_max_abs_differences": [
+    5.97972409777911e-10,
+    1.1848788952253909e-09,
+    5.91714030808975e-10,
+    4.376605097671432e-11
+  ],
+  "response_absolute_difference_lbmol": 1.1677291078537877e-13,
+  "provider": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {
+      "declared_liquid_density": "aligned_pr"
+    },
+    "total_calls": 34440,
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true,
+    "grouped_record_summary": [
+      {
+        "provider_interface": "aligned_pr.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "quantity": "liquid_density",
+        "group_count": 4560,
+        "call_count": 5660
+      },
+      {
+        "provider_interface": "aligned_pr.declared_liquid_density",
+        "evaluation_kind": "residual",
+        "quantity": "liquid_density",
+        "group_count": 80,
+        "call_count": 80
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "quantity": "phase_enthalpy",
+        "group_count": 4560,
+        "call_count": 11320
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "residual",
+        "quantity": "phase_enthalpy",
+        "group_count": 80,
+        "call_count": 160
+      },
+      {
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "evaluation_kind": "jacobian",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 4560,
+        "call_count": 5660
+      },
+      {
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "evaluation_kind": "residual",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 80,
+        "call_count": 80
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "condenser_bubble_equilibrium",
+        "group_count": 228,
+        "call_count": 566
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "stage_fugacity_equilibrium",
+        "group_count": 4332,
+        "call_count": 10754
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "quantity": "condenser_bubble_equilibrium",
+        "group_count": 4,
+        "call_count": 8
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "quantity": "stage_fugacity_equilibrium",
+        "group_count": 76,
+        "call_count": 152
+      }
+    ]
+  },
+  "logical_provider_calls": 34440,
+  "baseline_logical_provider_calls": 174480,
+  "logical_provider_call_ratio": 0.19738651994497936,
+  "wall_clock_sec": 12.524063699995168,
+  "baseline_wall_clock_sec": 27.168700400041416,
+  "trajectory_wall_ratio": 0.4609739706201065,
+  "trajectory_speedup": 2.169319882974717,
+  "gates": {
+    "path_complete": true,
+    "scientific_endpoints": true,
+    "one_fresh_jacobian_per_root": true,
+    "endpoint_equivalence": false,
+    "response_equivalence": true,
+    "component_identity": true,
+    "energy_identity": true,
+    "provider": true,
+    "call_count": true,
+    "call_reduction": true,
+    "wall_clock": true,
+    "wall_reduction": true,
+    "serial_only": true,
+    "no_retry_or_controller": true
+  },
+  "pass_gate": false,
+  "campaign_executed_once": true,
+  "retry_attempted": false,
+  "alternate_grid_attempted": false,
+  "parallel_worker_attempted": false,
+  "controller_attempted": false,
+  "longer_trajectory_attempted": false
+}

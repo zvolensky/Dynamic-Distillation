@@ -430,7 +430,8 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 - [x] Run a short open-loop trajectory before adding controllers (`DD-250`).
 - [x] Qualify a persistent parallel Jacobian path (`DD-251`).
 - [x] Integrate and qualify the persistent parallel path across repeated vapor-holdup steps; rejected on trajectory speed (`DD-254`).
-- [ ] Reduce repeated finite-difference Jacobian builds without changing the accepted dynamic equations.
+- [x] Test one fresh Jacobian per root; scientifically clean but rejected by the frozen endpoint-equivalence gate (`DD-255`).
+- [ ] Test one fresh Jacobian plus no-property-call secant updates within each root.
 
 The stationary initializer solves distillate and bottoms rates so the reflux
 drum and sump remain at their geometry-derived target inventories. This is not
@@ -518,6 +519,13 @@ full Jacobian at each new endpoint and reuses it only during that endpoint's
 nonlinear iterations. The saved DD-254 serial coordinates are the numerical
 reference. Failure ends fixed-Jacobian reuse; success authorizes integration of
 this modified-Newton step path before any longer physical trajectory.
+
+DD-255 cuts calls by 80.3% and wall by 53.9%, but its maximum transformed
+endpoint difference is `1.184879e-9` against the frozen `1e-9` requirement.
+The miss is confined to condenser duty and is physically tiny, but the method
+is not accepted. Do not tune the threshold or add fixed-refresh schedules. One
+standard Broyden-update experiment is the final low-cost reuse option before a
+larger derivative or nonlinear-solver redesign.
 
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 

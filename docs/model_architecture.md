@@ -2628,3 +2628,17 @@ single root, SciPy may request the Jacobian repeatedly but receives the same
 fresh matrix. Acceptance requires all four roots to recover the saved DD-254
 serial endpoints within `1e-9` transformed coordinates while cutting logical
 work below 30% and wall below 65% of the serial baseline.
+
+DD-255 executes once and narrowly fails its endpoint-coordinate gate. The four
+roots are scientifically clean and reduce work by 80.3% and wall by 53.9%, but
+the second endpoint's condenser-duty coordinate differs from DD-254 by
+`1.184879e-9` against a frozen `1e-9` limit. That is only about `0.06 BTU/h`
+physically, yet the contract is not relaxed and fixed-Jacobian reuse is not
+adopted.
+
+The result does establish that one live matrix per root contains nearly all
+needed local information. One bounded derivative-strategy successor may add a
+standard rank-one Broyden secant update whenever SciPy requests a later matrix
+inside the same root. The update uses already evaluated root coordinates and
+residuals, performs no finite-difference property calls, and is reset from a
+fresh full matrix at every new time endpoint.

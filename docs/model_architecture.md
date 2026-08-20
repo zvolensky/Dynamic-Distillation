@@ -2533,3 +2533,11 @@ the coupled inventories, pressure, vapor and liquid traffic, phase transfer,
 temperature, and condenser duty respond. One `0.25 s` step must agree with two
 `0.125 s` steps and close the exact external component and energy balances.
 No controller or trajectory is part of this gate.
+
+DD-249 passes. Both timestep paths gain exactly the inventory implied by the
+`0.1%` feed excess, and their total gains agree to saved precision. Their worst
+local component-inventory difference is `2.43e-6 lbmol`; temperature and
+pressure differences are below `6.5e-7 F` and `1.1e-6 psia`. All three
+Jacobians remain full rank. This authorizes a short, separately frozen
+open-loop trajectory, but it does not yet authorize controllers or production
+dynamic use.

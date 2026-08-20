@@ -22,3 +22,16 @@ def test_dd249_saved_contract_is_frozen_and_nonexecuted():
     assert not saved["campaign_executed"]
     assert saved["disturbance"]["feed_component_multiplier"] == 1.001
     assert saved["steps"] == {"full_seconds": 0.25, "half_seconds": 0.125}
+
+
+def test_dd249_saved_result_passes_moving_response_and_refinement_gates():
+    saved = json.loads((dd249.ROOT / dd249.RESULT).read_text(encoding="utf-8"))
+
+    assert saved["pass_gate"]
+    assert all(saved["campaign_gates"].values())
+    assert saved["response"]["full"]["total_inventory_change_lbmol"] > 0.0
+    assert saved["response"]["full"]["component_inventory_identity_max_abs_lbmol"] < 1.0e-6
+    assert saved["refinement"]["maximum_component_inventory_difference_lbmol"] < 2.0e-5
+    assert all(item["jacobian_rank"] == 258 for item in saved["steps"].values())
+    assert not saved["retry_attempted"]
+    assert not saved["controller_action_attempted"]

@@ -3,7 +3,7 @@
 Date: 2026-07-12
 Updated: 2026-07-17
 
-Status: Authoritative current-state summary. This supersedes `docs/dynamic_model_current_state_2026-07-08.md` for current decisions while retaining that document as historical evidence.
+Status: Historical current-state snapshot. For current decisions, see `docs/dynamic_model_current_state_2026-08-20.md`.
 
 ## 2026-07-17 frozen-closure addendum
 

@@ -4,7 +4,7 @@ Date: 2026-05-28
 
 Code status note: `docs/initialization_code_status.md` classifies the current initialization tooling as supported, experimental, or deprecated for acceptance.
 
-Current model-state note: `docs/dynamic_model_current_state_2026-07-12.md`.
+Current model-state note: `docs/dynamic_model_current_state_2026-08-20.md`.
 
 ## Current Status Addendum 2026-07-08
 
@@ -1031,4 +1031,4 @@ Current decision:
 4. Explore a conserved component/internal-energy state formulation with a coupled UV/volume/pressure/vapor-flow algebraic block in an isolated branch or sandbox.
 5. Resume rigorous initializer development only after that model-core closure passes single-stage and small-column physical gates.
 
-See `docs/dynamic_model_current_state_2026-07-12.md` and `docs/dd_060_physics_owned_tray_flow_probe_20260712.md`.
+See `docs/dynamic_model_current_state_2026-08-20.md` and `docs/dd_060_physics_owned_tray_flow_probe_20260712.md`.

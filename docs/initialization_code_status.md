@@ -4,7 +4,7 @@ Updated: 2026-07-12
 
 This note classifies the current initialization-related code after the ChemSep steady-state startup work showed that raw steady profiles are not model-consistent dynamic initial conditions.
 
-Current model-state note: `docs/dynamic_model_current_state_2026-07-12.md`.
+Current model-state note: `docs/dynamic_model_current_state_2026-08-20.md`.
 
 ## Position
 

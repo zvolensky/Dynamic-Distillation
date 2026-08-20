@@ -2,7 +2,7 @@
 
 Updated: 2026-07-17
 
-Current model status: `docs/dynamic_model_current_state_2026-07-12.md`.
+Current model status: `docs/dynamic_model_current_state_2026-08-20.md`.
 
 ## Objective
 

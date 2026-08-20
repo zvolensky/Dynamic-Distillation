@@ -19,7 +19,7 @@ In consequence, initialization is not a trivial "switch to dynamics" operation. 
 
 See `docs/dynamic_column_initialization_strategy.md` for the mathematical foundation and practical workflow.
 See `docs/initialization_code_status.md` for the current support status of initialization, reconciliation, and startup-homotopy tooling.
-See `docs/dynamic_model_current_state_2026-07-12.md` for the latest C3/C4 model-state summary and external-review framing.
+See `docs/dynamic_model_current_state_2026-08-20.md` for the latest C3/C4 model-state summary and external-review framing.
 
 2026-07-18 architecture decision: DD-075 retires the current direct conserved
 steady-state formulation as a production initializer path. The external

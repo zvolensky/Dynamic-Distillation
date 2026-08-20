@@ -2525,3 +2525,11 @@ are exactly zero, while the residual and Jacobian evidence reproduce DD-247.
 This proves a clean dynamic hold. It does not yet prove response accuracy; the
 next gate is one small physical disturbance with full-versus-refined timestep
 comparison.
+
+DD-249 freezes that comparison before execution. The physical input change is
+only a `0.1%` increase in feed throughput at unchanged composition and specific
+enthalpy. Products, reflux, reboiler duty, and top pressure remain fixed while
+the coupled inventories, pressure, vapor and liquid traffic, phase transfer,
+temperature, and condenser duty respond. One `0.25 s` step must agree with two
+`0.125 s` steps and close the exact external component and energy balances.
+No controller or trajectory is part of this gate.

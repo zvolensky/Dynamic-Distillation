@@ -451,8 +451,8 @@ the accepted root. The full implicit Jacobian is rank 258 with condition about
 `1.14e7`. One frozen stationary hold step is next; a disturbance remains
 unauthorized until that step is accepted without state movement.
 
-DD-248 accepts that hold step with exactly zero movement. The next contract may
-apply one small feed disturbance and compare one `0.25 s` endpoint against two
+DD-248 accepts that hold step with exactly zero movement. DD-249 now freezes one
+small feed disturbance and compares one `0.25 s` endpoint against two
 successive `0.125 s` endpoints. A trajectory remains unauthorized until this
 local response is conservative, physical, and timestep-consistent.
 

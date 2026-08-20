@@ -2661,3 +2661,11 @@ The reliable dynamic path remains DD-254's serial full-refresh solver. Further
 performance work must change the derivative infrastructure or nonlinear solver
 as an explicit architecture project; it must not continue as refresh-schedule
 or Broyden variants.
+
+DD-257 freezes the first extension beyond the accepted one-second vapor-holdup
+trajectory. It deliberately uses the slower but reliable full-refresh serial
+solver for 20 successive `0.25 s` endpoints. The first second must reproduce
+DD-254 exactly, after which the same open-loop disturbance continues to five
+seconds. The result includes a complete final profile for all 20 physical
+volumes. This is a repeated-dynamics validation, not a process settling run;
+controllers remain absent and the process-scale time horizon remains pending.

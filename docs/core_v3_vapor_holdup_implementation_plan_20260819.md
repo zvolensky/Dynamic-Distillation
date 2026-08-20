@@ -541,6 +541,12 @@ serial solver is retained. The next project decision is whether to spend the
 known wall time on a modest physical trajectory or begin a separate derivative
 and nonlinear-solver redesign.
 
+DD-257 chooses the accepted serial path for one bounded five-second extension.
+It requires the first second to replay DD-254 and all 20 endpoints to remain
+full-rank, conservative, physical, and provider-clean. A final 20-volume profile
+is mandatory. This spends known wall time to advance dynamic validation while
+leaving any broader derivative redesign as a later, separately scoped project.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

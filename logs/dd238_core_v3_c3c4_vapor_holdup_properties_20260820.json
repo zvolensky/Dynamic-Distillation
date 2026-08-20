@@ -1,0 +1,1077 @@
+{
+  "schema_id": "dd238-core-v3-c3c4-vapor-holdup-properties-v1",
+  "classification": "c3c4_vapor_holdup_property_reconstruction_passed",
+  "source_root": "logs/dd231_core_v3_full_c3c4_aligned_density_root_20260815.json",
+  "source_root_sha256": "1f73dada62083bc5b8f479b8d8974f240a19641dc2fb67714a884b871f0afc32",
+  "source_model_contract": "logs/dd222_core_v3_full_c3c4_live_readiness_contract_20260815.json",
+  "source_model_contract_sha256": "e0b178f15963e72a444442ce043303586dc8e704ca25ffd5c852573b84932faa",
+  "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "workbook_sha256": "6b7932cdf67c352baeab5bf7b791fea6cd87039dc38524782b3458f17d811955",
+  "component_names": [
+    "n-Propane",
+    "n-Butane",
+    "n-Pentane"
+  ],
+  "geometry_audit": {
+    "volume_count": 20,
+    "expected_volume_count": 20,
+    "volume_ids": [
+      "reflux_drum",
+      "rectifying_volume_1",
+      "rectifying_volume_2",
+      "rectifying_volume_3",
+      "rectifying_volume_4",
+      "rectifying_volume_5",
+      "rectifying_volume_6",
+      "rectifying_volume_7",
+      "rectifying_volume_8",
+      "rectifying_volume_9",
+      "rectifying_volume_10",
+      "feed_tray",
+      "stripping_volume_1",
+      "stripping_volume_2",
+      "stripping_volume_3",
+      "stripping_volume_4",
+      "stripping_volume_5",
+      "stripping_volume_6",
+      "stripping_volume_7",
+      "combined_reboiler_sump"
+    ],
+    "source_stages_1based": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "missing_volume_ids": [],
+    "duplicate_volume_ids": [],
+    "invalid_source_stages": [],
+    "nonpositive_capacities": [],
+    "liquid_displacement_missing": [],
+    "top_geometry_kind": "horizontal_drum_two_hemispherical_heads",
+    "bottom_geometry_kind": "combined_vertical_sump_and_reboiler_vapor_space",
+    "tray_volume_count": 18,
+    "terminal_volume_count": 2,
+    "pass_gate": true
+  },
+  "property_audit": {
+    "volume_count": 20,
+    "provider_call_count": 80,
+    "expected_provider_call_count": 80,
+    "maximum_absolute_eos_residual_ft3": 2.842170943040401e-14,
+    "maximum_relative_eos_residual": 1.1228388126600238e-16,
+    "minimum_free_vapor_volume_ft3": 252.36594016277573,
+    "minimum_vapor_moles_lbmol": 11.121868837800145,
+    "minimum_liquid_density_lbmol_ft3": 0.48263877616579426,
+    "minimum_vapor_compressibility_factor": 0.7240269202956746,
+    "all_energy_terms_finite": true,
+    "exact_property_call_ledger": true,
+    "governing_evaluation_kinds_only": true,
+    "provider_fallback_attempted": false,
+    "pass_gate": true
+  },
+  "provider_routing": {
+    "liquid_density": [
+      "aligned_pr.declared_liquid_density"
+    ],
+    "vapor_z_and_phase_enthalpy": [
+      "dwsim.declared_phase_enthalpy",
+      "dwsim.declared_vapor_compressibility_factor"
+    ],
+    "pass_gate": true
+  },
+  "inventory_summary": {
+    "total_liquid_moles_lbmol": 2909.3378409229267,
+    "total_vapor_moles_lbmol": 473.56338620099183,
+    "vapor_to_liquid_mole_ratio": 0.1627735973250751,
+    "maximum_reconstructed_y_error": 1.1102230246251565e-16,
+    "total_liquid_stored_energy_BTU": -14876664.211143345,
+    "total_vapor_stored_energy_BTU": 55339.797001866114
+  },
+  "volumes": [
+    {
+      "volume_id": "reflux_drum",
+      "temperature_F": 119.17945941843448,
+      "pressure_psia": 220.44,
+      "gross_capacity_ft3": 5101.729437737338,
+      "liquid_volume_ft3": 2146.8212427844273,
+      "free_vapor_volume_ft3": 2954.908194952911,
+      "liquid_density_lbmol_ft3": 0.6469565198631054,
+      "vapor_compressibility_factor": 0.7528837401996538,
+      "vapor_moles_lbmol": 139.27602652113313,
+      "vapor_component_inventory_lbmol": [
+        132.9338202456799,
+        6.341169969519736,
+        0.0010363059334931788
+      ],
+      "liquid_stored_energy_BTU": -8190910.842057774,
+      "vapor_stored_energy_BTU": -126121.19374370294,
+      "total_stored_energy_BTU": -8317032.035801477,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "rectifying_volume_1",
+      "temperature_F": 127.52341699823795,
+      "pressure_psia": 220.44,
+      "gross_capacity_ft3": 1129.8190226641273,
+      "liquid_volume_ft3": 60.56264799643532,
+      "free_vapor_volume_ft3": 1069.256374667692,
+      "liquid_density_lbmol_ft3": 0.6313219853790946,
+      "vapor_compressibility_factor": 0.7556548053053345,
+      "vapor_moles_lbmol": 49.499766142683846,
+      "vapor_component_inventory_lbmol": [
+        44.40280295125964,
+        5.095338446014837,
+        0.0016247454093695282
+      ],
+      "liquid_stored_energy_BTU": -224305.66449330526,
+      "vapor_stored_energy_BTU": -36905.97509243519,
+      "total_stored_energy_BTU": -261211.63958574046,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "rectifying_volume_2",
+      "temperature_F": 138.0644703252239,
+      "pressure_psia": 221.085,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 56.321553226322514,
+      "free_vapor_volume_ft3": 282.62415357291565,
+      "liquid_density_lbmol_ft3": 0.6123921432200783,
+      "vapor_compressibility_factor": 0.7571341602809293,
+      "vapor_moles_lbmol": 12.865389326297759,
+      "vapor_component_inventory_lbmol": [
+        10.535774291569687,
+        2.3282942542542386,
+        0.0013207804738315058
+      ],
+      "liquid_stored_energy_BTU": -199159.80175428477,
+      "vapor_stored_energy_BTU": -6869.09616188058,
+      "total_stored_energy_BTU": -206028.89791616536,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "rectifying_volume_3",
+      "temperature_F": 148.60104676524946,
+      "pressure_psia": 221.731,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 56.37322198982513,
+      "free_vapor_volume_ft3": 282.572484809413,
+      "liquid_density_lbmol_ft3": 0.594334985417956,
+      "vapor_compressibility_factor": 0.7570951326065837,
+      "vapor_moles_lbmol": 12.67780917418412,
+      "vapor_component_inventory_lbmol": [
+        9.287117234323476,
+        3.387315361319426,
+        0.003376578541216141
+      ],
+      "liquid_stored_energy_BTU": -188831.81429015295,
+      "vapor_stored_energy_BTU": -3901.328460121286,
+      "total_stored_energy_BTU": -192733.14275027424,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "rectifying_volume_4",
+      "temperature_F": 157.32217826574418,
+      "pressure_psia": 222.377,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 56.65291411529087,
+      "free_vapor_volume_ft3": 282.2927926839473,
+      "liquid_density_lbmol_ft3": 0.579957761779743,
+      "vapor_compressibility_factor": 0.7558500561576833,
+      "vapor_moles_lbmol": 12.543244050311126,
+      "vapor_component_inventory_lbmol": [
+        8.216394013409369,
+        4.319330612284694,
+        0.007519424617061825
+      ],
+      "liquid_stored_energy_BTU": -180370.0402541754,
+      "vapor_stored_energy_BTU": -1361.093646108396,
+      "total_stored_energy_BTU": -181731.1339002838,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "rectifying_volume_5",
+      "temperature_F": 163.61450362437824,
+      "pressure_psia": 223.022,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 56.86385247807277,
+      "free_vapor_volume_ft3": 282.0818543211654,
+      "liquid_density_lbmol_ft3": 0.5698326199000818,
+      "vapor_compressibility_factor": 0.7542196508283074,
+      "vapor_moles_lbmol": 12.470222609494625,
+      "vapor_component_inventory_lbmol": [
+        7.438711784489261,
+        5.0163557549980915,
+        0.015155070007271417
+      ],
+      "liquid_stored_energy_BTU": -173918.4536823632,
+      "vapor_stored_energy_BTU": 524.4146573646743,
+      "total_stored_energy_BTU": -173394.03902499852,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "rectifying_volume_6",
+      "temperature_F": 167.83243137688956,
+      "pressure_psia": 223.668,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 57.09581708435761,
+      "free_vapor_volume_ft3": 281.84988971488053,
+      "liquid_density_lbmol_ft3": 0.5630906497651842,
+      "vapor_compressibility_factor": 0.7527520472366582,
+      "vapor_moles_lbmol": 12.43626273398345,
+      "vapor_component_inventory_lbmol": [
+        6.931274400827727,
+        5.476431745830865,
+        0.02855658732485824
+      ],
+      "liquid_stored_energy_BTU": -169690.14623163978,
+      "vapor_stored_energy_BTU": 1811.651485472694,
+      "total_stored_energy_BTU": -167878.4947461671,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "rectifying_volume_7",
+      "temperature_F": 170.64700387042345,
+      "pressure_psia": 224.313,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 57.2716547043775,
+      "free_vapor_volume_ft3": 281.67405209486066,
+      "liquid_density_lbmol_ft3": 0.5585146998644571,
+      "vapor_compressibility_factor": 0.7516244956163552,
+      "vapor_moles_lbmol": 12.427302214122845,
+      "vapor_component_inventory_lbmol": [
+        6.624020077165276,
+        5.751717251569047,
+        0.051564885388523975
+      ],
+      "liquid_stored_energy_BTU": -166844.01193932685,
+      "vapor_stored_energy_BTU": 2675.6188336396394,
+      "total_stored_energy_BTU": -164168.39310568722,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "rectifying_volume_8",
+      "temperature_F": 172.6867452600663,
+      "pressure_psia": 224.959,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 57.33557094747254,
+      "free_vapor_volume_ft3": 281.6101358517656,
+      "liquid_density_lbmol_ft3": 0.5550271524670685,
+      "vapor_compressibility_factor": 0.7508358660048952,
+      "vapor_moles_lbmol": 12.433116777018332,
+      "vapor_component_inventory_lbmol": [
+        6.447030710726639,
+        5.895431567760738,
+        0.09065449853095552
+      ],
+      "liquid_stored_energy_BTU": -164571.95176091834,
+      "vapor_stored_energy_BTU": 3299.0362040380137,
+      "total_stored_energy_BTU": -161272.91555688033,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "rectifying_volume_9",
+      "temperature_F": 174.461709783917,
+      "pressure_psia": 225.605,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 57.29357687723539,
+      "free_vapor_volume_ft3": 281.65212992200276,
+      "liquid_density_lbmol_ft3": 0.5517487007017587,
+      "vapor_compressibility_factor": 0.7503650683407012,
+      "vapor_moles_lbmol": 12.443576002943392,
+      "vapor_component_inventory_lbmol": [
+        6.346670920824368,
+        5.940391479066671,
+        0.15651360305235187
+      ],
+      "liquid_stored_energy_BTU": -162352.4091958201,
+      "vapor_stored_energy_BTU": 3837.5143987428223,
+      "total_stored_energy_BTU": -158514.8947970773,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "rectifying_volume_10",
+      "temperature_F": 176.41529111675854,
+      "pressure_psia": 226.25,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 57.190502327640964,
+      "free_vapor_volume_ft3": 281.7552044715972,
+      "liquid_density_lbmol_ft3": 0.5478963281756491,
+      "vapor_compressibility_factor": 0.7502335628020549,
+      "vapor_moles_lbmol": 12.447559643214568,
+      "vapor_component_inventory_lbmol": [
+        6.285339616485157,
+        5.895998429678619,
+        0.26622159705079224
+      ],
+      "liquid_stored_energy_BTU": -159853.5933713662,
+      "vapor_stored_energy_BTU": 4428.9561885629,
+      "total_stored_energy_BTU": -155424.6371828033,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "feed_tray",
+      "temperature_F": 179.0026042231599,
+      "pressure_psia": 226.896,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 84.6768490656561,
+      "free_vapor_volume_ft3": 254.26885773358208,
+      "liquid_density_lbmol_ft3": 0.5426826672621781,
+      "vapor_compressibility_factor": 0.7505205275781869,
+      "vapor_moles_lbmol": 11.215397540707146,
+      "vapor_component_inventory_lbmol": [
+        5.625908281075414,
+        5.187485653781171,
+        0.40200360585056016
+      ],
+      "liquid_stored_energy_BTU": -232582.79476470005,
+      "vapor_stored_energy_BTU": 4705.169776914619,
+      "total_stored_energy_BTU": -227877.62498778544,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "stripping_volume_1",
+      "temperature_F": 182.35121498700752,
+      "pressure_psia": 227.541,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 85.15396677496173,
+      "free_vapor_volume_ft3": 253.79174002427644,
+      "liquid_density_lbmol_ft3": 0.5377081738547212,
+      "vapor_compressibility_factor": 0.7486871798423451,
+      "vapor_moles_lbmol": 11.194968946017061,
+      "vapor_component_inventory_lbmol": [
+        5.243345113790141,
+        5.5314805148582495,
+        0.4201433173686722
+      ],
+      "liquid_stored_energy_BTU": -227761.82055599202,
+      "vapor_stored_energy_BTU": 5701.430195629188,
+      "total_stored_energy_BTU": -222060.39036036283,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "stripping_volume_2",
+      "temperature_F": 186.41723156811386,
+      "pressure_psia": 228.187,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 85.82202502097381,
+      "free_vapor_volume_ft3": 253.12368177826437,
+      "liquid_density_lbmol_ft3": 0.531720853014718,
+      "vapor_compressibility_factor": 0.7463590249256381,
+      "vapor_moles_lbmol": 11.161440637155678,
+      "vapor_component_inventory_lbmol": [
+        4.758657109965911,
+        5.960076204354679,
+        0.44270732283508824
+      ],
+      "liquid_stored_energy_BTU": -222028.91409956306,
+      "vapor_stored_energy_BTU": 6940.404915192478,
+      "total_stored_energy_BTU": -215088.50918437057,
+      "eos_volume_residual_ft3": -2.842170943040401e-14
+    },
+    {
+      "volume_id": "stripping_volume_3",
+      "temperature_F": 191.13159358191018,
+      "pressure_psia": 228.832,
+      "gross_capacity_ft3": 338.94570679923817,
+      "liquid_volume_ft3": 86.57976663646244,
+      "free_vapor_volume_ft3": 252.36594016277573,
+      "liquid_density_lbmol_ft3": 0.524842870527914,
+      "vapor_compressibility_factor": 0.7434583509032701,
+      "vapor_moles_lbmol": 11.121868837800145,
+      "vapor_component_inventory_lbmol": [
+        4.178934532352917,
+        6.472569617692015,
+        0.4703646877552138
+      ],
+      "liquid_stored_energy_BTU": -215153.65461639914,
+      "vapor_stored_energy_BTU": 8418.561530470659,
+      "total_stored_energy_BTU": -206735.09308592847,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "stripping_volume_4",
+      "temperature_F": 196.3219729375549,
+      "pressure_psia": 229.478,
+      "gross_capacity_ft3": 389.2001416890289,
+      "liquid_volume_ft3": 103.65756671285749,
+      "free_vapor_volume_ft3": 285.5425749761714,
+      "liquid_density_lbmol_ft3": 0.5173320826905352,
+      "vapor_compressibility_factor": 0.7399812523842317,
+      "vapor_moles_lbmol": 12.578481312983138,
+      "vapor_component_inventory_lbmol": [
+        4.0018626375397295,
+        8.004059932921432,
+        0.5725587425219747
+      ],
+      "liquid_stored_energy_BTU": -245885.24310887937,
+      "vapor_stored_energy_BTU": 11462.812124117392,
+      "total_stored_energy_BTU": -234422.43098476197,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "stripping_volume_5",
+      "temperature_F": 201.75942733542044,
+      "pressure_psia": 230.124,
+      "gross_capacity_ft3": 389.2001416890289,
+      "liquid_volume_ft3": 104.66305297589355,
+      "free_vapor_volume_ft3": 284.53708871313535,
+      "liquid_density_lbmol_ft3": 0.5094981005550919,
+      "vapor_compressibility_factor": 0.7360437466599259,
+      "vapor_moles_lbmol": 12.532830924430794,
+      "vapor_component_inventory_lbmol": [
+        3.216445380497394,
+        8.692802470202752,
+        0.623583073730648
+      ],
+      "liquid_stored_energy_BTU": -235844.44389175085,
+      "vapor_stored_energy_BTU": 13524.766226113816,
+      "total_stored_energy_BTU": -222319.67766563705,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "stripping_volume_6",
+      "temperature_F": 207.28822112358,
+      "pressure_psia": 230.769,
+      "gross_capacity_ft3": 389.2001416890289,
+      "liquid_volume_ft3": 106.39382566180302,
+      "free_vapor_volume_ft3": 282.8063160272259,
+      "liquid_density_lbmol_ft3": 0.5014992294567238,
+      "vapor_compressibility_factor": 0.7318795115642643,
+      "vapor_moles_lbmol": 12.45844605635981,
+      "vapor_component_inventory_lbmol": [
+        2.4310470349288607,
+        9.325037905849541,
+        0.702361115581406
+      ],
+      "liquid_stored_energy_BTU": -226933.07366320805,
+      "vapor_stored_energy_BTU": 15644.989312336196,
+      "total_stored_energy_BTU": -211288.08435087185,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "stripping_volume_7",
+      "temperature_F": 213.05616816803953,
+      "pressure_psia": 231.415,
+      "gross_capacity_ft3": 389.2001416890289,
+      "liquid_volume_ft3": 107.34381672609274,
+      "free_vapor_volume_ft3": 281.8563249629361,
+      "liquid_density_lbmol_ft3": 0.4929987490639701,
+      "vapor_compressibility_factor": 0.7277846379540512,
+      "vapor_moles_lbmol": 12.414053374638607,
+      "vapor_component_inventory_lbmol": [
+        1.705614659568564,
+        9.848148974809716,
+        0.8602897402603263
+      ],
+      "liquid_stored_energy_BTU": -215694.62472827715,
+      "vapor_stored_energy_BTU": 17941.07120804085,
+      "total_stored_energy_BTU": -197753.5535202363,
+      "eos_volume_residual_ft3": 0.0
+    },
+    {
+      "volume_id": "combined_reboiler_sump",
+      "temperature_F": 219.90772721017302,
+      "pressure_psia": 232.06,
+      "gross_capacity_ft3": 3405.501239779002,
+      "liquid_volume_ft3": 1645.12268638616,
+      "free_vapor_volume_ft3": 1760.378553392842,
+      "liquid_density_lbmol_ft3": 0.48263877616579426,
+      "vapor_compressibility_factor": 0.7240269202956746,
+      "vapor_moles_lbmol": 77.3656233755122,
+      "vapor_component_inventory_lbmol": [
+        6.661389505099505,
+        63.07402543184121,
+        7.630208438571495
+      ],
+      "liquid_stored_energy_BTU": -3073970.9126834488,
+      "vapor_stored_energy_BTU": 129582.08704947856,
+      "total_stored_energy_BTU": -2944388.82563397,
+      "eos_volume_residual_ft3": 0.0
+    }
+  ],
+  "property_calls": [
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[reflux_drum]",
+      "state_id": "dd238:dd231-accepted-root:reflux_drum",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[reflux_drum]",
+      "state_id": "dd238:dd231-accepted-root:reflux_drum",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[reflux_drum]",
+      "state_id": "dd238:dd231-accepted-root:reflux_drum",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[reflux_drum]",
+      "state_id": "dd238:dd231-accepted-root:reflux_drum",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[rectifying_volume_1]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_1",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[rectifying_volume_1]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_1",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_1]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_1",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_1]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_1",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[rectifying_volume_2]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_2",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[rectifying_volume_2]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_2",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_2]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_2",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_2]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_2",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[rectifying_volume_3]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_3",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[rectifying_volume_3]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_3",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_3]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_3",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_3]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_3",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[rectifying_volume_4]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_4",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[rectifying_volume_4]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_4",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_4]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_4",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_4]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_4",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[rectifying_volume_5]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_5",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[rectifying_volume_5]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_5",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_5]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_5",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_5]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_5",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[rectifying_volume_6]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_6",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[rectifying_volume_6]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_6",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_6]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_6",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_6]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_6",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[rectifying_volume_7]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_7",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[rectifying_volume_7]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_7",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_7]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_7",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_7]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_7",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[rectifying_volume_8]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_8",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[rectifying_volume_8]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_8",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_8]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_8",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_8]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_8",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[rectifying_volume_9]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_9",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[rectifying_volume_9]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_9",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_9]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_9",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_9]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_9",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[rectifying_volume_10]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_10",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[rectifying_volume_10]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_10",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_10]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_10",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[rectifying_volume_10]",
+      "state_id": "dd238:dd231-accepted-root:rectifying_volume_10",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[feed_tray]",
+      "state_id": "dd238:dd231-accepted-root:feed_tray",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[feed_tray]",
+      "state_id": "dd238:dd231-accepted-root:feed_tray",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[feed_tray]",
+      "state_id": "dd238:dd231-accepted-root:feed_tray",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[feed_tray]",
+      "state_id": "dd238:dd231-accepted-root:feed_tray",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[stripping_volume_1]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_1",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[stripping_volume_1]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_1",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_1]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_1",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_1]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_1",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[stripping_volume_2]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_2",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[stripping_volume_2]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_2",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_2]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_2",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_2]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_2",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[stripping_volume_3]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_3",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[stripping_volume_3]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_3",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_3]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_3",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_3]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_3",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[stripping_volume_4]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_4",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[stripping_volume_4]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_4",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_4]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_4",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_4]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_4",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[stripping_volume_5]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_5",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[stripping_volume_5]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_5",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_5]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_5",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_5]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_5",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[stripping_volume_6]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_6",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[stripping_volume_6]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_6",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_6]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_6",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_6]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_6",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[stripping_volume_7]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_7",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[stripping_volume_7]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_7",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_7]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_7",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[stripping_volume_7]",
+      "state_id": "dd238:dd231-accepted-root:stripping_volume_7",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "liquid_density",
+      "provider_interface": "aligned_pr.declared_liquid_density",
+      "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+      "state_id": "dd238:dd231-accepted-root:combined_reboiler_sump",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "vapor_compressibility_factor",
+      "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+      "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+      "state_id": "dd238:dd231-accepted-root:combined_reboiler_sump",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+      "state_id": "dd238:dd231-accepted-root:combined_reboiler_sump",
+      "evaluation_kind": "residual"
+    },
+    {
+      "quantity": "phase_enthalpy",
+      "provider_interface": "dwsim.declared_phase_enthalpy",
+      "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+      "state_id": "dd238:dd231-accepted-root:combined_reboiler_sump",
+      "evaluation_kind": "residual"
+    }
+  ],
+  "full_two_phase_dae_residual_evaluated": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "pass_gate": true,
+  "decision": "authorize_two_phase_vapor_holdup_residual_implementation"
+}

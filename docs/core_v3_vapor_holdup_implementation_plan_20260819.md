@@ -1,0 +1,438 @@
+# Core V3 Vapor-Holdup Implementation Plan
+
+Date: 2026-08-19
+
+## Purpose
+
+This document translates the Core V3 vapor-holdup gap into specific code and model changes. It is an implementation plan, not evidence that the vapor-holdup extension has already been implemented or validated.
+
+The current Core V3 dynamic layer contains algebraic vapor compositions and energy-owned vapor-link flow rates, but it does not contain conserved resident vapor inventory. The relevant current structures are:
+
+- `src/dynamic_distillation/core_v3/provider_governed_residual_v1.py`
+- `src/dynamic_distillation/core_v3/dynamic_dae_contract_v1.py`
+- `src/dynamic_distillation/core_v3/dynamic_dae_numerical_audit_v1.py`
+- `src/dynamic_distillation/core_v3/implicit_step_v1.py`
+- `src/dynamic_distillation/core_v3/pressure_layer_contract_v1.py`
+- `src/dynamic_distillation/core_v3/pressure_implicit_step_v1.py`
+
+## Implementation status
+
+DD-236 implements the first two property-free steps in a separately versioned successor module:
+
+- `src/dynamic_distillation/core_v3/vapor_holdup_dae_contract_v1.py`
+- `tools/audit_core_v3_vapor_holdup_dae_contract.py`
+- `tests/test_core_v3_vapor_holdup_dae_contract_v1.py`
+
+Completed:
+
+- explicit vapor-bearing ownership for every physical control volume;
+- required positive volume declaration with no default geometry;
+- conserved `N_L[j,k]` and `N_V[j,k]` state ledgers;
+- inventory-derived vapor composition;
+- separate liquid/vapor balances and cancelling phase transfer;
+- property-free vapor EOS, pressure-drop, pressure-anchor, and two-phase energy ownership;
+- full structural rank for both five-volume (`63 x 63`) and 20-volume C3/C4 (`258 x 258`) systems.
+
+Still pending:
+
+- complete coupled fugacity/EOS/component/energy/hydraulic/pressure residual;
+- consistent root construction, implicit stepping, and dynamic validation.
+
+DD-237 completes the physical geometry mapping:
+
+- real workbook tray area and spacing determine tray gross capacity;
+- horizontal reflux-drum dimensions and hemispherical heads determine drum capacity;
+- vertical sump dimensions plus the reboiler vapor extension determine bottom capacity;
+- endpoint free vapor volume is gross capacity minus live liquid displacement;
+- all 20 C3/C4 volumes map exactly once and retain structural rank `258/258`.
+
+DD-238 completes live property and initial vapor-state reconstruction:
+
+- aligned parameter-specific PR owns liquid density;
+- DWSIM owns vapor compressibility and liquid/vapor enthalpy;
+- free volume includes live liquid displacement;
+- `N_V`, component vapor inventory, and `U_L+U_V` are reconstructed at the accepted root;
+- all 80 expected property calls are recorded without fallback;
+- the 20-volume EOS closes to `1.122839e-16` relative error;
+- resident vapor is `473.563386 lbmol`, so its omission is materially significant.
+
+The complete two-phase component and energy residual remains pending. No solve,
+timestep, or dynamic integration is authorized.
+
+DD-239 completes the separately testable conservation core:
+
+- liquid and vapor transports have separate ledgers;
+- positive `M_VL` is defined as vapor-to-liquid transfer;
+- the transfer cancels exactly when phase equations are summed;
+- the accepted stationary root closes separate phase balances and two-phase
+  energy to the declared tolerances;
+- global component and energy transport telescope to the external streams and
+  duties.
+
+Full residual assembly remains pending because fugacity, EOS, Francis,
+pressure-drop, and pressure-anchor rows must still be joined to this
+conservation core under one coordinate and scaling contract.
+
+The accepted Core V3 V1 implementation remains unchanged and is now explicitly classified as reduced order.
+
+## Current gap
+
+The current state representation has:
+
+- liquid component inventory `N[j,k]`;
+- liquid composition `x[j,k]` derived from liquid inventory;
+- algebraic vapor composition `y[j,k]`;
+- algebraic vapor-link flow `V[j]`;
+- fixed or algebraic pressure, depending on the contract;
+- liquid internal-energy storage only.
+
+It does not have:
+
+- resident vapor component inventory `N_V[j,k]`;
+- vapor total holdup `N_V[j]`;
+- vapor volume and EOS closure;
+- vapor internal-energy storage;
+- vapor component balances;
+- interphase mass-transfer ownership;
+- pressure ownership that is consistent with vapor inventory and volume.
+
+Consequently, changing vapor flow currently changes transport without storing the vapor material that resides in a tray or vessel.
+
+## Recommended modeling choice
+
+The extension should use conserved vapor component inventories as the canonical vapor state:
+
+```text
+N_L[j,k]   liquid component inventory
+N_V[j,k]   vapor component inventory
+N_T[j,k] = N_L[j,k] + N_V[j,k]
+```
+
+Derived quantities are:
+
+```text
+a_V[j] = sum_k N_V[j,k]
+y[j,k] = N_V[j,k] / a_V[j]
+```
+
+Positive exponential coordinates should be used for both `N_L` and `N_V` during implicit stepping. This avoids independently integrating a total vapor amount and a composition vector that can lose consistency.
+
+The implementation must choose one phase-transfer family before coding:
+
+1. **Equilibrium-stage DAE:** solve an algebraic UV/volume/equilibrium block for temperature, pressure, phase split, `x`, and `y`; or
+2. **Rate-based model:** add explicit interphase mass- and heat-transfer laws.
+
+The existing Core V3 design is equilibrium-stage based. The first vapor-holdup successor should therefore use an equilibrium-stage DAE, with rate-based transfer explicitly out of scope unless a separate architecture is approved.
+
+## Required code changes
+
+### 1. Extend topology and operating specification
+
+Update `provider_governed_registry_v1.py` and the operating specification in `provider_governed_residual_v1.py`.
+
+Add explicit ownership for:
+
+- vapor-bearing tray/control volumes;
+- reflux-drum vapor volume, if present;
+- condenser vapor-side volume, if present;
+- terminal vapor outlet and vent paths;
+- vapor volume geometry or declared free volume;
+- vapor pressure anchor or pressure-control boundary.
+
+The existing `ColumnTopology.vapor_links` describes interstage transport links only. It must not be treated as resident vapor storage. Add a separate topology declaration for vapor control volumes and terminal vapor connections.
+
+The operating specification must carry, at minimum:
+
+```text
+vapor_volume_ft3[j]
+vapor_control_volume_ids
+vapor_outlet_ids
+vapor_holdup_reference_lbmol[j,k]
+pressure_owner
+vapor_volume_model
+```
+
+The specification must reject a vapor-holdup run that has vapor inventory but no declared volume and pressure ownership.
+
+### 2. Extend physical state and coordinate layout
+
+Update `NumericalReference`, `CoordinateLayout`, and `PhysicalState` in `provider_governed_residual_v1.py`.
+
+Add:
+
+```text
+vapor_moles_lbmol: ndarray[J,C]
+```
+
+The existing `vapor_mole_fraction` field should become a derived field for conserved-inventory mode, or be renamed to make clear when it is an algebraic trial variable. It must not remain an independently solved composition if it can disagree with `N_V`.
+
+Update:
+
+- `coordinate_layout()`;
+- `decode_coordinates()`;
+- `encode_state()`;
+- `dynamic_algebraic_indices()`;
+- `_state_from_inventory_and_algebraic()`.
+
+The coordinate layout must include positive vapor-inventory coordinates, for example:
+
+```text
+log_NL[j,k]
+log_NV[j,k]
+```
+
+The endpoint decoder must reconstruct `y` from `N_V` and reject zero, negative, nonfinite, or compositionally invalid vapor inventory.
+
+### 3. Add vapor property evaluation and storage
+
+Update `LiveProperties` and `_evaluate_properties()` in `provider_governed_residual_v1.py`.
+
+Add provider-owned vapor quantities for every vapor-bearing volume:
+
+```text
+vapor_density or vapor_molar_volume
+vapor_compressibility_factor Z_V
+vapor_enthalpy
+vapor_internal_energy
+vapor_volume residual
+```
+
+The governing property provider must expose a declared path for vapor compressibility and vapor-phase enthalpy. Ideal-gas substitution, TP-flash substitution, stale values, or fallback providers must remain prohibited in the governing residual.
+
+For each vapor volume, evaluate a thermodynamic closure such as:
+
+```text
+V_free[j] - N_V[j] * Z_V[j] * R * T[j] / P[j] = 0
+```
+
+with a consistent unit conversion. If vessel geometry includes liquid displacement, use:
+
+```text
+V_free[j] = V_shell[j] - V_liquid[j](N_L, x, rho_L)
+```
+
+The liquid and vapor volume equations must have one owner. They must not independently prescribe both pressure and vapor inventory without a compatible EOS residual.
+
+### 4. Replace liquid-only component balances with total phase balances
+
+Update `_component_balances()` and the dynamic residual assembly.
+
+For every component and control volume, the governing conservation equation must include both phase inventories:
+
+```text
+dN_L[j,k]/dt + dN_V[j,k]/dt
+    = inflow_L[k] + inflow_V[k]
+    + feed[k] - product[k]
+```
+
+If phase transfer is represented explicitly, add equal and opposite transfer terms:
+
+```text
+dN_L[j,k]/dt = liquid transport + feed/product + M_VL[j,k]
+dN_V[j,k]/dt = vapor transport              - M_VL[j,k]
+```
+
+If the equilibrium-stage formulation eliminates `M_VL`, the algebraic phase-equilibrium and volume/energy equations must determine the phase split without silently deleting vapor accumulation. The sum of the liquid and vapor equations must recover the exact total component balance.
+
+The telescoping audit must separately report:
+
+- liquid-phase transport cancellation;
+- vapor-phase transport cancellation;
+- interphase transfer cancellation;
+- global total-component conservation.
+
+### 5. Add vapor energy storage and phase-energy closure
+
+Update `_energy_balances()`, the storage functions in `dynamic_dae_numerical_audit_v1.py`, and `governing_storage_vector()` in `implicit_step_v1.py`.
+
+The stored energy for each control volume must include both phases:
+
+```text
+U_total[j] = U_L[j] + U_V[j]
+U_L[j] = N_L[j] * u_L(T,P,x)
+U_V[j] = N_V[j] * u_V(T,P,y)
+```
+
+The dynamic energy equation must use either:
+
+```text
+dU_total[j]/dt = enthalpy inflow - enthalpy outflow + duties
+```
+
+or an exactly equivalent coupled differential/algebraic formulation.
+
+The current liquid-only `saturated_storage_vector()` and `governing_storage_vector()` cannot be reused unchanged. Their replacements must:
+
+- include vapor enthalpy/internal energy;
+- include pressure work consistently;
+- include phase-transfer latent energy;
+- use the same provider basis for residual and storage;
+- support pressure movement if pressure becomes algebraic or differential.
+
+A fixed-temperature or fixed-pressure phase redistribution that changes phase totals without this energy closure must remain diagnostic-only.
+
+### 6. Extend the structural DAE contract
+
+Update `dynamic_dae_contract_v1.py` and successor pressure contracts.
+
+The current contract registers `N[j,k]` derivatives but no vapor-inventory derivatives. Add:
+
+```text
+dN_V[j,k]/dt
+```
+
+and the associated state coordinates:
+
+```text
+N_V[j,k]
+```
+
+Add rows for:
+
+- vapor component balances;
+- phase-transfer or equilibrium phase-allocation closure;
+- vapor volume/EOS closure;
+- vapor energy storage or total-energy closure;
+- terminal vapor inventory balances;
+- vent/condensation/reflux vapor boundary equations where applicable.
+
+The contract must publish new counts generically in component count and topology. For a simple model with one liquid and one vapor component inventory per phase, the number of differential inventory states approximately doubles from `J*C` to `2*J*C`; exact counts depend on whether phase allocation and energy are represented as differential or algebraic variables.
+
+The structural audit must reject:
+
+- vapor state columns with no balance row;
+- vapor balance rows with no owner;
+- duplicated pressure or volume owners;
+- independently solved `y` inconsistent with `N_V`;
+- phase transfer appearing in only one phase balance;
+- vapor holdup present in state but absent from energy storage.
+
+### 7. Make pressure ownership physically consistent
+
+Update `pressure_layer_contract_v1.py`, `pressure_layer_numerical_v1.py`, and `pressure_implicit_step_v1.py`.
+
+The current pressure layer adds algebraic pressure-drop equations but deliberately reports `explicit_vapor_inventory_present = False`. That gate must become a required positive feature for the rigorous successor.
+
+The successor must select one pressure model:
+
+- algebraic pressure from vapor inventory, volume, EOS, and pressure-drop equations; or
+- differential pressure from vapor compressibility/volume dynamics with an algebraic EOS closure.
+
+It must not prescribe an interior pressure profile while also integrating vapor holdup.
+
+Pressure residuals must include:
+
+```text
+EOS/volume closure
+pressure-drop closure
+pressure-boundary or controller closure
+```
+
+The pressure-layer evaluator must use the endpoint vapor inventory and endpoint pressure consistently. The current endpoint storage calculation in `pressure_implicit_step_v1.py` must include pressure-dependent vapor storage and must not reuse a fixed-pressure liquid-only gradient.
+
+### 8. Extend implicit stepping
+
+Update `implicit_step_v1.py` and `pressure_implicit_step_v1.py`.
+
+A backward-Euler endpoint must advance both phase inventories:
+
+```text
+N_L,next = N_L,previous * exp(dt * nu_L / N_L,previous)
+N_V,next = N_V,previous * exp(dt * nu_V / N_V,previous)
+```
+
+The physical component rates must be reconstructed from exact endpoint differences for both phases. The residual must enforce the coupled phase equations at the same endpoint.
+
+The solver coordinate vector, sparsity pattern, colored Jacobian, rank audit, and condition audit must all include the new vapor-rate and vapor-algebraic dependencies.
+
+The step evaluator must report:
+
+- liquid inventory change;
+- vapor inventory change;
+- total inventory change;
+- vapor-volume change;
+- pressure change;
+- liquid and vapor energy storage change;
+- exact component and energy kinematics.
+
+### 9. Extend initialization and restart handling
+
+Update the Core V3 initializer, zero-time audit, serialized state schema, and any Excel/restart adapters that feed Core V3.
+
+Initialization must accept or reconstruct:
+
+- vapor component inventory;
+- vapor composition derived from that inventory;
+- vapor temperature and pressure;
+- vapor volume and compressibility;
+- vapor internal energy;
+- terminal vapor states;
+- consistent vapor transport and phase-transfer values.
+
+An external steady-state profile must be treated as a seed only. The initializer must solve the coupled liquid/vapor algebraic manifold and report movement in:
+
+```text
+Delta N_L
+Delta N_V
+Delta U_L
+Delta U_V
+Delta P
+Delta T
+```
+
+A zero-time audit must prove that every vapor state has both a component balance and an energy/volume closure before permitting a timestep.
+
+### 10. Extend reporting and provenance
+
+Add vapor-specific fields to result records and audit logs:
+
+```text
+vapor_inventory_lbmol[j,k]
+vapor_holdup_lbmol[j]
+vapor_composition[j,k]
+vapor_volume_ft3[j]
+vapor_pressure_psia[j]
+vapor_Z[j]
+vapor_energy_BTU[j]
+phase_transfer_lbmolph[j,k]
+vapor_balance_residual[j,k]
+vapor_volume_residual[j]
+```
+
+Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor compressibility, fugacity, and any phase-transfer property calls. The report must identify whether vapor holdup was dynamically solved, algebraically reconstructed, or disabled as an explicitly declared reduced-model option.
+
+## Recommended implementation order
+
+1. Freeze the vapor control-volume topology and pressure/volume ownership.
+2. Add property-free `N_V` state, balance, and structural-rank contract.
+3. Add live vapor volume/EOS and vapor-property provider ownership.
+4. Add two-phase component and total-energy residuals.
+5. Add pressure-enabled consistent initialization.
+6. Add one-step stationary and disturbance refinement audits.
+7. Add short open-loop trajectories with vapor holdup.
+8. Add controllers only after the uncontrolled vapor-pressure model passes.
+9. Validate against an external dynamic benchmark with reproducible vapor inventory and pressure traces.
+
+Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
+
+## Minimum acceptance gates
+
+Before calling the extension rigorous, require:
+
+- full structural rank and no unused vapor state columns;
+- live Jacobian rank at two finite-difference steps;
+- exact total component conservation;
+- exact or declared-tolerance phase-transfer cancellation;
+- exact or declared-tolerance total-energy conservation;
+- vapor EOS/volume closure at every volume;
+- pressure and vapor-volume consistency;
+- positive vapor inventories and physical `y`;
+- stationary root hold with negligible vapor drift;
+- coarse/refined transient agreement;
+- materially correct response to a feed, reflux, duty, or pressure disturbance;
+- provider ownership and no fallback;
+- external benchmark comparison for vapor holdup and pressure response.
+
+## Scope warning
+
+The existing `core_v3` reduced contracts and their historical DD-091 through DD-151 evidence should remain immutable historical evidence. Vapor holdup should be implemented as a separately versioned successor architecture with new structural, numerical, initialization, and trajectory gates. Historical reduced-model passes must not be reclassified as vapor-holdup acceptance.

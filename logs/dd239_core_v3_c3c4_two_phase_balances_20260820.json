@@ -1,0 +1,266 @@
+{
+  "schema_id": "dd239-core-v3-c3c4-two-phase-balance-audit-v1",
+  "classification": "c3c4_two_phase_zero_rate_balances_passed",
+  "source_root": "logs/dd231_core_v3_full_c3c4_aligned_density_root_20260815.json",
+  "property_audit": {
+    "volume_count": 20,
+    "provider_call_count": 80,
+    "expected_provider_call_count": 80,
+    "maximum_absolute_eos_residual_ft3": 2.842170943040401e-14,
+    "maximum_relative_eos_residual": 1.1228388126600238e-16,
+    "minimum_free_vapor_volume_ft3": 252.36594016277573,
+    "minimum_vapor_moles_lbmol": 11.121868837800145,
+    "minimum_liquid_density_lbmol_ft3": 0.48263877616579426,
+    "minimum_vapor_compressibility_factor": 0.7240269202956746,
+    "all_energy_terms_finite": true,
+    "exact_property_call_ledger": true,
+    "governing_evaluation_kinds_only": true,
+    "provider_fallback_attempted": false,
+    "pass_gate": true
+  },
+  "balance_summary": {
+    "maximum_liquid_component_residual_lbmolph": 1.0553838913907043e-09,
+    "maximum_vapor_component_residual_lbmolph": 0.0,
+    "maximum_total_component_residual_lbmolph": 1.0553838913907043e-09,
+    "maximum_energy_residual_BTUph": 9.220093488693237e-08,
+    "maximum_absolute_phase_transfer_lbmolph": 7520.731440946664,
+    "global_component_telescoping_error_lbmolph": 2.8421709430404007e-13,
+    "global_energy_telescoping_error_BTUph": 0.0,
+    "phase_transfer_cancellation_exact": true
+  },
+  "tolerances": {
+    "component_lbmolph": 1e-07,
+    "energy_BTUph": 0.0001
+  },
+  "volumes": [
+    {
+      "volume_id": "reflux_drum",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        7520.731440946664,
+        863.0237171124579,
+        0.2751914985455334
+      ],
+      "maximum_liquid_component_residual_lbmolph": 1.0553838913907043e-09,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 1.3969838619232178e-09
+    },
+    {
+      "volume_id": "rectifying_volume_1",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -884.4598348833788,
+        603.521846836376,
+        0.5567414675340729
+      ],
+      "maximum_liquid_component_residual_lbmolph": 4.479959736514161e-10,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": -1.6298145055770874e-08
+    },
+    {
+      "volume_id": "rectifying_volume_2",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -865.274426301823,
+        638.3258298234534,
+        1.2662665878771282
+      ],
+      "maximum_liquid_component_residual_lbmolph": 2.0173995807226675e-10,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 2.514570951461792e-08
+    },
+    {
+      "volume_id": "rectifying_volume_3",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -702.4432196148528,
+        559.6503227311459,
+        2.5404058194749486
+      ],
+      "maximum_liquid_component_residual_lbmolph": 9.945422263513137e-11,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 1.3969838619232178e-08
+    },
+    {
+      "volume_id": "rectifying_volume_4",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -493.5275187136576,
+        420.68455087803204,
+        4.682208231634578
+      ],
+      "maximum_liquid_component_residual_lbmolph": 5.233768973766928e-11,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 1.1175870895385742e-08
+    },
+    {
+      "volume_id": "rectifying_volume_5",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -316.25565080938577,
+        279.66809875283707,
+        8.225160330762074
+      ],
+      "maximum_liquid_component_residual_lbmolph": 2.8691715669992846e-11,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": -4.377216100692749e-08
+    },
+    {
+      "volume_id": "rectifying_volume_6",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -192.75999569698433,
+        165.6922930557439,
+        14.106010536811599
+      ],
+      "maximum_liquid_component_residual_lbmolph": 1.603694954610546e-11,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 9.220093488693237e-08
+    },
+    {
+      "volume_id": "rectifying_volume_7",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -116.25597674840583,
+        81.25253088454338,
+        23.887233258465148
+      ],
+      "maximum_liquid_component_residual_lbmolph": 9.08073616301408e-12,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": -2.7939677238464355e-08
+    },
+    {
+      "volume_id": "rectifying_volume_8",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -73.54111856388181,
+        16.2603368909231,
+        40.05108148181178
+      ],
+      "maximum_liquid_component_residual_lbmolph": 5.101696842757519e-12,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": -6.332993507385254e-08
+    },
+    {
+      "volume_id": "rectifying_volume_9",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -54.03517356847124,
+        -42.66331040795876,
+        66.30174378001014
+      ],
+      "maximum_liquid_component_residual_lbmolph": 2.7569058147491887e-12,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 1.6763806343078613e-08
+    },
+    {
+      "volume_id": "rectifying_volume_10",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -51.345190549923245,
+        -108.44097035862478,
+        107.55575497954172
+      ],
+      "maximum_liquid_component_residual_lbmolph": 2.2737367544323206e-12,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": -1.862645149230957e-08
+    },
+    {
+      "volume_id": "feed_tray",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -208.20754957333838,
+        281.42605848218454,
+        16.021379386087744
+      ],
+      "maximum_liquid_component_residual_lbmolph": 1.3642420526593924e-12,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 9.12696123123169e-08
+    },
+    {
+      "volume_id": "stripping_volume_1",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -306.1135263560768,
+        320.28324411389985,
+        17.490626404789282
+      ],
+      "maximum_liquid_component_residual_lbmolph": 1.8189894035458565e-12,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 1.6763806343078613e-08
+    },
+    {
+      "volume_id": "stripping_volume_2",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -369.20566376203897,
+        393.3388352237148,
+        22.024245370457436
+      ],
+      "maximum_liquid_component_residual_lbmolph": 3.183231456205249e-12,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": -7.450580596923828e-08
+    },
+    {
+      "volume_id": "stripping_volume_3",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -421.8061107528729,
+        459.1837648432711,
+        27.76265540483621
+      ],
+      "maximum_liquid_component_residual_lbmolph": 3.637978807091713e-12,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 7.450580596923828e-08
+    },
+    {
+      "volume_id": "stripping_volume_4",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -454.7714142261466,
+        503.0124837054291,
+        37.080096820254425
+      ],
+      "maximum_liquid_component_residual_lbmolph": 2.7284841053187847e-12,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": -8.940696716308594e-08
+    },
+    {
+      "volume_id": "stripping_volume_5",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -462.4745294692916,
+        504.5927715587368,
+        57.48407796462959
+      ],
+      "maximum_liquid_component_residual_lbmolph": 1.8189894035458565e-12,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 5.587935447692871e-09
+    },
+    {
+      "volume_id": "stripping_volume_6",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -444.81066520949594,
+        432.42720540108985,
+        109.25178873079597
+      ],
+      "maximum_liquid_component_residual_lbmolph": 9.094947017729282e-13,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": -2.60770320892334e-08
+    },
+    {
+      "volume_id": "stripping_volume_7",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -406.77576201523254,
+        225.2313391597172,
+        241.4274388535249
+      ],
+      "maximum_liquid_component_residual_lbmolph": 9.094947017729282e-13,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": -6.332993507385254e-08
+    },
+    {
+      "volume_id": "combined_reboiler_sump",
+      "phase_transfer_vapor_to_liquid_lbmolph": [
+        -696.6681141314062,
+        -6596.470948686972,
+        -797.9901069078443
+      ],
+      "maximum_liquid_component_residual_lbmolph": 3.410605131648481e-13,
+      "maximum_vapor_component_residual_lbmolph": 0.0,
+      "energy_residual_BTUph": 7.82310962677002e-08
+    }
+  ],
+  "provider_call_count": 80,
+  "pressure_drop_residual_evaluated": false,
+  "francis_residual_evaluated": false,
+  "full_258_residual_evaluated": false,
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "pass_gate": true,
+  "decision": "authorize_full_vapor_holdup_residual_assembly"
+}

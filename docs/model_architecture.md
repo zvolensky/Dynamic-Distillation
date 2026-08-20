@@ -2367,3 +2367,88 @@ This establishes a locally accurate moving response for the complete 20-stage
 controlled model. It authorizes one separately frozen short trajectory using
 the same 0.1% feed disturbance. It does not yet establish sustained dynamic
 stability, controller quality, or long-run performance.
+
+## DD-236 vapor-holdup successor boundary
+
+The DD-235 trajectory authorization is superseded by the newly recognized
+vapor-holdup requirement. The accepted Core V3 V1 model remains immutable as a
+reduced-order historical result; no additional V1 trajectory is authorized.
+
+DD-236 starts a separately versioned equilibrium-stage successor. Every
+physical control volume now has distinct conserved liquid and vapor component
+states, `N_L[j,k]` and `N_V[j,k]`. Vapor composition is derived only from
+`N_V/sum(N_V)` and is not an independent algebraic variable. Equal-and-opposite
+`M_VL[j,k]` coordinates own phase transfer. The structural equations include
+separate liquid and vapor component balances, full fugacity equilibrium,
+Francis liquid hydraulics, vapor EOS/free-volume closure, pressure-driven vapor
+links, one top pressure anchor, and total energy storage `U_L + U_V`.
+
+The five-volume/three-component development system has 30 conserved states and
+a square, full-rank `63 x 63` implicit ledger. The 20-volume C3/C4 topology has
+120 conserved states and a square, full-rank `258 x 258` ledger. Structural
+audits reject missing/nonpositive volume, unowned vapor states, independent
+vapor composition, uncancelled phase transfer, duplicate pressure ownership,
+provider fallback, and liquid-only energy storage.
+
+DD-236 is property-free. Its positive volume declarations are structural test
+values, not accepted physical geometry. The next layer must obtain real tray,
+drum, and reboiler/sump free-volume geometry and implement provider-owned vapor
+compressibility, vapor enthalpy/internal energy, liquid displacement, and the
+live EOS residual. No root, timestep, controller, or trajectory is yet
+authorized for the vapor-holdup successor.
+
+DD-237 replaces the structural volume values with physical C3/C4 workbook
+geometry. Tray gross capacity is stage area times tray spacing. The reflux drum
+uses its 12.1 ft diameter, 36.3 ft tangent length, and two hemispherical heads.
+The combined bottom volume uses the 18.1759 ft diameter, 12 ft high vertical
+sump plus the declared stage-20 reboiler vapor extension.
+
+The resulting gross capacities are `5101.729438 ft3` at the top,
+`338.945707-1129.819023 ft3` for tray bays, and `3405.501240 ft3` at the
+bottom. These are not fixed endpoint vapor spaces. The governing definition is
+
+`V_free[j] = V_gross[j] - sum_k(N_L[j,k]) / rho_L[j]`.
+
+All 20 source stages map exactly once, and inserting the physical capacities
+retains the full-rank `258 x 258` structural ledger. DD-237 remains
+property-free; live liquid density, vapor compressibility, vapor enthalpy, and
+the numerical EOS residual are the next implementation boundary.
+
+DD-238 crosses that live-property boundary without changing the historical V1
+model. At the accepted DD-231 state, aligned parameter-specific PR supplies
+liquid density, while DWSIM supplies vapor compressibility and both phase
+enthalpies. Free volume includes live liquid displacement, and resident vapor
+inventory is reconstructed from
+
+`N_V[j] = P[j] * V_free[j] / (Z_V[j] * R * T[j])`.
+
+The 20-volume column contains `473.563386 lbmol` of resident vapor and
+`2909.337841 lbmol` of liquid. Vapor therefore represents about 16.3% of the
+liquid mole inventory, confirming that its prior omission was material. Every
+volume has positive free space and vapor inventory. The maximum relative EOS
+residual is `1.122839e-16`; all 80 expected provider calls are present and no
+fallback occurs. Stored energy is now evaluated as `U_L + U_V` using a
+consistent `U=H-PV` conversion for each phase.
+
+DD-238 reconstructs a consistent vapor state only. It does not yet balance
+liquid and vapor separately, calculate interphase transfer, or evaluate the
+complete `258 x 258` successor residual. That full two-phase residual is the
+next boundary; no root, timestep, controller, or trajectory is authorized.
+
+DD-239 implements the conservation core of that residual. Liquid and vapor
+transport are assembled independently. A positive `M_VL[j,k]` transfers a
+component from vapor to liquid, entering the liquid equation positively and
+the vapor equation negatively. At the accepted stationary root, local vapor
+transport determines the required phase-transfer vector; the separate liquid
+equation then closes without changing the state.
+
+For the full 20-volume case, vapor residuals are exactly zero, the worst
+liquid/total component residual is `1.055384e-9 lbmol/h`, and the worst energy
+residual is `9.220093e-8 BTU/h`. Global transport telescopes to the external
+component and energy rates within `2.842171e-13 lbmol/h` and exactly zero,
+respectively. Interphase transfer cancels exactly.
+
+This proves that explicit vapor storage and phase transfer are compatible with
+the accepted stationary balance. The next implementation must assemble these
+rows with full fugacity equilibrium, EOS, Francis hydraulics, pressure-drop,
+and pressure-anchor rows in the complete 258-equation numerical residual.

@@ -1,0 +1,693 @@
+{
+  "schema_id": "dd250-core-v3-c3c4-vapor-holdup-short-trajectory-result-v1",
+  "classification": "vapor_holdup_short_trajectory_passed",
+  "decision": "authorize_separately_frozen_dynamic_scope_decision",
+  "contract_commit": "6b51a43a0ffe1a7dd46dfac3d2c28ea0f821e3dd",
+  "contract_payload_sha256": "1fa887209e13fe781cb01eb9ec5a848db74abd3ef5895a2aa9fdbeba41fff1e6",
+  "wall_clock_sec": 145.52200459997403,
+  "solver_observed": {
+    "function": 4974,
+    "jacobian": 85
+  },
+  "nominal_endpoints": [
+    {
+      "time_sec": 0.25,
+      "success": true,
+      "nfev": 12,
+      "njev": 6,
+      "scaled_residual_inf_norm": 3.9388325920803336e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11362294.382225621,
+      "maximum_fugacity_residual": 5.995204332975827e-15,
+      "maximum_eos_relative_residual": 1.5646551880993414e-15,
+      "minimum_free_vapor_volume_ft3": 252.93318391054993,
+      "physical_pass": true
+    },
+    {
+      "time_sec": 0.5,
+      "success": true,
+      "nfev": 15,
+      "njev": 7,
+      "scaled_residual_inf_norm": 5.145294030164488e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11362159.638977906,
+      "maximum_fugacity_residual": 5.6510351953422065e-14,
+      "maximum_eos_relative_residual": 4.7366679251894056e-15,
+      "minimum_free_vapor_volume_ft3": 252.93318252779898,
+      "physical_pass": true
+    },
+    {
+      "time_sec": 0.75,
+      "success": true,
+      "nfev": 13,
+      "njev": 5,
+      "scaled_residual_inf_norm": 7.284391770990111e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11362079.370152934,
+      "maximum_fugacity_residual": 5.906386491006007e-14,
+      "maximum_eos_relative_residual": 4.736668011791937e-15,
+      "minimum_free_vapor_volume_ft3": 252.93318128149554,
+      "physical_pass": true
+    },
+    {
+      "time_sec": 1.0,
+      "success": true,
+      "nfev": 10,
+      "njev": 7,
+      "scaled_residual_inf_norm": 1.4380631104982762e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 11362022.683949783,
+      "maximum_fugacity_residual": 4.218847493575586e-15,
+      "maximum_eos_relative_residual": 9.960832178878143e-16,
+      "minimum_free_vapor_volume_ft3": 252.93317979960293,
+      "physical_pass": true
+    }
+  ],
+  "refined_endpoints": [
+    {
+      "time_sec": 0.125,
+      "success": true,
+      "nfev": 16,
+      "njev": 10,
+      "scaled_residual_inf_norm": 7.433364649369038e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 45265229.22832742,
+      "maximum_fugacity_residual": 4.996003610813217e-15,
+      "maximum_eos_relative_residual": 1.0802024911650083e-15,
+      "minimum_free_vapor_volume_ft3": 252.93318469679372,
+      "physical_pass": true
+    },
+    {
+      "time_sec": 0.25,
+      "success": true,
+      "nfev": 14,
+      "njev": 7,
+      "scaled_residual_inf_norm": 1.1222623504545855e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 45264771.12015449,
+      "maximum_fugacity_residual": 8.804068585277879e-14,
+      "maximum_eos_relative_residual": 4.736667833713571e-15,
+      "minimum_free_vapor_volume_ft3": 252.93318373175913,
+      "physical_pass": true
+    },
+    {
+      "time_sec": 0.375,
+      "success": true,
+      "nfev": 12,
+      "njev": 9,
+      "scaled_residual_inf_norm": 2.9116768802741595e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 45264465.47489797,
+      "maximum_fugacity_residual": 3.552713678800507e-15,
+      "maximum_eos_relative_residual": 9.929410462174064e-16,
+      "minimum_free_vapor_volume_ft3": 252.93318306677588,
+      "physical_pass": true
+    },
+    {
+      "time_sec": 0.5,
+      "success": true,
+      "nfev": 11,
+      "njev": 5,
+      "scaled_residual_inf_norm": 9.350912981323435e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 45264255.977426864,
+      "maximum_fugacity_residual": 5.7731597280507974e-15,
+      "maximum_eos_relative_residual": 1.1156245080574467e-15,
+      "minimum_free_vapor_volume_ft3": 252.9331825208004,
+      "physical_pass": true
+    },
+    {
+      "time_sec": 0.625,
+      "success": true,
+      "nfev": 11,
+      "njev": 6,
+      "scaled_residual_inf_norm": 1.0932317382576663e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 45264098.400917135,
+      "maximum_fugacity_residual": 4.6629367034256685e-15,
+      "maximum_eos_relative_residual": 6.056323655583935e-16,
+      "minimum_free_vapor_volume_ft3": 252.93318200805516,
+      "physical_pass": true
+    },
+    {
+      "time_sec": 0.75,
+      "success": true,
+      "nfev": 14,
+      "njev": 7,
+      "scaled_residual_inf_norm": 2.122454797932205e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 45263969.32382621,
+      "maximum_fugacity_residual": 5.995204332975827e-15,
+      "maximum_eos_relative_residual": 1.2098636490172227e-15,
+      "minimum_free_vapor_volume_ft3": 252.93318148209113,
+      "physical_pass": true
+    },
+    {
+      "time_sec": 0.875,
+      "success": true,
+      "nfev": 12,
+      "njev": 7,
+      "scaled_residual_inf_norm": 1.7035928700661714e-12,
+      "jacobian_rank": 258,
+      "jacobian_condition": 45263857.107367724,
+      "maximum_fugacity_residual": 4.6629367034256464e-15,
+      "maximum_eos_relative_residual": 8.068687409737976e-16,
+      "minimum_free_vapor_volume_ft3": 252.9331809117953,
+      "physical_pass": true
+    },
+    {
+      "time_sec": 1.0,
+      "success": true,
+      "nfev": 18,
+      "njev": 9,
+      "scaled_residual_inf_norm": 7.822986023590848e-13,
+      "jacobian_rank": 258,
+      "jacobian_condition": 45263756.795759715,
+      "maximum_fugacity_residual": 2.3048229991215594e-13,
+      "maximum_eos_relative_residual": 2.0369533480423594e-14,
+      "minimum_free_vapor_volume_ft3": 252.933180271724,
+      "physical_pass": true
+    }
+  ],
+  "nominal_response": [
+    {
+      "time_sec": 0.25,
+      "component_inventory_change_lbmol": [
+        0.0001653463821769119,
+        0.00027557764899022175,
+        5.5115841435887224e-05
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.00016534638210946657,
+        0.0002755776489417548,
+        5.511584143446176e-05
+      ],
+      "component_inventory_identity_max_abs_lbmol": 6.744531690951183e-14,
+      "total_inventory_change_lbmol": 0.0004960398726030209,
+      "expected_total_inventory_change_lbmol": 0.0004960398724856831,
+      "stored_energy_change_BTU": -2.6159365893981885,
+      "expected_stored_energy_change_BTU": -2.6159365881169734,
+      "energy_identity_relative": 4.897730087106491e-10
+    },
+    {
+      "time_sec": 0.5,
+      "component_inventory_change_lbmol": [
+        0.0003306925800001803,
+        0.0005511551395542824,
+        0.0001102320254365882
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0003306925800856458,
+        0.0005511551394587855,
+        0.0001102320254269213
+      ],
+      "component_inventory_identity_max_abs_lbmol": 9.549696103339222e-14,
+      "total_inventory_change_lbmol": 0.000992079744991051,
+      "expected_total_inventory_change_lbmol": 0.0009920797449713525,
+      "stored_energy_change_BTU": -5.27489212990622,
+      "expected_stored_energy_change_BTU": -5.274892132726446,
+      "energy_identity_relative": 5.346509008495598e-10
+    },
+    {
+      "time_sec": 0.75,
+      "component_inventory_change_lbmol": [
+        0.0004960385959911218,
+        0.0008267324784867469,
+        0.0001653485429641984
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0004960385959426737,
+        0.0008267324785742542,
+        0.00016534854294008027
+      ],
+      "component_inventory_identity_max_abs_lbmol": 8.750725838391205e-14,
+      "total_inventory_change_lbmol": 0.001488119617442067,
+      "expected_total_inventory_change_lbmol": 0.001488119617457008,
+      "stored_energy_change_BTU": -7.959371647622902,
+      "expected_stored_energy_change_BTU": -7.959371646498071,
+      "energy_identity_relative": 1.4132156970329432e-10
+    },
+    {
+      "time_sec": 1.0,
+      "component_inventory_change_lbmol": [
+        0.0006613844419083303,
+        0.0011023096811069166,
+        0.00022046536708325527
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0006613844416875796,
+        0.0011023096812009371,
+        0.0002204653670541982
+      ],
+      "component_inventory_identity_max_abs_lbmol": 2.207507180523871e-13,
+      "total_inventory_change_lbmol": 0.0019841594900985022,
+      "expected_total_inventory_change_lbmol": 0.001984159489942715,
+      "stored_energy_change_BTU": -10.66184905017144,
+      "expected_stored_energy_change_BTU": -10.661849054548785,
+      "energy_identity_relative": 4.1056149702854456e-10
+    }
+  ],
+  "refined_response": [
+    {
+      "time_sec": 0.125,
+      "component_inventory_change_lbmol": [
+        8.26732362548821e-05,
+        0.00013778886397908252,
+        2.7557835889184795e-05
+      ],
+      "expected_component_inventory_change_lbmol": [
+        8.267323628850952e-05,
+        0.00013778886407629266,
+        2.7557835878013748e-05
+      ],
+      "component_inventory_identity_max_abs_lbmol": 9.721013599119088e-14,
+      "total_inventory_change_lbmol": 0.0002480199361231494,
+      "expected_total_inventory_change_lbmol": 0.00024801993624281595,
+      "stored_energy_change_BTU": -1.2941368287720252,
+      "expected_stored_energy_change_BTU": -1.294136827338694,
+      "energy_identity_relative": 1.1075577169393046e-09
+    },
+    {
+      "time_sec": 0.25,
+      "component_inventory_change_lbmol": [
+        0.00016534642976018255,
+        0.0002755776900293938,
+        5.511575257552024e-05
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.00016534642986734522,
+        0.00027557769003848875,
+        5.511575257984131e-05
+      ],
+      "component_inventory_identity_max_abs_lbmol": 1.0716267825373882e-13,
+      "total_inventory_change_lbmol": 0.0004960398723650966,
+      "expected_total_inventory_change_lbmol": 0.0004960398724856753,
+      "stored_energy_change_BTU": -2.6064292534429114,
+      "expected_stored_energy_change_BTU": -2.6064292545176837,
+      "energy_identity_relative": 4.123542848202611e-10
+    },
+    {
+      "time_sec": 0.375,
+      "component_inventory_change_lbmol": [
+        0.00024801957530740104,
+        0.0004133664739143228,
+        8.26737593765405e-05
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.00024801957542732486,
+        0.0004133664739345811,
+        8.267375936659802e-05
+      ],
+      "component_inventory_identity_max_abs_lbmol": 1.1992381913905614e-13,
+      "total_inventory_change_lbmol": 0.0007440598085982643,
+      "expected_total_inventory_change_lbmol": 0.000744059808728504,
+      "stored_energy_change_BTU": -3.9308532264840323,
+      "expected_stored_energy_change_BTU": -3.9308532268369003,
+      "energy_identity_relative": 8.976879489349166e-11
+    },
+    {
+      "time_sec": 0.5,
+      "component_inventory_change_lbmol": [
+        0.00033069267212915143,
+        0.0005511552157742017,
+        0.00011023185707168806
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0003306926721100023,
+        0.0005511552158039654,
+        0.00011023185705735806
+      ],
+      "component_inventory_identity_max_abs_lbmol": 2.9763734879506565e-14,
+      "total_inventory_change_lbmol": 0.0009920797449750412,
+      "expected_total_inventory_change_lbmol": 0.0009920797449713258,
+      "stored_energy_change_BTU": -5.263598564109998,
+      "expected_stored_energy_change_BTU": -5.263598567018958,
+      "energy_identity_relative": 5.526561622826229e-10
+    },
+    {
+      "time_sec": 0.625,
+      "component_inventory_change_lbmol": [
+        0.00041336572075922895,
+        0.0006889439171917644,
+        0.00013779004306942828
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0004133657208951696,
+        0.0006889439172655738,
+        0.00013779004305341797
+      ],
+      "component_inventory_identity_max_abs_lbmol": 1.3594062941296725e-13,
+      "total_inventory_change_lbmol": 0.0012400996810204216,
+      "expected_total_inventory_change_lbmol": 0.0012400996812141616,
+      "stored_energy_change_BTU": -6.602615281532053,
+      "expected_stored_energy_change_BTU": -6.602615284918316,
+      "energy_identity_relative": 5.128668988839402e-10
+    },
+    {
+      "time_sec": 0.75,
+      "component_inventory_change_lbmol": [
+        0.0004960387235539709,
+        0.0008267325803892334,
+        0.00016534831353206539
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0004960387234669196,
+        0.0008267325804877934,
+        0.0001653483135022861
+      ],
+      "component_inventory_identity_max_abs_lbmol": 9.856004901109827e-14,
+      "total_inventory_change_lbmol": 0.0014881196174752697,
+      "expected_total_inventory_change_lbmol": 0.001488119617456999,
+      "stored_energy_change_BTU": -7.946781481208745,
+      "expected_stored_energy_change_BTU": -7.946781480078611,
+      "energy_identity_relative": 1.4221282051234845e-10
+    },
+    {
+      "time_sec": 0.875,
+      "component_inventory_change_lbmol": [
+        0.0005787116818962712,
+        0.0009645212077238341,
+        0.00019290666423466126
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.0005787116817318161,
+        0.0009645212077577505,
+        0.00019290666421026024
+      ],
+      "component_inventory_identity_max_abs_lbmol": 1.6445514654933602e-13,
+      "total_inventory_change_lbmol": 0.0017361395538547666,
+      "expected_total_inventory_change_lbmol": 0.0017361395536998267,
+      "stored_energy_change_BTU": -9.295421120303217,
+      "expected_stored_energy_change_BTU": -9.29542111713077,
+      "energy_identity_relative": 3.412913898977569e-10
+    },
+    {
+      "time_sec": 1.0,
+      "component_inventory_change_lbmol": [
+        0.0006613845977996302,
+        0.0011023098012969967,
+        0.0002204650910330951
+      ],
+      "expected_component_inventory_change_lbmol": [
+        0.00066138459761677,
+        0.0011023098013049073,
+        0.0002204650910209812
+      ],
+      "component_inventory_identity_max_abs_lbmol": 1.828602373687982e-13,
+      "total_inventory_change_lbmol": 0.001984159490129722,
+      "expected_total_inventory_change_lbmol": 0.0019841594899426586,
+      "stored_energy_change_BTU": -10.648072402487742,
+      "expected_stored_energy_change_BTU": -10.648072400671921,
+      "energy_identity_relative": 1.7053043164132983e-10
+    }
+  ],
+  "common_time_comparison": [
+    {
+      "time_sec": 0.25,
+      "maximum_component_difference_lbmol": 2.4308362398528516e-06,
+      "component_difference_l1_lbmol": 1.1735585170206259e-05,
+      "signed_total_difference_lbmol": 2.37924263624123e-13,
+      "temperature_difference_F": 6.484044376975362e-07,
+      "pressure_difference_psia": 1.0633681597482791e-06,
+      "liquid_flow_relative_difference": 2.050054024091299e-07,
+      "vapor_flow_relative_difference": 3.473088793448647e-06,
+      "phase_transfer_scaled_difference": 2.9731096607147826e-06,
+      "duty_relative_difference": 2.442131488048087e-06
+    },
+    {
+      "time_sec": 0.5,
+      "maximum_component_difference_lbmol": 4.568387261372209e-06,
+      "component_difference_l1_lbmol": 1.9826443567816723e-05,
+      "signed_total_difference_lbmol": 1.6009762959789953e-14,
+      "temperature_difference_F": 7.100696848283405e-07,
+      "pressure_difference_psia": 6.215206838078302e-07,
+      "liquid_flow_relative_difference": 3.8600587817766805e-07,
+      "vapor_flow_relative_difference": 1.7149132482194943e-06,
+      "phase_transfer_scaled_difference": 1.8606140798627047e-06,
+      "duty_relative_difference": 1.8449225731187946e-06
+    },
+    {
+      "time_sec": 0.75,
+      "maximum_component_difference_lbmol": 6.5681921270766e-06,
+      "component_difference_l1_lbmol": 2.7724104578845388e-05,
+      "signed_total_difference_lbmol": 3.320260733019609e-14,
+      "temperature_difference_F": 8.410265479597001e-07,
+      "pressure_difference_psia": 4.367757924228499e-07,
+      "liquid_flow_relative_difference": 5.54789659789083e-07,
+      "vapor_flow_relative_difference": 1.0109042383607247e-06,
+      "phase_transfer_scaled_difference": 1.0975066581327232e-06,
+      "duty_relative_difference": 1.0872339937658693e-06
+    },
+    {
+      "time_sec": 1.0,
+      "maximum_component_difference_lbmol": 8.429138006249559e-06,
+      "component_difference_l1_lbmol": 3.480367334671684e-05,
+      "signed_total_difference_lbmol": 3.12198183971546e-14,
+      "temperature_difference_F": 1.0018266891620442e-06,
+      "pressure_difference_psia": 4.731693934445502e-07,
+      "liquid_flow_relative_difference": 7.113831827599438e-07,
+      "vapor_flow_relative_difference": 7.40766148043985e-07,
+      "phase_transfer_scaled_difference": 8.047206686446493e-07,
+      "duty_relative_difference": 7.96880628759992e-07
+    }
+  ],
+  "endpoint_gates": [
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    },
+    {
+      "success": true,
+      "residual": true,
+      "rank": true,
+      "condition": true,
+      "fugacity": true,
+      "eos": true,
+      "physical": true
+    }
+  ],
+  "response_gates": {
+    "nominal_monotonic": true,
+    "refined_monotonic": true,
+    "nominal_final_detectable": true,
+    "refined_final_detectable": true,
+    "nominal_final_bounded": true,
+    "refined_final_bounded": true,
+    "component_identity": true,
+    "energy_identity": true
+  },
+  "refinement_gates": {
+    "component_max": true,
+    "component_l1": true,
+    "signed_total": true,
+    "temperature": true,
+    "pressure": true,
+    "liquid_flow": true,
+    "vapor_flow": true,
+    "phase_transfer": true,
+    "duty": true
+  },
+  "final_jacobian": {
+    "h1_rank": 258,
+    "h1_condition": 45263756.795759715,
+    "h2_rank": 258,
+    "h2_condition": 45263756.85287101,
+    "color_count": 28,
+    "spectrum_relative_change": 3.923923589465459e-11,
+    "matrix_relative_change": 5.201977485504332e-11,
+    "pass": true
+  },
+  "campaign_gates": {
+    "endpoints": true,
+    "response": true,
+    "refinement": true,
+    "final_jacobian": true,
+    "provider": true,
+    "provider_calls": true,
+    "wall_clock": true
+  },
+  "provider": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {
+      "declared_liquid_density": "aligned_pr"
+    },
+    "total_calls": 598320,
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true,
+    "grouped_record_summary": [
+      {
+        "provider_interface": "aligned_pr.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "quantity": "liquid_density",
+        "group_count": 99480,
+        "call_count": 99480
+      },
+      {
+        "provider_interface": "aligned_pr.declared_liquid_density",
+        "evaluation_kind": "residual",
+        "quantity": "liquid_density",
+        "group_count": 240,
+        "call_count": 240
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "quantity": "phase_enthalpy",
+        "group_count": 99480,
+        "call_count": 198960
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "residual",
+        "quantity": "phase_enthalpy",
+        "group_count": 240,
+        "call_count": 480
+      },
+      {
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "evaluation_kind": "jacobian",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 99480,
+        "call_count": 99480
+      },
+      {
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "evaluation_kind": "residual",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 240,
+        "call_count": 240
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "condenser_bubble_equilibrium",
+        "group_count": 4974,
+        "call_count": 9948
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "stage_fugacity_equilibrium",
+        "group_count": 94506,
+        "call_count": 189012
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "quantity": "condenser_bubble_equilibrium",
+        "group_count": 12,
+        "call_count": 24
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "quantity": "stage_fugacity_equilibrium",
+        "group_count": 228,
+        "call_count": 456
+      }
+    ]
+  },
+  "logical_provider_calls": 598320,
+  "retry_attempted": false,
+  "controller_action_attempted": false,
+  "alternate_grid_attempted": false,
+  "longer_trajectory_attempted": false,
+  "campaign_executed_once": true,
+  "pass_gate": true
+}

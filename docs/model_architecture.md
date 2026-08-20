@@ -2548,3 +2548,15 @@ endpoints. Every endpoint is solved with the same coupled liquid/vapor model,
 and the paths are compared at each common time. Product rates and operating
 inputs remain fixed and no controller is active. This is a startup-trajectory
 gate, not a claim about slow column settling.
+
+DD-250 passes all scientific gates. Both paths accumulate the exact feed excess
+monotonically, all 12 endpoint Jacobians remain full rank, and the worst
+nominal/refined component difference is `8.43e-6 lbmol`. Repeated reference
+handoff therefore works over the tested startup interval.
+
+The serial implementation is not production-practical: one simulated second
+requires 598,320 logical property calls and 145.5 seconds of governed wall
+time. Almost all calls belong to finite-difference Jacobian perturbations. The
+next architecture task is performance qualification of the already accepted
+persistent parallel colored-Jacobian machinery against this 258-variable
+successor. Longer trajectories and controllers remain blocked meanwhile.

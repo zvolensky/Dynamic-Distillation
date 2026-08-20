@@ -427,7 +427,8 @@ Provider-call provenance must distinguish vapor density, vapor enthalpy, vapor c
 - [x] Execute one frozen bounded stationary root campaign (`DD-245`).
 - [x] Map an accepted root into the successor dynamic history/state schema (`DD-246`).
 - [x] Pass stationary hold and refined moving-step gates (`DD-248` and `DD-249`).
-- [ ] Run a short open-loop trajectory before adding controllers (`DD-250` frozen).
+- [x] Run a short open-loop trajectory before adding controllers (`DD-250`).
+- [ ] Qualify and integrate a persistent parallel Jacobian path before extending duration.
 
 The stationary initializer solves distillate and bottoms rates so the reflux
 drum and sump remain at their geometry-derived target inventories. This is not
@@ -464,6 +465,12 @@ now be frozen; controllers remain out of scope.
 DD-250 freezes that trajectory at one simulated second, with four nominal and
 eight refined endpoints. This deliberately tests repeated stepping and
 timestep consistency without yet spending time on a process-scale run.
+
+DD-250 passes scientifically, but 598,320 provider calls and 145.5 seconds of
+solver wall per simulated second are too expensive for useful duration. The
+call ledger identifies Jacobian perturbations as the dominant cost. Reuse the
+existing persistent parallel Jacobian architecture next; do not extend the
+serial trajectory or add controllers yet.
 
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 

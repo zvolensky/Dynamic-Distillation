@@ -689,6 +689,13 @@ numerical setting remain unchanged. Each new root receives one fresh 16-color
 Jacobian, and all 102 new roots must be journaled before any longer controlled
 horizon or tuning work can be considered.
 
+DD-270 aborts before its `6.75 s` root. The six new roots through `6.5 s` are
+physical, full rank, and converged, but the next bottoms-output predictor is
+`0.0102523` against an inherited absolute log bound of `0.01`. This reveals that
+the short-handoff perturbation bound also acts as an unintended permanent
+one-percent controller-authority limit. DD-270 is not rerun. A successor may
+correct only the product-coordinate bound semantics under a new frozen contract.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

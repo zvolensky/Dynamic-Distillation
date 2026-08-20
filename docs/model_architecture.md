@@ -2830,3 +2830,12 @@ The five-second campaign requires 101,160 DWSIM calls and `29.187 s` wall, or
 it is practical enough for bounded development trajectories. Five-second
 controlled dynamics are accepted; longer operation and any controller tuning
 remain separate decisions.
+
+DD-270 attempts the separately frozen 30-second extension without changing the
+architecture or tuning. Six new roots pass through `6.5 s`, but the next root
+is rejected before evaluation because the cumulative bottoms-output log
+coordinate predicts `0.0102523` against an inherited absolute upper bound of
+`0.01`. The bound came from the short handoff test and unintentionally limits
+the PI controller to about one percent cumulative output movement. DD-270 is
+therefore a bound-semantics abort, not a physical or numerical instability. Its
+accepted journals are preserved and the campaign is not rerun.

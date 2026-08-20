@@ -47,20 +47,35 @@ def controlled_implicit_initial_coordinates(
     *,
     controller_rates_per_sec: Sequence[float],
     timestep_sec: float,
+    previous_coordinates: Sequence[float] | None = None,
+    product_log_ratios_previous: Sequence[float] | None = None,
 ) -> np.ndarray:
-    """Build the zero-motion predictor with one PI-memory advance."""
+    """Build a predictor with one PI-memory advance."""
     rates = np.asarray(controller_rates_per_sec, dtype=float).reshape((-1,))
     if rates.shape != (2,) or np.any(~np.isfinite(rates)):
         raise ValueError("controller rates are invalid")
     timestep = float(timestep_sec)
     if not np.isfinite(timestep) or timestep <= 0.0:
         raise ValueError("controller timestep must be positive")
-    point = np.zeros(len(contract.rows), dtype=float)
+    if previous_coordinates is None:
+        point = np.zeros(len(contract.rows), dtype=float)
+    else:
+        point = np.asarray(previous_coordinates, dtype=float).reshape((-1,)).copy()
+        if point.shape != (len(contract.rows),) or np.any(~np.isfinite(point)):
+            raise ValueError("previous controlled coordinates are invalid")
+    if product_log_ratios_previous is None:
+        previous_logs = np.zeros(2, dtype=float)
+    else:
+        previous_logs = np.asarray(
+            product_log_ratios_previous, dtype=float
+        ).reshape((-1,))
+        if previous_logs.shape != (2,) or np.any(~np.isfinite(previous_logs)):
+            raise ValueError("previous product log ratios are invalid")
     base_rate_count = len(contract.base.derivative_variables)
     base_algebraic_count = len(contract.base.algebraic_variables)
     point[base_rate_count : base_rate_count + 2] = rates
     output_start = base_rate_count + 2 + base_algebraic_count
-    point[output_start:] = timestep * rates
+    point[output_start:] = previous_logs + timestep * rates
     return point
 
 

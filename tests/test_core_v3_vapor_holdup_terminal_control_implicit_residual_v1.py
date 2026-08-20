@@ -71,6 +71,27 @@ def test_controlled_predictor_advances_only_pi_rates_and_outputs():
     assert np.count_nonzero(point) == 4
 
 
+def test_controlled_predictor_preserves_prior_point_and_advances_absolute_outputs():
+    contract = _actual_contract()
+    previous = np.full(262, 1.0e-6)
+    rates = np.asarray((-2.5e-4, 1.5e-3))
+    logs = np.asarray((-6.0e-5, 3.9e-4))
+
+    point = controlled_implicit_initial_coordinates(
+        contract,
+        controller_rates_per_sec=rates,
+        timestep_sec=0.125,
+        previous_coordinates=previous,
+        product_log_ratios_previous=logs,
+    )
+
+    base_rate_count = len(contract.base.derivative_variables)
+    output_start = base_rate_count + 2 + len(contract.base.algebraic_variables)
+    assert point[base_rate_count : base_rate_count + 2] == pytest.approx(rates)
+    assert point[output_start:] == pytest.approx(logs + 0.125 * rates)
+    assert point[0] == pytest.approx(previous[0])
+
+
 @pytest.mark.parametrize("timestep", [0.0, -0.25, np.nan])
 def test_controlled_predictor_rejects_invalid_timestep(timestep):
     contract = _actual_contract()

@@ -639,6 +639,14 @@ immutable endpoint evidence, controller-memory continuity, level/product
 direction gates, conservation, and a final local timestep check. Do not yet
 authorize a long controlled run or controller tuning campaign.
 
+DD-267 freezes that short trajectory at one simulated second. It reuses the
+accepted `0.25 s` endpoint, advances three additional `0.25 s` roots, and
+repeats only the final interval with two `0.125 s` roots. Each new root receives
+one fresh colored Jacobian to control DWSIM cost. Both PI memories and absolute
+product outputs persist across roots. The run must stop on any direction,
+continuity, conservation, physicality, provider, or refinement failure; no
+controller tuning or longer horizon is part of DD-267.
+
 Do not add vapor variables to the existing reduced contract as an isolated patch. That would create state columns without resolving phase-transfer, volume, pressure, and energy ownership.
 
 ## Minimum acceptance gates

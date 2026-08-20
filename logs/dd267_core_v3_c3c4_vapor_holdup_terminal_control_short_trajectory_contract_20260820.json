@@ -1,0 +1,83 @@
+{
+  "schema_id": "dd267-core-v3-c3c4-vapor-holdup-terminal-control-short-trajectory-contract-v1",
+  "authorization": "DD-266 authorizes one separately frozen short controlled trajectory",
+  "sources": {
+    "logs/dd265_core_v3_c3c4_vapor_holdup_terminal_control_hold_20260820.json": "32ebb07d1476ee40b46eaf847d3bebd4032f1a13faf9e9a916186ab50b70b37a",
+    "logs/dd265_core_v3_c3c4_vapor_holdup_terminal_control_hold_20260820.npz": "e56b6618e58ef752eaa88d0c2a23b3dee4b3583917bac9f4a13ea85047bbfac7",
+    "logs/dd266_core_v3_c3c4_vapor_holdup_terminal_control_hold_adjudication_20260820.json": "9dc14201a2041a9ee1e87dba31b9ab225c0a925c3d039f29d533afa088e3bfac"
+  },
+  "implementation_sha256": {
+    "tools/run_core_v3_vapor_holdup_terminal_control_short_trajectory.py": "f14d409de03ce8954d710c9a0d62a698cb9d0e625482759b707c2cae0aee31ce",
+    "tools/run_core_v3_vapor_holdup_terminal_control_stationary_hold.py": "231caaff0606063d935d3b391a3ed6010d44c7b092f8ddc989de69d9b763a755",
+    "src/dynamic_distillation/core_v3/vapor_holdup_terminal_control_implicit_residual_v1.py": "624cf42116dbda15bf45b30bd71eb42d207f23b8c3d85c6748d912a3415505c5",
+    "src/dynamic_distillation/core_v3/vapor_holdup_terminal_control_contract_v1.py": "10fe3a0255cad65d5f550de94c4f5020c962d3893ccfd1ca3feb194c124a373f",
+    "src/dynamic_distillation/core_v3/vapor_holdup_implicit_residual_v1.py": "2b53dbd5dbe1c48934a0678387cde7cc0fef1c774b00b24f43df5b61945943b7",
+    "src/dynamic_distillation/core_v3/colored_jacobian_v1.py": "d30f8439d26ca8859318c3091cca034320b6e147dd00afba4940abb6ecb541f9"
+  },
+  "trajectory": {
+    "accepted_source_time_sec": 0.25,
+    "nominal_continuation_steps": 3,
+    "nominal_step_sec": 0.25,
+    "nominal_final_time_sec": 1.0,
+    "refinement_start_sec": 0.75,
+    "refined_steps": 2,
+    "refined_step_sec": 0.125
+  },
+  "solver": {
+    "method": "least_squares_trf_one_fresh_jacobian_per_root",
+    "difference_step": 1e-05,
+    "expected_color_count": 16,
+    "x_scale": 1.0,
+    "ftol": 1e-11,
+    "xtol": 1e-11,
+    "gtol": 1e-11,
+    "max_nfev_per_root": 40,
+    "acceptance_basis": "residual and physical gates; SciPy termination status is reported"
+  },
+  "limits": {
+    "scaled_residual": 1e-08,
+    "controller_residual": 1e-10,
+    "rank": 262,
+    "condition": 100000000.0,
+    "component_identity_lbmol": 1e-06,
+    "maximum_step_temperature_F": 0.01,
+    "maximum_step_pressure_psia": 0.01,
+    "maximum_step_composition": 0.0001,
+    "maximum_step_flow_relative": 0.001,
+    "maximum_step_phase_inventory_relative": 0.001,
+    "maximum_step_duty_relative": 0.001,
+    "maximum_step_product_relative": 0.001,
+    "refinement_component_max_lbmol": 1e-05,
+    "refinement_component_l1_lbmol": 0.0001,
+    "refinement_signed_total_lbmol": 1e-05,
+    "refinement_temperature_F": 0.0001,
+    "refinement_pressure_psia": 0.0001,
+    "refinement_flow_relative": 0.0001,
+    "refinement_phase_transfer_scaled": 0.001,
+    "refinement_duty_relative": 0.0001,
+    "refinement_level_fraction": 1e-06,
+    "refinement_product_relative": 1e-05,
+    "logical_provider_calls": 100000,
+    "wall_clock_sec": 180.0
+  },
+  "energy_identity": {
+    "volume_count": 20,
+    "energy_residual_scale_BTUph": 54706000.0,
+    "aggregate_bound_from_scaled_residual": true
+  },
+  "hard_stops": [
+    "any new endpoint exceeds the residual, rank, condition, physical, or controller limits",
+    "drum level or distillate reverses direction while the drum remains below setpoint",
+    "sump level or bottoms reverses direction while the sump remains above setpoint",
+    "controller memory is discontinuous",
+    "component or residual-consistent energy conservation fails",
+    "the final nominal and refined endpoints exceed a fixed comparison limit",
+    "more than one Jacobian is built in any root",
+    "a retry, alternate grid, tuning change, fallback, parallel worker, or extension occurs"
+  ],
+  "property_evaluation_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "trajectory_attempted": false,
+  "campaign_executed": false,
+  "contract_payload_sha256": "6e00fc0f578a9388f3df9ae9812ee9f6e407fd0f16899a6bd2168dffc2a1162e"
+}

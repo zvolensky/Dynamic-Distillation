@@ -38,11 +38,13 @@ from ui.run_manager import (
     build_launch_spec_from_cli,
     clear_active_run,
     discover_excel_files,
+    inspect_stored_state,
     launch_simulation,
     read_active_run,
     request_runtime_extension,
     resume_pid,
     save_uploaded_excel_bytes,
+    save_uploaded_state_bytes,
     suspend_pid,
     terminate_pid,
     update_active_run,
@@ -266,6 +268,51 @@ def _series_label_from_column(column: str) -> str:
         if txt.startswith(prefix):
             return txt[len(prefix):].replace("_", " ")
     return txt
+
+
+def _composition_change_table(summary_df: pd.DataFrame, columns: Any) -> pd.DataFrame:
+    rows: List[Dict[str, Any]] = []
+    for column in [str(item) for item in list(columns)]:
+        if column not in summary_df.columns:
+            continue
+        values = pd.to_numeric(summary_df[column], errors="coerce").dropna()
+        if values.empty:
+            continue
+        initial = float(values.iloc[0])
+        current = float(values.iloc[-1])
+        rows.append(
+            {
+                "Component": _series_label_from_column(column),
+                "Initial": initial,
+                "Current": current,
+                "Change": current - initial,
+            }
+        )
+    return pd.DataFrame(rows, columns=["Component", "Initial", "Current", "Change"])
+
+
+def _composition_column_config(columns: Any) -> Dict[str, Any]:
+    return {
+        str(column): st.column_config.NumberColumn(format="%.7f")
+        for column in columns
+    }
+
+
+def _render_composition_change_table(summary_df: pd.DataFrame, columns: Any) -> None:
+    table = _composition_change_table(summary_df, columns)
+    if table.empty:
+        return
+    st.dataframe(
+        table,
+        use_container_width=True,
+        hide_index=True,
+        height=142,
+        column_config={
+            "Initial": st.column_config.NumberColumn(format="%.7f"),
+            "Current": st.column_config.NumberColumn(format="%.7f"),
+            "Change": st.column_config.NumberColumn(format="%+.7f"),
+        },
+    )
 
 
 def _trend_chart(
@@ -705,6 +752,7 @@ def _render_startup_scroll_frame(
 def _reset_form_state(*, include_launch_mode: bool = True) -> None:
     widget_keys = [
         "launch_mode",
+        "initialization_mode",
         "cli_command_text",
         "run_name",
         "run_description",
@@ -722,6 +770,9 @@ def _reset_form_state(*, include_launch_mode: bool = True) -> None:
         "integrator_override",
         "include_energy_override",
         "add_time_seconds",
+        "stored_state_path_input",
+        "core_v3_duration_sec",
+        "core_v3_log_every_n_steps",
     ]
     if not include_launch_mode:
         widget_keys = [key for key in widget_keys if key != "launch_mode"]
@@ -729,9 +780,12 @@ def _reset_form_state(*, include_launch_mode: bool = True) -> None:
         st.session_state.pop(key, None)
     st.session_state["uploaded_excel_path"] = ""
     st.session_state["uploaded_excel_sig"] = None
+    st.session_state["uploaded_state_path"] = ""
+    st.session_state["uploaded_state_sig"] = None
     st.session_state["input_validation_report"] = {}
     st.session_state["input_validation_excel_path"] = ""
     st.session_state["excel_upload_nonce"] = int(st.session_state.get("excel_upload_nonce", 0)) + 1
+    st.session_state["state_upload_nonce"] = int(st.session_state.get("state_upload_nonce", 0)) + 1
 
 
 def _request_clear_ui() -> None:
@@ -789,6 +843,59 @@ def _current_excel_selection() -> Optional[Path]:
     return None
 
 
+def _current_stored_state_selection() -> Optional[Path]:
+    if "uploaded_state_path" not in st.session_state:
+        st.session_state["uploaded_state_path"] = ""
+    if "uploaded_state_sig" not in st.session_state:
+        st.session_state["uploaded_state_sig"] = None
+    if "state_upload_nonce" not in st.session_state:
+        st.session_state["state_upload_nonce"] = 0
+
+    path_text = st.sidebar.text_input(
+        "Stored State Path",
+        key="stored_state_path_input",
+        placeholder=r"C:\path\to\checkpoint.npz",
+        help="Use a reusable Core V3 or legacy checkpoint produced by its dynamic runner.",
+    )
+    uploaded = st.sidebar.file_uploader(
+        "Upload Stored State",
+        type=["npz"],
+        key=f"state_upload_{int(st.session_state.get('state_upload_nonce', 0))}",
+        help="The uploaded file is copied into `.ui_state/uploads/` before launch.",
+    )
+    if uploaded is not None:
+        payload = uploaded.getvalue()
+        sig = (uploaded.name, len(payload))
+        if st.session_state.get("uploaded_state_sig") != sig:
+            saved = save_uploaded_state_bytes(uploaded.name, payload)
+            st.session_state["uploaded_state_sig"] = sig
+            st.session_state["uploaded_state_path"] = str(saved)
+        uploaded_path = Path(str(st.session_state.get("uploaded_state_path", "")))
+        if uploaded_path.exists():
+            st.sidebar.success(f"Uploaded state: {uploaded_path.name}")
+            return uploaded_path
+
+    if str(path_text or "").strip():
+        candidate = Path(str(path_text).strip()).expanduser()
+        if not candidate.is_absolute():
+            candidate = PROJECT_ROOT / candidate
+        return candidate.resolve()
+
+    saved_path = (
+        Path(str(st.session_state.get("uploaded_state_path", "")))
+        if st.session_state.get("uploaded_state_path")
+        else None
+    )
+    if saved_path and saved_path.exists():
+        st.sidebar.caption(f"Using uploaded state: `{saved_path.name}`")
+        return saved_path
+    accepted_core_v3 = PROJECT_ROOT / "logs" / "core_v3_checkpoints" / "dd274_endpoint_core_v3_checkpoint.npz"
+    if accepted_core_v3.exists():
+        st.sidebar.caption(f"Using accepted Core V3 state: `{accepted_core_v3.name}`")
+        return accepted_core_v3.resolve()
+    return None
+
+
 def _render_live_dashboard(
     *,
     selected_excel_path: Optional[Path],
@@ -812,6 +919,13 @@ def _render_live_dashboard(
     excel_path_text = str(active.get("excel_path", "") or "")
     status_cols[2].write(f"Logs Dir: `{logs_dir_text}`")
     status_cols[3].write(f"Excel: `{excel_path_text}`")
+    if active.get("excel_path"):
+        initialization_mode = str(active.get("initialization_mode", "fresh") or "fresh")
+        checkpoint_text = str(active.get("checkpoint_path", "") or "")
+        if initialization_mode == "restart":
+            st.caption(f"Initial state: restart from `{checkpoint_text}`")
+        else:
+            st.caption("Initial state: fresh start from Excel")
     open_cols = st.columns([1, 1, 2, 2])
     with open_cols[2]:
         if logs_dir_text:
@@ -894,7 +1008,17 @@ def _render_live_dashboard(
             else:
                 st.info("No summary data yet.")
         else:
-            st.dataframe(summary_df.tail(10), use_container_width=True, height=320)
+            composition_columns = [
+                column
+                for column in summary_df.columns
+                if str(column).startswith(("Distillate_x_", "Bottoms_x_"))
+            ]
+            st.dataframe(
+                summary_df.tail(10),
+                use_container_width=True,
+                height=320,
+                column_config=_composition_column_config(composition_columns),
+            )
 
     with tabs[1]:
         specs_raw = dict(overview.get("specs_raw", {}) or {})
@@ -923,6 +1047,7 @@ def _render_live_dashboard(
         with row2[2]:
             st.subheader("Distillate Composition")
             _trend_chart(trends_df, distillate_comp_cols, "Distillate Composition", y_unit="mole fraction (-)")
+            _render_composition_change_table(trends_df, distillate_comp_cols)
 
         row3 = st.columns(2)
         with row3[0]:
@@ -953,6 +1078,7 @@ def _render_live_dashboard(
         with row5[2]:
             st.subheader("Bottoms Composition")
             _trend_chart(trends_df, bottoms_comp_cols, "Bottoms Composition", y_unit="mole fraction (-)")
+            _render_composition_change_table(trends_df, bottoms_comp_cols)
 
         st.subheader("Steady-State Score")
         _trend_chart(trends_df, "steady_state_score", "Steady-State Score", exclude_time_zero=True)
@@ -984,6 +1110,9 @@ def _render_live_dashboard(
             preview_cfg = {
                 "Run Name": getattr(preview_spec, "run_name", ""),
                 "Run Description": getattr(preview_spec, "run_description", ""),
+                "Initial State Mode": getattr(preview_spec, "initialization_mode", ""),
+                "Stored State": str(getattr(preview_spec, "checkpoint_path", "") or ""),
+                "Stored State Schema": getattr(preview_spec, "checkpoint_schema", "") or "",
                 "Excel Path": str(getattr(preview_spec, "excel_path", "")),
                 "Logs Dir": str(getattr(preview_spec, "logs_dir", "")),
                 "Runtime Mode": getattr(preview_spec, "runtime_mode", ""),
@@ -1008,6 +1137,9 @@ def _render_live_dashboard(
         active_cfg = {
             "Run Name": active.get("run_name", ""),
             "Run Description": active.get("run_description", ""),
+            "Initial State Mode": active.get("initialization_mode", "fresh"),
+            "Stored State": active.get("checkpoint_path", ""),
+            "Stored State Schema": active.get("checkpoint_schema", ""),
             "Excel Path": active.get("excel_path", ""),
             "Logs Dir": active.get("logs_dir", ""),
             "Restart Workbook": run_metadata.get("restart_workbook", ""),
@@ -1115,13 +1247,38 @@ def main() -> None:
         key="startup_panel_height_px",
         help="Adjust the height of the scrollable startup detail frame in the Progress tab.",
     )
+    launch_mode = st.sidebar.selectbox("Launch Mode", options=["Form", "CLI"], index=0, key="launch_mode")
+    initialization_choice = st.sidebar.radio(
+        "Initial State",
+        options=["Fresh Start from Excel", "Restart from Stored State"],
+        key="initialization_mode",
+        help="A restart still uses Excel for the case definition and configuration.",
+    )
+    initialization_mode = "restart" if initialization_choice.startswith("Restart") else "fresh"
+    stored_state_path: Optional[Path] = None
+    stored_state_info: Dict[str, Any] = {}
+    stored_state_error = ""
+
     excel_path = _current_excel_selection()
+    if initialization_mode == "restart":
+        stored_state_path = _current_stored_state_selection()
+        if stored_state_path is None:
+            stored_state_error = "Select or upload a stored-state checkpoint."
+        else:
+            try:
+                stored_state_info = inspect_stored_state(stored_state_path)
+                if not stored_state_info.get("compatible"):
+                    stored_state_error = str(stored_state_info.get("reason") or "Stored state is incompatible.")
+            except Exception as exc:
+                stored_state_error = str(exc)
+    core_v3_restart = bool(
+        initialization_mode == "restart"
+        and stored_state_info.get("schema") == "dynamic_distillation.core_v3_checkpoint.v1"
+    )
     if "input_validation_report" not in st.session_state:
         st.session_state["input_validation_report"] = {}
     if "input_validation_excel_path" not in st.session_state:
         st.session_state["input_validation_excel_path"] = ""
-    launch_mode = st.sidebar.selectbox("Launch Mode", options=["Form", "CLI"], index=0, key="launch_mode")
-
     run_name = str(st.session_state.get("run_name", "") or "")
     run_description = str(st.session_state.get("run_description", "") or "")
     runtime_mode = str(st.session_state.get("runtime_mode_override", "hydraulic") or "hydraulic")
@@ -1137,125 +1294,154 @@ def main() -> None:
     )
     integrator = str(st.session_state.get("integrator_override", "explicit-euler") or "explicit-euler")
     include_energy_choice = str(st.session_state.get("include_energy_override", "Off") or "Off")
+    core_v3_duration_sec = float(st.session_state.get("core_v3_duration_sec", 30.0) or 30.0)
+    core_v3_log_every_n_steps = int(st.session_state.get("core_v3_log_every_n_steps", 4) or 4)
 
     cli_command_text = str(st.session_state.get("cli_command_text", "") or "")
 
     if launch_mode == "Form":
         run_name = st.sidebar.text_input("Run Name", value=run_name, key="run_name")
         run_description = st.sidebar.text_area("Run Description", value=run_description, height=100, key="run_description")
-        with st.sidebar.expander("Advanced Run Overrides", expanded=False):
-            st.caption("UI override > workbook-supported Excel setting > runner default")
-            runtime_mode = st.selectbox(
-                "Runtime Mode",
-                options=["hydraulic", "legacy", "parity", "calibration"],
-                index=0,
-                key="runtime_mode_override",
-                help="UI default is hydraulic. Underlying runner fallback is legacy.",
+        if core_v3_restart:
+            st.sidebar.markdown("### Core V3 Run")
+            core_v3_duration_sec = float(
+                st.sidebar.number_input(
+                    "Simulation Duration (sec)",
+                    min_value=0.25,
+                    max_value=86400.0,
+                    value=30.0,
+                    step=0.25,
+                    key="core_v3_duration_sec",
+                )
             )
-            thermo_mode = st.selectbox(
-                "Thermo Mode",
-                options=["table-pool", "table", "relative-volatility", "dwsim", "stub"],
-                index=0,
-                key="thermo_mode_override",
-            )
-            if thermo_mode == "dwsim":
-                dwsim_property_package = st.selectbox(
-                    "DWSIM Property Package",
-                    options=["pr", "srk", "unifac", "nrtl", "uniquac", "raoult"],
-                    index=0,
-                    key="dwsim_property_package_override",
-                    help="Choose the DWSIM property package used for live DWSIM thermo.",
-                )
-            if thermo_mode in {"table", "table-pool"}:
-                thermo_table_options = [""] + [str(p) for p in _discover_thermo_tables()] + ["__custom__"]
-                if "thermo_table_choice_override" not in st.session_state:
-                    st.session_state["thermo_table_choice_override"] = ""
-                thermo_table_choice = st.selectbox(
-                    "Thermo Table",
-                    options=thermo_table_options,
-                    key="thermo_table_choice_override",
-                    format_func=_thermo_table_option_label,
-                    help="Select a discovered thermo table or choose Custom path.",
-                )
-                if thermo_table_choice == "__custom__":
-                    st.text_input(
-                        "Custom Thermo Table Path",
-                        value=str(st.session_state.get("thermo_table_path_override", "") or ""),
-                        key="thermo_table_path_override",
-                        help="Optional path override for table or table-pool thermo.",
-                    )
-                else:
-                    st.session_state["thermo_table_path_override"] = ""
-            pool_c1, pool_c2 = st.columns(2)
-            with pool_c1:
-                thermo_pool_workers = st.number_input(
-                    "Pool Workers",
+            core_v3_log_every_n_steps = int(
+                st.sidebar.number_input(
+                    "Log Every N Steps",
                     min_value=1,
-                    max_value=64,
-                    value=2,
-                    step=1,
-                    key="thermo_pool_workers_override",
-                    help="Runner default is 2.",
-                )
-            with pool_c2:
-                thermo_pool_chunk_size = st.number_input(
-                    "Pool Chunk",
-                    min_value=1,
-                    max_value=128,
+                    max_value=10000,
                     value=4,
                     step=1,
-                    key="thermo_pool_chunk_size_override",
-                    help="Runner default is 4.",
+                    key="core_v3_log_every_n_steps",
                 )
-            thermo_every_n_steps = st.number_input(
-                "Thermo Every N Steps",
-                min_value=1,
-                max_value=1000,
-                value=1,
-                step=1,
-                key="thermo_every_override",
-                help="Runner default is 1.",
             )
-            fast_startup_choice = st.selectbox(
-                "Fast Startup",
-                options=["Off", "On"],
-                index=0,
-                key="fast_startup_override",
-                help="Reduce startup conditioning time; best for exploratory runs.",
+            st.sidebar.caption(
+                "Core V3 implicit timestep: 0.25 s. Thermodynamics: live DWSIM "
+                "Peng-Robinson. Jacobian: 8 persistent workers."
             )
-            thermo_table_anchor_blend_count = st.number_input(
-                "Table Anchor Blend Count",
-                min_value=1,
-                max_value=32,
-                value=3,
-                step=1,
-                key="thermo_anchor_blend_count_override",
-                help="Runner default is 3. Use 6 for the refined-table branch.",
-            )
-            equilibrium_relaxation_live_pr_choice = st.selectbox(
-                "Eq-Relax Live PR",
-                options=["Off", "On"],
-                index=0,
-                key="equilibrium_relaxation_live_pr_override",
-                help="Runner default is Off.",
-            )
-            integrator = st.selectbox(
-                "Integrator",
-                options=["explicit-euler", "bdf", "radau", "ida"],
-                index=0,
-                key="integrator_override",
-            )
-            include_energy_choice = st.selectbox(
-                "Include Energy",
-                options=["Off", "On"],
-                index=0,
-                key="include_energy_override",
-                help="Runner default is Off.",
-            )
+        else:
+            with st.sidebar.expander("Advanced Run Overrides", expanded=False):
+                st.caption("UI override > workbook-supported Excel setting > runner default")
+                runtime_mode = st.selectbox(
+                    "Runtime Mode",
+                    options=["hydraulic", "legacy", "parity", "calibration"],
+                    index=0,
+                    key="runtime_mode_override",
+                    help="UI default is hydraulic. Underlying runner fallback is legacy.",
+                )
+                thermo_mode = st.selectbox(
+                    "Thermo Mode",
+                    options=["table-pool", "table", "relative-volatility", "dwsim", "stub"],
+                    index=0,
+                    key="thermo_mode_override",
+                )
+                if thermo_mode == "dwsim":
+                    dwsim_property_package = st.selectbox(
+                        "DWSIM Property Package",
+                        options=["pr", "srk", "unifac", "nrtl", "uniquac", "raoult"],
+                        index=0,
+                        key="dwsim_property_package_override",
+                        help="Choose the DWSIM property package used for live DWSIM thermo.",
+                    )
+                if thermo_mode in {"table", "table-pool"}:
+                    thermo_table_options = [""] + [str(p) for p in _discover_thermo_tables()] + ["__custom__"]
+                    if "thermo_table_choice_override" not in st.session_state:
+                        st.session_state["thermo_table_choice_override"] = ""
+                    thermo_table_choice = st.selectbox(
+                        "Thermo Table",
+                        options=thermo_table_options,
+                        key="thermo_table_choice_override",
+                        format_func=_thermo_table_option_label,
+                        help="Select a discovered thermo table or choose Custom path.",
+                    )
+                    if thermo_table_choice == "__custom__":
+                        st.text_input(
+                            "Custom Thermo Table Path",
+                            value=str(st.session_state.get("thermo_table_path_override", "") or ""),
+                            key="thermo_table_path_override",
+                            help="Optional path override for table or table-pool thermo.",
+                        )
+                    else:
+                        st.session_state["thermo_table_path_override"] = ""
+                pool_c1, pool_c2 = st.columns(2)
+                with pool_c1:
+                    thermo_pool_workers = st.number_input(
+                        "Pool Workers",
+                        min_value=1,
+                        max_value=64,
+                        value=2,
+                        step=1,
+                        key="thermo_pool_workers_override",
+                        help="Runner default is 2.",
+                    )
+                with pool_c2:
+                    thermo_pool_chunk_size = st.number_input(
+                        "Pool Chunk",
+                        min_value=1,
+                        max_value=128,
+                        value=4,
+                        step=1,
+                        key="thermo_pool_chunk_size_override",
+                        help="Runner default is 4.",
+                    )
+                thermo_every_n_steps = st.number_input(
+                    "Thermo Every N Steps",
+                    min_value=1,
+                    max_value=1000,
+                    value=1,
+                    step=1,
+                    key="thermo_every_override",
+                    help="Runner default is 1.",
+                )
+                fast_startup_choice = st.selectbox(
+                    "Fast Startup",
+                    options=["Off", "On"],
+                    index=0,
+                    key="fast_startup_override",
+                    help="Reduce startup conditioning time; best for exploratory runs.",
+                )
+                thermo_table_anchor_blend_count = st.number_input(
+                    "Table Anchor Blend Count",
+                    min_value=1,
+                    max_value=32,
+                    value=3,
+                    step=1,
+                    key="thermo_anchor_blend_count_override",
+                    help="Runner default is 3. Use 6 for the refined-table branch.",
+                )
+                equilibrium_relaxation_live_pr_choice = st.selectbox(
+                    "Eq-Relax Live PR",
+                    options=["Off", "On"],
+                    index=0,
+                    key="equilibrium_relaxation_live_pr_override",
+                    help="Runner default is Off.",
+                )
+                integrator = st.selectbox(
+                    "Integrator",
+                    options=["explicit-euler", "bdf", "radau", "ida"],
+                    index=0,
+                    key="integrator_override",
+                )
+                include_energy_choice = st.selectbox(
+                    "Include Energy",
+                    options=["Off", "On"],
+                    index=0,
+                    key="include_energy_override",
+                    help="Runner default is Off.",
+                )
     else:
         st.sidebar.caption(
-            "Paste bare runner flags or a full `python -m dynamic_distillation.dynamic_run_scaffold_v1 ...` command. "
-            "If `--excel` is omitted, the selected or uploaded workbook above is used."
+            "Paste legacy runner flags, a full legacy command, or a `python tools/run_core_v3_dynamic.py ...` command. "
+            "If `--excel` or `--init-from-checkpoint` is omitted, the selected workbook or stored state above is used."
         )
         cli_command_text = st.sidebar.text_area(
             "Runner CLI",
@@ -1268,12 +1454,15 @@ def main() -> None:
     active = active_run_status(read_active_run())
     preview_spec = None
     cli_launch_error = ""
+    form_launch_error = ""
     selected_thermo_table_path = _selected_thermo_table_path()
     if launch_mode == "Form":
         if excel_path is not None and excel_path.exists():
             try:
                 preview_spec = build_launch_spec(
                     excel_path=excel_path,
+                    initialization_mode=initialization_mode,
+                    checkpoint_path=stored_state_path,
                     run_name=run_name or excel_path.stem,
                     run_description=run_description,
                     runtime_mode=runtime_mode,
@@ -1288,9 +1477,12 @@ def main() -> None:
                     equilibrium_relaxation_live_pr_override=(True if equilibrium_relaxation_live_pr_choice == "On" else None),
                     include_energy_override=True if include_energy_choice == "On" else None,
                     integrator=integrator,
+                    core_v3_duration_sec=core_v3_duration_sec,
+                    core_v3_log_every_n_steps=core_v3_log_every_n_steps,
                 )
-            except Exception:
+            except Exception as exc:
                 preview_spec = None
+                form_launch_error = str(exc)
     else:
         cli_text_clean = str(cli_command_text or "").strip()
         if cli_text_clean:
@@ -1298,6 +1490,8 @@ def main() -> None:
                 preview_spec = build_launch_spec_from_cli(
                     cli_text_clean,
                     default_excel_path=excel_path,
+                    initialization_mode=initialization_mode,
+                    default_checkpoint_path=stored_state_path,
                 )
             except Exception as exc:
                 cli_launch_error = str(exc)
@@ -1312,8 +1506,21 @@ def main() -> None:
 
     with st.sidebar:
         if launch_mode == "CLI":
-            if cli_launch_error:
+            if stored_state_error:
+                st.error(stored_state_error)
+            elif cli_launch_error:
                 st.error(cli_launch_error)
+            elif preview_spec is not None:
+                source = "stored state" if preview_spec.initialization_mode == "restart" else "Excel seed"
+                st.info(f"CLI initial state: {source}.")
+        elif initialization_mode == "restart":
+            if stored_state_error or form_launch_error:
+                st.error(stored_state_error or form_launch_error)
+            elif stored_state_info:
+                final_time = stored_state_info.get("final_time_s")
+                time_text = "unknown time" if final_time is None else f"t={float(final_time):g} s"
+                checkpoint_label = "Core V3 checkpoint" if core_v3_restart else "Legacy checkpoint"
+                st.success(f"{checkpoint_label} accepted ({time_text}).")
         if validation_excel_path is not None and validation_excel_path.exists():
             if input_validation:
                 if input_validation.get("errors"):
@@ -1327,7 +1534,14 @@ def main() -> None:
         st.markdown("### Run Control")
         validate_disabled = validation_excel_path is None or (launch_mode == "CLI" and preview_spec is None)
         validate_clicked = st.button("Validate Inputs", disabled=validate_disabled)
-        start_label = "Resume Simulation" if active.get("status") == "paused" else "Run Simulation"
+        if active.get("status") == "paused":
+            start_label = "Resume Paused Run"
+        elif launch_mode == "CLI":
+            start_label = "Run CLI Command"
+        elif launch_mode == "Form" and initialization_mode == "restart":
+            start_label = "Start Core V3 Run" if core_v3_restart else "Start Restart Run"
+        else:
+            start_label = "Start Fresh Run"
         start_disabled = False
         if active.get("status") == "running":
             start_disabled = True
@@ -1335,9 +1549,16 @@ def main() -> None:
             start_disabled = True
         elif active.get("status") != "paused" and launch_mode == "CLI" and preview_spec is None:
             start_disabled = True
+        elif active.get("status") != "paused" and launch_mode == "Form" and preview_spec is None:
+            start_disabled = True
         elif active.get("status") != "paused" and bool(input_validation) and bool(input_validation.get("errors")):
             start_disabled = True
         start_clicked = st.button(start_label, type="primary", disabled=start_disabled)
+        if start_disabled and active.get("status") != "running":
+            if launch_mode == "CLI" and (stored_state_error or cli_launch_error):
+                st.caption(f"Run unavailable: {stored_state_error or cli_launch_error}")
+            elif launch_mode == "Form" and form_launch_error:
+                st.caption(f"Run unavailable: {form_launch_error}")
         pause_clicked = st.button("Pause Simulation", disabled=active.get("status") != "running")
         stop_clicked = st.button("Stop Simulation", disabled=active.get("status") not in {"running", "paused"})
         add_time_sec = int(
@@ -1421,6 +1642,8 @@ def main() -> None:
         if spec is None and launch_mode == "Form" and excel_path is not None:
             spec = build_launch_spec(
                 excel_path=excel_path,
+                initialization_mode=initialization_mode,
+                checkpoint_path=stored_state_path,
                 run_name=run_name or excel_path.stem,
                 run_description=run_description,
                 runtime_mode=runtime_mode,
@@ -1435,6 +1658,8 @@ def main() -> None:
                 equilibrium_relaxation_live_pr_override=(True if equilibrium_relaxation_live_pr_choice == "On" else None),
                 include_energy_override=True if include_energy_choice == "On" else None,
                 integrator=integrator,
+                core_v3_duration_sec=core_v3_duration_sec,
+                core_v3_log_every_n_steps=core_v3_log_every_n_steps,
             )
         if spec is None:
             st.error("No valid launch specification is available.")

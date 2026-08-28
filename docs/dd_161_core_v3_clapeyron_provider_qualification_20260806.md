@@ -2,16 +2,50 @@
 
 ## Decision
 
-- Classification: `clapeyron_fugacity_authority_qualified_only`
-- Decision: `authorize_fugacity_acceleration_design_only`
-- Full provider substitution: **not authorized**
-- Nonlinear solve, timestep, or trajectory: **not attempted**
 
 Clapeyron 0.6.26 can supply the direct imposed-phase fugacity coefficients
 required by Core V3. This route does not depend on the ambiguous inactive row
 returned by a stable single-phase TP flash. The adapter calls
 `fugacity_coefficient(...; phase=:liquid/:vapor)` directly and rejects an
 unknown phase rather than falling back to stable-phase evaluation.
+
+## Upstream TP-Flash API Follow-Up (2026-08-20)
+
+Clapeyron issue #608 now has a proposed API direction for separating phase
+slots from active phases: `numphases(result)`,
+`numphases(result, true)`, `is_active_phase`, and the lazy iterator
+`each_active_phase_index(result)`. The maintainer also identified
+`merge_duplicate_phases!(result, ignore_zeros=false)` as the cleanup operation
+for distinguishing a retained converged incipient phase from a duplicate
+zero-fraction phase. A retained inactive composition is useful only in the
+former case; when duplicate merging removes it, no discarded K-value is
+available and callers must extrapolate separately.
+
+This does not change the DD-161 qualification decision. After the release,
+the required work is limited to the Clapeyron adapter and focused compatibility
+tests, including the experimental `tp_flash2` batch helper. Core V3 governing
+equations and provider call-audit permissions remain unchanged. Discarded
+K-values describe a non-active phase and must remain diagnostic unless a
+separate model decision authorizes their use in runtime equilibrium targets.
+
+## Release Adoption Contract
+
+When a release containing the issue #608 changes is available, adoption shall
+be handled at the Clapeyron adapter boundary:
+
+1. Use `numphases(result, true)` or `each_active_phase_index(result)` rather
+	than the number of composition rows to identify active phases.
+2. Apply `merge_duplicate_phases!(result, ignore_zeros=false)` and distinguish
+	a retained converged incipient phase from a removed duplicate phase.
+3. Keep the one-active-phase/no-incipient-phase case explicit; do not create
+	a physical vapor composition or K-values from a duplicate row.
+4. Update and test the experimental `tp_flash2` batch helper before enabling it.
+5. Leave Core V3 governing equations, state variables, and provider call-audit
+	permissions unchanged.
+6. Treat retained incipient/discarded K-values as diagnostic until a separate
+	residual, trajectory, and scientific-difference study authorizes runtime use.
+
+This is an adapter compatibility update, not a Core V3 model-equation update.
 
 ## Fixed-State Comparison
 

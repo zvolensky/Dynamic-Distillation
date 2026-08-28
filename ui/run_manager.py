@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 import os
 import re
@@ -14,6 +15,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import numpy as np
+
 from dynamic_distillation.column_spec_builder_v1 import build_column_spec_from_case
 from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel
 
@@ -26,11 +29,18 @@ DEFAULT_UI_LOGS_DIR = PROJECT_ROOT / "logs" / "ui_runs"
 RUNTIME_CONTROL_NAME = "runtime_control.json"
 RUNNER_MODULE = "dynamic_distillation.dynamic_run_scaffold_v1"
 SRC_DIR = PROJECT_ROOT / "src"
+NATIVE_CHECKPOINT_SCHEMA = "dynamic_distillation.native_checkpoint.v1"
+CORE_V3_CHECKPOINT_SCHEMA = "dynamic_distillation.core_v3_checkpoint.v1"
+CORE_V3_RUNNER_SCRIPT = PROJECT_ROOT / "tools" / "run_core_v3_dynamic.py"
+CORE_V3_TIMESTEP_SEC = 0.25
 
 
 @dataclass(frozen=True)
 class SimulationLaunchSpec:
     excel_path: Path
+    initialization_mode: str
+    checkpoint_path: Optional[Path]
+    checkpoint_schema: Optional[str]
     run_name: str
     run_description: str
     logs_dir: Path
@@ -102,6 +112,122 @@ def save_uploaded_excel_bytes(name: str, payload: bytes, *, uploads_dir: Path = 
     return out
 
 
+def save_uploaded_state_bytes(name: str, payload: bytes, *, uploads_dir: Path = UPLOADS_DIR) -> Path:
+    _ensure_dir(uploads_dir)
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    safe_name = Path(name or "stored_state.npz").name
+    if Path(safe_name).suffix.lower() != ".npz":
+        safe_name = f"{safe_name}.npz"
+    out = uploads_dir / f"{stamp}_{safe_name}"
+    out.write_bytes(payload)
+    return out
+
+
+def inspect_stored_state(path: Path) -> Dict[str, Any]:
+    resolved = Path(path).expanduser().resolve()
+    if not resolved.exists():
+        raise ValueError(f"Stored-state path does not exist: {resolved}")
+    if resolved.suffix.lower() != ".npz":
+        raise ValueError("Stored state must be an `.npz` file.")
+
+    try:
+        with np.load(resolved, allow_pickle=False) as data:
+            keys = set(data.files)
+            metadata: Dict[str, Any] = {}
+            if "metadata_json" in keys:
+                metadata = json.loads(str(data["metadata_json"].item()))
+            schema = str(metadata.get("schema") or metadata.get("schema_id") or "")
+            has_final_state = "final_state" in keys
+    except Exception as exc:
+        raise ValueError(f"Stored state could not be read as a safe NPZ file: {exc}") from exc
+
+    layout = metadata.get("layout") if isinstance(metadata.get("layout"), dict) else {}
+    column = metadata.get("column") if isinstance(metadata.get("column"), dict) else {}
+    n_stages = metadata.get("n_stages", column.get("n_stages", layout.get("n_stages")))
+    n_components = metadata.get("n_components", column.get("n_components", layout.get("n_components")))
+    info: Dict[str, Any] = {
+        "path": str(resolved),
+        "schema": schema,
+        "run_id": str(metadata.get("run_id") or ""),
+        "model_id": str(metadata.get("model_id") or ""),
+        "workbook_sha256": str(metadata.get("workbook_sha256") or ""),
+        "final_time_s": metadata.get("final_time_s"),
+        "n_stages": n_stages,
+        "n_components": n_components,
+        "compatible": False,
+        "kind": "unknown",
+        "reason": "",
+    }
+    if schema == NATIVE_CHECKPOINT_SCHEMA:
+        info["kind"] = "native-checkpoint"
+        info["compatible"] = bool(has_final_state)
+        if not has_final_state:
+            info["reason"] = "Native checkpoint is missing its `final_state` array."
+        return info
+
+    if schema == CORE_V3_CHECKPOINT_SCHEMA:
+        required = {
+            "liquid_component_inventory_lbmol",
+            "vapor_component_inventory_lbmol",
+            "temperature_F",
+            "pressure_psia",
+            "previous_coordinates",
+            "controller_memory",
+        }
+        missing = sorted(required - keys)
+        info["kind"] = "core-v3-checkpoint"
+        info["compatible"] = not missing
+        if missing:
+            info["reason"] = "Core V3 checkpoint is missing: " + ", ".join(missing)
+        return info
+
+    if (
+        {"nominal_coordinates", "nominal_controller_memory"}.issubset(keys)
+        or {"nominal_coordinates", "nominal_times_sec"}.issubset(keys)
+        or "session_final_state" in keys
+    ):
+        info["kind"] = "core-v3-evidence"
+        info["reason"] = (
+            "This is a Core V3 trajectory/evidence package, not a reusable native checkpoint. "
+            "It cannot be restarted by the current UI runner."
+        )
+        return info
+
+    info["reason"] = (
+        "The file does not use the supported native checkpoint schema "
+        f"`{NATIVE_CHECKPOINT_SCHEMA}`."
+    )
+    return info
+
+
+def validate_stored_state(path: Path, *, settings: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    info = inspect_stored_state(path)
+    if not info.get("compatible"):
+        raise ValueError(str(info.get("reason") or "Stored state is not compatible with the current runner."))
+    if settings:
+        mismatches = []
+        for key in ("n_stages", "n_components"):
+            observed = info.get(key)
+            expected = settings.get(key)
+            if observed is not None and expected is not None and int(observed) != int(expected):
+                mismatches.append(f"{key}: checkpoint={observed}, workbook={expected}")
+        if mismatches:
+            raise ValueError("Stored state does not match the selected workbook (" + "; ".join(mismatches) + ").")
+        checkpoint_hash = str(info.get("workbook_sha256") or "")
+        workbook_hash = str(settings.get("workbook_sha256") or "")
+        if checkpoint_hash and workbook_hash and checkpoint_hash != workbook_hash:
+            raise ValueError("Stored state was created from a different Excel workbook.")
+    return info
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def infer_simulation_settings(excel_path: Path) -> Dict[str, Any]:
     case = load_case_from_excel(excel_path)
     col = build_column_spec_from_case(case)
@@ -115,6 +241,7 @@ def infer_simulation_settings(excel_path: Path) -> Dict[str, Any]:
         "log_every_n_steps": log_every_n_steps,
         "t_final_sec": float(col.sim.t_final_sec),
         "n_steps": n_steps,
+        "workbook_sha256": _file_sha256(Path(excel_path)),
     }
 
 
@@ -169,6 +296,11 @@ def _is_runner_script(token: str) -> bool:
     return normalized.endswith("/dynamic_run_scaffold_v1.py") or normalized == "dynamic_run_scaffold_v1.py"
 
 
+def _is_core_v3_runner_script(token: str) -> bool:
+    normalized = str(token or "").replace("\\", "/").strip().lower()
+    return normalized.endswith("/run_core_v3_dynamic.py") or normalized == "run_core_v3_dynamic.py"
+
+
 def _extract_runner_argv(command_text: str) -> List[str]:
     tokens = _tokenize_cli_text(command_text)
     if not tokens:
@@ -192,6 +324,16 @@ def _extract_runner_argv(command_text: str) -> List[str]:
 
     if _is_runner_script(work[0]):
         return work[1:]
+
+    if _is_core_v3_runner_script(work[0]):
+        return work[1:]
+
+    script_name = Path(str(work[0]).replace("\\", "/")).name.lower()
+    if script_name.startswith("run_core_v3_"):
+        raise ValueError(
+            "This is a single-use Core V3 DD research command, not the reusable simulation runner. "
+            "Its evidence NPZ cannot be restarted through the current runner."
+        )
 
     raise ValueError(
         "CLI mode accepts either bare runner flags or a command targeting "
@@ -272,6 +414,8 @@ def _validate_runner_argv(raw_argv: List[str]) -> None:
 def build_launch_spec(
     *,
     excel_path: Path,
+    initialization_mode: str = "fresh",
+    checkpoint_path: Optional[Path] = None,
     run_name: str,
     run_description: str,
     logs_dir: Optional[Path] = None,
@@ -287,11 +431,84 @@ def build_launch_spec(
     equilibrium_relaxation_live_pr_override: Optional[bool] = None,
     include_energy_override: Optional[bool] = None,
     integrator: Optional[str] = None,
+    core_v3_duration_sec: float = 30.0,
+    core_v3_log_every_n_steps: int = 4,
+    core_v3_parallel_workers: int = 8,
 ) -> SimulationLaunchSpec:
     settings = infer_simulation_settings(excel_path)
+    mode = str(initialization_mode or "fresh").strip().lower().replace("_", "-")
+    if mode not in {"fresh", "restart"}:
+        raise ValueError(f"Unknown initialization mode: {initialization_mode}")
+    checkpoint_info: Dict[str, Any] = {}
+    resolved_checkpoint: Optional[Path] = None
+    if mode == "restart":
+        if checkpoint_path is None:
+            raise ValueError("Restart mode requires a stored-state checkpoint.")
+        resolved_checkpoint = Path(checkpoint_path).expanduser().resolve()
+        checkpoint_info = validate_stored_state(resolved_checkpoint, settings=settings)
+    elif checkpoint_path is not None:
+        raise ValueError("A stored-state checkpoint can only be supplied in Restart mode.")
     run_name_clean = str(run_name or "").strip() or excel_path.stem
     run_description_clean = str(run_description or "").strip()
     run_logs_dir = logs_dir or make_run_directory(run_name_clean)
+    if checkpoint_info.get("schema") == CORE_V3_CHECKPOINT_SCHEMA:
+        duration = float(core_v3_duration_sec)
+        steps_float = duration / CORE_V3_TIMESTEP_SEC
+        n_steps = int(round(steps_float))
+        if n_steps < 1 or abs(steps_float - n_steps) > 1.0e-9:
+            raise ValueError("Core V3 duration must be a positive multiple of 0.25 seconds.")
+        log_every = max(int(core_v3_log_every_n_steps), 1)
+        parallel_workers = int(core_v3_parallel_workers)
+        if parallel_workers < 1:
+            raise ValueError("Core V3 parallel worker count must be positive.")
+        command = [
+            sys.executable,
+            "-u",
+            str(CORE_V3_RUNNER_SCRIPT),
+            "--excel",
+            str(excel_path),
+            "--init-from-checkpoint",
+            str(resolved_checkpoint),
+            "--duration-sec",
+            str(duration),
+            "--dt",
+            str(CORE_V3_TIMESTEP_SEC),
+            "--log-every",
+            str(log_every),
+            "--logs-dir",
+            str(run_logs_dir),
+            "--run-name",
+            run_name_clean,
+            "--parallel-workers",
+            str(parallel_workers),
+        ]
+        if run_description_clean:
+            command.extend(["--run-description", run_description_clean])
+        return SimulationLaunchSpec(
+            excel_path=excel_path,
+            initialization_mode=mode,
+            checkpoint_path=resolved_checkpoint,
+            checkpoint_schema=CORE_V3_CHECKPOINT_SCHEMA,
+            run_name=run_name_clean,
+            run_description=run_description_clean,
+            logs_dir=run_logs_dir,
+            n_steps=n_steps,
+            dt_sec=CORE_V3_TIMESTEP_SEC,
+            log_every_n_steps=log_every,
+            runtime_mode="core-v3",
+            thermo_mode="dwsim",
+            dwsim_property_package="pr",
+            thermo_table_path=None,
+            thermo_table_anchor_blend_count=None,
+            thermo_pool_workers=None,
+            thermo_pool_chunk_size=None,
+            thermo_every_n_steps=None,
+            fast_startup_override=None,
+            equilibrium_relaxation_live_pr_override=None,
+            include_energy_override=True,
+            integrator="implicit-trf",
+            command=command,
+        )
     effective_thermo_mode = str(thermo_mode or "table-pool")
     effective_dwsim_package = str(dwsim_property_package or "pr")
     effective_thermo_table_path = (
@@ -316,6 +533,8 @@ def build_launch_spec(
         run_name_clean,
         "--allow-repeat-command",
     ]
+    if resolved_checkpoint is not None:
+        command.extend(["--init-from-checkpoint", str(resolved_checkpoint)])
     if run_description_clean:
         command.extend(["--run-description", run_description_clean])
     if runtime_mode:
@@ -343,6 +562,9 @@ def build_launch_spec(
         command.extend(["--integrator", str(integrator)])
     return SimulationLaunchSpec(
         excel_path=excel_path,
+        initialization_mode=mode,
+        checkpoint_path=resolved_checkpoint,
+        checkpoint_schema=str(checkpoint_info.get("schema") or "") or None,
         run_name=run_name_clean,
         run_description=run_description_clean,
         logs_dir=run_logs_dir,
@@ -371,8 +593,70 @@ def build_launch_spec_from_cli(
     command_text: str,
     *,
     default_excel_path: Optional[Path] = None,
+    initialization_mode: str = "fresh",
+    default_checkpoint_path: Optional[Path] = None,
 ) -> SimulationLaunchSpec:
+    command_tokens = _tokenize_cli_text(command_text)
+    command_work = list(command_tokens)
+    if command_work and _looks_like_python_invocation(command_work[0]):
+        command_work = command_work[1:]
+    targets_core_v3 = bool(command_work and _is_core_v3_runner_script(command_work[0]))
     raw_argv = _extract_runner_argv(command_text)
+    if targets_core_v3:
+        allowed = {
+            "--excel",
+            "--init-from-checkpoint",
+            "--duration-sec",
+            "--dt",
+            "--log-every",
+            "--logs-dir",
+            "--run-name",
+            "--run-description",
+            "--parallel-workers",
+        }
+        for token in raw_argv:
+            text = str(token or "").strip()
+            if text.startswith("--") and text.split("=", 1)[0] not in allowed:
+                raise ValueError(f"Unknown Core V3 runner flag: {text.split('=', 1)[0]}")
+        excel_text = _find_last_option_value(raw_argv, "--excel")
+        if excel_text:
+            excel_path = _resolve_cli_path(excel_text)
+        elif default_excel_path is not None:
+            excel_path = Path(default_excel_path).resolve()
+        else:
+            raise ValueError("Select/upload the Core V3 workbook or add `--excel ...`.")
+        checkpoint_text = _find_last_option_value(raw_argv, "--init-from-checkpoint")
+        if checkpoint_text:
+            checkpoint_path = _resolve_cli_path(checkpoint_text)
+        elif default_checkpoint_path is not None:
+            checkpoint_path = Path(default_checkpoint_path).expanduser().resolve()
+        else:
+            raise ValueError("Core V3 continuation requires a reusable Core V3 checkpoint.")
+        duration_text = _find_last_option_value(raw_argv, "--duration-sec")
+        dt_text = _find_last_option_value(raw_argv, "--dt")
+        log_every_text = _find_last_option_value(raw_argv, "--log-every")
+        duration = float(duration_text) if duration_text is not None else 30.0
+        timestep = float(dt_text) if dt_text is not None else CORE_V3_TIMESTEP_SEC
+        if abs(timestep - CORE_V3_TIMESTEP_SEC) > 1.0e-12:
+            raise ValueError("The accepted Core V3 timestep is fixed at 0.25 seconds.")
+        log_every = int(float(log_every_text)) if log_every_text is not None else 4
+        logs_text = _find_last_option_value(raw_argv, "--logs-dir")
+        logs_dir = _resolve_cli_path(logs_text) if logs_text else None
+        run_name = str(_find_last_option_value(raw_argv, "--run-name") or "core_v3_restart")
+        run_description = str(_find_last_option_value(raw_argv, "--run-description") or "")
+        parallel_workers_text = _find_last_option_value(raw_argv, "--parallel-workers")
+        parallel_workers = int(parallel_workers_text) if parallel_workers_text else 8
+        return build_launch_spec(
+            excel_path=excel_path,
+            initialization_mode="restart",
+            checkpoint_path=checkpoint_path,
+            run_name=run_name,
+            run_description=run_description,
+            logs_dir=logs_dir,
+            core_v3_duration_sec=duration,
+            core_v3_log_every_n_steps=log_every,
+            core_v3_parallel_workers=parallel_workers,
+        )
     _validate_runner_argv(raw_argv)
     if _has_any_flag(raw_argv, "--no-write-logs", "--no-logs"):
         raise ValueError("CLI mode in the UI requires logging to stay enabled.")
@@ -388,6 +672,20 @@ def build_launch_spec_from_cli(
         raise ValueError(f"Excel path does not exist: {excel_path}")
 
     settings = infer_simulation_settings(excel_path)
+    requested_mode = str(initialization_mode or "fresh").strip().lower().replace("_", "-")
+    if requested_mode not in {"fresh", "restart"}:
+        raise ValueError(f"Unknown initialization mode: {initialization_mode}")
+    checkpoint_text = _find_last_option_value(raw_argv, "--init-from-checkpoint")
+    checkpoint_path = _resolve_cli_path(checkpoint_text) if checkpoint_text else None
+    if checkpoint_path is None and requested_mode == "restart":
+        if default_checkpoint_path is None:
+            raise ValueError("Restart mode requires a stored-state checkpoint.")
+        checkpoint_path = Path(default_checkpoint_path).expanduser().resolve()
+        raw_argv.extend(["--init-from-checkpoint", str(checkpoint_path)])
+    effective_initialization_mode = "restart" if checkpoint_path is not None else "fresh"
+    checkpoint_info = (
+        validate_stored_state(checkpoint_path, settings=settings) if checkpoint_path is not None else {}
+    )
     run_name = str(_find_last_option_value(raw_argv, "--run-name") or excel_path.stem).strip() or excel_path.stem
     run_description = str(_find_last_option_value(raw_argv, "--run-description") or "").strip()
 
@@ -414,7 +712,6 @@ def build_launch_spec_from_cli(
     integrator = _find_last_option_value(normalized_argv, "--integrator") or "explicit-euler"
     runtime_mode = _find_last_option_value(normalized_argv, "--runtime-mode") or "parity"
     thermo_mode = _find_last_option_value(normalized_argv, "--thermo") or "table-pool"
-
     try:
         n_steps = int(float(n_steps_text)) if n_steps_text is not None else 600
     except Exception as exc:
@@ -442,6 +739,9 @@ def build_launch_spec_from_cli(
 
     return SimulationLaunchSpec(
         excel_path=excel_path,
+        initialization_mode=effective_initialization_mode,
+        checkpoint_path=checkpoint_path,
+        checkpoint_schema=str(checkpoint_info.get("schema") or "") or None,
         run_name=run_name,
         run_description=run_description,
         logs_dir=logs_dir,
@@ -661,6 +961,9 @@ def launch_simulation(spec: SimulationLaunchSpec) -> Dict[str, Any]:
         "run_name": spec.run_name,
         "run_description": spec.run_description,
         "excel_path": str(spec.excel_path),
+        "initialization_mode": spec.initialization_mode,
+        "checkpoint_path": str(spec.checkpoint_path) if spec.checkpoint_path is not None else "",
+        "checkpoint_schema": str(spec.checkpoint_schema or ""),
         "logs_dir": str(spec.logs_dir),
         "runtime_control_json": str(runtime_control_path(spec.logs_dir)),
         "stdout_log": str(stdout_path),
@@ -699,6 +1002,10 @@ def active_run_status(active_run: Optional[Dict[str, Any]]) -> Dict[str, Any]:
                 metadata_is_stale = True
         if (status_txt in terminal_statuses or ended_at) and not metadata_is_stale:
             out = dict(active_run)
+            if run_metadata.get("n_steps") is not None:
+                out["n_steps"] = int(run_metadata["n_steps"])
+            if run_metadata.get("dt_sec") is not None:
+                out["dt_sec"] = float(run_metadata["dt_sec"])
             out["is_running"] = False
             out["is_paused"] = False
             out["status"] = "stopped"

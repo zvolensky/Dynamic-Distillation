@@ -1,11 +1,11 @@
 # Experiment Ledger
 
-Updated: 2026-07-17 15:54:02 (local)
+Updated: 2026-08-20 20:35:45 (local)
 
 This file is auto-generated from `logs/**/column_summary_*.csv`, `logs/**/feasibility_trim_search_*.csv`, and `logs/**/run_registry.csv`.
 
-Total runs indexed: **733**
-Runs with known CLI command: **650**
+Total runs indexed: **735**
+Runs with known CLI command: **652**
 Runs with unknown CLI command: **83**
 
 Primary searchable source: `docs/experiment_ledger.csv`.
@@ -14,73 +14,75 @@ Duplicate indicators in CSV: `exact_command_dup_group`, `exact_command_dup_count
 
 ## Duplicate Signals
 
-Exact-command duplicate groups: **89** (rows in groups: **299**)
-Suspected-result duplicate groups: **60** (rows in groups: **237**)
+Exact-command duplicate groups: **90** (rows in groups: **301**)
+Suspected-result duplicate groups: **61** (rows in groups: **239**)
 
 ### Exact Command Duplicates (Top 20)
 
 | Group | Count | Run IDs |
 |---|---:|---|
-| `CMDDUP001` | 2 | `20260713_121008`, `20260713_120510` |
-| `CMDDUP002` | 2 | `20260712_110933`, `20260712_110522` |
-| `CMDDUP003` | 2 | `20260710_162340`, `20260710_160527` |
-| `CMDDUP004` | 2 | `20260710_162227`, `20260710_162046` |
-| `CMDDUP005` | 2 | `20260710_113033`, `20260710_094829` |
-| `CMDDUP006` | 2 | `20260709_194209`, `20260709_190946` |
-| `CMDDUP007` | 4 | `20260709_142739`, `20260709_140220`, `20260709_100852`, `20260709_095515` |
-| `CMDDUP008` | 2 | `20260709_100713`, `20260709_100352` |
-| `CMDDUP009` | 2 | `20260708_134215`, `20260708_134009` |
-| `CMDDUP010` | 5 | `20260708_081150`, `20260707_215312`, `20260707_214911`, `20260707_214212`, `20260707_213725` |
-| `CMDDUP011` | 2 | `20260707_172502`, `20260707_171839` |
-| `CMDDUP012` | 3 | `20260707_153257`, `20260707_112554`, `20260707_111634` |
-| `CMDDUP013` | 6 | `20260707_104505`, `20260707_103001`, `20260707_102752`, `20260707_102420`, `20260707_102119`, `20260707_100955` |
-| `CMDDUP014` | 3 | `20260707_100353`, `20260707_100035`, `20260707_094644` |
-| `CMDDUP015` | 3 | `20260707_093902`, `20260707_093208`, `20260707_092830` |
-| `CMDDUP016` | 2 | `20260707_092423`, `20260707_072056` |
-| `CMDDUP017` | 2 | `20260706_204812`, `20260706_203817` |
-| `CMDDUP018` | 5 | `20260706_203016`, `20260706_185641`, `20260706_184926`, `20260706_182634`, `20260706_175720` |
-| `CMDDUP019` | 12 | `20260706_202739`, `20260706_185323`, `20260706_184707`, `20260706_182513`, `20260706_133903`, `20260706_133346`, `20260706_132644`, `20260706_131833`, `20260706_131343`, `20260706_130114`, `20260706_123621`, `20260601_211851` |
-| `CMDDUP020` | 3 | `20260706_132254`, `20260706_131620`, `20260706_130632` |
+| `CMDDUP001` | 2 | `20260820_203504`, `20260820_203305` |
+| `CMDDUP002` | 2 | `20260713_121008`, `20260713_120510` |
+| `CMDDUP003` | 2 | `20260712_110933`, `20260712_110522` |
+| `CMDDUP004` | 2 | `20260710_162340`, `20260710_160527` |
+| `CMDDUP005` | 2 | `20260710_162227`, `20260710_162046` |
+| `CMDDUP006` | 2 | `20260710_113033`, `20260710_094829` |
+| `CMDDUP007` | 2 | `20260709_194209`, `20260709_190946` |
+| `CMDDUP008` | 4 | `20260709_142739`, `20260709_140220`, `20260709_100852`, `20260709_095515` |
+| `CMDDUP009` | 2 | `20260709_100713`, `20260709_100352` |
+| `CMDDUP010` | 2 | `20260708_134215`, `20260708_134009` |
+| `CMDDUP011` | 5 | `20260708_081150`, `20260707_215312`, `20260707_214911`, `20260707_214212`, `20260707_213725` |
+| `CMDDUP012` | 2 | `20260707_172502`, `20260707_171839` |
+| `CMDDUP013` | 3 | `20260707_153257`, `20260707_112554`, `20260707_111634` |
+| `CMDDUP014` | 6 | `20260707_104505`, `20260707_103001`, `20260707_102752`, `20260707_102420`, `20260707_102119`, `20260707_100955` |
+| `CMDDUP015` | 3 | `20260707_100353`, `20260707_100035`, `20260707_094644` |
+| `CMDDUP016` | 3 | `20260707_093902`, `20260707_093208`, `20260707_092830` |
+| `CMDDUP017` | 2 | `20260707_092423`, `20260707_072056` |
+| `CMDDUP018` | 2 | `20260706_204812`, `20260706_203817` |
+| `CMDDUP019` | 5 | `20260706_203016`, `20260706_185641`, `20260706_184926`, `20260706_182634`, `20260706_175720` |
+| `CMDDUP020` | 12 | `20260706_202739`, `20260706_185323`, `20260706_184707`, `20260706_182513`, `20260706_133903`, `20260706_133346`, `20260706_132644`, `20260706_131833`, `20260706_131343`, `20260706_130114`, `20260706_123621`, `20260601_211851` |
 
 ### Suspected Result Duplicates (Top 30)
 
 | Group | Count | Run IDs |
 |---|---:|---|
-| `SIGDUP001` | 2 | `20260716_165553`, `20260716_085716` |
-| `SIGDUP002` | 2 | `20260709_100352`, `20260709_100238` |
-| `SIGDUP003` | 3 | `20260709_095515`, `20260709_095126`, `20260708_082230` |
-| `SIGDUP004` | 2 | `20260708_134221`, `20260708_134032` |
-| `SIGDUP005` | 2 | `20260708_134215`, `20260708_134009` |
-| `SIGDUP006` | 4 | `20260707_153257`, `20260707_112554`, `20260707_111634`, `20260707_110130` |
-| `SIGDUP007` | 5 | `20260707_103001`, `20260707_102752`, `20260707_102420`, `20260707_102119`, `20260707_100955` |
-| `SIGDUP008` | 2 | `20260707_100035`, `20260707_094644` |
-| `SIGDUP009` | 2 | `20260707_093902`, `20260707_093208` |
-| `SIGDUP010` | 2 | `20260707_092423`, `20260707_072056` |
-| `SIGDUP011` | 5 | `20260706_203016`, `20260706_185641`, `20260706_184926`, `20260706_182634`, `20260706_175720` |
-| `SIGDUP012` | 10 | `20260706_202739`, `20260706_185323`, `20260706_184707`, `20260706_182513`, `20260706_133903`, `20260706_133346`, `20260706_132644`, `20260706_131833`, `20260706_131343`, `20260706_130114` |
-| `SIGDUP013` | 6 | `20260706_134127`, `20260706_133614`, `20260706_132931`, `20260706_131956`, `20260706_131504`, `20260706_131114` |
-| `SIGDUP014` | 3 | `20260706_132254`, `20260706_131620`, `20260706_130632` |
-| `SIGDUP015` | 2 | `20260602_163132`, `20260602_162914` |
-| `SIGDUP016` | 2 | `20260602_162504`, `20260602_143041` |
-| `SIGDUP017` | 2 | `20260601_212549`, `20260601_210332` |
-| `SIGDUP018` | 2 | `20260528_083013`, `20260526_115155` |
-| `SIGDUP019` | 2 | `20260526_100901`, `20260525_213906` |
-| `SIGDUP020` | 2 | `20260526_100642`, `20260526_100334` |
-| `SIGDUP021` | 3 | `20260525_214547`, `20260525_214247`, `20260525_213635` |
-| `SIGDUP022` | 2 | `20260525_213023`, `20260525_212838` |
-| `SIGDUP023` | 2 | `20260524_152125`, `20260524_151809` |
-| `SIGDUP024` | 2 | `20260524_150922`, `20260524_150847` |
-| `SIGDUP025` | 35 | `20260409_175600`, `20260408_152917`, `20260408_114250`, `20260408_113950`, `20260408_113836`, `20260408_112701`, `20260408_111838`, `20260408_111734`, `20260408_111454`, `20260408_111248`, `20260408_110746`, `20260408_110637`, `20260408_105706`, `20260408_105206`, `20260408_104533`, `20260408_102333`, `20260408_102046`, `20260408_101835`, `20260408_101548`, `20260408_101338`, `20260408_101137`, `20260408_100922`, `20260408_100830`, `20260408_095733`, `20260408_095634`, `20260408_095633`, `20260408_095232`, `20260408_094947`, `20260408_094423`, `20260408_094103`, `20260408_093513`, `20260408_093405`, `20260408_093138`, `20260408_093011`, `20260404_180117` |
-| `SIGDUP026` | 5 | `20260408_154833`, `20260408_153648`, `20260408_153234`, `20260408_145031`, `20260408_143854` |
-| `SIGDUP027` | 3 | `20260408_153047`, `20260408_152349`, `20260408_143712` |
-| `SIGDUP028` | 5 | `20260408_151743`, `20260408_151448`, `20260408_151145`, `20260408_150741`, `20260408_150457` |
-| `SIGDUP029` | 4 | `20260408_090045`, `20260408_085836`, `20260407_214431`, `20260407_214224` |
-| `SIGDUP030` | 11 | `20260407_205910`, `20260407_205635`, `20260407_205309`, `20260407_204459`, `20260407_204103`, `20260407_203846`, `20260407_203229`, `20260407_202922`, `20260407_201915`, `20260407_200811`, `20260407_200542` |
+| `SIGDUP001` | 2 | `20260820_203504`, `20260820_203305` |
+| `SIGDUP002` | 2 | `20260716_165553`, `20260716_085716` |
+| `SIGDUP003` | 2 | `20260709_100352`, `20260709_100238` |
+| `SIGDUP004` | 3 | `20260709_095515`, `20260709_095126`, `20260708_082230` |
+| `SIGDUP005` | 2 | `20260708_134221`, `20260708_134032` |
+| `SIGDUP006` | 2 | `20260708_134215`, `20260708_134009` |
+| `SIGDUP007` | 4 | `20260707_153257`, `20260707_112554`, `20260707_111634`, `20260707_110130` |
+| `SIGDUP008` | 5 | `20260707_103001`, `20260707_102752`, `20260707_102420`, `20260707_102119`, `20260707_100955` |
+| `SIGDUP009` | 2 | `20260707_100035`, `20260707_094644` |
+| `SIGDUP010` | 2 | `20260707_093902`, `20260707_093208` |
+| `SIGDUP011` | 2 | `20260707_092423`, `20260707_072056` |
+| `SIGDUP012` | 5 | `20260706_203016`, `20260706_185641`, `20260706_184926`, `20260706_182634`, `20260706_175720` |
+| `SIGDUP013` | 10 | `20260706_202739`, `20260706_185323`, `20260706_184707`, `20260706_182513`, `20260706_133903`, `20260706_133346`, `20260706_132644`, `20260706_131833`, `20260706_131343`, `20260706_130114` |
+| `SIGDUP014` | 6 | `20260706_134127`, `20260706_133614`, `20260706_132931`, `20260706_131956`, `20260706_131504`, `20260706_131114` |
+| `SIGDUP015` | 3 | `20260706_132254`, `20260706_131620`, `20260706_130632` |
+| `SIGDUP016` | 2 | `20260602_163132`, `20260602_162914` |
+| `SIGDUP017` | 2 | `20260602_162504`, `20260602_143041` |
+| `SIGDUP018` | 2 | `20260601_212549`, `20260601_210332` |
+| `SIGDUP019` | 2 | `20260528_083013`, `20260526_115155` |
+| `SIGDUP020` | 2 | `20260526_100901`, `20260525_213906` |
+| `SIGDUP021` | 2 | `20260526_100642`, `20260526_100334` |
+| `SIGDUP022` | 3 | `20260525_214547`, `20260525_214247`, `20260525_213635` |
+| `SIGDUP023` | 2 | `20260525_213023`, `20260525_212838` |
+| `SIGDUP024` | 2 | `20260524_152125`, `20260524_151809` |
+| `SIGDUP025` | 2 | `20260524_150922`, `20260524_150847` |
+| `SIGDUP026` | 35 | `20260409_175600`, `20260408_152917`, `20260408_114250`, `20260408_113950`, `20260408_113836`, `20260408_112701`, `20260408_111838`, `20260408_111734`, `20260408_111454`, `20260408_111248`, `20260408_110746`, `20260408_110637`, `20260408_105706`, `20260408_105206`, `20260408_104533`, `20260408_102333`, `20260408_102046`, `20260408_101835`, `20260408_101548`, `20260408_101338`, `20260408_101137`, `20260408_100922`, `20260408_100830`, `20260408_095733`, `20260408_095634`, `20260408_095633`, `20260408_095232`, `20260408_094947`, `20260408_094423`, `20260408_094103`, `20260408_093513`, `20260408_093405`, `20260408_093138`, `20260408_093011`, `20260404_180117` |
+| `SIGDUP027` | 5 | `20260408_154833`, `20260408_153648`, `20260408_153234`, `20260408_145031`, `20260408_143854` |
+| `SIGDUP028` | 3 | `20260408_153047`, `20260408_152349`, `20260408_143712` |
+| `SIGDUP029` | 5 | `20260408_151743`, `20260408_151448`, `20260408_151145`, `20260408_150741`, `20260408_150457` |
+| `SIGDUP030` | 4 | `20260408_090045`, `20260408_085836`, `20260407_214431`, `20260407_214224` |
 
 ## Known CLI Commands
 
 | Run ID | Date/Time | Source | Command | Final (P, xD, xB, R, Vb) |
 |---|---|---|---|---|
+| `20260820_203504` | 2026-08-20 20:35:04 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx" --runtime-mode hydraulic --thermo clapeyron --include-energy --n-steps 150 --dt 0.2 --log-every 5 --run-name ui_restart_test --init-from-checkpoint "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_10s_restart_runtime_memory_20260706\c3c4_initializer_profile_coeff_trial1_20260601__checkpoint_20260706_134127.npz" --logs-dir "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\ui_runs\20260820_203432_ui-restart-test" --allow-repeat-command` | P=93.420; xD=0.107337; xB=; R=2000.00; Vb= |
+| `20260820_203305` | 2026-08-20 20:33:05 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx" --runtime-mode hydraulic --thermo clapeyron --include-energy --n-steps 150 --dt 0.2 --log-every 5 --run-name ui_restart_test --init-from-checkpoint "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_10s_restart_runtime_memory_20260706\c3c4_initializer_profile_coeff_trial1_20260601__checkpoint_20260706_134127.npz" --logs-dir "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\ui_runs\20260820_203210_ui-restart-test" --allow-repeat-command` | P=93.420; xD=0.107337; xB=; R=2000.00; Vb= |
 | `20260717_155352` | 2026-07-17 15:53:52 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx --init-from-checkpoint "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_transport_balanced_phase_60s_20260717\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260717_154256.npz" --run-name C3C4_global_inventory_gate_proof_20260717 --run-description One_step_proof_of_global_inventory_steady_state_gate --runtime-mode hydraulic --thermo dwsim --dwsim-property-package pr --include-energy --equilibrium-relaxation-mode composition-exponential --enable-transport-balanced-phase-transfer --equilibrium-tau-sec 0.5 --flash-feed-at-stage-conditions --enable-liquid-hydraulic-override --liquid-hydraulic-model francis --liquid-hydraulic-override-alpha 0.25 --enable-level-control --ignore-workbook-level-pv-mode --top-level-pv-mode true-level --bottom-level-pv-mode true-level --top-level-kc 20 --top-level-ti 120 --bottom-level-kc 3 --bottom-level-ti 300 --enable-pressure-control --pressure-control-mv condenser-duty --top-pressure-sp 222.6194497041178 --top-pressure-kc -300000 --top-pressure-ti 180 --top-pressure-pv-filter-tau-sec 5 --top-pressure-mv-slew-limit-per-s 25000 --condenser-duty-mode specified --condenser-duty-btuph -51600000 --condenser-duty-min-btuph -65000000 --condenser-duty-max-btuph -46000000 --enable-top-drum-resident-condensation --top-drum-resident-condensation-tau-sec 30 --top-drum-resident-condensation-max-frac-per-step 0.10 --reflux 5967.322711692588 --vapor-holdup-relaxation-sec 0 --vapor-flow-relaxation-sec 0 --vapor-flow-zero-temperature-target --use-excel-vapor-holdup --dynamic-vflow-nominal-hi-ratio 1.05 --disable-startup-thermo-conditioning --disable-restart-reentry-settling --enable-bottoms-composition-control --bottoms-comp-component C3 --bottoms-comp-sp 0.04717 --bottoms-comp-kc 50000000 --bottoms-comp-ti 600 --bottoms-comp-mv reboiler-duty --reboiler-duty-btuph 49340000 --reboiler-duty-cmd-min-btuph 45000000 --reboiler-duty-cmd-max-btuph 65000000 --n-steps 1 --dt 0.2 --log-every 1 --logs-dir logs\c3c4_global_inventory_gate_proof_20260717 --no-word-report --allow-repeat-command` | P=223.608; xD=; xB=0.051412; R=; Vb= |
 | `20260717_154256` | 2026-07-17 15:42:56 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx --init-from-checkpoint logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260717_111627.npz --run-name C3C4_transport_balanced_phase_60s_20260717 --run-description Short_dynamic_gate_for_transport_balanced_phase_closure --runtime-mode hydraulic --thermo dwsim --dwsim-property-package pr --include-energy --equilibrium-relaxation-mode composition-exponential --enable-transport-balanced-phase-transfer --equilibrium-tau-sec 0.5 --flash-feed-at-stage-conditions --enable-liquid-hydraulic-override --liquid-hydraulic-model francis --liquid-hydraulic-override-alpha 0.25 --enable-level-control --ignore-workbook-level-pv-mode --top-level-pv-mode true-level --bottom-level-pv-mode true-level --top-level-kc 20 --top-level-ti 120 --bottom-level-kc 3 --bottom-level-ti 300 --enable-pressure-control --pressure-control-mv condenser-duty --top-pressure-sp 222.6194497041178 --top-pressure-kc -300000 --top-pressure-ti 180 --top-pressure-pv-filter-tau-sec 5 --top-pressure-mv-slew-limit-per-s 25000 --condenser-duty-mode specified --condenser-duty-btuph -51600000 --condenser-duty-min-btuph -65000000 --condenser-duty-max-btuph -46000000 --enable-top-drum-resident-condensation --top-drum-resident-condensation-tau-sec 30 --top-drum-resident-condensation-max-frac-per-step 0.10 --reflux 5967.322711692588 --vapor-holdup-relaxation-sec 0 --vapor-flow-relaxation-sec 0 --vapor-flow-zero-temperature-target --use-excel-vapor-holdup --dynamic-vflow-nominal-hi-ratio 1.05 --disable-startup-thermo-conditioning --disable-restart-reentry-settling --enable-bottoms-composition-control --bottoms-comp-component C3 --bottoms-comp-sp 0.04717 --bottoms-comp-kc 50000000 --bottoms-comp-ti 600 --bottoms-comp-mv reboiler-duty --reboiler-duty-btuph 49340000 --reboiler-duty-cmd-min-btuph 45000000 --reboiler-duty-cmd-max-btuph 65000000 --n-steps 300 --dt 0.2 --log-every 25 --logs-dir logs\c3c4_transport_balanced_phase_60s_20260717 --no-word-report --allow-repeat-command` | P=223.620; xD=; xB=0.051410; R=; Vb= |
 | `20260717_154203` | 2026-07-17 15:42:03 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx --init-from-checkpoint logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260717_111627.npz --run-name C3C4_composition_exponential_control_one_step_20260717 --run-description Matched_one_step_control_without_transport_balanced_phase_closure --runtime-mode hydraulic --thermo dwsim --dwsim-property-package pr --include-energy --equilibrium-relaxation-mode composition-exponential --equilibrium-tau-sec 0.5 --flash-feed-at-stage-conditions --enable-liquid-hydraulic-override --liquid-hydraulic-model francis --liquid-hydraulic-override-alpha 0.25 --enable-level-control --ignore-workbook-level-pv-mode --top-level-pv-mode true-level --bottom-level-pv-mode true-level --top-level-kc 20 --top-level-ti 120 --bottom-level-kc 3 --bottom-level-ti 300 --enable-pressure-control --pressure-control-mv condenser-duty --top-pressure-sp 222.6194497041178 --top-pressure-kc -300000 --top-pressure-ti 180 --top-pressure-pv-filter-tau-sec 5 --top-pressure-mv-slew-limit-per-s 25000 --condenser-duty-mode specified --condenser-duty-btuph -51600000 --condenser-duty-min-btuph -65000000 --condenser-duty-max-btuph -46000000 --enable-top-drum-resident-condensation --top-drum-resident-condensation-tau-sec 30 --top-drum-resident-condensation-max-frac-per-step 0.10 --reflux 5967.322711692588 --vapor-holdup-relaxation-sec 0 --vapor-flow-relaxation-sec 0 --vapor-flow-zero-temperature-target --use-excel-vapor-holdup --dynamic-vflow-nominal-hi-ratio 1.05 --disable-startup-thermo-conditioning --disable-restart-reentry-settling --enable-bottoms-composition-control --bottoms-comp-component C3 --bottoms-comp-sp 0.04717 --bottoms-comp-kc 50000000 --bottoms-comp-ti 600 --bottoms-comp-mv reboiler-duty --reboiler-duty-btuph 49340000 --reboiler-duty-cmd-min-btuph 45000000 --reboiler-duty-cmd-max-btuph 65000000 --n-steps 1 --dt 0.2 --log-every 1 --logs-dir logs\c3c4_composition_exponential_control_one_step_20260717 --no-word-report --allow-repeat-command` | P=223.102; xD=; xB=0.051319; R=; Vb= |
@@ -736,6 +738,8 @@ Suspected-result duplicate groups: **60** (rows in groups: **237**)
 
 | Run ID | Status | CLI Known | t_final(s) | P_top | xD | xB | Reflux | Boilup | D | B | Summary CSV |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| `20260820_203504` | `ok` | Yes | 30.0 | 93.420 | 0.107337 |  | 2000.00 |  | 2186.10 | 4761.98 | `logs/ui_runs/20260820_203432_ui-restart-test/column_summary_20260820_203504.csv` |
+| `20260820_203305` | `ok` | Yes | 30.0 | 93.420 | 0.107337 |  | 2000.00 |  | 2186.10 | 4761.98 | `logs/ui_runs/20260820_203210_ui-restart-test/column_summary_20260820_203305.csv` |
 | `20260717_155352` | `ok` | Yes | 0.2 | 223.608 |  | 0.051412 |  |  | 2974.72 | 4695.03 | `logs/c3c4_global_inventory_gate_proof_20260717/column_summary_20260717_155352.csv` |
 | `20260717_154256` | `ok` | Yes | 60.0 | 223.620 |  | 0.051410 |  |  | 2977.14 | 4695.87 | `logs/c3c4_transport_balanced_phase_60s_20260717/column_summary_20260717_154256.csv` |
 | `20260717_154203` | `ok` | Yes | 0.2 | 223.102 |  | 0.051319 |  |  | 2981.89 | 4691.90 | `logs/c3c4_composition_exponential_control_one_step_20260717/column_summary_20260717_154203.csv` |
@@ -794,5 +798,3 @@ Suspected-result duplicate groups: **60** (rows in groups: **237**)
 | `20260711_163320` | `ok` | Yes | 180.0 | 224.680 |  |  |  |  | 3623.58 | 8176.58 | `logs/c3c4_dd047_chemsep_duty_control_isolation_180s_r2_20260711/column_summary_20260711_163320.csv` |
 | `20260711_160221` | `ok` | Yes | 300.0 | 232.165 | 0.075139 |  | 4894.54 |  | 3573.55 | 8565.61 | `logs/c3c4_dd046_inventory_coordination_continue300s_20260711/column_summary_20260711_160221.csv` |
 | `20260711_155521` | `ok` | Yes | 120.0 | 232.872 | 0.083153 |  | 5814.75 |  | 2936.80 | 6543.44 | `logs/c3c4_dd046_inventory_coordination_120s_20260711/column_summary_20260711_155521.csv` |
-| `20260711_135231` | `ok` | Yes | 180.0 | 235.718 | 0.087297 |  | 5967.32 |  | 978.85 | 4838.82 | `logs/c3c4_dd045_resident_condensation_approach_target_180s_20260711/column_summary_20260711_135231.csv` |
-| `20260711_134520` | `ok` | Yes | 60.0 | 243.118 | 0.094889 |  | 5967.32 |  | 481.80 | 4586.74 | `logs/c3c4_dd045_resident_condensation_pressure_authority_60s_20260711/column_summary_20260711_134520.csv` |

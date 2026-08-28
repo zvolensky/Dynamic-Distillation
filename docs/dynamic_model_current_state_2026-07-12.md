@@ -164,7 +164,7 @@ The normalized equilibrium-target gate passed, the live vapor-material rates wer
 ## What is established
 
 - DWSIM Peng-Robinson is the current trusted runtime thermo backend for this hydrocarbon case.
-- The Clapeyron adapter now rejects inactive duplicate flash rows rather than manufacturing unit K-values, but Clapeyron remains outside the accepted runtime path pending a suitable public single-phase/stability API.
+- The Clapeyron adapter now rejects inactive duplicate flash rows rather than manufacturing unit K-values, and Clapeyron remains outside the accepted runtime path pending release verification of the proposed public single-phase/stability API. The release-adoption contract is recorded in `docs/dd_161_core_v3_clapeyron_provider_qualification_20260806.md`: the required changes are confined to the adapter and focused tests, not Core V3 governing equations. A retained inactive composition is usable as an incipient phase only when it survives duplicate-phase merging and represents a converged incipient phase. If merging removes it, no discarded K-value is available and any required extrapolation must be performed separately. Discarded/incipient K-values must remain diagnostic unless separately authorized for runtime use.
 - Product draws use live drum and sump compositions.
 - Feed-flash mode is propagated into every runtime `ColumnInputs` instance.
 - Total-condenser excess duty is routed to energy removal/subcooling rather than unbounded vapor consumption.

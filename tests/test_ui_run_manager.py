@@ -4,6 +4,7 @@ import json
 import sys
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 
@@ -18,6 +19,8 @@ from ui.run_manager import request_runtime_extension
 from ui.run_manager import runtime_control_path
 from ui.run_manager import launch_simulation
 from ui.run_manager import is_pid_running
+from ui.run_manager import inspect_stored_state
+from ui.run_manager import save_uploaded_state_bytes
 
 
 def test_build_launch_spec_appends_advanced_overrides(monkeypatch, tmp_path: Path) -> None:
@@ -104,6 +107,170 @@ def test_build_launch_spec_emits_explicit_default_thermo_mode(monkeypatch, tmp_p
     assert "--thermo" in spec.command
     assert spec.command[spec.command.index("--thermo") + 1] == "table-pool"
     assert spec.thermo_mode == "table-pool"
+
+
+def _write_native_checkpoint(path: Path, *, n_stages: int = 20, n_components: int = 3) -> None:
+    metadata = {
+        "schema": "dynamic_distillation.native_checkpoint.v1",
+        "run_id": "source-run",
+        "final_time_s": 30.0,
+        "layout": {"n_stages": n_stages, "n_components": n_components},
+        "column": {"n_stages": n_stages, "n_components": n_components},
+    }
+    np.savez_compressed(
+        path,
+        metadata_json=np.asarray(json.dumps(metadata)),
+        final_state=np.asarray([1.0, 2.0]),
+    )
+
+
+def _write_core_v3_checkpoint(path: Path, *, n_stages: int = 20, n_components: int = 3) -> None:
+    metadata = {
+        "schema": "dynamic_distillation.core_v3_checkpoint.v1",
+        "model_id": "core-v3-c3c4-vapor-holdup-dynamic-pressure",
+        "final_time_s": 60.0,
+        "n_stages": n_stages,
+        "n_components": n_components,
+    }
+    arrays = {
+        "liquid_component_inventory_lbmol": np.ones((n_stages, n_components)),
+        "vapor_component_inventory_lbmol": np.ones((n_stages, n_components)),
+        "temperature_F": np.ones(n_stages),
+        "pressure_psia": np.ones(n_stages),
+        "previous_coordinates": np.ones(10),
+        "controller_memory": np.ones(2),
+    }
+    np.savez_compressed(path, metadata_json=np.asarray(json.dumps(metadata)), **arrays)
+
+
+def test_build_launch_spec_uses_core_v3_runner_for_core_checkpoint(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 60.0,
+            "n_steps": 300,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "core_v3.npz"
+    _write_core_v3_checkpoint(checkpoint_path)
+
+    spec = build_launch_spec(
+        excel_path=excel_path,
+        initialization_mode="restart",
+        checkpoint_path=checkpoint_path,
+        run_name="Core V3 UI",
+        run_description="latest model",
+        core_v3_duration_sec=12.5,
+        core_v3_log_every_n_steps=2,
+    )
+
+    assert spec.checkpoint_schema == "dynamic_distillation.core_v3_checkpoint.v1"
+    assert Path(spec.command[2]).name == "run_core_v3_dynamic.py"
+    assert spec.command[spec.command.index("--duration-sec") + 1] == "12.5"
+    assert spec.command[spec.command.index("--dt") + 1] == "0.25"
+    assert spec.command[spec.command.index("--parallel-workers") + 1] == "8"
+    assert spec.n_steps == 50
+    assert spec.runtime_mode == "core-v3"
+    assert spec.integrator == "implicit-trf"
+
+
+def test_inspect_stored_state_accepts_core_v3_checkpoint(tmp_path: Path) -> None:
+    checkpoint_path = tmp_path / "core_v3.npz"
+    _write_core_v3_checkpoint(checkpoint_path)
+
+    info = inspect_stored_state(checkpoint_path)
+
+    assert info["compatible"] is True
+    assert info["kind"] == "core-v3-checkpoint"
+    assert info["n_stages"] == 20
+    assert info["n_components"] == 3
+
+
+def test_build_launch_spec_restart_adds_native_checkpoint(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 60.0,
+            "n_steps": 300,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "checkpoint.npz"
+    _write_native_checkpoint(checkpoint_path)
+
+    spec = build_launch_spec(
+        excel_path=excel_path,
+        initialization_mode="restart",
+        checkpoint_path=checkpoint_path,
+        run_name="Restart Test",
+        run_description="",
+    )
+
+    assert spec.initialization_mode == "restart"
+    assert spec.checkpoint_path == checkpoint_path.resolve()
+    assert spec.checkpoint_schema == "dynamic_distillation.native_checkpoint.v1"
+    assert "--init-from-checkpoint" in spec.command
+    assert spec.command[spec.command.index("--init-from-checkpoint") + 1] == str(checkpoint_path.resolve())
+
+
+def test_build_launch_spec_restart_rejects_workbook_mismatch(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 60.0,
+            "n_steps": 300,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "checkpoint.npz"
+    _write_native_checkpoint(checkpoint_path, n_stages=10)
+
+    with pytest.raises(ValueError, match="does not match the selected workbook"):
+        build_launch_spec(
+            excel_path=excel_path,
+            initialization_mode="restart",
+            checkpoint_path=checkpoint_path,
+            run_name="Mismatch",
+            run_description="",
+        )
+
+
+def test_inspect_stored_state_identifies_core_v3_evidence(tmp_path: Path) -> None:
+    evidence_path = tmp_path / "dd274_evidence.npz"
+    np.savez_compressed(
+        evidence_path,
+        nominal_coordinates=np.zeros((2, 4)),
+        nominal_times_sec=np.asarray([0.0, 0.25]),
+    )
+
+    info = inspect_stored_state(evidence_path)
+
+    assert info["kind"] == "core-v3-evidence"
+    assert info["compatible"] is False
+    assert "not a reusable native checkpoint" in info["reason"]
+
+
+def test_save_uploaded_state_bytes_sanitizes_name(tmp_path: Path) -> None:
+    saved = save_uploaded_state_bytes("../state.npz", b"payload", uploads_dir=tmp_path)
+    assert saved.parent == tmp_path
+    assert saved.name.endswith("_state.npz")
+    assert saved.read_bytes() == b"payload"
 
 
 def test_build_launch_spec_emits_dwsim_property_package_when_requested(monkeypatch, tmp_path: Path) -> None:
@@ -264,6 +431,99 @@ def test_build_launch_spec_from_cli_reads_dwsim_property_package(monkeypatch, tm
     assert spec.command[spec.command.index("--dwsim-property-package") + 1] == "unifac"
 
 
+def test_build_launch_spec_from_cli_infers_restart_mode(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.25,
+            "log_every_n_steps": 10,
+            "t_final_sec": 60.0,
+            "n_steps": 240,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "checkpoint.npz"
+    _write_native_checkpoint(checkpoint_path)
+
+    spec = build_launch_spec_from_cli(
+        f'--excel "{excel_path}" --init-from-checkpoint "{checkpoint_path}"',
+    )
+
+    assert spec.initialization_mode == "restart"
+    assert spec.checkpoint_path == checkpoint_path.resolve()
+    assert spec.checkpoint_schema == "dynamic_distillation.native_checkpoint.v1"
+
+
+def test_build_launch_spec_from_cli_injects_selected_restart_state(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.25,
+            "log_every_n_steps": 10,
+            "t_final_sec": 60.0,
+            "n_steps": 240,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "checkpoint.npz"
+    _write_native_checkpoint(checkpoint_path)
+
+    spec = build_launch_spec_from_cli(
+        "--runtime-mode hydraulic",
+        default_excel_path=excel_path,
+        initialization_mode="restart",
+        default_checkpoint_path=checkpoint_path,
+    )
+
+    assert spec.initialization_mode == "restart"
+    assert spec.checkpoint_path == checkpoint_path.resolve()
+    assert "--init-from-checkpoint" in spec.command
+    assert spec.command[spec.command.index("--init-from-checkpoint") + 1] == str(checkpoint_path.resolve())
+
+
+def test_build_launch_spec_from_cli_explains_core_v3_research_command() -> None:
+    with pytest.raises(ValueError, match="single-use Core V3 DD research command"):
+        build_launch_spec_from_cli(
+            r"python .\tools\run_core_v3_vapor_holdup_dynamic_pressure_thirty_second_trajectory.py --execute"
+        )
+
+
+def test_build_launch_spec_from_cli_accepts_reusable_core_v3_runner(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 60.0,
+            "n_steps": 300,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "core_v3.npz"
+    _write_core_v3_checkpoint(checkpoint_path)
+
+    spec = build_launch_spec_from_cli(
+        "python tools/run_core_v3_dynamic.py --duration-sec 5 --log-every 2",
+        default_excel_path=excel_path,
+        initialization_mode="restart",
+        default_checkpoint_path=checkpoint_path,
+    )
+
+    assert spec.checkpoint_schema == "dynamic_distillation.core_v3_checkpoint.v1"
+    assert Path(spec.command[2]).name == "run_core_v3_dynamic.py"
+    assert spec.n_steps == 20
+    assert spec.command[spec.command.index("--parallel-workers") + 1] == "8"
+
+
 def test_build_launch_spec_from_cli_ignores_windows_caret_continuations(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(
         "ui.run_manager.infer_simulation_settings",
@@ -417,6 +677,34 @@ def test_active_run_status_prefers_terminal_run_metadata_over_pid_reuse(monkeypa
     assert status["is_running"] is False
     assert status["is_paused"] is False
     assert status["status"] == "stopped"
+
+
+def test_active_run_status_uses_completed_core_v3_horizon(monkeypatch, tmp_path: Path) -> None:
+    logs_dir = tmp_path / "ui_run"
+    logs_dir.mkdir()
+    (logs_dir / "run_metadata_20260820_210000.json").write_text(
+        json.dumps(
+            {
+                "status": "completed",
+                "n_steps": 240,
+                "dt_sec": 0.25,
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("ui.run_manager.is_pid_running", lambda pid: False)
+
+    status = active_run_status(
+        {
+            "pid": 1234,
+            "logs_dir": str(logs_dir),
+            "n_steps": 560,
+            "dt_sec": 0.25,
+        }
+    )
+
+    assert status["n_steps"] == 240
+    assert status["dt_sec"] == pytest.approx(0.25)
 
 
 def test_active_run_status_ignores_stale_terminal_metadata_for_new_launch(monkeypatch, tmp_path: Path) -> None:

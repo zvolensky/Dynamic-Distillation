@@ -12,6 +12,7 @@ from dynamic_distillation.thermo_clapeyron_provider_v1 import ThermoClapeyronPro
 def _install_fake_pyclapeyron(monkeypatch) -> ModuleType:
     mod = ModuleType("pyclapeyron")
     mod._tp_flash_calls = 0
+    mod._tp_flash2_calls = 0
     mod._volume_calls = 0
     mod._enthalpy_calls = 0
     mod._cp_calls = 0
@@ -37,6 +38,24 @@ def _install_fake_pyclapeyron(monkeypatch) -> ModuleType:
             np.array([[0.8, 0.2], [0.2, 0.8]], dtype=float),
             0.0,
         )
+
+    def tp_flash2(model, p, T, n):
+        _ = (model, p, T, n)
+        mod._tp_flash2_calls += 1
+
+        class FlashState:
+            compositions = np.array([[0.8, 0.2], [0.2, 0.8]], dtype=float)
+            fractions = np.array([0.5, 0.5], dtype=float)
+            volumes = np.array([1.0e-4, 2.0e-2], dtype=float)
+
+        return FlashState()
+
+    def numphases(result, active_only=False):
+        fractions = np.asarray(result.fractions, dtype=float).reshape((-1,))
+        return int(np.count_nonzero(fractions > 0.0)) if active_only else int(fractions.size)
+
+    def is_active_phase(result, index1):
+        return bool(np.asarray(result.fractions, dtype=float).reshape((-1,))[int(index1) - 1] > 0.0)
 
     def compressibility_factor(model, p, T, z, phase=None):
         _ = (model, p, T, phase)
@@ -80,6 +99,9 @@ def _install_fake_pyclapeyron(monkeypatch) -> ModuleType:
     mod.PR = PR
     mod.WalkerIdeal = WalkerIdeal
     mod.tp_flash = tp_flash
+    mod.tp_flash2 = tp_flash2
+    mod.numphases = numphases
+    mod.is_active_phase = is_active_phase
     mod.compressibility_factor = compressibility_factor
     mod.enthalpy = enthalpy
     mod.isobaric_heat_capacity = isobaric_heat_capacity
@@ -224,6 +246,103 @@ def test_clapeyron_provider_rejects_inactive_duplicate_phase_as_equilibrium_pair
 
     with pytest.raises(RuntimeError, match="one active phase.*incipient-phase K-values"):
         provider.flash_TP_equilibrium_F_psia(80.0, 200.0, composition)
+
+
+def test_clapeyron_provider_exposes_0627_inactive_k_as_diagnostic_only(monkeypatch):
+    mod = _install_fake_pyclapeyron(monkeypatch)
+    liquid = np.array([0.538735876451746, 0.4158730527654586, 0.045391070782795466])
+    inactive_vapor = np.array([0.7444131524525333, 0.2440244226481111, 0.011562424899355704])
+
+    class JuliaVectorList:
+        def __iter__(self):
+            return iter((liquid, inactive_vapor))
+
+        def __array__(self, *args, **kwargs):
+            _ = (args, kwargs)
+            raise ValueError("nested Julia vectors require row-wise conversion")
+
+    def tp_flash2(model, p, T, n):
+        _ = (model, p, T, n)
+        mod._tp_flash2_calls += 1
+
+        class FlashState:
+            compositions = JuliaVectorList()
+            fractions = np.array([1.0, 0.0], dtype=float)
+            volumes = np.array([1.0183576606635021e-4, 1.2149850484027111e-3], dtype=float)
+
+        return FlashState()
+
+    mod.tp_flash2 = tp_flash2
+    provider = ThermoClapeyronProviderV1(
+        component_names_excel=["n-Propane", "n-Butane", "n-Pentane"],
+        component_ids_dwsim=["Propane", "n-Butane", "n-Pentane"],
+        model_name="PR",
+    )
+
+    result = provider.flash_TP_K_diagnostic_F_psia(102.05, 232.14, liquid)
+    counters = provider.get_call_counters()["uncategorized"]
+
+    assert result.phase_count == 1
+    assert result.phase_slot_count == 2
+    assert result.active_phase_indices0 == (0,)
+    assert result.liquid_phase_index0 == 0
+    assert result.vapor_phase_index0 == 1
+    assert result.k_source == "clapeyron-inactive-flash-estimate"
+    assert result.k_is_equilibrium is False
+    assert result.inactive_phase_used is True
+    assert np.allclose(result.x, liquid)
+    assert np.allclose(result.y, inactive_vapor)
+    assert np.allclose(result.K, inactive_vapor / liquid)
+    assert counters["tp_flash2_active_phase_api_successes"] == 1
+    assert counters["tp_flash2_inactive_k_available"] == 1
+
+
+def test_clapeyron_provider_diagnostic_rejects_duplicate_inactive_phase(monkeypatch):
+    mod = _install_fake_pyclapeyron(monkeypatch)
+    composition = np.array([0.6, 0.3, 0.1], dtype=float)
+
+    def tp_flash2(model, p, T, n):
+        _ = (model, p, T, n)
+
+        class FlashState:
+            compositions = np.vstack([composition, composition])
+            fractions = np.array([1.0, 0.0], dtype=float)
+            volumes = np.array([1.0e-4, 1.0e-4], dtype=float)
+
+        return FlashState()
+
+    mod.tp_flash2 = tp_flash2
+    provider = ThermoClapeyronProviderV1(
+        component_names_excel=["A", "B", "C"],
+        component_ids_dwsim=["A", "B", "C"],
+    )
+
+    with pytest.raises(RuntimeError, match="no distinct retained inactive phase"):
+        provider.flash_TP_K_diagnostic_F_psia(80.0, 200.0, composition)
+
+
+def test_clapeyron_provider_diagnostic_marks_two_active_phases_as_equilibrium(monkeypatch):
+    mod = _install_fake_pyclapeyron(monkeypatch)
+    provider = ThermoClapeyronProviderV1(
+        component_names_excel=["A", "B"],
+        component_ids_dwsim=["A", "B"],
+    )
+
+    result = provider.flash_TP_K_diagnostic_F_psia(80.0, 14.7, [0.5, 0.5])
+    batch = provider.flash_TP_K_diagnostic_batch_F_psia(
+        [80.0, 90.0],
+        [14.7, 14.7],
+        [[0.5, 0.5], [0.6, 0.4]],
+    )
+
+    assert result.phase_count == 2
+    assert result.phase_slot_count == 2
+    assert result.k_source == "two-phase-equilibrium"
+    assert result.k_is_equilibrium is True
+    assert result.inactive_phase_used is False
+    assert np.allclose(result.K, [0.25, 4.0])
+    assert len(batch) == 2
+    assert all(item.k_is_equilibrium for item in batch)
 
 
 def test_clapeyron_provider_batch_flash_reuses_scalar_contract(monkeypatch):

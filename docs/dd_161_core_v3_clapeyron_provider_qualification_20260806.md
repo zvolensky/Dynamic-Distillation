@@ -47,6 +47,21 @@ be handled at the Clapeyron adapter boundary:
 
 This is an adapter compatibility update, not a Core V3 model-equation update.
 
+## Release Verification (2026-08-28)
+
+Clapeyron 0.6.27 implements the anticipated active-phase API and retained
+inactive composition behavior.  DD-275 verified the published Issue #608
+state and the original 54-call frozen campaign.  All 54 calls completed with
+zero unit-K results: 44 were explicitly labeled retained inactive-phase
+estimates and 10 were true two-active-phase equilibrium results.  Scalar and
+batch-style diagnostic calls agreed exactly.
+
+The adapter exposes this data through a diagnostic-only method.  The strict
+runtime TP-flash path continues to reject a one-active-phase state as lacking
+a physical equilibrium phase pair.  This preserves the DD-161 property
+qualification and does not expand Core V3 provider permissions.  See
+`docs/dd_275_clapeyron_0627_inactive_phase_regression_20260828.md`.
+
 ## Fixed-State Comparison
 
 The live comparison used the accepted DD-160 five-volume state and injected

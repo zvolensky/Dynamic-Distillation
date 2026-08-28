@@ -59,6 +59,13 @@ class ClapeyronFlashResult:
     cpL_BTU_lbmolF: Optional[float] = None
     cpV_BTU_lbmolF: Optional[float] = None
     phase_count: Optional[int] = None
+    phase_slot_count: Optional[int] = None
+    k_source: str = "two-phase-equilibrium"
+    k_is_equilibrium: bool = True
+    inactive_phase_used: bool = False
+    active_phase_indices0: Tuple[int, ...] = ()
+    liquid_phase_index0: Optional[int] = None
+    vapor_phase_index0: Optional[int] = None
 
 
 def _f_to_k(T_F: float) -> float:
@@ -84,7 +91,14 @@ def _normalize_comp(z: Sequence[float], n: int) -> np.ndarray:
 
 
 def _reshape_phase_rows(arr: Any, *, n_components: int) -> np.ndarray:
-    raw = np.asarray(arr, dtype=float)
+    try:
+        raw = np.asarray(arr, dtype=float)
+    except (TypeError, ValueError):
+        try:
+            rows = [np.asarray(row, dtype=float).reshape((-1,)) for row in arr]
+            raw = np.vstack(rows)
+        except Exception as exc:
+            raise ValueError("Could not convert phase compositions to numeric rows") from exc
     if raw.ndim == 1:
         if raw.size != int(n_components):
             raise ValueError("Single-phase result does not match component count")
@@ -501,6 +515,13 @@ end
             cpL_BTU_lbmolF=(None if fres.cpL_BTU_lbmolF is None else float(fres.cpL_BTU_lbmolF)),
             cpV_BTU_lbmolF=(None if fres.cpV_BTU_lbmolF is None else float(fres.cpV_BTU_lbmolF)),
             phase_count=fres.phase_count,
+            phase_slot_count=fres.phase_slot_count,
+            k_source=str(fres.k_source),
+            k_is_equilibrium=bool(fres.k_is_equilibrium),
+            inactive_phase_used=bool(fres.inactive_phase_used),
+            active_phase_indices0=tuple(int(i) for i in fres.active_phase_indices0),
+            liquid_phase_index0=fres.liquid_phase_index0,
+            vapor_phase_index0=fres.vapor_phase_index0,
         )
 
     def _flash_cache_key(self, *, T_F: float, P_psia: float, z_norm: np.ndarray) -> tuple[Any, ...]:
@@ -661,6 +682,203 @@ end
                 "incipient-phase K-values required by the dynamic model"
             )
 
+    def _tp_flash2_active_indices(
+        self,
+        flash_out: Any,
+        fractions: np.ndarray,
+    ) -> Tuple[int, ...]:
+        """Return zero-based active slots, preferring Clapeyron 0.6.27's API."""
+        frac = np.asarray(fractions, dtype=float).reshape((-1,))
+        module = self._load_module()
+        numphases_fn = getattr(module, "numphases", None)
+        is_active_fn = getattr(module, "is_active_phase", None)
+        if callable(numphases_fn) and callable(is_active_fn):
+            try:
+                active_count = int(numphases_fn(flash_out, True))
+                active = tuple(
+                    i for i in range(frac.size) if bool(is_active_fn(flash_out, int(i + 1)))
+                )
+                if len(active) == active_count and active:
+                    self._record_call_counter("tp_flash2_active_phase_api_successes", 1)
+                    return active
+            except Exception:
+                self._record_call_counter("tp_flash2_active_phase_api_failures", 1)
+
+        scale = max(1.0, float(np.sum(np.abs(frac))))
+        tol = np.finfo(float).eps * scale
+        active = tuple(int(i) for i in np.flatnonzero(np.isfinite(frac) & (frac > tol)))
+        if not active:
+            raise RuntimeError("Clapeyron tp_flash2 returned no active phase")
+        self._record_call_counter("tp_flash2_active_phase_fraction_fallbacks", 1)
+        return active
+
+    @staticmethod
+    def _distinct_inactive_phase_indices(
+        compositions: np.ndarray,
+        active_indices0: Tuple[int, ...],
+    ) -> Tuple[int, ...]:
+        comps = np.asarray(compositions, dtype=float)
+        active_set = set(int(i) for i in active_indices0)
+        inactive: list[int] = []
+        duplicate_tol = 64.0 * np.finfo(float).eps
+        for i in range(comps.shape[0]):
+            if i in active_set:
+                continue
+            comp_i = _normalize_comp(comps[i, :], comps.shape[1])
+            if all(
+                float(np.max(np.abs(comp_i - _normalize_comp(comps[j, :], comps.shape[1]))))
+                <= duplicate_tol
+                for j in active_indices0
+            ):
+                continue
+            inactive.append(int(i))
+        return tuple(inactive)
+
+    def flash_TP_K_diagnostic_F_psia(
+        self,
+        T_F: float,
+        P_psia: float,
+        z: Sequence[float],
+    ) -> ClapeyronFlashResult:
+        """Expose a two-phase K or a retained inactive-phase K estimate.
+
+        A one-active-phase result remains classified as one phase.  When
+        Clapeyron 0.6.27 retains a distinct inactive phase composition, this
+        method reports the resulting K-vector as a diagnostic estimate rather
+        than as physical two-phase equilibrium.  Runtime flash methods remain
+        strict and do not call this method implicitly.
+        """
+        z_norm = _normalize_comp(z, len(self.component_names_excel))
+        T_K = _f_to_k(float(T_F))
+        p_pa = _psia_to_pa(float(P_psia))
+        self._record_call_counter("tp_flash2_k_diagnostic_requests", 1)
+        t0 = time.perf_counter()
+        flash_out = self._call_module_fn(
+            "tp_flash2",
+            self._build_model(),
+            p_pa,
+            T_K,
+            np.asarray(z_norm, dtype=float),
+        )
+        self._record_call_counter("tp_flash2_k_diagnostic_wall_sec", float(time.perf_counter() - t0))
+
+        if not hasattr(flash_out, "compositions") or not hasattr(flash_out, "fractions"):
+            raise RuntimeError("pyclapeyron tp_flash2 did not expose compositions and fractions")
+        compositions = _reshape_phase_rows(
+            flash_out.compositions,
+            n_components=z_norm.size,
+        )
+        fractions = np.asarray(flash_out.fractions, dtype=float).reshape((-1,))
+        if fractions.size != compositions.shape[0]:
+            raise RuntimeError("Clapeyron tp_flash2 phase slots and fractions have different lengths")
+
+        active = self._tp_flash2_active_indices(flash_out, fractions)
+        active_count = len(active)
+        slot_count = int(compositions.shape[0])
+        if active_count > 2:
+            raise RuntimeError("Clapeyron diagnostic K extraction currently supports at most two active phases")
+
+        inactive = self._distinct_inactive_phase_indices(compositions, active)
+        inactive_used = False
+        if active_count == 2:
+            pair = tuple(int(i) for i in active)
+            k_source = "two-phase-equilibrium"
+            k_is_equilibrium = True
+        elif active_count == 1 and inactive:
+            active_i = int(active[0])
+            pair = (active_i, int(inactive[0]))
+            inactive_used = True
+            k_source = "clapeyron-inactive-flash-estimate"
+            k_is_equilibrium = False
+        else:
+            self._record_call_counter("tp_flash2_inactive_k_unavailable", 1)
+            raise RuntimeError(
+                "Clapeyron tp_flash2 returned one active phase but no distinct retained inactive phase"
+            )
+
+        volumes_raw = getattr(flash_out, "volumes", None)
+        volumes = None
+        if volumes_raw is not None:
+            try:
+                candidate = np.asarray(volumes_raw, dtype=float).reshape((-1,))
+                if candidate.size == slot_count and np.all(np.isfinite(candidate)) and np.all(candidate > 0.0):
+                    volumes = candidate
+            except Exception:
+                volumes = None
+
+        if volumes is not None:
+            liq_i = int(pair[int(np.argmin(volumes[list(pair)]))])
+            vap_i = int(pair[int(np.argmax(volumes[list(pair)]))])
+        else:
+            zfactors = []
+            for i in pair:
+                zfac_i = self._phase_z_factor(
+                    _normalize_comp(compositions[i, :], z_norm.size),
+                    phase_name="vapor",
+                    p_pa=p_pa,
+                    T_K=T_K,
+                )
+                zfactors.append(np.nan if zfac_i is None else float(zfac_i))
+            z_arr = np.asarray(zfactors, dtype=float)
+            if not np.all(np.isfinite(z_arr)) or abs(float(z_arr[1] - z_arr[0])) <= np.finfo(float).eps:
+                raise RuntimeError("Could not distinguish liquid-like and vapor-like tp_flash2 slots")
+            liq_i = int(pair[int(np.argmin(z_arr))])
+            vap_i = int(pair[int(np.argmax(z_arr))])
+
+        x = _normalize_comp(compositions[liq_i, :], z_norm.size)
+        y = _normalize_comp(compositions[vap_i, :], z_norm.size)
+        if np.any(x <= np.finfo(float).eps):
+            raise RuntimeError("Cannot form finite diagnostic K-values with a zero liquid mole fraction")
+        K = np.divide(y, x)
+        if np.any(~np.isfinite(K)) or np.any(K <= 0.0):
+            raise RuntimeError("Clapeyron tp_flash2 produced invalid diagnostic K-values")
+
+        if volumes is not None:
+            zfac = float(p_pa * volumes[vap_i] / (8.31446261815324 * T_K))
+        else:
+            zfac = self._phase_z_factor(y, phase_name="vapor", p_pa=p_pa, T_K=T_K)
+
+        if inactive_used:
+            self._record_call_counter("tp_flash2_inactive_k_available", 1)
+        else:
+            self._record_call_counter("tp_flash2_equilibrium_k_available", 1)
+        return ClapeyronFlashResult(
+            x=x,
+            y=y,
+            K=K,
+            HL_BTU_lbmol=float("nan"),
+            HV_BTU_lbmol=float("nan"),
+            Z=(None if zfac is None else float(zfac)),
+            phase_count=int(active_count),
+            phase_slot_count=int(slot_count),
+            k_source=k_source,
+            k_is_equilibrium=bool(k_is_equilibrium),
+            inactive_phase_used=bool(inactive_used),
+            active_phase_indices0=tuple(int(i) for i in active),
+            liquid_phase_index0=int(liq_i),
+            vapor_phase_index0=int(vap_i),
+        )
+
+    def flash_TP_K_diagnostic_batch_F_psia(
+        self,
+        T_rows_F: Sequence[float],
+        P_rows_psia: Sequence[float],
+        z_rows: Sequence[Sequence[float]],
+    ) -> list[ClapeyronFlashResult]:
+        T_list = [float(v) for v in T_rows_F]
+        P_list = [float(v) for v in P_rows_psia]
+        z_list = [list(row) for row in z_rows]
+        if not (len(T_list) == len(P_list) == len(z_list)):
+            raise ValueError(
+                "flash_TP_K_diagnostic_batch_F_psia requires equal-length T, P, and z rows"
+            )
+        self._record_call_counter("tp_flash2_k_diagnostic_batch_requests", 1)
+        self._record_call_counter("tp_flash2_k_diagnostic_batch_rows", len(T_list))
+        return [
+            self.flash_TP_K_diagnostic_F_psia(T_F, P_psia, comp)
+            for T_F, P_psia, comp in zip(T_list, P_list, z_list)
+        ]
+
     def _enrich_flash_result_with_cp(
         self,
         fres: ClapeyronFlashResult,
@@ -696,6 +914,13 @@ end
             cpL_BTU_lbmolF=cpL,
             cpV_BTU_lbmolF=cpV,
             phase_count=fres.phase_count,
+            phase_slot_count=fres.phase_slot_count,
+            k_source=str(fres.k_source),
+            k_is_equilibrium=bool(fres.k_is_equilibrium),
+            inactive_phase_used=bool(fres.inactive_phase_used),
+            active_phase_indices0=tuple(int(i) for i in fres.active_phase_indices0),
+            liquid_phase_index0=fres.liquid_phase_index0,
+            vapor_phase_index0=fres.vapor_phase_index0,
         )
 
     def _flash_impl(
@@ -762,6 +987,7 @@ end
             cpL_BTU_lbmolF=None,
             cpV_BTU_lbmolF=None,
             phase_count=int(phase_count),
+            phase_slot_count=int(phase_compositions.shape[0]),
         )
         if include_cp:
             fres = self._enrich_flash_result_with_cp(fres, p_pa=p_pa, T_K=T_K)

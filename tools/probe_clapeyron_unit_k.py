@@ -178,6 +178,53 @@ def _flash_batch(provider: ThermoClapeyronProviderV1, points: List[Dict[str, Any
     return records
 
 
+def _flash_k_diagnostic(
+    provider: ThermoClapeyronProviderV1,
+    T_F: float,
+    P_psia: float,
+    z: np.ndarray,
+) -> Dict[str, Any]:
+    fres = provider.flash_TP_K_diagnostic_F_psia(float(T_F), float(P_psia), z.tolist())
+    return {
+        "K": np.asarray(fres.K, dtype=float).reshape((-1,)),
+        "HL": math.nan,
+        "HV": math.nan,
+        "Z": math.nan if fres.Z is None else float(fres.Z),
+        "phase_count": math.nan if fres.phase_count is None else float(fres.phase_count),
+        "phase_slot_count": math.nan if fres.phase_slot_count is None else float(fres.phase_slot_count),
+        "k_source": str(fres.k_source),
+        "k_is_equilibrium": 1.0 if bool(fres.k_is_equilibrium) else 0.0,
+        "inactive_phase_used": 1.0 if bool(fres.inactive_phase_used) else 0.0,
+    }
+
+
+def _flash_k_diagnostic_batch(
+    provider: ThermoClapeyronProviderV1,
+    points: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    if not points:
+        return []
+    out = provider.flash_TP_K_diagnostic_batch_F_psia(
+        [p["T_F"] for p in points],
+        [p["P_psia"] for p in points],
+        [p["z"] for p in points],
+    )
+    return [
+        {
+            "K": np.asarray(fres.K, dtype=float).reshape((-1,)),
+            "HL": math.nan,
+            "HV": math.nan,
+            "Z": math.nan if fres.Z is None else float(fres.Z),
+            "phase_count": math.nan if fres.phase_count is None else float(fres.phase_count),
+            "phase_slot_count": math.nan if fres.phase_slot_count is None else float(fres.phase_slot_count),
+            "k_source": str(fres.k_source),
+            "k_is_equilibrium": 1.0 if bool(fres.k_is_equilibrium) else 0.0,
+            "inactive_phase_used": 1.0 if bool(fres.inactive_phase_used) else 0.0,
+        }
+        for fres in out
+    ]
+
+
 def _flash_dwsim(provider: ThermoProviderV1, T_F: float, P_psia: float, z: np.ndarray) -> Dict[str, Any]:
     out = provider.flash_TP_full_F_psia(float(T_F), float(P_psia), z.tolist())
     return {
@@ -200,6 +247,7 @@ def probe_points(
     composition_basis: str,
     compare_dwsim_pr: bool,
     prefer_quarantined: bool = True,
+    use_inactive_k_diagnostic: bool = False,
 ) -> Dict[str, Any]:
     case = load_case_from_excel(str(excel_path))
     col = build_column_spec_from_case(case)
@@ -237,6 +285,16 @@ def probe_points(
         if compare_dwsim_pr
         else None
     )
+    clapeyron_version = "unknown"
+    julia_version = "unknown"
+    try:
+        module = scalar_object_provider._load_module()
+        jl = getattr(module, "jl", None)
+        if jl is not None and callable(getattr(jl, "seval", None)):
+            clapeyron_version = str(jl.seval("string(pkgversion(Clapeyron))"))
+            julia_version = str(jl.seval("string(VERSION)"))
+    except Exception:
+        pass
 
     bases = ["x", "y", "z"] if str(composition_basis).strip().lower() == "all" else [composition_basis]
 
@@ -261,15 +319,49 @@ def probe_points(
                 }
             )
 
-    batch_results = _flash_batch(batch_provider, points)
+    if use_inactive_k_diagnostic:
+        batch_results = []
+        for point in points:
+            try:
+                batch_results.extend(_flash_k_diagnostic_batch(batch_provider, [point]))
+            except Exception as exc:
+                batch_results.append({"error": str(exc)})
+    else:
+        batch_results = _flash_batch(batch_provider, points)
     records: List[Dict[str, Any]] = []
     errors: List[Dict[str, Any]] = []
     for idx, point in enumerate(points):
         base = {k: v for k, v in point.items() if k not in {"z", "logged_K", "logged_x", "logged_y"}}
         try:
-            scalar_obj = _flash_object(scalar_object_provider, point["T_F"], point["P_psia"], np.asarray(point["z"]))
-            scalar_tuple = _flash_tuple(scalar_tuple_provider, point["T_F"], point["P_psia"], np.asarray(point["z"]))
+            if use_inactive_k_diagnostic:
+                scalar_obj = _flash_k_diagnostic(
+                    scalar_object_provider,
+                    point["T_F"],
+                    point["P_psia"],
+                    np.asarray(point["z"]),
+                )
+                scalar_tuple = _flash_k_diagnostic(
+                    scalar_tuple_provider,
+                    point["T_F"],
+                    point["P_psia"],
+                    np.asarray(point["z"]),
+                )
+            else:
+                scalar_obj = _flash_object(
+                    scalar_object_provider,
+                    point["T_F"],
+                    point["P_psia"],
+                    np.asarray(point["z"]),
+                )
+                scalar_tuple = _flash_tuple(
+                    scalar_tuple_provider,
+                    point["T_F"],
+                    point["P_psia"],
+                    np.asarray(point["z"]),
+                )
             batch = batch_results[idx]
+            if "error" in batch:
+                raise RuntimeError(f"diagnostic batch failed: {batch['error']}")
             record = dict(base)
             for comp_i, suffix in enumerate(suffixes):
                 record[f"z_{suffix}"] = float(point["z"][comp_i])
@@ -288,6 +380,10 @@ def probe_points(
                 record[f"{prefix}_HV"] = float(res["HV"])
                 record[f"{prefix}_Z"] = float(res["Z"])
                 record[f"{prefix}_max_abs_K_minus_1"] = float(np.max(np.abs(np.asarray(res["K"]) - 1.0)))
+                record[f"{prefix}_phase_slot_count"] = _finite_float(res.get("phase_slot_count"))
+                record[f"{prefix}_k_source"] = str(res.get("k_source", "runtime-flash"))
+                record[f"{prefix}_k_is_equilibrium"] = _finite_float(res.get("k_is_equilibrium"))
+                record[f"{prefix}_inactive_phase_used"] = _finite_float(res.get("inactive_phase_used"), 0.0)
             record["max_abs_batch_minus_scalar_object_K"] = float(
                 np.max(np.abs(np.asarray(batch["K"]) - np.asarray(scalar_obj["K"])))
             )
@@ -312,7 +408,10 @@ def probe_points(
     return {
         "excel_path": str(excel_path),
         "model_name": model_name,
+        "clapeyron_version": clapeyron_version,
+        "julia_version": julia_version,
         "composition_basis": composition_basis,
+        "use_inactive_k_diagnostic": bool(use_inactive_k_diagnostic),
         "components": list(col.components_excel),
         "records": records,
         "errors": errors,
@@ -327,6 +426,12 @@ def probe_points(
             if compare_dwsim_pr
             else None,
             "logged_quarantined_count": sum(1 for r in records if _finite_float(r.get("logged_quarantined"), 0.0) > 0.5),
+            "inactive_phase_k_count": sum(
+                1 for r in records if _finite_float(r.get("scalar_object_inactive_phase_used"), 0.0) > 0.5
+            ),
+            "equilibrium_k_count": sum(
+                1 for r in records if _finite_float(r.get("scalar_object_k_is_equilibrium"), 0.0) > 0.5
+            ),
             "basis_counts": {
                 basis: {
                     "records": sum(1 for r in records if r.get("composition_basis") == basis),
@@ -372,6 +477,8 @@ def write_markdown(path: Path, report: Dict[str, Any], *, profile_path: Path) ->
         "",
         f"Profile: `{profile_path}`",
         f"Excel: `{report['excel_path']}`",
+        f"Julia: `{report.get('julia_version', 'unknown')}`",
+        f"Clapeyron: `{report.get('clapeyron_version', 'unknown')}`",
         "",
         "## Summary",
         "",
@@ -418,6 +525,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--model", default="PR")
     ap.add_argument("--composition-basis", default="z", choices=["x", "y", "z", "all"])
     ap.add_argument("--compare-dwsim-pr", action="store_true")
+    ap.add_argument(
+        "--clapeyron-027-inactive-k-diagnostic",
+        action="store_true",
+        help=(
+            "Use public tp_flash2 active-phase metadata and report a retained inactive-phase "
+            "K estimate without authorizing it for runtime equilibrium."
+        ),
+    )
     ap.add_argument("--output-json", default=None)
     ap.add_argument("--output-csv", default=None)
     ap.add_argument("--output-md", default=None)
@@ -434,6 +549,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         model_name=str(args.model),
         composition_basis=str(args.composition_basis),
         compare_dwsim_pr=bool(args.compare_dwsim_pr),
+        use_inactive_k_diagnostic=bool(args.clapeyron_027_inactive_k_diagnostic),
     )
     if args.output_json:
         _resolve(args.output_json).write_text(json.dumps(report, indent=2, allow_nan=True) + "\n", encoding="utf-8")

@@ -124,7 +124,13 @@ def _write_native_checkpoint(path: Path, *, n_stages: int = 20, n_components: in
     )
 
 
-def _write_core_v3_checkpoint(path: Path, *, n_stages: int = 20, n_components: int = 3) -> None:
+def _write_core_v3_checkpoint(
+    path: Path,
+    *,
+    n_stages: int = 20,
+    n_components: int = 3,
+    dt_sec: float | None = None,
+) -> None:
     metadata = {
         "schema": "dynamic_distillation.core_v3_checkpoint.v1",
         "model_id": "core-v3-c3c4-vapor-holdup-dynamic-pressure",
@@ -132,6 +138,8 @@ def _write_core_v3_checkpoint(path: Path, *, n_stages: int = 20, n_components: i
         "n_stages": n_stages,
         "n_components": n_components,
     }
+    if dt_sec is not None:
+        metadata["dt_sec"] = dt_sec
     arrays = {
         "liquid_component_inventory_lbmol": np.ones((n_stages, n_components)),
         "vapor_component_inventory_lbmol": np.ones((n_stages, n_components)),
@@ -190,6 +198,114 @@ def test_inspect_stored_state_accepts_core_v3_checkpoint(tmp_path: Path) -> None
     assert info["kind"] == "core-v3-checkpoint"
     assert info["n_stages"] == 20
     assert info["n_components"] == 3
+
+
+def test_build_launch_spec_inherits_core_v3_checkpoint_timestep(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 60.0,
+            "n_steps": 300,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "core_v3_dt05.npz"
+    _write_core_v3_checkpoint(checkpoint_path, dt_sec=0.5)
+
+    spec = build_launch_spec(
+        excel_path=excel_path,
+        initialization_mode="restart",
+        checkpoint_path=checkpoint_path,
+        run_name="Inherited timestep",
+        run_description="",
+        core_v3_duration_sec=5.0,
+    )
+
+    assert spec.dt_sec == pytest.approx(0.5)
+    assert spec.n_steps == 10
+    assert spec.command[spec.command.index("--dt") + 1] == "0.5"
+
+
+def test_build_launch_spec_allows_validated_core_v3_timestep_override(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 60.0,
+            "n_steps": 300,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "core_v3_dt05.npz"
+    _write_core_v3_checkpoint(checkpoint_path, dt_sec=0.5)
+
+    spec = build_launch_spec(
+        excel_path=excel_path,
+        initialization_mode="restart",
+        checkpoint_path=checkpoint_path,
+        run_name="Overridden timestep",
+        run_description="",
+        core_v3_duration_sec=5.0,
+        core_v3_timestep_sec=0.25,
+    )
+
+    assert spec.dt_sec == pytest.approx(0.25)
+    assert spec.n_steps == 20
+
+
+def test_build_launch_spec_rejects_unvalidated_core_v3_timestep(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 60.0,
+            "n_steps": 300,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "core_v3.npz"
+    _write_core_v3_checkpoint(checkpoint_path)
+
+    with pytest.raises(ValueError, match="validated values: 0.25, 0.5 s"):
+        build_launch_spec(
+            excel_path=excel_path,
+            initialization_mode="restart",
+            checkpoint_path=checkpoint_path,
+            run_name="Invalid timestep",
+            run_description="",
+            core_v3_timestep_sec=0.75,
+        )
+
+
+def test_inspect_stored_state_rejects_unvalidated_core_v3_checkpoint_timestep(
+    tmp_path: Path,
+) -> None:
+    checkpoint_path = tmp_path / "core_v3_invalid_dt.npz"
+    _write_core_v3_checkpoint(checkpoint_path, dt_sec=0.75)
+
+    info = inspect_stored_state(checkpoint_path)
+
+    assert info["compatible"] is False
+    assert "validated values: 0.25, 0.5 s" in info["reason"]
 
 
 def test_build_launch_spec_restart_adds_native_checkpoint(monkeypatch, tmp_path: Path) -> None:
@@ -522,6 +638,37 @@ def test_build_launch_spec_from_cli_accepts_reusable_core_v3_runner(monkeypatch,
     assert Path(spec.command[2]).name == "run_core_v3_dynamic.py"
     assert spec.n_steps == 20
     assert spec.command[spec.command.index("--parallel-workers") + 1] == "8"
+
+
+def test_build_launch_spec_from_cli_inherits_core_v3_checkpoint_timestep(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 60.0,
+            "n_steps": 300,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "core_v3_dt05.npz"
+    _write_core_v3_checkpoint(checkpoint_path, dt_sec=0.5)
+
+    spec = build_launch_spec_from_cli(
+        "python tools/run_core_v3_dynamic.py --duration-sec 5",
+        default_excel_path=excel_path,
+        initialization_mode="restart",
+        default_checkpoint_path=checkpoint_path,
+    )
+
+    assert spec.dt_sec == pytest.approx(0.5)
+    assert spec.n_steps == 10
+    assert spec.command[spec.command.index("--dt") + 1] == "0.5"
 
 
 def test_build_launch_spec_from_cli_ignores_windows_caret_continuations(monkeypatch, tmp_path: Path) -> None:

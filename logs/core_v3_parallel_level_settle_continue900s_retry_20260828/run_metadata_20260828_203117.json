@@ -1,0 +1,133 @@
+{
+  "schema": "dynamic_distillation.core_v3_run_metadata.v1",
+  "status": "completed",
+  "run_id": "20260828_203117",
+  "run_name": "core_v3_parallel_level_settle_continue900s_retry",
+  "run_description": "Restartable fifteen-minute continuation completing the bounded 45-minute level-controller settling window",
+  "started_from_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_recovery_checkpoint_smoke_20260828\\core_v3_checkpoint_20260828_202953.npz",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "source_final_time_s": 2461.25,
+  "duration_sec": 900.0,
+  "final_time_s": 3361.25,
+  "dt_sec": 0.25,
+  "n_steps": 3600,
+  "wall_elapsed_s": 3149.013757499997,
+  "started_at_local": "2026-08-28 20:31:17",
+  "ended_at_local": "2026-08-28 21:23:46",
+  "simulation_wall_ratio": 0.285803768832852,
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_parallel_level_settle_continue900s_retry_20260828\\core_v3_checkpoint_20260828_203117.npz",
+  "recovery_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_parallel_level_settle_continue900s_retry_20260828\\core_v3_recovery_checkpoint_20260828_203117.npz",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_parallel_level_settle_continue900s_retry_20260828\\column_summary_20260828_203117.csv",
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_parallel_level_settle_continue900s_retry_20260828\\column_profile_20260828_203117.csv",
+  "performance": {
+    "jacobian_execution": "persistent_parallel",
+    "parallel_workers": 8,
+    "endpoint_wall_total_s": 3140.2342483000393,
+    "endpoint_wall_mean_s": 0.8722872911944554,
+    "endpoint_wall_median_s": 0.8626019999937853,
+    "endpoint_wall_p95_s": 1.008417935003672,
+    "endpoint_wall_max_s": 9.094358400005149,
+    "objective_calls_total": 139486,
+    "jacobian_builds_total": 3600,
+    "memo_hits_total": 356160,
+    "memo_misses_total": 2432440,
+    "memo_hit_fraction": 0.12772000286882307,
+    "memoization_final": {
+      "enabled": true,
+      "hits": 356160,
+      "misses": 2432440,
+      "families": {
+        "fugacity": {
+          "hits": 142347,
+          "misses": 973093,
+          "entries": 2341
+        },
+        "enthalpy": {
+          "hits": 142347,
+          "misses": 973093,
+          "entries": 2341
+        },
+        "density": {
+          "hits": 0,
+          "misses": 0,
+          "entries": 0
+        },
+        "vapor_z": {
+          "hits": 71466,
+          "misses": 486254,
+          "entries": 2926
+        }
+      }
+    },
+    "provider_call_counters": {
+      "uncategorized": {
+        "fugacity_requests": 1115440,
+        "wall_sec": 436.5747590040555
+      }
+    }
+  },
+  "final_endpoint": {
+    "scipy_success": true,
+    "scipy_status": 3,
+    "nfev": 7,
+    "njev": 6,
+    "function_calls_observed": 39,
+    "main_process_function_calls": 7,
+    "parallel_jacobian_evaluations": 32,
+    "jacobian_build_count": 1,
+    "color_count": 16,
+    "scaled_residual_inf_norm": 8.272582659842358e-13,
+    "controller_residual_inf_norm": 2.6036030970066903e-15,
+    "jacobian_rank": 262,
+    "jacobian_condition": 15311177.97872695,
+    "physical_pass": true,
+    "controller_memory_recurrence_error": 6.810144895924575e-18,
+    "fixed_duty_relative_error": 0.0,
+    "condenser_duty_BTUph": -50894825.691564746,
+    "reflux_drum_pressure_psia": 222.66824888789228,
+    "top_tray_pressure_psia": 222.7155540401568,
+    "bottom_pressure_psia": 223.77857853567687,
+    "top_tray_minus_drum_pressure_psia": 0.047305152264527806,
+    "level_fraction": [
+      0.5456700688189596,
+      0.4999581405081847
+    ],
+    "controller_memory_endpoint": [
+      -0.15258442842342634,
+      0.001607354085802751
+    ],
+    "controller_rate_per_sec": [
+      0.00019029195341233092,
+      -2.7906327877075716e-06
+    ],
+    "product_log_ratio": [
+      -0.12974939401394664,
+      0.0012724781512778423
+    ],
+    "distillate_lbmolph": 2213.14755218342,
+    "bottoms_lbmolph": 4629.096976556412,
+    "parallel_worker_ids": [
+      109448,
+      114444,
+      116380,
+      116928,
+      117012,
+      117044,
+      117360,
+      117460
+    ],
+    "root_wall_s": 0.9692783999926178,
+    "memo_hits_delta": 100,
+    "memo_misses_delta": 700,
+    "memo_hit_fraction": 0.125
+  },
+  "final_steady_state": {
+    "steady_state_score": 4.299410451995577,
+    "steady_state_flag": 0.0,
+    "ss_max_rel_state_rate_per_s": 6.409283995719948e-05,
+    "ss_max_temp_rate_F_per_s": 0.0001756907778845592,
+    "ss_max_kpi_slope_per_s": 3.4631214566038795e-07,
+    "ss_max_mv_rate_per_s": 0.4407498104240555,
+    "ss_global_inventory_rate_frac_feed": 0.04299410451995577
+  }
+}

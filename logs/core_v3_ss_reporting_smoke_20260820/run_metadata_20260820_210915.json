@@ -1,0 +1,69 @@
+{
+  "schema": "dynamic_distillation.core_v3_run_metadata.v1",
+  "status": "completed",
+  "run_id": "20260820_210915",
+  "run_name": "core_v3_ss_reporting_smoke",
+  "run_description": "",
+  "started_from_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_checkpoints\\dd274_endpoint_core_v3_checkpoint.npz",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "source_final_time_s": 60.0,
+  "duration_sec": 0.5,
+  "final_time_s": 60.5,
+  "dt_sec": 0.25,
+  "n_steps": 2,
+  "wall_elapsed_s": 3.813139600038994,
+  "started_at_local": "2026-08-20 21:09:15",
+  "ended_at_local": "2026-08-20 21:09:19",
+  "simulation_wall_ratio": 0.1311255428452939,
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_ss_reporting_smoke_20260820\\core_v3_ss_reporting_smoke_core_v3_checkpoint_20260820_210915.npz",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_ss_reporting_smoke_20260820\\column_summary_20260820_210915.csv",
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_ss_reporting_smoke_20260820\\column_profile_20260820_210915.csv",
+  "final_endpoint": {
+    "scipy_success": true,
+    "scipy_status": 3,
+    "nfev": 11,
+    "njev": 9,
+    "function_calls_observed": 43,
+    "jacobian_build_count": 1,
+    "color_count": 16,
+    "scaled_residual_inf_norm": 4.693214772968141e-13,
+    "controller_residual_inf_norm": 1.2490009027033011e-15,
+    "jacobian_rank": 262,
+    "jacobian_condition": 10660990.492903665,
+    "physical_pass": true,
+    "controller_memory_recurrence_error": 7.047314121155779e-19,
+    "fixed_duty_relative_error": 0.0,
+    "condenser_duty_BTUph": -50894825.691564746,
+    "reflux_drum_pressure_psia": 220.4329086631712,
+    "top_tray_pressure_psia": 220.48044654929586,
+    "bottom_pressure_psia": 221.545377660885,
+    "top_tray_minus_drum_pressure_psia": 0.04753788612467247,
+    "level_fraction": [
+      0.4407956904027282,
+      0.5211586543410957
+    ],
+    "controller_memory_endpoint": [
+      0.014683038152202623,
+      -0.0955046749523177
+    ],
+    "controller_rate_per_sec": [
+      -0.00024668462332196517,
+      0.0014105769560730536
+    ],
+    "product_log_ratio": [
+      -0.014919116646433195,
+      0.07376455977644876
+    ],
+    "distillate_lbmolph": 2482.4500885014286,
+    "bottoms_lbmolph": 4977.132356931531
+  },
+  "final_steady_state": {
+    "steady_state_score": 4.43244572114729,
+    "steady_state_flag": 0.0,
+    "ss_max_rel_state_rate_per_s": 0.00012632013670935092,
+    "ss_max_temp_rate_F_per_s": 0.0010543480530031957,
+    "ss_max_kpi_slope_per_s": 2.692398100023752e-07,
+    "ss_max_mv_rate_per_s": 4.391068878941951,
+    "ss_global_inventory_rate_frac_feed": 0.0443244572114729
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "schema_id": "dd276-clapeyron-0627-runtime-efficiency-v1",
+  "date": "2026-08-28",
+  "classification": "current_dynamic_path_slower_but_persistent_batch_candidate_is_promising",
+  "decision": "retain_dwsim_runtime_authority_and_integrate_one_static_batched_residual_benchmark",
+  "current_warm_property_packet_replay": {
+    "source": "logs/dd276_clapeyron_0627_runtime_probe_r2_20260828.json",
+    "packet_count": 50,
+    "calls_per_packet": 28,
+    "dwsim_seconds": 0.5443243000045186,
+    "clapeyron_seconds": 0.07041329999628942,
+    "speedup": 7.730418827596532,
+    "parameter_aligned_incremental_clapeyron_startup_seconds": 12.53785760000028,
+    "estimated_break_even_packets": 1322.8071937328496,
+    "estimated_break_even_property_calls": 37038.60142451979
+  },
+  "current_frozen_54_state_replay": {
+    "campaign_repetitions": 10,
+    "calls": 540,
+    "dwsim_full_flash_seconds": 0.7886739000023226,
+    "clapeyron_diagnostic_k_seconds": 0.3701855999970576,
+    "dwsim_over_clapeyron_ratio": 2.1304823850754633,
+    "comparable_bundle": {
+      "dwsim_full_flash_k_hl_hv_z_seconds": 0.7826965999993263,
+      "clapeyron_diagnostic_k_plus_forced_hl_hv_z_seconds": 0.46154530000058,
+      "dwsim_over_clapeyron_ratio": 1.6958175069670143
+    },
+    "qualification": "timing-only",
+    "reason": "44 of 54 Clapeyron K vectors are retained inactive-phase estimates, not equilibrium K values"
+  },
+  "dd274_persistent_fugacity_batch": {
+    "captured_profile_volumes": 20,
+    "rows_per_batch": 40,
+    "calls_per_trial": 4000,
+    "trials": 3,
+    "dwsim_scalar_median_seconds": 2.979305900000327,
+    "clapeyron_scalar_median_seconds": 0.379574099999445,
+    "clapeyron_batch_median_seconds": 0.09879000000364613,
+    "clapeyron_batch_speedup_vs_dwsim": 30.157970441242707,
+    "clapeyron_batch_speedup_vs_clapeyron_scalar": 3.842232007140761,
+    "batch_vs_scalar_max_abs_difference": 0.0,
+    "clapeyron_vs_dwsim_max_abs_difference": 0.00006376702348942498,
+    "dd274_fugacity_logical_call_fraction": 0.3333333333333333,
+    "runtime_integration_status": "not integrated; Core V3 residual remains scalar"
+  },
+  "historical_evidence": {
+    "dd161_warm_property_packet_speedup": 9.239694694077492,
+    "dd162_hybrid_residual_jacobian_speedup": 1.394886,
+    "dd164_hybrid_matrix_speedup": 1.101286,
+    "dd158_dwsim_trajectory_seconds": 5.337739799986593,
+    "dd166_hybrid_trajectory_seconds": 10.074768199992832,
+    "hybrid_over_dwsim_trajectory_wall_ratio": 1.8874595947929376,
+    "dd158_dwsim_pool_startup_seconds": 6.323153000004822,
+    "dd166_hybrid_pool_startup_seconds": 28.7917679999955,
+    "hybrid_over_dwsim_pool_startup_ratio": 4.553387843054492,
+    "dd158_dwsim_total_seconds": 21.950153699988732,
+    "dd166_hybrid_total_seconds": 47.92631640000036,
+    "hybrid_over_dwsim_total_wall_ratio": 2.1834159821862644
+  },
+  "scientific_limits": {
+    "max_liquid_density_relative_difference": 0.07444671159845714,
+    "max_latent_enthalpy_difference_btu_lbmol": 172.94648620184216,
+    "max_frozen_54_state_k_absolute_difference": 0.0416124,
+    "max_frozen_54_state_k_log_ratio_difference": 0.15461,
+    "runtime_authority_changed": false
+  },
+  "notes": [
+    "The first fresh-process replay triggered Julia package provisioning and precompilation; its startup timing was excluded.",
+    "The 54-state K-only comparison is not property-identical because the DWSIM full flash also returns enthalpies; the comparable bundle adds forced Clapeyron liquid and vapor enthalpies.",
+    "Break-even is an arithmetic estimate for the current parameter-aligned single-process packet and is not an end-to-end dynamic projection."
+  ]
+}

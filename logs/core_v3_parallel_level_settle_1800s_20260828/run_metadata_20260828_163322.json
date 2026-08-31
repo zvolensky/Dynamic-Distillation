@@ -1,0 +1,132 @@
+{
+  "schema": "dynamic_distillation.core_v3_run_metadata.v1",
+  "status": "completed",
+  "run_id": "20260828_163322",
+  "run_name": "core_v3_parallel_level_settle_1800s",
+  "run_description": "Thirty-minute level-controller settling test after controller sign and integral-state audit",
+  "started_from_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_parallel_300s_test_20260821\\core_v3_checkpoint_20260821_100827.npz",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "source_final_time_s": 661.0,
+  "duration_sec": 1800.0,
+  "final_time_s": 2461.0,
+  "dt_sec": 0.25,
+  "n_steps": 7200,
+  "wall_elapsed_s": 5879.569194700001,
+  "started_at_local": "2026-08-28 16:33:22",
+  "ended_at_local": "2026-08-28 18:11:22",
+  "simulation_wall_ratio": 0.3061448790538204,
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_parallel_level_settle_1800s_20260828\\core_v3_checkpoint_20260828_163322.npz",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_parallel_level_settle_1800s_20260828\\column_summary_20260828_163322.csv",
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_parallel_level_settle_1800s_20260828\\column_profile_20260828_163322.csv",
+  "performance": {
+    "jacobian_execution": "persistent_parallel",
+    "parallel_workers": 8,
+    "endpoint_wall_total_s": 5869.998624799169,
+    "endpoint_wall_mean_s": 0.8152775867776624,
+    "endpoint_wall_median_s": 0.7930158500093967,
+    "endpoint_wall_p95_s": 0.9511736999927961,
+    "endpoint_wall_max_s": 9.583220000000438,
+    "objective_calls_total": 276005,
+    "jacobian_builds_total": 7200,
+    "memo_hits_total": 711892,
+    "memo_misses_total": 4568608,
+    "memo_hit_fraction": 0.13481526370608843,
+    "memoization_final": {
+      "enabled": true,
+      "hits": 711892,
+      "misses": 4568608,
+      "families": {
+        "fugacity": {
+          "hits": 284384,
+          "misses": 1827816,
+          "entries": 1000
+        },
+        "enthalpy": {
+          "hits": 284384,
+          "misses": 1827816,
+          "entries": 1000
+        },
+        "density": {
+          "hits": 0,
+          "misses": 0,
+          "entries": 0
+        },
+        "vapor_z": {
+          "hits": 143124,
+          "misses": 912976,
+          "entries": 3664
+        }
+      }
+    },
+    "provider_call_counters": {
+      "uncategorized": {
+        "fugacity_requests": 2112200,
+        "wall_sec": 804.8870693971548
+      }
+    }
+  },
+  "final_endpoint": {
+    "scipy_success": true,
+    "scipy_status": 3,
+    "nfev": 6,
+    "njev": 5,
+    "function_calls_observed": 38,
+    "main_process_function_calls": 6,
+    "parallel_jacobian_evaluations": 32,
+    "jacobian_build_count": 1,
+    "color_count": 16,
+    "scaled_residual_inf_norm": 2.6557146870963113e-12,
+    "controller_residual_inf_norm": 5.846831265671204e-16,
+    "jacobian_rank": 262,
+    "jacobian_condition": 14031880.89826944,
+    "physical_pass": true,
+    "controller_memory_recurrence_error": 8.517763317589244e-18,
+    "fixed_duty_relative_error": 0.0,
+    "condenser_duty_BTUph": -50894825.691564746,
+    "reflux_drum_pressure_psia": 222.4317297292382,
+    "top_tray_pressure_psia": 222.4789851116786,
+    "bottom_pressure_psia": 223.54130515122407,
+    "top_tray_minus_drum_pressure_psia": 0.0472553824403974,
+    "level_fraction": [
+      0.5168716402281447,
+      0.49997243461349505
+    ],
+    "controller_memory_endpoint": [
+      -0.2752326935011752,
+      0.0036340498285867685
+    ],
+    "controller_rate_per_sec": [
+      7.029850095060443e-05,
+      -1.8376924336582164e-06
+    ],
+    "product_log_ratio": [
+      -0.2667968733871027,
+      0.0034135267365477825
+    ],
+    "distillate_lbmolph": 1929.7071480802406,
+    "bottoms_lbmolph": 4639.018715761814,
+    "parallel_worker_ids": [
+      82848,
+      95960,
+      97836,
+      98476,
+      99036,
+      99300,
+      99852,
+      100232
+    ],
+    "root_wall_s": 0.7542806999990717,
+    "memo_hits_delta": 100,
+    "memo_misses_delta": 600,
+    "memo_hit_fraction": 0.14285714285714285
+  },
+  "final_steady_state": {
+    "steady_state_score": 8.073228179182552,
+    "steady_state_flag": 0.0,
+    "ss_max_rel_state_rate_per_s": 0.00010625230358794267,
+    "ss_max_temp_rate_F_per_s": 0.0002508796923535783,
+    "ss_max_kpi_slope_per_s": 4.519027940880216e-07,
+    "ss_max_mv_rate_per_s": 0.16940783736622506,
+    "ss_global_inventory_rate_frac_feed": 0.08073228179182552
+  }
+}

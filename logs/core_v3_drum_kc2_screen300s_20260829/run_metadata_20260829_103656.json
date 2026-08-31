@@ -1,0 +1,143 @@
+{
+  "schema": "dynamic_distillation.core_v3_run_metadata.v1",
+  "status": "completed",
+  "run_id": "20260829_103656",
+  "run_name": "core_v3_drum_kc2_screen300s",
+  "run_description": "Five-minute bounded screen of bumpless drum level-controller Kc 2.0 with Ti 120 s",
+  "controller_tuning": {
+    "drum_kc": 2.0,
+    "drum_ti_sec": 120.0,
+    "sump_kc": 8.0,
+    "sump_ti_sec": 120.0,
+    "source_drum_kc": 2.0,
+    "source_drum_ti_sec": 120.0,
+    "bumpless_memory_adjustment": false,
+    "bumpless_level_fraction": null
+  },
+  "started_from_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_drum_kc2_bumpless_smoke_serial_20260829\\core_v3_checkpoint_20260829_103625.npz",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "source_final_time_s": 5491.5,
+  "duration_sec": 300.0,
+  "final_time_s": 5791.5,
+  "dt_sec": 0.25,
+  "n_steps": 1200,
+  "wall_elapsed_s": 1236.6460671000095,
+  "started_at_local": "2026-08-29 10:36:56",
+  "ended_at_local": "2026-08-29 10:57:33",
+  "simulation_wall_ratio": 0.24259164200757413,
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_drum_kc2_screen300s_20260829\\core_v3_checkpoint_20260829_103656.npz",
+  "recovery_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_drum_kc2_screen300s_20260829\\core_v3_recovery_checkpoint_20260829_103656.npz",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_drum_kc2_screen300s_20260829\\column_summary_20260829_103656.csv",
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_drum_kc2_screen300s_20260829\\column_profile_20260829_103656.csv",
+  "performance": {
+    "jacobian_execution": "persistent_parallel",
+    "parallel_workers": 8,
+    "endpoint_wall_total_s": 1229.3268835998751,
+    "endpoint_wall_mean_s": 1.0244390696665626,
+    "endpoint_wall_median_s": 0.7956731499943999,
+    "endpoint_wall_p95_s": 2.061410640008398,
+    "endpoint_wall_max_s": 11.39901939999254,
+    "objective_calls_total": 46981,
+    "jacobian_builds_total": 1200,
+    "memo_hits_total": 117996,
+    "memo_misses_total": 860104,
+    "memo_hit_fraction": 0.12063797157754831,
+    "memoization_final": {
+      "enabled": true,
+      "hits": 117996,
+      "misses": 860104,
+      "families": {
+        "fugacity": {
+          "hits": 47048,
+          "misses": 344192,
+          "entries": 128
+        },
+        "enthalpy": {
+          "hits": 47048,
+          "misses": 344192,
+          "entries": 128
+        },
+        "density": {
+          "hits": 0,
+          "misses": 0,
+          "entries": 0
+        },
+        "vapor_z": {
+          "hits": 23900,
+          "misses": 171720,
+          "entries": 3784
+        }
+      }
+    },
+    "provider_call_counters": {
+      "uncategorized": {
+        "fugacity_requests": 391240,
+        "wall_sec": 182.04243930245866
+      }
+    }
+  },
+  "final_endpoint": {
+    "scipy_success": true,
+    "scipy_status": 3,
+    "nfev": 6,
+    "njev": 5,
+    "function_calls_observed": 38,
+    "main_process_function_calls": 6,
+    "parallel_jacobian_evaluations": 32,
+    "jacobian_build_count": 1,
+    "color_count": 16,
+    "scaled_residual_inf_norm": 5.319022140402518e-13,
+    "controller_residual_inf_norm": 1.706534219492184e-15,
+    "jacobian_rank": 262,
+    "jacobian_condition": 13011647.990959693,
+    "physical_pass": true,
+    "controller_memory_recurrence_error": 4.663551649345364e-18,
+    "fixed_duty_relative_error": 2.220446049250313e-16,
+    "condenser_duty_BTUph": -50894825.69156475,
+    "reflux_drum_pressure_psia": 220.63787427798158,
+    "top_tray_pressure_psia": 220.6856543290033,
+    "bottom_pressure_psia": 221.75491874131293,
+    "top_tray_minus_drum_pressure_psia": 0.047780051021732106,
+    "level_fraction": [
+      0.4999122646430412,
+      0.5000082584286941
+    ],
+    "controller_memory_endpoint": [
+      0.2333160921759053,
+      -0.0034103110901090522
+    ],
+    "controller_rate_per_sec": [
+      -1.4622559493062657e-06,
+      5.505619129554855e-07
+    ],
+    "product_log_ratio": [
+      0.23314062146198855,
+      -0.003344243660554394
+    ],
+    "distillate_lbmolph": 3181.350364262634,
+    "bottoms_lbmolph": 4607.7749803098495,
+    "parallel_worker_ids": [
+      152996,
+      162360,
+      162380,
+      162412,
+      163832,
+      163876,
+      163960,
+      164520
+    ],
+    "root_wall_s": 0.6722138999903109,
+    "memo_hits_delta": 100,
+    "memo_misses_delta": 600,
+    "memo_hit_fraction": 0.14285714285714285
+  },
+  "final_steady_state": {
+    "steady_state_score": 9.100344292703197,
+    "steady_state_flag": 0.0,
+    "ss_max_rel_state_rate_per_s": 0.00011944972626298257,
+    "ss_max_temp_rate_F_per_s": 0.00033958513610343743,
+    "ss_max_kpi_slope_per_s": 1.4483137359337186e-06,
+    "ss_max_mv_rate_per_s": 0.25653488257688273,
+    "ss_global_inventory_rate_frac_feed": 0.09100344292703197
+  }
+}

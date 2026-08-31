@@ -55,6 +55,7 @@ class PersistentParallelColoredJacobian:
         self._worker_count = int(worker_count)
         self._require_all_workers = bool(require_all_workers)
         self._seen_roots: set[str] = set()
+        self._worker_root_pairs: set[tuple[int, str]] = set()
         self._evidence: list[PersistentParallelJacobianEvidence] = []
 
     @property
@@ -106,7 +107,8 @@ class PersistentParallelColoredJacobian:
         if self._require_all_workers and len(worker_ids) != self._worker_count:
             raise RuntimeError("parallel Jacobian did not use every configured worker")
         rebuilds = int(sum(bool(item["basis_rebuilt"]) for item in raw))
-        expected_rebuilds = 0 if epoch in self._seen_roots else self._worker_count
+        current_pairs = {(worker_id, epoch) for worker_id in worker_ids}
+        expected_rebuilds = len(current_pairs - self._worker_root_pairs)
         if rebuilds != expected_rebuilds:
             raise RuntimeError(
                 "parallel Jacobian worker basis rebuild count is inconsistent"
@@ -128,6 +130,7 @@ class PersistentParallelColoredJacobian:
             step=self._step,
         )
         self._seen_roots.add(epoch)
+        self._worker_root_pairs.update(current_pairs)
         self._evidence.append(
             PersistentParallelJacobianEvidence(
                 method=method_name,

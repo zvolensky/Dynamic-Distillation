@@ -32,7 +32,8 @@ SRC_DIR = PROJECT_ROOT / "src"
 NATIVE_CHECKPOINT_SCHEMA = "dynamic_distillation.native_checkpoint.v1"
 CORE_V3_CHECKPOINT_SCHEMA = "dynamic_distillation.core_v3_checkpoint.v1"
 CORE_V3_RUNNER_SCRIPT = PROJECT_ROOT / "tools" / "run_core_v3_dynamic.py"
-CORE_V3_TIMESTEP_SEC = 0.25
+CORE_V3_DEFAULT_TIMESTEP_SEC = 0.25
+CORE_V3_VALIDATED_TIMESTEPS_SEC = (0.25, 0.5)
 
 
 @dataclass(frozen=True)
@@ -152,6 +153,7 @@ def inspect_stored_state(path: Path) -> Dict[str, Any]:
         "model_id": str(metadata.get("model_id") or ""),
         "workbook_sha256": str(metadata.get("workbook_sha256") or ""),
         "final_time_s": metadata.get("final_time_s"),
+        "dt_sec": metadata.get("dt_sec"),
         "n_stages": n_stages,
         "n_components": n_components,
         "compatible": False,
@@ -179,6 +181,12 @@ def inspect_stored_state(path: Path) -> Dict[str, Any]:
         info["compatible"] = not missing
         if missing:
             info["reason"] = "Core V3 checkpoint is missing: " + ", ".join(missing)
+        elif metadata.get("dt_sec") is not None:
+            try:
+                info["dt_sec"] = _validated_core_v3_timestep_sec(metadata["dt_sec"])
+            except (TypeError, ValueError) as exc:
+                info["compatible"] = False
+                info["reason"] = str(exc)
         return info
 
     if (
@@ -218,6 +226,15 @@ def validate_stored_state(path: Path, *, settings: Optional[Dict[str, Any]] = No
         if checkpoint_hash and workbook_hash and checkpoint_hash != workbook_hash:
             raise ValueError("Stored state was created from a different Excel workbook.")
     return info
+
+
+def _validated_core_v3_timestep_sec(value: float) -> float:
+    timestep = float(value)
+    for validated in CORE_V3_VALIDATED_TIMESTEPS_SEC:
+        if abs(timestep - validated) <= 1.0e-12:
+            return float(validated)
+    choices = ", ".join(f"{item:g}" for item in CORE_V3_VALIDATED_TIMESTEPS_SEC)
+    raise ValueError(f"Core V3 timestep must be one of the validated values: {choices} s")
 
 
 def _file_sha256(path: Path) -> str:
@@ -432,6 +449,7 @@ def build_launch_spec(
     include_energy_override: Optional[bool] = None,
     integrator: Optional[str] = None,
     core_v3_duration_sec: float = 30.0,
+    core_v3_timestep_sec: Optional[float] = None,
     core_v3_log_every_n_steps: int = 4,
     core_v3_parallel_workers: int = 8,
 ) -> SimulationLaunchSpec:
@@ -452,11 +470,23 @@ def build_launch_spec(
     run_description_clean = str(run_description or "").strip()
     run_logs_dir = logs_dir or make_run_directory(run_name_clean)
     if checkpoint_info.get("schema") == CORE_V3_CHECKPOINT_SCHEMA:
+        checkpoint_timestep = checkpoint_info.get("dt_sec")
+        timestep = _validated_core_v3_timestep_sec(
+            core_v3_timestep_sec
+            if core_v3_timestep_sec is not None
+            else (
+                checkpoint_timestep
+                if checkpoint_timestep is not None
+                else CORE_V3_DEFAULT_TIMESTEP_SEC
+            )
+        )
         duration = float(core_v3_duration_sec)
-        steps_float = duration / CORE_V3_TIMESTEP_SEC
+        steps_float = duration / timestep
         n_steps = int(round(steps_float))
         if n_steps < 1 or abs(steps_float - n_steps) > 1.0e-9:
-            raise ValueError("Core V3 duration must be a positive multiple of 0.25 seconds.")
+            raise ValueError(
+                f"Core V3 duration must be a positive multiple of {timestep:g} seconds."
+            )
         log_every = max(int(core_v3_log_every_n_steps), 1)
         parallel_workers = int(core_v3_parallel_workers)
         if parallel_workers < 1:
@@ -472,7 +502,7 @@ def build_launch_spec(
             "--duration-sec",
             str(duration),
             "--dt",
-            str(CORE_V3_TIMESTEP_SEC),
+            str(timestep),
             "--log-every",
             str(log_every),
             "--logs-dir",
@@ -493,7 +523,7 @@ def build_launch_spec(
             run_description=run_description_clean,
             logs_dir=run_logs_dir,
             n_steps=n_steps,
-            dt_sec=CORE_V3_TIMESTEP_SEC,
+            dt_sec=timestep,
             log_every_n_steps=log_every,
             runtime_mode="core-v3",
             thermo_mode="dwsim",
@@ -636,9 +666,7 @@ def build_launch_spec_from_cli(
         dt_text = _find_last_option_value(raw_argv, "--dt")
         log_every_text = _find_last_option_value(raw_argv, "--log-every")
         duration = float(duration_text) if duration_text is not None else 30.0
-        timestep = float(dt_text) if dt_text is not None else CORE_V3_TIMESTEP_SEC
-        if abs(timestep - CORE_V3_TIMESTEP_SEC) > 1.0e-12:
-            raise ValueError("The accepted Core V3 timestep is fixed at 0.25 seconds.")
+        timestep = float(dt_text) if dt_text is not None else None
         log_every = int(float(log_every_text)) if log_every_text is not None else 4
         logs_text = _find_last_option_value(raw_argv, "--logs-dir")
         logs_dir = _resolve_cli_path(logs_text) if logs_text else None
@@ -654,6 +682,7 @@ def build_launch_spec_from_cli(
             run_description=run_description,
             logs_dir=logs_dir,
             core_v3_duration_sec=duration,
+            core_v3_timestep_sec=timestep,
             core_v3_log_every_n_steps=log_every,
             core_v3_parallel_workers=parallel_workers,
         )

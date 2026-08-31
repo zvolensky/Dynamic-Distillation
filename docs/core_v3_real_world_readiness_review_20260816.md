@@ -1,95 +1,105 @@
 # Core V3 Real-World Readiness Review
 
-Date: 2026-08-16
+Date: 2026-08-29
 
 ## Executive summary
 
-Core V3 is a strong reduced-order dynamic distillation model with disciplined numerical auditing, but it is not yet sufficiently rigorous for real-world dynamic simulation in the plant-engineering sense.
+This review supersedes the earlier 2026-08-16 assessment. The project has advanced beyond the earlier reduced-order feasibility posture into a physically explicit vapor-holdup formulation with accepted stationary and dynamic evidence for a 20-volume C3/C4 hydrocarbon column.
 
-The project documentation repeatedly treats Core V3 as a bounded feasibility layer rather than a complete dynamic model. It shows strong solver discipline, provider ownership, and conservation checks, but it does not yet include the full physical closure that a real industrial dynamic column requires.
+The current evidence does not support a claim of general plant-grade real-world readiness, but it does justify a more precise statement: Core V3 is now a credible bounded dynamic simulator for short-horizon hydrocarbon operation under fixed-duty and level-controlled conditions, with pressure dynamics and vapor inventory explicitly represented. It remains a limited production-readiness claim, not a fully general industrial deployment claim.
 
 ## Key conclusion
 
-Core V3 is credible as a research-grade or reduced-order DAE model, but it is not yet a production-grade dynamic simulator.
+Core V3 is now credible as a physically closed, dynamically active, vapor-holdup model for bounded engineering studies, but it is not yet demonstrated as a general real-world production simulator for broad plant operation, broader disturbances, or closed-loop pressure control.
 
-## Why it is strong
+## Why the project is stronger now
 
-The model shows clear evidence of engineering discipline:
+The current state summary in [dynamic_model_current_state_2026-08-20.md](dynamic_model_current_state_2026-08-20.md) documents substantial advances over the earlier assessment:
 
-- It has an explicit provider-governed architecture and ownership model in the DD-091 structural audit.
-- It performs live residual and Jacobian audits with rank and conditioning checks.
-- It enforces conservation and structural consistency in reduced dynamic DAE layers.
-- It has a concrete backward-Euler implicit-step implementation and explicit solver contracts.
+- A complete 20-volume C3/C4 model is in place.
+- The model carries explicit liquid and vapor component inventories and total two-phase energy storage.
+- Vapor composition is owned by conserved vapor inventory, not only by an algebraic equilibrium reconstruction.
+- Pressure follows from vapor inventory, temperature, free volume, EOS closure, and interstage pressure-drop equations.
+- Geometry-based terminal level controllers are active and accepted.
+- A stationary root has been accepted with full-rank closure and conservation gates.
+- Short dynamic pressure-dynamic and fixed-duty trajectories have passed frozen acceptance gates.
+- The accepted DD-274 trajectory demonstrates a 30-second pressure-dynamic run with smooth, ordered, positive pressure movement and a full-rank `262 x 262` system.
 
-These are important strengths. The system is not a loose prototype; it is a carefully constrained model with explicit gates and acceptance logic.
+These are not minor engineering refinements. They are structural, physically relevant advances beyond the earlier fixed-pressure, no-vapor-holdup design baseline.
 
-## Why it is not yet real-world rigorous
+## What changed relative to the earlier review
 
-The decisive limitation is that Core V3 explicitly omits resident vapor holdup and pressure-dynamic closure in its reduced dynamic layer.
+The earlier review treated missing resident vapor holdup and pressure-dynamic closure as a decisive blocker. That conclusion was valid for the earlier Core V3 baseline, but it is no longer the current state of the implementation.
 
-The design documentation is explicit:
+The present architecture explicitly includes:
 
-- Core V3 “prescribes pressure, neglects resident vapor holdup, and enforces all component fugacity equalities.”
-- Pressure differential states, vapor holdup, pressure control, product control, and production-horizon integration remain unauthorized.
-- The model is not yet claimed to establish production-horizon, controller, pressure-dynamic, or vapor-holdup acceptance.
-- The architecture document states the current implementation does not yet complete the intended DAE structure, and that pressure-vapor-holdup closure remains an open issue.
+- conserved vapor inventory;
+- vapor pressure-volume closure;
+- total two-phase energy storage;
+- pressure movement under fixed-duty and level-controlled operation;
+- provider-owned DWSIM Peng-Robinson evaluation with no fallback;
+- accepted transient evidence for short dynamic operation.
 
-This is not a minor simplification. It is a structural limitation.
+This means the right characterization is no longer "fixed-pressure, no vapor holdup feasibility layer." It is now a bounded dynamic model with a complete vapor-holdup closure for the accepted hydrocarbon case.
 
-## Why vapor holdup matters
+## Why it is still not yet fully real-world ready
 
-For a real distillation column, vapor residence inventory is often a central dynamic state. It couples with:
+The model remains limited in important ways:
 
-- pressure-volume consistency,
-- vapor traffic,
-- equilibrium closure,
-- density and compressibility,
-- energy balance and phase redistribution.
+- The accepted dynamic evidence covers only a 30-second pressure-dynamic window.
+- No pressure controller has been designed, tuned, or accepted on this vapor-holdup model.
+- No disturbance-response benchmark has been accepted after pressure release.
+- Long-horizon drift, settling, and controller interaction remain open.
+- Runtime cost remains high: DD-274 required substantial provider calls and wall time for a short trajectory.
+- Production operating specifications, plant-scale validation, and broader transient robustness are not yet accepted against independent evidence.
 
-If the model omits explicit vapor holdup, it cannot claim to represent the full dynamic column physics of an industrial unit.
+In other words, the model is no longer structurally incomplete in the way described by the earlier review, but it still lacks the evidence base expected of a general-purpose industrial dynamic simulator.
 
 ## Assessment
 
 Core V3 is rigorous enough for:
 
-- reduced-order research,
-- bounded DAE verification,
-- short fixed-pressure open-loop studies,
-- solver and conservation audits under controlled assumptions.
+- bounded research and engineering studies;
+- short-horizon open-loop dynamic simulation of the accepted C3/C4 case;
+- temporary pressure-dynamic exploration under fixed condenser duty;
+- validation of dynamic conservation, energy, EOS, and provider-ownership behavior on a physically explicit vapor-holdup model;
+- controlled level-based operational studies with a frozen dynamic contract.
 
 Core V3 is not yet rigorous enough for:
 
-- general real-world dynamic simulation,
-- production-grade column operation,
-- pressure-coupled vapor inventory behavior,
-- controller design for real plant operation,
-- realistic startup/upset simulation without major architecture additions.
+- broad real-world plant deployment;
+- general closed-loop pressure control design;
+- long-duration disturbance rejection and startup robustness;
+- production-grade operating optimization without additional acceptance gates;
+- unqualified claims of industrial validity across other column configurations or thermodynamic regimes.
 
 ## Recommended interpretation
 
 The correct interpretation is:
 
-> Core V3 is a credible, audited reduced-order dynamic model with strong numerical hygiene, but it remains a controlled feasibility layer rather than a complete industrial dynamic simulator.
+> Core V3 is now a credible and accepted bounded vapor-holdup dynamic model for short real-world-style hydrocarbon operation, but it remains an engineering-stage system rather than a fully production-ready industrial simulation platform.
 
 ## Supporting evidence
 
-- model_architecture.md
-- dd_095_core_v3_dynamic_dae_contract_20260725.md
-- dd_101_core_v3_pressure_layer_contract_20260725.md
-- dd_100_core_v3_longer_open_loop_20260725.md
-- requirements.md
-
-The concrete code and equation changes required to close this gap are
-documented in [core_v3_vapor_holdup_implementation_plan_20260819.md](core_v3_vapor_holdup_implementation_plan_20260819.md).
+- [dynamic_model_current_state_2026-08-20.md](dynamic_model_current_state_2026-08-20.md)
+- [model_architecture.md](model_architecture.md)
+- [core_v3_vapor_holdup_implementation_plan_20260819.md](core_v3_vapor_holdup_implementation_plan_20260819.md)
+- `docs/dd_245_core_v3_c3c4_vapor_holdup_stationary_root_20260820.md`
+- `docs/dd_262_core_v3_c3c4_vapor_holdup_thirty_second_balance_20260820.md`
+- `docs/dd_271_core_v3_c3c4_vapor_holdup_terminal_control_bound_corrected_20260820.md`
+- `docs/dd_272_core_v3_vapor_holdup_dynamic_pressure_contract_20260820.md`
+- `docs/dd_273_core_v3_vapor_holdup_dynamic_pressure_residual_20260820.md`
+- `docs/dd_274_core_v3_c3c4_vapor_holdup_dynamic_pressure_thirty_second_20260820.md`
+- `docs/requirements.md`
 
 ## Final verdict
 
-Core V3 should be regarded as a valuable reduced-order dynamic framework and a strong numerical testbed, but not as a real-world dynamic simulation model until the following are added and accepted:
+Core V3 should be regarded as a strong engineering-stage dynamic model with explicit vapor holdup, pressure-volume closure, and accepted short-horizon evidence. It is no longer a mere reduced-order feasibility layer. However, it should not yet be described as a general real-world industrial dynamic simulator until the following are added and accepted:
 
-1. explicit vapor holdup closure,
-2. coupled pressure-vapor-volume consistency,
-3. controller architecture with manipulated and controlled variables,
-4. production-scale validation,
-5. initialization acceptance under full dynamic closure.
+1. longer-horizon open-loop pressure behavior,
+2. accepted pressure-controller design and tuning,
+3. disturbance-response validation after pressure release,
+4. production-scale process verification,
+5. a user-facing runtime and restart workflow that supports repeated operational use.
 
-Until then, the model is best described as research-grade and dynamically bounded, not industrially rigorous.
+Until then, the most accurate label is: physically credible, bounded, and promising for controlled dynamic engineering use, but not yet fully proven for general plant-real-world operation.

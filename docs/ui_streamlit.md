@@ -35,7 +35,7 @@ pip install -e ".[ui]"
 - For restart mode, enter a local checkpoint path or upload a native `.npz` checkpoint
 - Validate the checkpoint schema, workbook identity, and stage/component counts before launching the runner
 - Route `dynamic_distillation.core_v3_checkpoint.v1` checkpoints to `tools/run_core_v3_dynamic.py`
-- Set Core V3 simulated duration while retaining the accepted implicit timestep of `0.25 s`
+- Set Core V3 simulated duration and choose a validated implicit timestep of `0.25 s` or `0.5 s`
 - Enter `Run Name` and `Run Description`
 - Start the existing runner as a subprocess
 - Stop the active subprocess
@@ -72,7 +72,11 @@ pip install -e ".[ui]"
 - The UI does not implement its own solver logic.
 - A Core V3 checkpoint launches `tools/run_core_v3_dynamic.py`; a legacy checkpoint or fresh Excel start launches `dynamic_run_scaffold_v1`.
 - Core V3 uses the accepted dynamic-pressure, vapor-holdup, live-DWSIM Peng-Robinson model with its implicit trust-region endpoint solve.
+- Core V3 defaults older Core V3 checkpoints without timestep metadata to `0.25 s`. New recovery and final checkpoints record the selected timestep, and later continuations inherit it unless the user explicitly selects the other validated value. The `0.25 s` preset is the high-fidelity default; `0.5 s` is the faster validated option. Other values are rejected.
 - Core V3 uses the established steady-state tolerances: relative inventory rate `3e-3 1/s`, temperature rate `0.15 F/s`, terminal-composition slope `1e-4 1/s`, controller-output rate `20 lbmol/h/s`, and whole-column accumulation `1%` of feed. The displayed score is the largest criterion-to-tolerance ratio, so `<= 1` is dynamically quiet by this detector.
+- A pointwise Core V3 score of `<= 1` is not by itself final steady-state acceptance. The complete gate must remain passed over the declared terminal acceptance window so a controller oscillation cannot be accepted while merely crossing its inventory-neutral point.
+- Core V3 refreshes `core_v3_recovery_checkpoint_<run_id>.npz` at every logging interval. This is the preferred restart artifact when a run is stopped or interrupted before its normal final checkpoint is written.
+- Advanced Core V3 CLI continuations may override drum PI tuning with `--drum-level-kc` and `--drum-level-ti-sec`. The runner reconstructs live geometry-based levels, converts PI memory bumplessly, records the effective tuning in the checkpoint, and inherits that tuning on later continuations. These development controls are not yet exposed as ordinary UI fields.
 - Core V3 summary rows record each implicit root's wall time, objective/Jacobian work, color count, and exact-state thermo memoization hit rate. Run metadata also records aggregate endpoint timing, memoization totals, and provider-family call counters so performance changes can be judged without altering the governing model.
 - Core V3 UI/CLI launches use eight persistent worker processes for the 16-color Jacobian by default. A four-step serial/parallel proof produced identical solver decisions and bit-exact endpoints while reducing post-startup trajectory wall time by about 36%. Worker startup costs about nine seconds, so use `--parallel-workers 1` for very short probes.
 - `tools/run_ui.ps1` launches Streamlit via `python -m streamlit` with `PYTHONPATH=src`.

@@ -1,0 +1,331 @@
+{
+  "schema": "dynamic_distillation.core_v3_run_metadata.v1",
+  "status": "completed",
+  "run_id": "20260830_192306",
+  "run_name": "core_v3_pressure_kc3m_feedT_plus5F_preflight",
+  "run_description": "First endpoint of frozen plus-5F feed-temperature disturbance with qualified 3.0 MMBtu/h/psi pressure gain",
+  "controller_tuning": {
+    "drum_kc": 4.0,
+    "drum_ti_sec": 120.0,
+    "sump_kc": 8.0,
+    "sump_ti_sec": 120.0,
+    "source_drum_kc": 4.0,
+    "source_drum_ti_sec": 120.0,
+    "bumpless_memory_adjustment": false,
+    "bumpless_level_fraction": null,
+    "regulatory_control_active": true,
+    "regulatory_activation_bumpless": false,
+    "regulatory_retuning_bumpless": false,
+    "pressure": {
+      "setpoint_psia": 221.32122601060775,
+      "kc_per_psia": 0.058945088409983824,
+      "ti_sec": 180.0,
+      "mv": "condenser_duty_BTUph"
+    },
+    "distillate_composition": {
+      "component": "n-Butane",
+      "setpoint_molfrac": 0.11987175180429868,
+      "kc_per_molfrac": 0.8399860226325835,
+      "ti_sec": 600.0,
+      "mv": "reflux_lbmolph"
+    }
+  },
+  "feed_temperature_disturbance": {
+    "active": true,
+    "temperature_step_F": 5.0,
+    "baseline_temperature_F": 174.999,
+    "disturbed_temperature_F": 179.999,
+    "pressure_psia": 232.06,
+    "component_lbmolph": [
+      2380.99,
+      3968.32,
+      793.664
+    ],
+    "composition": [
+      0.33333314666972047,
+      0.5555557111085664,
+      0.11111114222171327
+    ],
+    "total_lbmolph": 7142.973999999999,
+    "baseline_molar_enthalpy_BTU_lbmol": -5132.515936130543,
+    "disturbed_molar_enthalpy_BTU_lbmol": -4924.056557372913,
+    "molar_enthalpy_delta_BTU_lbmol": 208.45937875763047,
+    "baseline_enthalpy_BTUph": -36661427.88636613,
+    "disturbed_enthalpy_BTUph": -35172407.96384422,
+    "enthalpy_delta_BTUph": 1489019.9225219116,
+    "baseline_boundary_parity_relative_error": 0.0,
+    "provider": "dwsim_pr_liquid_phase_enthalpy"
+  },
+  "jacobian_refresh_interval": 5,
+  "max_nfev_per_root": 160,
+  "started_from_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_pressure_kc3m_hold60s_20260830\\core_v3_checkpoint_20260830_192026.npz",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "source_final_time_s": 12162.0,
+  "duration_sec": 0.5,
+  "final_time_s": 12162.5,
+  "dt_sec": 0.5,
+  "n_steps": 1,
+  "wall_elapsed_s": 38.103646599978674,
+  "started_at_local": "2026-08-30 19:23:06",
+  "ended_at_local": "2026-08-30 19:23:44",
+  "simulation_wall_ratio": 0.013122103646643622,
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_pressure_kc3m_feedT_plus5F_preflight_20260830\\core_v3_checkpoint_20260830_192306.npz",
+  "recovery_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_pressure_kc3m_feedT_plus5F_preflight_20260830\\core_v3_recovery_checkpoint_20260830_192306.npz",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_pressure_kc3m_feedT_plus5F_preflight_20260830\\column_summary_20260830_192306.csv",
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_pressure_kc3m_feedT_plus5F_preflight_20260830\\column_profile_20260830_192306.csv",
+  "performance": {
+    "jacobian_execution": "persistent_parallel",
+    "parallel_workers": 8,
+    "endpoint_wall_total_s": 30.588301199983107,
+    "endpoint_wall_mean_s": 30.588301199983107,
+    "endpoint_wall_median_s": 30.588301199983107,
+    "endpoint_wall_p95_s": 30.588301199983107,
+    "endpoint_wall_max_s": 30.588301199983107,
+    "objective_calls_total": 824,
+    "jacobian_builds_total": 22,
+    "memo_hits_total": 100,
+    "memo_misses_total": 12000,
+    "memo_hit_fraction": 0.008264462809917356,
+    "memoization_final": {
+      "enabled": true,
+      "hits": 100,
+      "misses": 12002,
+      "families": {
+        "fugacity": {
+          "hits": 40,
+          "misses": 4800,
+          "entries": 704
+        },
+        "enthalpy": {
+          "hits": 40,
+          "misses": 4802,
+          "entries": 706
+        },
+        "density": {
+          "hits": 0,
+          "misses": 0,
+          "entries": 0
+        },
+        "vapor_z": {
+          "hits": 20,
+          "misses": 2400,
+          "entries": 2400
+        }
+      }
+    },
+    "provider_call_counters": {
+      "uncategorized": {
+        "fugacity_requests": 4840,
+        "wall_sec": 2.1448850999004208
+      }
+    }
+  },
+  "final_endpoint": {
+    "scipy_success": true,
+    "scipy_status": 1,
+    "scipy_message": "`gtol` termination condition is satisfied.",
+    "scipy_optimality": 8.681203751832008e-12,
+    "scipy_cost": 1.2121136060233332e-23,
+    "nfev": 120,
+    "njev": 107,
+    "function_calls_observed": 824,
+    "main_process_function_calls": 120,
+    "parallel_jacobian_evaluations": 704,
+    "jacobian_build_count": 22,
+    "jacobian_refresh_interval": 5,
+    "active_lower_bounds": [],
+    "active_upper_bounds": [],
+    "nearest_bounds": [
+      {
+        "variable": "L[feed_tray]",
+        "side": "lower",
+        "slack": 0.008834370844610735,
+        "value": -0.0011656291553892657,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNL[feed_tray,n-Propane]/dt",
+        "side": "lower",
+        "slack": 0.009145036629775479,
+        "value": -0.0008549633702245221,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNV[feed_tray,n-Pentane]/dt",
+        "side": "upper",
+        "slack": 0.00937028150875428,
+        "value": 0.0006297184912457205,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNL[feed_tray,n-Butane]/dt",
+        "side": "lower",
+        "slack": 0.009506826473231611,
+        "value": -0.000493173526768389,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNV[feed_tray,n-Butane]/dt",
+        "side": "upper",
+        "slack": 0.009608912085153997,
+        "value": 0.00039108791484600297,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNL[feed_tray,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.00972551093947386,
+        "value": -0.00027448906052614144,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNV[rectifying_volume_10,n-Pentane]/dt",
+        "side": "upper",
+        "slack": 0.009865226699060661,
+        "value": 0.00013477330093933807,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNV[rectifying_volume_9,n-Pentane]/dt",
+        "side": "upper",
+        "slack": 0.00988151522209227,
+        "value": 0.00011848477790772986,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNV[rectifying_volume_2,n-Pentane]/dt",
+        "side": "upper",
+        "slack": 0.009885366080992932,
+        "value": 0.00011463391900706852,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNV[rectifying_volume_8,n-Pentane]/dt",
+        "side": "upper",
+        "slack": 0.009889339097033885,
+        "value": 0.00011066090296611533,
+        "lower": -0.01,
+        "upper": 0.01
+      }
+    ],
+    "dominant_residuals": [
+      {
+        "row": "phase_fugacity[reflux_drum,n-Propane]",
+        "scaled_residual": 3.729239139708947e-12
+      },
+      {
+        "row": "phase_fugacity[combined_reboiler_sump,n-Butane]",
+        "scaled_residual": -2.7629010190859814e-12
+      },
+      {
+        "row": "total_energy_balance[rectifying_volume_1]",
+        "scaled_residual": -9.318673470789688e-13
+      },
+      {
+        "row": "total_energy_balance[reflux_drum]",
+        "scaled_residual": 5.864390448774668e-13
+      },
+      {
+        "row": "liquid_component_balance[combined_reboiler_sump,n-Pentane]",
+        "scaled_residual": -4.0881561322863597e-13
+      },
+      {
+        "row": "total_energy_balance[combined_reboiler_sump]",
+        "scaled_residual": 3.910104356700967e-13
+      },
+      {
+        "row": "phase_fugacity[combined_reboiler_sump,n-Pentane]",
+        "scaled_residual": -3.673727988485318e-13
+      },
+      {
+        "row": "liquid_component_balance[reflux_drum,n-Propane]",
+        "scaled_residual": 3.430196020109659e-13
+      },
+      {
+        "row": "vapor_component_balance[combined_reboiler_sump,n-Pentane]",
+        "scaled_residual": -3.3039005322769757e-13
+      },
+      {
+        "row": "vapor_volume_eos[reflux_drum]",
+        "scaled_residual": 2.648173067967345e-13
+      }
+    ],
+    "color_count": 16,
+    "scaled_residual_inf_norm": 3.729239139708947e-12,
+    "controller_residual_inf_norm": 4.008891742873777e-15,
+    "jacobian_rank": 265,
+    "jacobian_condition": 4622998.361483783,
+    "physical_pass": true,
+    "controller_memory_recurrence_error": 1.1993986533120893e-18,
+    "fixed_duty_relative_error": NaN,
+    "condenser_duty_BTUph": -50850377.99926576,
+    "reflux_drum_pressure_psia": 221.2985466116486,
+    "top_tray_pressure_psia": 221.34640121696916,
+    "bottom_pressure_psia": 222.4131324921932,
+    "top_tray_minus_drum_pressure_psia": 0.04785460532056618,
+    "level_fraction": [
+      0.4973033451551008,
+      0.5000529987483521
+    ],
+    "controller_memory_endpoint": [
+      0.02046090556199098,
+      0.0012802004611610779,
+      0.00046313322276271774,
+      7.9080306534702e-05
+    ],
+    "controller_rate_per_sec": [
+      -8.988849482998125e-05,
+      3.5332498901048125e-06,
+      -7.426884315178118e-06,
+      1.7246992241008692e-07
+    ],
+    "product_log_ratio": [
+      0.00967428618239316,
+      0.0017041904479738528
+    ],
+    "distillate_lbmolph": 2544.258912872463,
+    "bottoms_lbmolph": 4631.095846081022,
+    "reflux_lbmolph": 5953.566797402365,
+    "pressure_error_psia": -0.022679398959155606,
+    "composition_error_molfrac": 0.00012319485164970223,
+    "condenser_duty_ratio": 0.9991266756159388,
+    "reflux_ratio": 1.0001825789254841,
+    "pressure_quality_pass": true,
+    "composition_quality_pass": true,
+    "level_quality_pass": true,
+    "mv_quality_pass": true,
+    "disturbance_quality_pass": true,
+    "parallel_worker_ids": [
+      297828,
+      304544,
+      305520,
+      305824,
+      305864,
+      306244,
+      307612,
+      308192
+    ],
+    "root_wall_s": 30.588301199983107,
+    "memo_hits_delta": 100,
+    "memo_misses_delta": 12000,
+    "memo_hit_fraction": 0.008264462809917356
+  },
+  "final_steady_state": {
+    "steady_state_score": 0.5313745172826949,
+    "steady_state_flag": 0.0,
+    "ss_max_rel_state_rate_per_s": 0.0015941235518480848,
+    "ss_max_temp_rate_F_per_s": 0.02772544904581764,
+    "ss_max_kpi_slope_per_s": 1.527309113291686e-06,
+    "ss_max_mv_rate_per_s": 0.5097710972622735,
+    "ss_global_inventory_rate_frac_feed": 0.0045332320895602575
+  }
+}

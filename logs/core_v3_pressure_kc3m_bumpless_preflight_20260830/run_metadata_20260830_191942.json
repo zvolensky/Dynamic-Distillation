@@ -1,0 +1,311 @@
+{
+  "schema": "dynamic_distillation.core_v3_run_metadata.v1",
+  "status": "completed",
+  "run_id": "20260830_191942",
+  "run_name": "core_v3_pressure_kc3m_bumpless_preflight",
+  "run_description": "Bumpless unchanged-input preflight for frozen 3.0 MMBtu/h/psi pressure gain",
+  "controller_tuning": {
+    "drum_kc": 4.0,
+    "drum_ti_sec": 120.0,
+    "sump_kc": 8.0,
+    "sump_ti_sec": 120.0,
+    "source_drum_kc": 4.0,
+    "source_drum_ti_sec": 120.0,
+    "bumpless_memory_adjustment": false,
+    "bumpless_level_fraction": null,
+    "regulatory_control_active": true,
+    "regulatory_activation_bumpless": false,
+    "regulatory_retuning_bumpless": true,
+    "pressure": {
+      "setpoint_psia": 221.32122601060775,
+      "kc_per_psia": 0.058945088409983824,
+      "ti_sec": 180.0,
+      "mv": "condenser_duty_BTUph"
+    },
+    "distillate_composition": {
+      "component": "n-Butane",
+      "setpoint_molfrac": 0.11987175180429868,
+      "kc_per_molfrac": 0.8399860226325835,
+      "ti_sec": 600.0,
+      "mv": "reflux_lbmolph"
+    }
+  },
+  "feed_temperature_disturbance": {
+    "active": false,
+    "temperature_step_F": 0.0,
+    "baseline_enthalpy_BTUph": -36661427.88636613,
+    "disturbed_enthalpy_BTUph": -36661427.88636613
+  },
+  "jacobian_refresh_interval": 0,
+  "max_nfev_per_root": 40,
+  "started_from_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_regulatory_bumpless_hold600s_20260830\\core_v3_checkpoint_20260830_142858.npz",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "source_final_time_s": 12102.0,
+  "duration_sec": 0.5,
+  "final_time_s": 12102.5,
+  "dt_sec": 0.5,
+  "n_steps": 1,
+  "wall_elapsed_s": 16.685380799986888,
+  "started_at_local": "2026-08-30 19:19:42",
+  "ended_at_local": "2026-08-30 19:19:58",
+  "simulation_wall_ratio": 0.02996635234122993,
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_pressure_kc3m_bumpless_preflight_20260830\\core_v3_checkpoint_20260830_191942.npz",
+  "recovery_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_pressure_kc3m_bumpless_preflight_20260830\\core_v3_recovery_checkpoint_20260830_191942.npz",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_pressure_kc3m_bumpless_preflight_20260830\\column_summary_20260830_191942.csv",
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_pressure_kc3m_bumpless_preflight_20260830\\column_profile_20260830_191942.csv",
+  "performance": {
+    "jacobian_execution": "persistent_parallel",
+    "parallel_workers": 8,
+    "endpoint_wall_total_s": 9.685128100012662,
+    "endpoint_wall_mean_s": 9.685128100012662,
+    "endpoint_wall_median_s": 9.685128100012662,
+    "endpoint_wall_p95_s": 9.685128100012662,
+    "endpoint_wall_max_s": 9.685128100012662,
+    "objective_calls_total": 38,
+    "jacobian_builds_total": 1,
+    "memo_hits_total": 100,
+    "memo_misses_total": 600,
+    "memo_hit_fraction": 0.14285714285714285,
+    "memoization_final": {
+      "enabled": true,
+      "hits": 100,
+      "misses": 600,
+      "families": {
+        "fugacity": {
+          "hits": 40,
+          "misses": 240,
+          "entries": 240
+        },
+        "enthalpy": {
+          "hits": 40,
+          "misses": 240,
+          "entries": 240
+        },
+        "density": {
+          "hits": 0,
+          "misses": 0,
+          "entries": 0
+        },
+        "vapor_z": {
+          "hits": 20,
+          "misses": 120,
+          "entries": 120
+        }
+      }
+    },
+    "provider_call_counters": {
+      "uncategorized": {
+        "fugacity_requests": 280,
+        "wall_sec": 0.11223970033461228
+      }
+    }
+  },
+  "final_endpoint": {
+    "scipy_success": true,
+    "scipy_status": 1,
+    "scipy_message": "`gtol` termination condition is satisfied.",
+    "scipy_optimality": 2.053864161288207e-12,
+    "scipy_cost": 1.295892677423854e-25,
+    "nfev": 6,
+    "njev": 6,
+    "function_calls_observed": 38,
+    "main_process_function_calls": 6,
+    "parallel_jacobian_evaluations": 32,
+    "jacobian_build_count": 1,
+    "jacobian_refresh_interval": 0,
+    "active_lower_bounds": [],
+    "active_upper_bounds": [],
+    "nearest_bounds": [
+      {
+        "variable": "dNV[rectifying_volume_2,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.009991894574194393,
+        "value": -8.105425805607558e-06,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNL[rectifying_volume_2,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.009992060128256573,
+        "value": -7.939871743428147e-06,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNV[rectifying_volume_3,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.009992213931162827,
+        "value": -7.78606883717277e-06,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNL[rectifying_volume_3,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.009992486750289959,
+        "value": -7.513249710041001e-06,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNL[rectifying_volume_1,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.009992924833133283,
+        "value": -7.075166866717422e-06,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNV[rectifying_volume_4,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.009993051796957024,
+        "value": -6.948203042976501e-06,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNV[rectifying_volume_1,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.00999312404400694,
+        "value": -6.875955993060277e-06,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNL[rectifying_volume_4,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.009993250211269256,
+        "value": -6.749788730744863e-06,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNV[rectifying_volume_5,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.009994019563123008,
+        "value": -5.980436876992538e-06,
+        "lower": -0.01,
+        "upper": 0.01
+      },
+      {
+        "variable": "dNL[rectifying_volume_5,n-Pentane]/dt",
+        "side": "lower",
+        "slack": 0.009994085053807373,
+        "value": -5.914946192626933e-06,
+        "lower": -0.01,
+        "upper": 0.01
+      }
+    ],
+    "dominant_residuals": [
+      {
+        "row": "total_energy_balance[combined_reboiler_sump]",
+        "scaled_residual": 3.904656632066065e-13
+      },
+      {
+        "row": "total_energy_balance[reflux_drum]",
+        "scaled_residual": 1.4750991259458684e-13
+      },
+      {
+        "row": "liquid_component_balance[combined_reboiler_sump,n-Butane]",
+        "scaled_residual": 1.388884437934427e-13
+      },
+      {
+        "row": "liquid_component_balance[reflux_drum,n-Propane]",
+        "scaled_residual": 8.327201919642602e-14
+      },
+      {
+        "row": "liquid_component_balance[combined_reboiler_sump,n-Pentane]",
+        "scaled_residual": -6.044855948930777e-14
+      },
+      {
+        "row": "total_energy_balance[stripping_volume_7]",
+        "scaled_residual": 5.376223249068989e-14
+      },
+      {
+        "row": "vapor_component_balance[rectifying_volume_9,n-Propane]",
+        "scaled_residual": -5.298802941699184e-14
+      },
+      {
+        "row": "total_energy_balance[rectifying_volume_5]",
+        "scaled_residual": -5.240030133196437e-14
+      },
+      {
+        "row": "vapor_component_balance[rectifying_volume_10,n-Propane]",
+        "scaled_residual": 4.9917254339830056e-14
+      },
+      {
+        "row": "total_energy_balance[rectifying_volume_1]",
+        "scaled_residual": 4.912741051615211e-14
+      }
+    ],
+    "color_count": 16,
+    "scaled_residual_inf_norm": 3.904656632066065e-13,
+    "controller_residual_inf_norm": 1.1155356152703355e-15,
+    "jacobian_rank": 265,
+    "jacobian_condition": 4637493.483142041,
+    "physical_pass": true,
+    "controller_memory_recurrence_error": 1.1519648082658485e-18,
+    "fixed_duty_relative_error": NaN,
+    "condenser_duty_BTUph": -50844186.3483611,
+    "reflux_drum_pressure_psia": 221.28656216572264,
+    "top_tray_pressure_psia": 221.33408148741037,
+    "bottom_pressure_psia": 222.39994093188753,
+    "top_tray_minus_drum_pressure_psia": 0.0475193216877301,
+    "level_fraction": [
+      0.497465567261418,
+      0.500050485422445
+    ],
+    "controller_memory_endpoint": [
+      0.02570589724628196,
+      0.0010857932776846403,
+      0.0010477878926237404,
+      6.862047164535191e-05
+    ],
+    "controller_rate_per_sec": [
+      -8.448109128606171e-05,
+      3.3656948296767908e-06,
+      -1.1351463341010291e-05,
+      1.7551122457580633e-07
+    ],
+    "product_log_ratio": [
+      0.01556816629195455,
+      0.001489676657245855
+    ],
+    "distillate_lbmolph": 2559.2987478270934,
+    "bottoms_lbmolph": 4630.1025187008745,
+    "reflux_lbmolph": 5953.515388255981,
+    "pressure_error_psia": -0.034663844885102435,
+    "composition_error_molfrac": 0.00012536724648755382,
+    "condenser_duty_ratio": 0.9990050198126125,
+    "reflux_ratio": 1.0001739423326044,
+    "pressure_quality_pass": true,
+    "composition_quality_pass": true,
+    "level_quality_pass": true,
+    "mv_quality_pass": true,
+    "disturbance_quality_pass": true,
+    "parallel_worker_ids": [
+      288120,
+      299740,
+      300640,
+      304388,
+      305308,
+      305596,
+      306228,
+      306336
+    ],
+    "root_wall_s": 9.685128100012662,
+    "memo_hits_delta": 100,
+    "memo_misses_delta": 600,
+    "memo_hit_fraction": 0.14285714285714285
+  },
+  "final_steady_state": {
+    "steady_state_score": 0.6499710978369355,
+    "steady_state_flag": 0.0,
+    "ss_max_rel_state_rate_per_s": 9.128566905287418e-06,
+    "ss_max_temp_rate_F_per_s": 8.548023862431364e-05,
+    "ss_max_kpi_slope_per_s": 1.1005523625762237e-07,
+    "ss_max_mv_rate_per_s": 0.2494495484916115,
+    "ss_global_inventory_rate_frac_feed": 0.006499710978369355
+  }
+}

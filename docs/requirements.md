@@ -82,6 +82,7 @@ Requirements in this section define how external seeds are loaded, how initializ
 - `FR-009e` Runtime steady-state acceptance shall include a whole-column inventory-rate criterion in addition to local state-rate criteria. A run with material `F-D-B` drift shall not pass solely because the drift is distributed across many tray states.
 - `FR-009f` Initializer output shall distinguish at least: local thermodynamic closure failure; local thermodynamic closure success with global hydraulic failure; terminal-equipment mapping failure; algebraically consistent but dynamically non-steady; and fully accepted steady initialization.
 - `FR-009g` A dynamic smoke test shall not be used to rescue or accept a candidate that fails the applicable local, global hydraulic, or terminal algebraic-closure prerequisite.
+- `FR-009h` Runtime steady-state acceptance shall require the complete gate to remain passed throughout a declared terminal window. A momentary score crossing during a controller or inventory oscillation shall not constitute steady-state acceptance; the report shall include the pass-window duration, score trend, and any subsequent gate exit.
 
 ### 4.3 Thermodynamics Services
 - `FR-010` The system shall support thermo providers for TP flash, phase enthalpy, and optional Z-factor diagnostics.
@@ -232,6 +233,7 @@ Requirements in this section define how external seeds are loaded, how initializ
 - `FR-034` The runner shall be able to export a restart workbook from a completed run, including optional `Boundary State`, `Energy State`, and `Controller State` sheets.
 - `FR-035` A completed run shall be able to generate a human-readable Word report containing provenance, parameters, wall and simulation time, starting and ending conditions, controller and duty trends, and final stage profiles.
 - `FR-036` A completed run shall be able to serialize and reload a native checkpoint containing the packed dynamic state and required runtime/controller memory. Reusable checkpoint artifacts shall pass a reload gate.
+- `FR-036a` A long-running Core V3 continuation shall atomically refresh a reusable recovery checkpoint at each configured logging interval so an interrupted run loses no more than one interval of accepted state advance.
 - `FR-037` Rigorous model acceptance shall include a physical-closure gate covering at least liquid-flow ownership, net phase/energy consistency, pressure versus vapor-holdup consistency, and non-binding diagnostic profile limits.
 - `FR-037a` Unless superseded by a documented case requirement, rigorous local closure targets shall be: component reconstruction relative residual `<1e-8`; energy relative residual `<1e-7`; volume relative residual `<1e-7`; and phase-equilibrium fugacity residual or certified equivalent `<1e-6`. Global targets shall include scaled pressure-drop and vapor-flow residuals `<1e-5`, local-thermo versus global solved-pressure mismatch `<0.1 psi`, zero binding profile/previous-step flow limiters, zero accepted projections, complete terminal mapping, and the robustness requirement in `FR-019h`.
 

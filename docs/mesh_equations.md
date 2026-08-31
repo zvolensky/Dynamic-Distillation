@@ -1,10 +1,8 @@
-**MESH Equations (Current Model)**
-This document reflects the equations in `src/dynamic_distillation/column_rhs_v1.py`.
+**MESH Equations (Legacy v1 Reference)**
 
-Architecture status (2026-07-18): these are the preserved v1 sequential-hybrid
-equations. They are not the governing specification for equilibrium-DAE v2.
-The v2 ownership and equation contract is
-`docs/dd_076_equilibrium_dae_v2_architecture_contract_20260718.md`.
+This document is retained only as a historical reference for the legacy sequential-hybrid v1 runtime. It reflects the equations in `src/dynamic_distillation/column_rhs_v1.py` and is not a current architecture description.
+
+This content is intentionally preserved only for debugging, historical traceability, and understanding of older model behavior. It does not describe the accepted current Core V3 vapor-holdup formulation. The current model-state reference is `docs/dynamic_model_current_state_2026-08-20.md`, and the governing current architecture is summarized in `docs/model_architecture.md`.
 
 **State And Notation**
 ```

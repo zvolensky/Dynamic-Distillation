@@ -33,6 +33,8 @@ from ui.data_access import (
     validate_excel_input,
 )
 from ui.run_manager import (
+    CORE_V3_DEFAULT_TIMESTEP_SEC,
+    CORE_V3_VALIDATED_TIMESTEPS_SEC,
     active_run_status,
     build_launch_spec,
     build_launch_spec_from_cli,
@@ -772,6 +774,8 @@ def _reset_form_state(*, include_launch_mode: bool = True) -> None:
         "add_time_seconds",
         "stored_state_path_input",
         "core_v3_duration_sec",
+        "core_v3_timestep_sec",
+        "_core_v3_timestep_source",
         "core_v3_log_every_n_steps",
     ]
     if not include_launch_mode:
@@ -1295,6 +1299,19 @@ def main() -> None:
     integrator = str(st.session_state.get("integrator_override", "explicit-euler") or "explicit-euler")
     include_energy_choice = str(st.session_state.get("include_energy_override", "Off") or "Off")
     core_v3_duration_sec = float(st.session_state.get("core_v3_duration_sec", 30.0) or 30.0)
+    checkpoint_timestep = float(
+        stored_state_info.get("dt_sec") or CORE_V3_DEFAULT_TIMESTEP_SEC
+    )
+    if checkpoint_timestep not in CORE_V3_VALIDATED_TIMESTEPS_SEC:
+        checkpoint_timestep = CORE_V3_DEFAULT_TIMESTEP_SEC
+    timestep_source = f"{stored_state_info.get('path', '')}:{checkpoint_timestep:g}"
+    if core_v3_restart and st.session_state.get("_core_v3_timestep_source") != timestep_source:
+        st.session_state["core_v3_timestep_sec"] = checkpoint_timestep
+        st.session_state["_core_v3_timestep_source"] = timestep_source
+    core_v3_timestep_sec = float(
+        st.session_state.get("core_v3_timestep_sec", checkpoint_timestep)
+        or checkpoint_timestep
+    )
     core_v3_log_every_n_steps = int(st.session_state.get("core_v3_log_every_n_steps", 4) or 4)
 
     cli_command_text = str(st.session_state.get("cli_command_text", "") or "")
@@ -1304,6 +1321,21 @@ def main() -> None:
         run_description = st.sidebar.text_area("Run Description", value=run_description, height=100, key="run_description")
         if core_v3_restart:
             st.sidebar.markdown("### Core V3 Run")
+            core_v3_timestep_sec = float(
+                st.sidebar.selectbox(
+                    "Timestep (sec)",
+                    options=list(CORE_V3_VALIDATED_TIMESTEPS_SEC),
+                    key="core_v3_timestep_sec",
+                    format_func=lambda value: (
+                        f"{value:g} s — "
+                        + ("High fidelity" if value == 0.25 else "Faster validated option")
+                    ),
+                    help=(
+                        "Defaults to the timestep stored in the checkpoint. Older checkpoints "
+                        "without timestep metadata use 0.25 s."
+                    ),
+                )
+            )
             core_v3_duration_sec = float(
                 st.sidebar.number_input(
                     "Simulation Duration (sec)",
@@ -1325,8 +1357,8 @@ def main() -> None:
                 )
             )
             st.sidebar.caption(
-                "Core V3 implicit timestep: 0.25 s. Thermodynamics: live DWSIM "
-                "Peng-Robinson. Jacobian: 8 persistent workers."
+                "Validated Core V3 implicit timesteps: 0.25 and 0.5 s. "
+                "Thermodynamics: live DWSIM Peng-Robinson. Jacobian: 8 persistent workers."
             )
         else:
             with st.sidebar.expander("Advanced Run Overrides", expanded=False):
@@ -1478,6 +1510,7 @@ def main() -> None:
                     include_energy_override=True if include_energy_choice == "On" else None,
                     integrator=integrator,
                     core_v3_duration_sec=core_v3_duration_sec,
+                    core_v3_timestep_sec=core_v3_timestep_sec,
                     core_v3_log_every_n_steps=core_v3_log_every_n_steps,
                 )
             except Exception as exc:
@@ -1659,6 +1692,7 @@ def main() -> None:
                 include_energy_override=True if include_energy_choice == "On" else None,
                 integrator=integrator,
                 core_v3_duration_sec=core_v3_duration_sec,
+                core_v3_timestep_sec=core_v3_timestep_sec,
                 core_v3_log_every_n_steps=core_v3_log_every_n_steps,
             )
         if spec is None:

@@ -1,0 +1,263 @@
+{
+  "schema": "core-v3-dynamic-pressure-parallel-trajectory-benchmark-v1",
+  "checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\ui_runs\\core_v3_checkpoint_20260820_212559.npz",
+  "steps_per_path": 4,
+  "worker_count": 8,
+  "serial": {
+    "wall_s": 6.423484700033441,
+    "reports": [
+      {
+        "scipy_success": true,
+        "scipy_status": 3,
+        "nfev": 10,
+        "njev": 7,
+        "function_calls_observed": 42,
+        "jacobian_build_count": 1,
+        "color_count": 16,
+        "scaled_residual_inf_norm": 1.0577438344241748e-12,
+        "controller_residual_inf_norm": 1.4641066137244252e-15,
+        "jacobian_rank": 262,
+        "jacobian_condition": 10641525.423631499,
+        "physical_pass": true,
+        "controller_memory_recurrence_error": 1.5720931501039814e-18,
+        "fixed_duty_relative_error": 0.0,
+        "condenser_duty_BTUph": -50894825.691564746,
+        "reflux_drum_pressure_psia": 220.30952348572436,
+        "top_tray_pressure_psia": 220.3570651600502,
+        "bottom_pressure_psia": 221.4221306659686,
+        "top_tray_minus_drum_pressure_psia": 0.04754167432585632,
+        "level_fraction": [
+          0.4427878326987037,
+          0.49718211221100217
+        ],
+        "controller_memory_endpoint": [
+          -0.058405815534884026,
+          0.06017636121845313
+        ],
+        "controller_rate_per_sec": [
+          -0.0002383840304220658,
+          -0.00018785918593317648
+        ],
+        "product_log_ratio": [
+          -0.08701189918553193,
+          0.03763325890647194
+        ],
+        "distillate_lbmolph": 2309.78218726144,
+        "bottoms_lbmolph": 4800.5120647023205
+      },
+      {
+        "scipy_success": true,
+        "scipy_status": 3,
+        "nfev": 9,
+        "njev": 7,
+        "function_calls_observed": 41,
+        "jacobian_build_count": 1,
+        "color_count": 16,
+        "scaled_residual_inf_norm": 8.533264795692164e-13,
+        "controller_residual_inf_norm": 8.326672684688674e-16,
+        "jacobian_rank": 262,
+        "jacobian_condition": 10641613.989288038,
+        "physical_pass": true,
+        "controller_memory_recurrence_error": 1.5043305143236374e-18,
+        "fixed_duty_relative_error": 0.0,
+        "condenser_duty_BTUph": -50894825.691564746,
+        "reflux_drum_pressure_psia": 220.3096460933197,
+        "top_tray_pressure_psia": 220.3571878320297,
+        "bottom_pressure_psia": 221.4222560408438,
+        "top_tray_minus_drum_pressure_psia": 0.04754173870998102,
+        "level_fraction": [
+          0.4427911053917609,
+          0.4971740921776273
+        ],
+        "controller_memory_endpoint": [
+          -0.058465408133434274,
+          0.060129262754746914
+        ],
+        "controller_rate_per_sec": [
+          -0.00023837039420099803,
+          -0.0001883938548248527
+        ],
+        "product_log_ratio": [
+          -0.08706985543755404,
+          0.0375220001757646
+        ],
+        "distillate_lbmolph": 2309.648324821999,
+        "bottoms_lbmolph": 4799.977995533736
+      },
+      {
+        "scipy_success": true,
+        "scipy_status": 3,
+        "nfev": 9,
+        "njev": 8,
+        "function_calls_observed": 41,
+        "jacobian_build_count": 1,
+        "color_count": 16,
+        "scaled_residual_inf_norm": 1.4189450018576668e-12,
+        "controller_residual_inf_norm": 3.885780586188048e-16,
+        "jacobian_rank": 262,
+        "jacobian_condition": 10641703.040504484,
+        "physical_pass": true,
+        "controller_memory_recurrence_error": 1.9651164376299768e-18,
+        "fixed_duty_relative_error": 0.0,
+        "condenser_duty_BTUph": -50894825.691564746,
+        "reflux_drum_pressure_psia": 220.30976914089698,
+        "top_tray_pressure_psia": 220.35731094386176,
+        "bottom_pressure_psia": 221.42238185322444,
+        "top_tray_minus_drum_pressure_psia": 0.04754180296478694,
+        "level_fraction": [
+          0.44279438075198274,
+          0.4971660981451114
+        ],
+        "controller_memory_endpoint": [
+          -0.05852499732015096,
+          0.06008203105716544
+        ],
+        "controller_rate_per_sec": [
+          -0.00023835674686673743,
+          -0.00018892679032590185
+        ],
+        "product_log_ratio": [
+          -0.08712780694415945,
+          0.03741081621805722
+        ],
+        "distillate_lbmolph": 2309.514481100107,
+        "bottoms_lbmolph": 4799.444344650543
+      },
+      {
+        "scipy_success": true,
+        "scipy_status": 1,
+        "nfev": 9,
+        "njev": 8,
+        "function_calls_observed": 41,
+        "jacobian_build_count": 1,
+        "color_count": 16,
+        "scaled_residual_inf_norm": 7.222320934721431e-13,
+        "controller_residual_inf_norm": 9.298117831235686e-16,
+        "jacobian_rank": 262,
+        "jacobian_condition": 10641792.11806143,
+        "physical_pass": true,
+        "controller_memory_recurrence_error": 2.690176640479658e-18,
+        "fixed_duty_relative_error": 0.0,
+        "condenser_duty_BTUph": -50894825.691564746,
+        "reflux_drum_pressure_psia": 220.3098926280901,
+        "top_tray_pressure_psia": 220.3574344951803,
+        "bottom_pressure_psia": 221.42250810273737,
+        "top_tray_minus_drum_pressure_psia": 0.04754186709021724,
+        "level_fraction": [
+          0.4427976587787723,
+          0.4971581300936302
+        ],
+        "controller_memory_endpoint": [
+          -0.0585845830922564,
+          0.06003466655872595
+        ],
+        "controller_rate_per_sec": [
+          -0.00023834308842178215,
+          -0.00018945799375797955
+        ],
+        "product_log_ratio": [
+          -0.08718575370287027,
+          0.0372997073077684
+        ],
+        "distillate_lbmolph": 2309.3806560991316,
+        "bottoms_lbmolph": 4798.911113243345
+      }
+    ]
+  },
+  "parallel": {
+    "wall_s": 4.07984399999259,
+    "startup_wall_s_adjusted": 8.42725080003729,
+    "reports": [
+      {
+        "scipy_success": true,
+        "scipy_status": 3,
+        "nfev": 10,
+        "njev": 7,
+        "function_calls_observed": 10,
+        "jacobian_build_count": 1,
+        "color_count": 16,
+        "scaled_residual_inf_norm": 1.0577438344241748e-12,
+        "jacobian_rank": 262,
+        "jacobian_condition": 10641525.423631499,
+        "physical_pass": true
+      },
+      {
+        "scipy_success": true,
+        "scipy_status": 3,
+        "nfev": 9,
+        "njev": 7,
+        "function_calls_observed": 9,
+        "jacobian_build_count": 1,
+        "color_count": 16,
+        "scaled_residual_inf_norm": 8.533264795692164e-13,
+        "jacobian_rank": 262,
+        "jacobian_condition": 10641613.989288038,
+        "physical_pass": true
+      },
+      {
+        "scipy_success": true,
+        "scipy_status": 3,
+        "nfev": 9,
+        "njev": 8,
+        "function_calls_observed": 9,
+        "jacobian_build_count": 1,
+        "color_count": 16,
+        "scaled_residual_inf_norm": 1.4189450018576668e-12,
+        "jacobian_rank": 262,
+        "jacobian_condition": 10641703.040504484,
+        "physical_pass": true
+      },
+      {
+        "scipy_success": true,
+        "scipy_status": 1,
+        "nfev": 9,
+        "njev": 8,
+        "function_calls_observed": 9,
+        "jacobian_build_count": 1,
+        "color_count": 16,
+        "scaled_residual_inf_norm": 7.222320934721431e-13,
+        "jacobian_rank": 262,
+        "jacobian_condition": 10641792.11806143,
+        "physical_pass": true
+      }
+    ],
+    "startup_ping_worker_ids": [
+      301092,
+      311024,
+      314920,
+      322184,
+      322388,
+      322524,
+      324648
+    ],
+    "jacobian_worker_ids": [
+      301092,
+      311024,
+      314920,
+      320520,
+      322184,
+      322388,
+      322524,
+      324648
+    ]
+  },
+  "comparison": {
+    "parallel_path_speedup": 1.5744437042311192,
+    "governed_speedup_including_startup": 0.5135872720832095,
+    "matrix_max_abs_difference": 0.0,
+    "coordinate_max_abs_difference": 0.0,
+    "endpoint_max_abs_difference": 0.0
+  },
+  "gates": {
+    "paths_complete": true,
+    "scientific_endpoints": true,
+    "solver_decisions_equal": true,
+    "jacobians_exact": true,
+    "coordinates_exact": true,
+    "endpoints_exact": true,
+    "process_isolation": true,
+    "provider": true,
+    "parallel_path_faster": true
+  },
+  "pass_gate": true
+}

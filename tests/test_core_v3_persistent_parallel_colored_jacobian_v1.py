@@ -103,6 +103,55 @@ def test_persistent_parallel_jacobian_rejects_missing_worker():
         )
 
 
+def test_persistent_parallel_jacobian_allows_scheduler_to_use_worker_subset():
+    seen = False
+
+    def one_worker(work):
+        nonlocal seen
+        task = work["task"]
+        point = np.asarray(task.coordinates)
+        rebuilt = not seen
+        seen = True
+        return {
+            "order": task.order,
+            "residual": point.tolist(),
+            "process_id": 100,
+            "method": work["method"],
+            "root_epoch": work["root_epoch"],
+            "basis_rebuilt": rebuilt,
+            "logical_provider_calls": 1,
+            "provider_pass": True,
+            "fallback_attempted": False,
+        }
+
+    backend = PersistentParallelColoredJacobian(
+        _InlineExecutor(),
+        one_worker,
+        pattern=np.eye(2, dtype=bool),
+        step=1.0e-5,
+        worker_count=2,
+        require_all_workers=False,
+    )
+
+    backend.build(
+        [1.0, 1.0],
+        "root:jacobian_1",
+        method="backward_euler",
+        root_epoch="root",
+        work_basis={},
+    )
+    backend.build(
+        [1.0, 1.0],
+        "root:jacobian_2",
+        method="backward_euler",
+        root_epoch="root",
+        work_basis={},
+    )
+
+    assert [item.basis_rebuilds for item in backend.evidence] == [1, 0]
+    assert all(item.worker_ids == (100,) for item in backend.evidence)
+
+
 def test_persistent_parallel_jacobian_rejects_provider_failure():
     evaluate = _worker_evaluator()
 

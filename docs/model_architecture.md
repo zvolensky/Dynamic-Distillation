@@ -1,9 +1,391 @@
 # Dynamic Distillation Model Architecture
 
-This document describes the current architecture of the dynamic distillation model in this repository.
-It is intended as an implementation-level reference for model behavior, coupling, and runtime execution.
+This document summarizes the architecture of the dynamic distillation model in this repository and distinguishes the historical development path from the current accepted Core V3 formulation.
 
 For project terminology, see `docs/glossary.md`.
+
+## Current status (2026-08-30)
+
+The repository's accepted current state is not the older prescribed-pressure, negligible-vapor-holdup feasibility layer described in the earlier v1/v2 architecture notes. The current accepted Core V3 formulation includes:
+
+- explicit liquid and vapor component inventories;
+- total two-phase energy storage;
+- explicit vapor free-volume and EOS closure;
+- pressure movement coupled to vapor inventory, temperature, free volume, and interstage pressure loss;
+- geometry-based terminal level control;
+- implicit reflux-drum pressure control through condenser duty;
+- implicit distillate n-butane control through reflux flow;
+- accepted bumpless activation, restart, and a 600-second controlled hold for the 20-volume C3/C4 hydrocarbon case.
+
+The conserved Core V3 foundation is summarized in `docs/dynamic_model_current_state_2026-08-20.md`; the later regulatory-control qualification and next-test boundary are recorded in `docs/core_v3_regulatory_controls_20260830.md`. Together with this architecture document, those records define the current validated scope. The historical sections below still document the evolution of the earlier v1/v2 model, but they should be read as development history rather than as the current operating description.
+
+## Target architecture: what an optimal formulation would look like
+
+This is a design target, not a claim about the present accepted runtime. An ideal architecture would preserve the physical meaning of the current Core V3 equations while improving robustness, efficiency, and maintainability.
+
+The ideal design would have:
+
+- a single consistent state vector for all conserved inventories, total energies, pressure states, and terminal-level variables;
+- explicit and physically meaningful ownership of every equation, with no hidden profile forcing or relaxation terms in the governing residual;
+- full pressure dynamics coupled to vapor inventory, free volume, EOS closure, and interstage pressure loss without an external pressure anchor;
+- solver logic that distinguishes true dynamic accumulation from algebraic closure terms cleanly and consistently;
+- initialization and restart tooling that reaches the accepted operating point without depending on brittle profile matching or ad hoc repair steps;
+- rigorous provider governance, including no fallback and a clear contract for phase behavior, density, enthalpy, and fugacity;
+- timestep selection and solver strategy driven by residual/Jacobian performance, refinement checks, and runtime cost rather than by manual trial-and-error.
+
+This target architecture is the benchmark against which the current Core V3 implementation should be measured. It is not the current state. It is the direction in which the model should evolve once the accepted short-horizon evidence is extended into longer, more demanding operating regimes.
+
+## Where Core V3 falls short of the optimal architecture
+
+Core V3 is accepted for a narrow, short-horizon operating window, not as a universally optimal or production-ready architecture. Several gaps remain relative to the ideal formulation above.
+
+1. Validation scope remains limited.
+   - The accepted evidence covers a 20-volume C3/C4 case, including a 600-second four-controller hold.
+   - Feed-temperature disturbance rejection, broader disturbances, longer closed-loop horizons, and wider species families are not yet established as robustly as the target architecture would require.
+
+2. Initialization and restart remain fragile.
+   - The model still depends on careful state construction and acceptance checks before entering dynamics.
+   - A production-quality startup path should be more automatic, reproducible, and less sensitive to initialization details.
+
+3. Runtime cost remains high.
+   - The accepted dynamic trajectories require many provider calls and relatively expensive solves.
+   - An optimal design would reduce nonlinear overhead while preserving physical fidelity and convergence quality.
+
+4. Regulatory-control validation is not yet closed.
+   - The initial pressure-to-condenser-duty and distillate-composition-to-reflux PI design has passed bumpless activation, restart, and unchanged-input qualification.
+   - Its first thermodynamically consistent disturbance-rejection test was executed and failed the `0.5 psi` pressure-error gate at `87.0 s`, so the tuning remains a baseline rather than a final production optimum.
+
+5. Provider governance is still operationally strict but not yet universal.
+   - The current runtime enforces ownership and no-fallback checks, but a more optimal architecture would make this governance even more systematic, reusable, and portable across property providers.
+
+6. The current residual is still more complex than the ideal target would like.
+   - Core V3 remains a coupled DAE with a relatively large Jacobian and several closure layers.
+   - A more optimal formulation would simplify the residual structure and ownership without surrendering physical meaning.
+
+This is not a criticism of the current model. It is simply the distinction between a validated working formulation and a fully optimized production architecture. Core V3 is an important and credible step forward; it is not yet the final idealized formulation.
+
+## Target architecture: what an optimal formulation would look like
+
+This is a design target, not a claim about the present accepted runtime. An ideal architecture would preserve the physical meaning of the current Core V3 equations while improving robustness, efficiency, and maintainability.
+
+The ideal design would have:
+
+- a single consistent state vector for all conserved inventories, total energies, pressure states, and terminal-level variables;
+- explicit and physically meaningful ownership of every equation, with no hidden profile forcing or relaxation terms in the governing residual;
+- full pressure dynamics coupled to vapor inventory, free volume, EOS closure, and interstage pressure loss without an external pressure anchor;
+- solver logic that distinguishes true dynamic accumulation from algebraic closure terms cleanly and consistently;
+- initialization and restart tooling that reaches the accepted operating point without depending on brittle profile matching or ad hoc repair steps;
+- rigorous provider governance, including no fallback and a clear contract for phase behavior, density, enthalpy, and fugacity;
+- timestep selection and solver strategy driven by residual/Jacobian performance, refinement checks, and runtime cost rather than by manual trial-and-error.
+
+This target architecture is the benchmark against which the current Core V3 implementation should be measured. It is not the current state. It is the direction in which the model should evolve once the accepted short-horizon evidence is extended into longer, more demanding operating regimes.
+
+## Mathematical structure of the current Core V3 model
+
+The accepted Core V3 model is a dynamic algebraic-differential formulation for a staged distillation column rather than a reduced fixed-pressure CMO shortcut. The state is built from physically meaningful inventory variables and associated closure equations.
+
+At each control volume and for each component c, the model tracks conserved liquid and vapor inventories:
+
+- liquid component inventory: $n^L_{j,c}$
+- vapor component inventory: $n^V_{j,c}$
+- total two-phase energy: $E_j$
+- pressure: $P_j$
+- vapor free volume: $V^V_j$ and related EOS state
+- terminal level and flow states for reflux drum and sump
+
+The governing residuals are organized into the following classes:
+
+1. Component balances
+
+   - each stage has a differential balance for total component inventory in liquid and vapor phases;
+   - interstage flows, feed, distillate, bottoms, and equilibrium exchange terms appear as source/sink terms in the residual;
+   - these balances enforce global and local material conservation rather than enforcing a constant molar overflow approximation.
+2. Total energy balances
+
+   - each stage includes total two-phase energy storage;
+   - the residual includes enthalpy transport, heat duties, and latent/ sensible energy exchange;
+   - the formulation does not collapse the column to a purely liquid-energy or constant-enthalpy description.
+3. Equilibrium and phase closure
+
+   - stage and condenser equilibrium is enforced with direct fugacity/ flash-style closure terms;
+   - vapor composition is tied to the live vapor inventory and phase equilibrium relations; the model does not treat phase split as an externally prescribed profile.
+4. Hydraulic closure
+
+   - pressure differences are represented by a physically meaningful hydraulic equation of the form
+     $P_{source} - P_{destination} = \Delta P_{liquid} + \Delta P_{dry}$;
+   - liquid-head and dry-tray contributions both matter, and the pressure profile is not fixed by a prescribed pressure anchor.
+
+### Tray hydraulics
+
+The hydraulic submodel is not an empirical pressure profile imposed from outside. It is a local closure equation that ties the stage pressure difference to the actual liquid and vapor states on the tray.
+
+For a given staged link from source volume $j$ to destination volume $j+1$, the pressure drop is written as
+
+$$
+P_j - P_{j+1} = \Delta P_{liquid} + \Delta P_{dry},
+$$
+
+where:
+
+- $\Delta P_{liquid}$ represents the static liquid-head contribution due to the liquid inventory and geometry on the tray;
+- $\Delta P_{dry}$ represents the dry-tray vapor pressure loss caused by vapor flow through the tray opening and associated resistance.
+
+This equation is the hydraulic closure for the stage-to-stage pressure relation. It is algebraic because it is enforced instantaneously at a given state; it is not a time-derivative equation. The pressure profile is therefore determined by physically meaningful fluid inventory, geometry, and vapor-flow conditions rather than by a fixed external pressure specification.
+
+5. EOS and volume closure
+
+   - vapor density, compressibility, and free volume are coupled to pressure and temperature through the vapor EOS;
+   - pressure therefore responds to the current vapor inventory and vapor state instead of being treated as a fixed or externally specified profile.
+6. Terminal control closure
+
+   - level controllers determine product flows at the reflux drum and sump;
+   - geometry and inventory state define drum/sump level, and that level closes the distillate/bottoms flow equations.
+
+In compact form, the dynamic model is assembled as a DAE-like residual:
+
+$$
+F(x, \dot{x}, u) = 0
+$$
+
+where $x$ contains the conserved state variables, $u$ holds boundary conditions and specification values, and $F$ includes component balances, total energy, equilibrium, hydraulic, EOS, and level equations. The current accepted formulation therefore remains materially and energetically explicit while respecting the physical geometry and pressure dynamics of the column.
+
+## Algebraic versus differential terms
+
+The current Core V3 model is a differential-algebraic system (DAE)), meaning that some equations are dynamic and some are algebraic closure conditions.
+
+### Differential quantities
+
+The differential states are the quantities whose time derivatives appear explicitly in the model. In the accepted formulation these are the conserved inventories and total energy:
+
+- liquid component inventories $n^L_{j,c}$;
+- vapor component inventories $n^V_{j,c}$;
+- total two-phase energy $E_j$ at each stage or vessel.
+
+These satisfy equations of the form
+
+$$
+\frac{d n^L_{j,c}}{dt} = \text{net liquid component flow and source terms},
+$$
+
+$$
+\frac{d n^V_{j,c}}{dt} = \text{net vapor component flow and source terms},
+$$
+
+$$
+\frac{d E_j}{dt} = \text{net enthalpy transport, heat duty, and phase-energy terms}.
+$$
+
+These are the true dynamic equations of the model: they represent accumulation and change over time.
+
+### Algebraic closure equations
+
+The remaining equations are algebraic constraints that must be satisfied at each instant of the dynamic solve. In the current Core V3 formulation these include:
+
+- equilibrium and fugacity closure at each stage and condenser;
+- hydraulic pressure-drop equations of the form
+  $P_{source} - P_{destination} = \Delta P_{liquid} + \Delta P_{dry}$;
+- vapor EOS and free-volume closure linking pressure, vapor density, compressibility, and inventory;
+- level equations for reflux drum and sump, including the controller-coupled product-flow relations;
+- any phase-property evaluations used to close the stage residuals.
+
+These algebraic equations do not represent accumulation over time. Instead, they enforce instantaneous thermodynamic, hydraulic, and control consistency once the differential state is known.
+
+### DAE interpretation
+
+The model is therefore a DAE system of the form
+
+$$
+\begin{bmatrix}
+\text{differential balances} \\
+\text{algebraic closures}
+\end{bmatrix}
+= 0,
+$$
+
+with the differential terms coming from inventory and energy accumulation, and the algebraic terms enforcing thermodynamic, hydraulic, and control consistency. This is why the accepted evidence checks both the dynamic residual and the algebraic Jacobian blocks. The solver cannot satisfy the dynamics without also satisfying the instantaneous closure equations.
+
+### One-stage schematic
+
+A single stage or vessel can be pictured as follows:
+
+$$
+\text{inlet flows} \; + \; \text{feed/heat inputs}
+\longrightarrow
+\begin{cases}
+\text{differential balances: } \frac{d n^L}{dt}, \frac{d n^V}{dt}, \frac{dE}{dt} \\
+\text{algebraic closures: } f_{eq}, f_{hyd}, f_{EOS}, f_{lvl}
+\end{cases}
+\longrightarrow
+\text{outlet flows and updated stage state}
+$$
+
+At stage $j$, the differential part updates the conserved inventories and total energy:
+
+- $\frac{d n^L_{j,c}}{dt}$ from liquid inflow/outflow and mass exchange,
+- $\frac{d n^V_{j,c}}{dt}$ from vapor inflow/outflow and mass exchange,
+- $\frac{d E_j}{dt}$ from enthalpy transport and heat duty.
+
+At the same time, the algebraic part enforces the local conditions:
+
+- equilibrium and fugacity consistency for vapor-liquid exchange,
+- hydraulic pressure-drop closure between adjacent volumes,
+- EOS/free-volume consistency for vapor density and pressure,
+- level and product-flow closure for the drum or sump.
+
+So the stage is not solved as “update the inventory, then separately correct the tray with a pressure relationship.” The inventory evolution and the closure equations are solved together as a single coupled local problem, and the neighboring stages are coupled through the interstage flows and pressure-drop equations.
+
+## Solution algorithm and numerical strategy
+
+The current model is solved as an implicit nonlinear residual problem, not as a sequential approximate pressure-only update. The accepted workflow follows a standard rigorous dynamic-simulation pattern:
+
+1. Assemble the full residual vector.
+
+   - Include all component balance equations, total energy equations, equilibrium constraints, pressure-drop equations, EOS closure equations, and controller-linked terminal conditions.
+   - The residual is built as a single consistent system for the chosen column topology.
+2. Evaluate the Jacobian.
+
+   - The nonlinear solve uses the local sensitivity of the residual with respect to the state variables.
+   - The Jacobian checks are used to confirm rank, conditioning, and absence of structural null spaces before accepting a solve.
+3. Solve the nonlinear system with a Newton-type method.
+
+   - The solve is repeated until the residual falls below the frozen acceptance tolerance.
+   - Rank checks, condition estimates, and physical-domain validity checks are part of the acceptance gate.
+4. Advance the dynamic system implicitly in time.
+
+   - The accepted short-horizon dynamic runs are based on an implicit step formulation rather than explicit forward marching.
+   - Time stepping is performed with a stiff DAE-compatible method, so the solver can handle the coupled inventory, energy, and pressure dynamics without artificial profile forcing or clipping.
+5. Validate the result against physical and governance gates.
+
+   - Conservation checks: component and energy closure near roundoff;
+   - physical checks: positive pressure, ordered temperatures, finite states, physically valid product flows;
+   - provider checks: no thermo fallback, no hidden relaxation, strict ownership of property calls;
+   - refinement checks: time-step and half-step consistency for accepted dynamic windows.
+
+This is important because the present model is not merely a collection of algebraic equations patched onto a fixed-pressure design. The solver is asked to satisfy the coupled set of mass, energy, equilibrium, pressure-drop, and EOS conditions simultaneously, so the solution is only accepted when the complete residual and Jacobian remain structurally and numerically consistent.
+
+## Matrix view of the assembled system
+
+The current Core V3 formulation is best understood as a sparse, block-structured nonlinear system. A convenient way to view it is to partition the state vector by physical meaning.
+
+For a column with $N$ stages and $C$ components, define the state as
+
+$$
+x = \begin{bmatrix}
+\mathbf{n}^L \\
+\mathbf{n}^V \\
+\mathbf{E} \\
+\mathbf{P} \\
+\mathbf{q}_{lvl}
+\end{bmatrix}
+
+\quad\text{with}\quad
+\mathbf{n}^L \in \mathbb{R}^{N C},\;
+\mathbf{n}^V \in \mathbb{R}^{N C},\;
+\mathbf{E} \in \mathbb{R}^{N},\;
+\mathbf{P} \in \mathbb{R}^{N},\;
+\mathbf{q}_{lvl} \in \mathbb{R}^{2}
+$$
+
+where $\mathbf{n}^L$ and $\mathbf{n}^V$ are the liquid and vapor component inventories, $\mathbf{E}$ contains total two-phase energies, $\mathbf{P}$ contains stage pressures, and $\mathbf{q}_{lvl}$ contains the level-controller coupling variables at the reflux drum and sump.
+
+The residual is then assembled as a vector of equation families:
+
+$$
+F(x) =
+\begin{bmatrix}
+\mathbf{M}^L \\
+\mathbf{M}^V \\
+\mathbf{E}^{tot} \\
+\mathbf{\Phi}^{eq} \\
+\mathbf{\Phi}^{hyd} \\
+\mathbf{\Phi}^{EOS} \\
+\mathbf{C}^{lvl}
+\end{bmatrix}
+$$
+
+where:
+
+- $\mathbf{M}^L$ = liquid component balances
+- $\mathbf{M}^V$ = vapor component balances
+- $\mathbf{E}^{tot}$ = total energy balances
+- $\mathbf{\Phi}^{eq}$ = equilibrium and phase-closure equations
+- $\mathbf{\Phi}^{hyd}$ = hydraulic pressure-drop equations
+- $\mathbf{\Phi}^{EOS}$ = vapor EOS and free-volume closure
+- $\mathbf{C}^{lvl}$ = terminal level and product-flow controller equations
+
+The Jacobian is therefore block-structured, with the dominant couplings concentrated near the diagonal and along neighboring-stage links:
+
+$$
+J = \frac{\partial F}{\partial x} =
+\begin{bmatrix}
+\frac{\partial \mathbf{M}^L}{\partial \mathbf{n}^L} &
+\frac{\partial \mathbf{M}^L}{\partial \mathbf{n}^V} &
+\frac{\partial \mathbf{M}^L}{\partial \mathbf{E}} &
+0 & 0 \\
+\frac{\partial \mathbf{M}^V}{\partial \mathbf{n}^L} &
+\frac{\partial \mathbf{M}^V}{\partial \mathbf{n}^V} &
+\frac{\partial \mathbf{M}^V}{\partial \mathbf{E}} &
+\frac{\partial \mathbf{M}^V}{\partial \mathbf{P}} & 0 \\
+\frac{\partial \mathbf{E}^{tot}}{\partial \mathbf{n}^L} &
+\frac{\partial \mathbf{E}^{tot}}{\partial \mathbf{n}^V} &
+\frac{\partial \mathbf{E}^{tot}}{\partial \mathbf{E}} &
+\frac{\partial \mathbf{E}^{tot}}{\partial \mathbf{P}} & 0 \\
+0 &
+\frac{\partial \mathbf{\Phi}^{eq}}{\partial \mathbf{n}^V} &
+\frac{\partial \mathbf{\Phi}^{eq}}{\partial \mathbf{E}} &
+\frac{\partial \mathbf{\Phi}^{eq}}{\partial \mathbf{P}} & 0 \\
+0 & 0 &
+\frac{\partial \mathbf{\Phi}^{hyd}}{\partial \mathbf{E}} &
+\frac{\partial \mathbf{\Phi}^{hyd}}{\partial \mathbf{P}} & 0 \\
+0 & 0 &
+\frac{\partial \mathbf{\Phi}^{EOS}}{\partial \mathbf{E}} &
+\frac{\partial \mathbf{\Phi}^{EOS}}{\partial \mathbf{P}} & 0 \\
+0 & 0 &
+\frac{\partial \mathbf{C}^{lvl}}{\partial \mathbf{E}} &
+\frac{\partial \mathbf{C}^{lvl}}{\partial \mathbf{P}} &
+\frac{\partial \mathbf{C}^{lvl}}{\partial \mathbf{q}_{lvl}}
+\end{bmatrix}
+$$
+
+This matrix is sparse because each equation depends mostly on its local stage and the neighboring interstage flows. In practice the structure is stage-coupled and nearly block-banded, with strong local dependence on composition, enthalpy, and pressure in the same volume, plus weaker but important interstage coupling through flow, equilibrium, and pressure-drop equations.
+
+The important point is that the model is not a single diagonal collection of tray balances. It is a coupled nonlinear system in which composition, energy, pressure, and level equations share the same Jacobian. That is why the accepted gates include finite-difference Jacobian checks, rank tests, condition estimates, and local conservation audits.
+
+## How each timestep is advanced
+
+The dynamic model advances in time by solving a coupled implicit update at each step, not by explicitly marching each state variable independently.
+
+For a step from $t_n$ to $t_{n+1}=t_n+\Delta t$, the algorithm is conceptually:
+
+1. Start from the accepted state at the previous time point, $x_n$.
+2. Form the implicit residual for the next state, $x_{n+1}$,
+
+   $$
+   G(x_{n+1}; x_n, \Delta t) = 0,
+   $$
+
+   where the derivative terms are represented by a finite-difference or DAE-compatible discretization of $\dot{x}$.
+3. Assemble the full coupled residual, including component balances, total-energy balances, equilibrium closure, hydraulic pressure-drop equations, EOS/free-volume closure, and terminal-level equations.
+4. Solve the nonlinear system with Newton or a Newton-like method,
+
+   $$
+   J_k \Delta x_k = -G(x_k),
+   $$
+
+   followed by
+   $$
+   x_{k+1} = x_k + \Delta x_k,
+   $$
+
+   until the residual and step update satisfy the acceptance criteria.
+5. Check physical and numerical validity: positive pressure, ordered temperatures, component conservation, energy conservation, finite Jacobian, acceptable condition number, and no fallback/property violations.
+6. If the step passes, accept $x_{n+1}$ and proceed to the next time increment. If it fails, the step is either rejected or the model is re-evaluated under the documented frozen contract.
+
+The choice of $\Delta t$ is not arbitrary. A timestep that is too small increases runtime and provider-call count without adding much dynamic information, while a timestep that is too large can produce instability, poor convergence, excessive nonlinear iterations, or physically misleading integration results. In practice the accepted path is to use the largest time step that remains stable and consistent with the residual, Jacobian, and refinement checks. This is why accepted dynamic evidence includes half-step refinement comparisons and residual-based acceptance criteria, rather than relying on a single nominal step size.
+
+In short, a timestep is a full nonlinear solve for the next state, using the previous state as the known history and the coupled physical residual as the condition that must be satisfied at the new time. This is why the accepted evidence emphasizes Jacobian rank, residual size, conservation, and refinement checks at each dynamic step. The model is therefore not a single forward-Euler tray update; it is a fully coupled implicit dynamic solve.
+
+The reason is structural. The states are not independent from tray to tray. Liquid inventory, vapor inventory, temperature, pressure, and product flow all participate in the same nonlinear residual system. Pressure moves with vapor inventory and free volume; vapor composition and enthalpy are linked through equilibrium and EOS closure; level controllers alter distillate and bottoms flows; and those flows feed directly back into the stage balances. A forward-Euler update would require each variable to be advanced from its previous value using a local explicit formula, but here the next state must satisfy the whole coupled system simultaneously. This is why the update is written as a residual equation $F(x_{n+1}, x_n, \Delta t)=0$ and solved iteratively with a Newton-type method rather than by explicit tray-by-tray marching.
 
 ## Design Complexity and Initialization Implications
 
@@ -13,9 +395,9 @@ This model differs fundamentally from simplified textbook treatments of distilla
 - **Rigorous energy topology** with temperature and enthalpy states on trays and boundary vessels
 - **Hydraulic-pressure and explicit vapor-inventory paths** that are intended to be coupled
 
-The intended formulation resembles the DAE structure used by rigorous commercial dynamic simulators. The current implementation does not yet complete that structure: DD-060 shows that hydraulic pressure and pressure implied by explicit vapor holdup can disagree materially, and the accepted composition-only equilibrium path preserves phase totals. This is an open model-closure issue, not merely an initialization sensitivity.
+The intended formulation resembles the DAE structure used by rigorous commercial dynamic simulators. The repository has now progressed substantially beyond the older feasibility stage: the current accepted C3/C4 formulation includes explicit vapor holdup, pressure-dynamic closure, terminal level control, and qualified pressure/composition regulatory control. However, the model is still not a general industrial production claim; longer closed-loop horizons, thermally consistent disturbance rejection, and broader mixtures remain open evidence areas.
 
-In consequence, initialization is not a trivial "switch to dynamics" operation. A future rigorous formulation will require consistent DAE initialization, but model ownership must first be made internally consistent. An initializer cannot drive all derivatives to a meaningful zero while pressure, phase totals, and energy have competing closures.
+Initialization is still not a trivial "switch to dynamics" operation for a rigorous model, but the current formulation is no longer best described as a structurally incomplete fixed-pressure model. The main residual issues are now in validation scope, controller design, runtime cost, and longer-horizon stability rather than basic missing vapor-holdup architecture.
 
 See `docs/dynamic_column_initialization_strategy.md` for the mathematical foundation and practical workflow.
 See `docs/initialization_code_status.md` for the current support status of initialization, reconciliation, and startup-homotopy tooling.
@@ -435,13 +817,16 @@ See `docs/dd_060_physics_owned_tray_flow_probe_20260712.md`.
 ## 1) Scope
 
 Primary execution path:
+
 - `src/dynamic_distillation/dynamic_run_scaffold_v1.py`
 - `src/dynamic_distillation/column_rhs_v1.py`
 
 Primary inputs:
+
 - Excel case file (`Specifications`, `Initial Conditions`, optional `Components`, optional `Streams`)
 
 Primary outputs:
+
 - `logs/column_summary_<run_id>.csv`
 - `logs/column_profile_<run_id>.csv`
 - `logs/<run_folder>/<input_stem>__restart_<run_id>.xlsx`
@@ -451,30 +836,23 @@ Primary outputs:
 ## 2) Top-Level Module Map
 
 - `excel_case_loader_v1.py`
-Loads workbook content into `CaseData` (components, specs, initial profiles, streams).
-
+  Loads workbook content into `CaseData` (components, specs, initial profiles, streams).
 - `column_spec_builder_v1.py`
-Builds immutable `ColumnSpec` (profiles, geometry expansion, stream normalization, simulation defaults).
-
+  Builds immutable `ColumnSpec` (profiles, geometry expansion, stream normalization, simulation defaults).
 - `excel_case_validator_v1.py`
-Validates loaded case before simulation starts.
-
+  Validates loaded case before simulation starts.
 - `state_vector_layout_v1.py`
-Defines deterministic state vector layout and pack/unpack functions.
-
+  Defines deterministic state vector layout and pack/unpack functions.
 - `dynamic_run_scaffold_v1.py`
-Owns startup initialization, control updates, runtime mode resolution, integration loop (explicit or stiff), logging, run registration.
-
+  Owns startup initialization, control updates, runtime mode resolution, integration loop (explicit or stiff), logging, run registration.
 - `column_rhs_v1.py`
-Computes `dydt` and diagnostics for mass/energy/hydraulics/pressure/thermo closures.
-
+  Computes `dydt` and diagnostics for mass/energy/hydraulics/pressure/thermo closures.
 - Thermo providers:
-`thermo_provider_v1.py` (live backend),
-`thermo_surrogate_v1.py` (tabular single-process),
-`thermo_table_pool_v1.py` (tabular process pool).
-
+  `thermo_provider_v1.py` (live backend),
+  `thermo_surrogate_v1.py` (tabular single-process),
+  `thermo_table_pool_v1.py` (tabular process pool).
 - `experiment_ledger_v1.py`
-Appends run records and rebuilds human-readable ledger artifacts.
+  Appends run records and rebuilds human-readable ledger artifacts.
 
 ## 3) Data Objects And State
 
@@ -484,6 +862,7 @@ Appends run records and rebuilds human-readable ledger artifacts.
 - `ColumnInputs`: per-step runtime inputs into RHS (boundary flows, model toggles, cached seeds, closures).
 
 State vector blocks are configurable through layout flags:
+
 - tray liquid holdup components (`tray_L`)
 - tray vapor holdup components (`tray_V`)
 - top and bottom holdup vectors (`top_L`, `top_V`, `bottom_L`, `bottom_V`)
@@ -493,14 +872,17 @@ State vector blocks are configurable through layout flags:
 ## 4) Runner Execution Pipeline
 
 Runner entrypoint:
+
 - `run_smoke_simulation(cfg)` in `dynamic_run_scaffold_v1.py`
 
 High-level flow:
+
 1. Load and validate case.
 2. Build `ColumnSpec`.
 3. Build `StateVectorLayout`.
 4. Build base `ColumnInputs` and thermo provider.
 5. Initialize state:
+
 - pack initial holdups/compositions
 - initialize vapor holdup from pressure profile
 - optional startup thermo conditioning
@@ -508,6 +890,7 @@ High-level flow:
 - initialize startup/runtime thermo diagnostics and reusable thermo packets when enabled
 
 Fresh-startup note:
+
 - A "fresh" run means the Excel input does not include explicit runtime restart sheets.
 - On this column, a full fresh startup has recently taken about `10-12 minutes` of wall-clock time before the first logged integration row appears.
 - That time is spent in pre-integration conditioning, especially vapor-holdup initialization from startup pressure, thermo-consistent startup conditioning, and top-drum startup steadying.
@@ -517,10 +900,13 @@ Fresh-startup note:
 - Before normal logging begins, restart runs now apply a short hidden re-entry settling pass to reduce the immediate pressure/composition bump that would otherwise appear on the first resumed steps.
 
 Top-drum startup inventory precedence:
+
 - if explicit top liquid holdup is provided (`Top Accumulator Holdup (lbmol)` and aliases), that value is treated as authoritative for startup reflux-drum liquid inventory
 - `Top Drum Liquid Fraction (-)` remains useful for level/control/display interpretation and geometry-based inference, but it is secondary and is only used to infer startup liquid inventory when explicit top holdup is absent
+
 6. Build optional controllers (level, pressure, distillate composition, bottoms composition).
 7. Time loop (`step = 0..n_steps`):
+
 - update step boundary commands and control MVs
 - resolve runtime mode and startup sequence behavior
 - snapshot thermo counters/timed buckets into run metadata and diagnostics
@@ -534,31 +920,41 @@ Top-drum startup inventory precedence:
   - stiff modes: per-step `solve_ivp` (`BDF` or `Radau`) with explicit fallback on step failure
   - ida mode: implicit-Euler fixed-point stepper with RHS-coupled DAE algebraic closure; convergence uses state-update error plus weighted algebraic residual checks when those residuals are available
 - cache diagnostics for next step
+
 8. Write run artifacts and update experiment ledger.
 
 ## 5) RHS Architecture
 
 RHS entrypoint:
+
 - `column_rhs(t, y, col, layout, inputs)` in `column_rhs_v1.py`
 
 Major stages inside RHS:
+
 1. Unpack state and normalize compositions as needed.
 2. Build feed split and boundary flows.
 3. Build internal liquid flow:
+
 - profile baseline from `ColumnSpec`
 - optional Francis-weir hydraulic override on internal stages.
 
 Current practical meaning in the hydraulic parity branch:
+
 - `L_out_used` is the liquid flow actually marched by the model.
 - `L_out_hyd` is the Francis/weir hydraulic candidate.
 - when liquid-hydraulic override is disabled, `L_out_hyd` is diagnostic only and may differ materially from `L_out_used`.
+
 4. Build vapor flow based on `vapor_flow_model`:
+
 - `profile`: use profile traffic
 - `conductance`: pressure-conductance closure with clamps/relaxation
 - `energy`: tray energy-based closure with clamps/relaxation.
+
 5. Build pressure based on `pressure_model`:
+
 - `spec`: use case profile
 - `hydraulic`: compute hydraulic tray profile and top-drum coupling.
+
 6. Apply condenser split and top-drum pressure gate logic.
 7. Assemble component derivatives and optional energy derivatives.
 8. Perform thermo refresh/cache update and equilibrium-relaxation terms.
@@ -592,6 +988,7 @@ Current architecture is sequential inside each RHS call, not fully simultaneous:
 3. Runner caches pressure and feeds it back as `P_tray_prev` on the next timestep.
 
 Implication:
+
 - Pressure-vapor coupling is effectively one-step lagged in explicit time marching.
 - This is a key reason stiff `P/V` interactions can require damping or additional safeguards.
 - In hydraulic+energy operation, increasing reboiler duty does not guarantee a same-step
@@ -603,6 +1000,7 @@ Implication:
   short dynamic gate, not the optimizer norm alone.
 
 Optional mitigation now available in runner:
+
 - inner fixed-point `P/V` coupling per timestep (`--pv-inner-max-iter` with
   `--pv-inner-p-tol-psia` and `--pv-inner-v-tol-lbmolph`).
 - this is applied only when pressure mode is hydraulic and vapor-flow mode is
@@ -613,82 +1011,89 @@ Optional mitigation now available in runner:
 Configured via `--runtime-mode` in `dynamic_run_scaffold_v1.py`.
 
 - `parity`:
-forces pressure spec + vapor profile + liquid hydraulics override off.
-
+  forces pressure spec + vapor profile + liquid hydraulics override off.
 - `calibration`:
-uses the same closure set as `parity` (pressure spec + vapor profile + liquid hydraulics override off), with explicit parity-calibration intent.
-
+  uses the same closure set as `parity` (pressure spec + vapor profile + liquid hydraulics override off), with explicit parity-calibration intent.
 - `hydraulic`:
-forces hydraulic pressure + energy vapor closure.
+  forces hydraulic pressure + energy vapor closure.
 
 Current project convention for ChemSep parity work:
+
 - liquid-hydraulic override is kept off unless explicitly requested
 - this keeps the seeded/profile liquid traffic active while still logging `L_out_hyd` for hydraulic diagnosis
-
 - `legacy`:
-uses Excel/CLI-driven behavior and is the only mode where startup hydraulic sequencing is active.
+  uses Excel/CLI-driven behavior and is the only mode where startup hydraulic sequencing is active.
 
 ## 8) Control Architecture
 
 Controllers are implemented in runner, not inside RHS:
+
 - level control:
-top drum holdup or true level -> distillate draw,
-bottom sump holdup or true level -> bottoms draw.
+  top drum holdup or true level -> distillate draw,
+  bottom sump holdup or true level -> bottoms draw.
 
 Bottom true-level mode:
+
 - uses sump liquid holdup plus liquid density to estimate live sump liquid volume
 - interprets sump level as a vertical cylindrical vessel fraction when sump total volume is provided
 
 Bottom-end topology in the standard explicit-sump model:
+
 - liquid from the bottom tray drains into the bottoms sump
 - bottoms product is drawn from the sump
 - reboiler liquid feed is also taken from the sump
 - reboiler boilup returns vapor to the bottom tray
 
 Current exception:
+
 - the special no-holdup reboiler shortcut still uses its legacy feed path until
   an explicit sump-circulation model is added there
-
 - pressure control:
-top pressure PV -> condenser duty or top-pressure anchor MV.
-
+  top pressure PV -> condenser duty or top-pressure anchor MV.
 - composition control:
-distillate composition -> reflux MV,
-bottoms composition -> boilup or reboiler-duty MV.
+  distillate composition -> reflux MV,
+  bottoms composition -> boilup or reboiler-duty MV.
 
 Bottoms composition MV semantics:
+
 - `--bottoms-comp-mv boilup`: active MV is boilup flow (`Boilup_cmd_lbmolph`).
 - `--bottoms-comp-mv reboiler-duty`: active MV is reboiler duty
   (`Q_reb_cmd_BTUph`, with `Q_reb_used_BTUph` as realized duty).
 - In reboiler-duty mode, `Boilup_cmd_lbmolph` is expected to be `NaN` in logs.
 
 Control sequence:
+
 - controllers are evaluated each step using latest cached PV/diag signals.
 - resulting commands are passed into RHS through step-local `BoundaryFlows`/`ColumnInputs`.
 
 ## 9) Thermo Architecture
 
 Thermo modes:
+
 - `stub`
 - `dwsim`
 - `table`
 - `table-pool`
 
 Batch thermo refresh:
+
 - RHS uses batch path when provider supports `flash_TP_full_batch(...)`.
 - `table-pool` parallelizes only batch flash rows; scalar helper calls remain local.
 
 Pool performance is workload-dependent:
+
 - effective throughput depends on rows refreshed per step and chunking.
 - more workers do not guarantee faster runtime if task granularity is small.
 
 Current project guidance for this column configuration:
+
 - use `--thermo table-pool` and tune `--thermo-pool-workers` to hardware and run
   size (start around `2..6`; higher counts are not always faster).
 
 ## 10) Logging, Traceability, And Reproducibility
 
 Per run:
+
 - profile CSV with stage-level and node-level diagnostics.
 - summary CSV with global and top-level metrics plus per-step integrator diagnostics (`integrator_*`, `ida_*` fields).
 - restart workbook copied from the input case file and updated with final dynamic state:
@@ -699,11 +1104,13 @@ Per run:
   - `Dynamic Memory`
 
 Restart-workbook intent:
+
 - The base workbook remains the case definition.
 - The restart workbook is the continuation artifact.
 - Using the restart workbook for a follow-on run allows the model to start from the reached dynamic condition and avoid repeating most of the expensive fresh-startup calculations.
 
 K-value diagnostics in profile CSV:
+
 - `K_state_<comp>`: instantaneous dynamic-state ratio `y/x` on the tray.
 - `K_thermo_<comp>`: thermo-flash equilibrium K at tray `T,P,z`.
 - `K_state_over_K_thermo_<comp>`: disequilibrium indicator; near `1.0` means state
@@ -719,10 +1126,12 @@ K-value diagnostics in profile CSV:
   verify with stage `V_out_lbmolph` trends.
 
 Registry and ledger:
+
 - each run is recorded in `logs/run_registry.csv` with command provenance.
 - documentation ledgers are regenerated in `docs/experiment_ledger.csv` and `docs/experiment_ledger.md`.
 
 Duplicate command identity:
+
 - command identity normalization is applied for duplicate guard behavior.
 
 ## 11) Known Architectural Constraints
@@ -742,6 +1151,13 @@ Duplicate command identity:
 - Startup initialization quality strongly affects early transient stiffness.
 
 ## 12) Future Architecture Options
+
+This section is historical and decision-trace oriented. It records retired,
+rejected, or deferred architectural paths that were explored during model
+maturation. These entries are retained for provenance and technical reasoning,
+but they are not part of the active current architecture described in the
+sections above. The accepted current state is the vapor-holdup Core V3 model
+summarized in `docs/dynamic_model_current_state_2026-08-20.md`.
 
 The former option to broaden the existing runtime into one large implicit
 solve is retired by DD-075. The selected future architecture is the isolated
@@ -2885,3 +3301,163 @@ the complete ordered pressure profile. The final drum-to-top-tray pressure drop
 is `0.047538 psia`. Thus the reflux drum is no longer an artificial pressure
 anchor; its pressure responds through the same vapor-inventory and energy
 equations as the rest of the column.
+
+### Pressure and distillate-composition regulatory successor
+
+On 2026-08-30, the dynamic-pressure architecture was extended with two implicit
+PI loops while retaining both workbook-backed terminal level loops. Reflux-drum
+pressure manipulates condenser-duty magnitude, and distillate n-butane mole
+fraction manipulates reflux. Drum and sump levels continue to manipulate
+distillate and bottoms flow. Reboiler duty remains fixed. This pairing gives
+each loop a distinct manipulated variable and preserves the live terminal
+liquid compositions used by the product streams.
+
+Pressure uses the existing native `Q_C` algebraic coordinate, so replacing the
+fixed-duty specification with a pressure-controller output requires one PI
+memory/rate pair but no duplicate duty variable. Composition control adds one
+PI memory/rate pair and one absolute log-reflux output. Reflux is coupled to the
+top liquid material and energy transport rows. Together these additions enlarge
+the pressure-dynamic terminal-control system from `262 x 262` to a structurally
+full-rank `265 x 265` residual.
+
+The initial baseline tuning is `300,000 BTU/h/psi` with `Ti = 180 s` for
+pressure and `5,000 lbmol/h/mole-fraction` with `Ti = 600 s` for distillate
+n-butane. Duty magnitude and reflux are each bounded to `0.5-1.5` times their
+activation references. Controller memories, outputs, tuning, setpoints, and
+activation state are native checkpoint data. An older two-level-controller
+checkpoint is upgraded by back-calculating the new memories so that duty and
+reflux do not jump at activation. Later continuations inherit all four memories.
+
+The first controlled endpoint changed pressure by only `-0.000129 psi`, duty by
+`+38.8 BTU/h`, reflux by `+0.000759 lbmol/h`, and distillate n-butane by
+`+1.52e-7` mole fraction. It closed at `2.65e-12`, retained numerical rank 265,
+and had condition number `4.74e6`. The inherited restart and subsequent
+600-second unchanged-input qualification accepted every endpoint. Pressure
+remained within `0.05313 psi`, reached a smooth minimum, and recovered. The
+composition drift increment fell by about 99 percent over the final five-minute
+segment. The final steady-state score was `0.7001`, with the steady-state flag
+asserted. The accepted restart is
+`logs/core_v3_regulatory_bumpless_hold600s_20260830/core_v3_checkpoint_20260830_142858.npz`.
+
+### +5 F feed-temperature disturbance result
+
+The test starts from the
+accepted four-controller checkpoint and steps feed temperature from `174.999 F`
+to `179.999 F`. Feed pressure remains `232.06 psia`; component rates remain
+`2380.99/3968.32/793.664 lbmol/h` for n-propane/n-butane/n-pentane; controller
+setpoints, tuning, limits, and memories remain unchanged; and reboiler duty and
+all other boundary conditions remain fixed.
+
+Core V3 receives feed energy as `feed_enthalpy_BTUph`, not as a temperature
+label. The disturbance must therefore query the governed DWSIM Peng-Robinson
+provider for liquid feed molar enthalpy at the baseline and disturbed
+temperatures, using the unchanged feed pressure and composition. The disturbed
+energy rate is the unchanged component-flow total times the disturbed molar
+enthalpy. A fixed enthalpy multiplier is not an acceptable representation of
+this experiment.
+
+The primary frozen horizon is 600 seconds at the validated 0.5-second timestep.
+One extension is permitted only when all hard gates pass but recovery remains
+incomplete, with an absolute maximum disturbance horizon of 1200 seconds. No
+tuning, timestep, limit, setpoint, or disturbance change is permitted between
+segments. Required evidence and acceptance limits are recorded in
+`docs/core_v3_regulatory_controls_20260830.md`; documenting this boundary does
+not authorize classifying the disturbance as accepted before it is run.
+
+The governed boundary evaluation produced a liquid-feed enthalpy step of
+`+1.489019923 MMBTU/h`, from `-36.661427886` to `-35.172407964 MMBTU/h`, with
+zero baseline parity error. Preflight exposed a numerical rather than physical
+restriction: the two feed-adjacent vapor-flow log coordinates pinned at the
+generic `+/-0.01` solve envelope. The regulatory successor now gives only
+vapor-flow log coordinates a `+/-0.05` envelope, permits 160 nonlinear
+evaluations for a nonzero feed-temperature disturbance, and refreshes its
+colored Jacobian every five callbacks. Controller output bounds, tuning,
+setpoints, physical equations, timestep, and the disturbance itself were not
+changed. The first accepted disturbed endpoint at `t = 0.5 s` closed at
+`5.319745e-12`, with rank 265, condition `4.655299e6`, and no active bound.
+
+The response nevertheless fails its frozen pressure-quality requirement. With
+all response gates evaluated at every endpoint, the first violation is at
+`t = 87.0 s`: drum pressure is `221.823624947 psia`, giving error
+`+0.502398936 psi` against the strict `0.5 psi` limit. The same endpoint has
+residual `3.912488e-13`, rank 265, condition `4.654713e6`, physical pass,
+distillate n-butane error `+0.000212060`, levels `0.497944/0.499906`, duty ratio
+`1.002867`, and reflux ratio `1.000266`. Thus numerical closure, composition
+control, level control, and actuator margin all pass; current pressure-loop
+disturbance rejection does not. The run stops without an accepted 600-second
+checkpoint or the conditional 1200-second extension. Any tuning, disturbance,
+or acceptance-criterion change requires a new, separately frozen experiment.
+
+The separately frozen successor changes only pressure proportional gain from
+`0.300` to `3.000 MMBTU/h/psi`, retaining `Ti = 180 s`. This value is derived
+from the `1.489020 MMBTU/h` heat step: it is `2.93%` of reference condenser
+duty, so approximately `2.98 MMBTU/h/psi` is required to supply the same
+proportional duty fraction at the `0.5 psi` pressure boundary. The rounded
+`3.000 MMBTU/h/psi` trial isolates proportional authority without changing
+integral time or any other loop. Regulatory memory back-calculation preserves
+the saved condenser duty during the gain change. A 60-second unchanged-input
+qualification is required before repeating the identically defined
+disturbance and its existing hard gates.
+
+The pressure-gain successor was executed. Its bumpless endpoint and full
+60-second unchanged-input qualification passed, and the repeated `+5 F`
+disturbance confirmed that pressure authority was corrected: logged pressure
+error peaked near `+0.305 psi`, turned, and recovered to `+0.131714 psi` by the
+eventual stop. The run instead reached the distillate n-butane hard gate at
+`t = 355.0 s`, with composition error `+0.002001574` against the strict
+`0.002` limit. That endpoint retained residual `8.159130e-13`, rank 265,
+condition `4.584253e6`, physical pass, levels `0.501798/0.497794`, duty ratio
+`1.034782`, and reflux ratio `1.002143`. Thus the pressure retuning succeeds in
+its intended role, while the existing slow, low-authority composition loop is
+the next limiting controller. The 600-second disturbance and conditional
+extension remain unaccepted; composition retuning requires a separately frozen
+successor.
+
+The next frozen successor holds the qualified pressure loop fixed and changes
+only distillate n-butane proportional gain from `5,000` to
+`30,000 lbmol/h` per mole fraction, retaining `Ti = 600 s`. At the `0.002`
+composition boundary this increases proportional reflux authority from
+`10` to `60 lbmol/h`, approximately `1%` of reference reflux. The composition
+memory is back-calculated for a bumpless gain change. A 60-second unchanged
+qualification precedes the identical thermal disturbance and unchanged gates.
+
+The composition-gain successor was executed. Its bumpless endpoint and full
+60-second unchanged-input qualification passed, as did the first disturbed
+endpoint. The continuation crossed the `0.002` n-butane gate at `t = 372.5 s`,
+only `17.5 s` later than the `5,000`-gain case. At failure, composition error
+was `+0.002001712`, pressure error `+0.117186 psi`, levels
+`0.501821/0.498161`, duty ratio `1.034741`, and reflux ratio `1.012240`.
+Residual `7.803185e-13`, rank 265, condition `4.584860e6`, physicality, and all
+non-composition gates passed. A sixfold gain increase therefore generated a
+meaningful unsaturated reflux response but only marginally delayed the overhead
+composition front. The limiting behavior is dominated by column transport
+delay rather than proportional authority alone. Further blind gain escalation
+is not justified; a separately declared diagnostic should establish peak and
+turning behavior or assess feed-forward/alternative-MV structure first.
+
+### Composition acceptance semantics correction
+
+Subsequent requirements review established that no distillate n-butane product
+band had been declared for this experiment. Accordingly, the former
+`+/-0.002` threshold is retained only as a historical response marker; crossing
+it does not establish a product-quality or model failure. Core V3 now treats
+composition as a logged diagnostic by default and enforces a composition stop
+only when the run explicitly supplies
+`--composition-error-limit-molfrac`.
+
+The dual-retuned `+5 F` feed-temperature trajectory is therefore resumed to
+the original 600-second horizon to evaluate the robustness and physical
+response of the first-principles model. The numerical, physical, pressure,
+terminal-level, controller-memory, and manipulated-variable protections remain
+active during this continuation.
+
+The continuation subsequently completed all 600 seconds without violating an
+active protection. The final endpoint had residual `4.752459e-13`, full rank
+`265`, condition `4.596800e6`, physical pass, no active solve bound, pressure
+error `+0.00188159 psi`, terminal levels `0.502705/0.501203`, condenser-duty
+ratio `1.031551`, and reflux ratio `1.027108`. Distillate n-butane was
+`0.123656477` mole fraction (`+0.003784725` above setpoint) and still rising,
+but at a declining sampled rate. Thus the declared result is a stable,
+numerically sound first-principles trajectory with a delayed composition
+response, not a composition-quality qualification. Its native restart is
+`logs/core_v3_kc3m_compkc30k_feedT_plus5F_complete600s_20260830/core_v3_checkpoint_20260830_204510.npz`.

@@ -1,5 +1,7 @@
 # DD-101 Core V3 Pressure-Layer Structural Contract
 
+Status: Historical reference. This document describes an earlier algebraic-pressure feasibility layer and is superseded by the accepted vapor-holdup C3/C4 formulation documented in `docs/dynamic_model_current_state_2026-08-20.md` and `docs/model_architecture.md`.
+
 ## Decision
 
 DD-100 authorizes one explicit dynamic-scope decision. DD-101 selects the

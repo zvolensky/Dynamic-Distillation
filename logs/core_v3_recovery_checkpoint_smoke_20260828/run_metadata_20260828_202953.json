@@ -1,0 +1,133 @@
+{
+  "schema": "dynamic_distillation.core_v3_run_metadata.v1",
+  "status": "completed",
+  "run_id": "20260828_202953",
+  "run_name": "core_v3_recovery_checkpoint_smoke",
+  "run_description": "One-step recovery checkpoint write smoke test",
+  "started_from_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_parallel_level_settle_1800s_20260828\\core_v3_checkpoint_20260828_163322.npz",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "source_final_time_s": 2461.0,
+  "duration_sec": 0.25,
+  "final_time_s": 2461.25,
+  "dt_sec": 0.25,
+  "n_steps": 1,
+  "wall_elapsed_s": 16.46227680001175,
+  "started_at_local": "2026-08-28 20:29:53",
+  "ended_at_local": "2026-08-28 20:30:09",
+  "simulation_wall_ratio": 0.015186234749729246,
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_recovery_checkpoint_smoke_20260828\\core_v3_checkpoint_20260828_202953.npz",
+  "recovery_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_recovery_checkpoint_smoke_20260828\\core_v3_recovery_checkpoint_20260828_202953.npz",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_recovery_checkpoint_smoke_20260828\\column_summary_20260828_202953.csv",
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_recovery_checkpoint_smoke_20260828\\column_profile_20260828_202953.csv",
+  "performance": {
+    "jacobian_execution": "persistent_parallel",
+    "parallel_workers": 8,
+    "endpoint_wall_total_s": 9.384527800008073,
+    "endpoint_wall_mean_s": 9.384527800008073,
+    "endpoint_wall_median_s": 9.384527800008073,
+    "endpoint_wall_p95_s": 9.384527800008073,
+    "endpoint_wall_max_s": 9.384527800008073,
+    "objective_calls_total": 39,
+    "jacobian_builds_total": 1,
+    "memo_hits_total": 100,
+    "memo_misses_total": 700,
+    "memo_hit_fraction": 0.125,
+    "memoization_final": {
+      "enabled": true,
+      "hits": 100,
+      "misses": 700,
+      "families": {
+        "fugacity": {
+          "hits": 40,
+          "misses": 280,
+          "entries": 280
+        },
+        "enthalpy": {
+          "hits": 40,
+          "misses": 280,
+          "entries": 280
+        },
+        "density": {
+          "hits": 0,
+          "misses": 0,
+          "entries": 0
+        },
+        "vapor_z": {
+          "hits": 20,
+          "misses": 140,
+          "entries": 140
+        }
+      }
+    },
+    "provider_call_counters": {
+      "uncategorized": {
+        "fugacity_requests": 320,
+        "wall_sec": 0.13045150016841944
+      }
+    }
+  },
+  "final_endpoint": {
+    "scipy_success": true,
+    "scipy_status": 3,
+    "nfev": 7,
+    "njev": 5,
+    "function_calls_observed": 39,
+    "main_process_function_calls": 7,
+    "parallel_jacobian_evaluations": 32,
+    "jacobian_build_count": 1,
+    "color_count": 16,
+    "scaled_residual_inf_norm": 1.919914354455365e-12,
+    "controller_residual_inf_norm": 2.1141942363467336e-15,
+    "jacobian_rank": 262,
+    "jacobian_condition": 14032335.228589838,
+    "physical_pass": true,
+    "controller_memory_recurrence_error": 1.2265037076242269e-17,
+    "fixed_duty_relative_error": 0.0,
+    "condenser_duty_BTUph": -50894825.691564746,
+    "reflux_drum_pressure_psia": 222.431878363664,
+    "top_tray_pressure_psia": 222.47913374241944,
+    "bottom_pressure_psia": 223.54145375299134,
+    "top_tray_minus_drum_pressure_psia": 0.047255378755437505,
+    "level_fraction": [
+      0.5168816453862,
+      0.4999724359415963
+    ],
+    "controller_memory_endpoint": [
+      -0.2752151084538979,
+      0.003633590427613369
+    ],
+    "controller_rate_per_sec": [
+      7.034018910916838e-05,
+      -1.8376038935980313e-06
+    ],
+    "product_log_ratio": [
+      -0.2667742857607977,
+      0.003413077960381605
+    ],
+    "distillate_lbmolph": 1929.750736076452,
+    "bottoms_lbmolph": 4639.016633881247,
+    "parallel_worker_ids": [
+      74232,
+      88668,
+      108828,
+      108864,
+      114404,
+      114544,
+      116384,
+      116636
+    ],
+    "root_wall_s": 9.384527800008073,
+    "memo_hits_delta": 100,
+    "memo_misses_delta": 700,
+    "memo_hit_fraction": 0.125
+  },
+  "final_steady_state": {
+    "steady_state_score": 8.038761306589894,
+    "steady_state_flag": 0.0,
+    "ss_max_rel_state_rate_per_s": 0.00010586096898905033,
+    "ss_max_temp_rate_F_per_s": 0.00025026107755365956,
+    "ss_max_kpi_slope_per_s": 4.392986937551413e-07,
+    "ss_max_mv_rate_per_s": 0.17435198484599823,
+    "ss_global_inventory_rate_frac_feed": 0.08038761306589894
+  }
+}

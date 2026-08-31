@@ -1,0 +1,165 @@
+{
+  "schema": "dynamic_distillation.core_v3_run_metadata.v1",
+  "status": "completed",
+  "run_id": "20260830_141919",
+  "run_name": "core_v3_regulatory_bumpless_hold300s",
+  "run_description": "Five-minute unchanged-setpoint pre-disturbance qualification of inherited pressure and n-butane composition controls",
+  "controller_tuning": {
+    "drum_kc": 4.0,
+    "drum_ti_sec": 120.0,
+    "sump_kc": 8.0,
+    "sump_ti_sec": 120.0,
+    "source_drum_kc": 4.0,
+    "source_drum_ti_sec": 120.0,
+    "bumpless_memory_adjustment": false,
+    "bumpless_level_fraction": null,
+    "regulatory_control_active": true,
+    "regulatory_activation_bumpless": false,
+    "pressure": {
+      "setpoint_psia": 221.32122601060775,
+      "kc_per_psia": 0.005894508840998383,
+      "ti_sec": 180.0,
+      "mv": "condenser_duty_BTUph"
+    },
+    "distillate_composition": {
+      "component": "n-Butane",
+      "setpoint_molfrac": 0.11987175180429868,
+      "kc_per_molfrac": 0.8399860226325835,
+      "ti_sec": 600.0,
+      "mv": "reflux_lbmolph"
+    }
+  },
+  "started_from_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_regulatory_bumpless_hold10s_20260830\\core_v3_checkpoint_20260830_141706.npz",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "source_final_time_s": 11502.0,
+  "duration_sec": 300.0,
+  "final_time_s": 11802.0,
+  "dt_sec": 0.5,
+  "n_steps": 600,
+  "wall_elapsed_s": 533.17554929998,
+  "started_at_local": "2026-08-30 14:19:19",
+  "ended_at_local": "2026-08-30 14:28:13",
+  "simulation_wall_ratio": 0.5626664620946661,
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_regulatory_bumpless_hold300s_20260830\\core_v3_checkpoint_20260830_141919.npz",
+  "recovery_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_regulatory_bumpless_hold300s_20260830\\core_v3_recovery_checkpoint_20260830_141919.npz",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_regulatory_bumpless_hold300s_20260830\\column_summary_20260830_141919.csv",
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_regulatory_bumpless_hold300s_20260830\\column_profile_20260830_141919.csv",
+  "performance": {
+    "jacobian_execution": "persistent_parallel",
+    "parallel_workers": 8,
+    "endpoint_wall_total_s": 525.3673529998923,
+    "endpoint_wall_mean_s": 0.8756122549998205,
+    "endpoint_wall_median_s": 0.805276250015595,
+    "endpoint_wall_p95_s": 1.1439446399730513,
+    "endpoint_wall_max_s": 9.506386199995177,
+    "objective_calls_total": 22794,
+    "jacobian_builds_total": 600,
+    "memo_hits_total": 59637,
+    "memo_misses_total": 359763,
+    "memo_hit_fraction": 0.14219599427753934,
+    "memoization_final": {
+      "enabled": true,
+      "hits": 59637,
+      "misses": 359763,
+      "families": {
+        "fugacity": {
+          "hits": 23845,
+          "misses": 143915,
+          "entries": 555
+        },
+        "enthalpy": {
+          "hits": 23845,
+          "misses": 143915,
+          "entries": 555
+        },
+        "density": {
+          "hits": 0,
+          "misses": 0,
+          "entries": 0
+        },
+        "vapor_z": {
+          "hits": 11947,
+          "misses": 71933,
+          "entries": 2301
+        }
+      }
+    },
+    "provider_call_counters": {
+      "uncategorized": {
+        "fugacity_requests": 167760,
+        "wall_sec": 67.08706999872811
+      }
+    }
+  },
+  "final_endpoint": {
+    "scipy_success": true,
+    "scipy_status": 1,
+    "nfev": 5,
+    "njev": 5,
+    "function_calls_observed": 37,
+    "main_process_function_calls": 5,
+    "parallel_jacobian_evaluations": 32,
+    "jacobian_build_count": 1,
+    "color_count": 16,
+    "scaled_residual_inf_norm": 3.864479662883662e-13,
+    "controller_residual_inf_norm": 1.6570403903182207e-15,
+    "jacobian_rank": 265,
+    "jacobian_condition": 4693267.584626838,
+    "physical_pass": true,
+    "controller_memory_recurrence_error": 1.421321285492716e-18,
+    "fixed_duty_relative_error": NaN,
+    "condenser_duty_BTUph": -50863301.650452234,
+    "reflux_drum_pressure_psia": 221.26986066054727,
+    "top_tray_pressure_psia": 221.31740839429585,
+    "bottom_pressure_psia": 222.38360858930665,
+    "top_tray_minus_drum_pressure_psia": 0.04754773374858701,
+    "level_fraction": [
+      0.4991182371175379,
+      0.50003563873141
+    ],
+    "controller_memory_endpoint": [
+      0.04388542899279074,
+      0.00010401348963584079,
+      -0.00031681419157716484,
+      2.0576124145291717e-05
+    ],
+    "controller_rate_per_sec": [
+      -2.9392096082059215e-05,
+      2.3759154273190334e-06,
+      -1.6820750558467627e-06,
+      1.2689498218026715e-07
+    ],
+    "product_log_ratio": [
+      0.040358377462943636,
+      0.0003891233409141248
+    ],
+    "distillate_lbmolph": 2623.537257540481,
+    "bottoms_lbmolph": 4625.0096470214185,
+    "reflux_lbmolph": 5953.055710712508,
+    "pressure_error_psia": -0.05136535006047893,
+    "composition_error_molfrac": 9.064078122340835e-05,
+    "parallel_worker_ids": [
+      266012,
+      270600,
+      274424,
+      274688,
+      274808,
+      275112,
+      275384,
+      275432
+    ],
+    "root_wall_s": 0.8128646000113804,
+    "memo_hits_delta": 100,
+    "memo_misses_delta": 500,
+    "memo_hit_fraction": 0.16666666666666666
+  },
+  "final_steady_state": {
+    "steady_state_score": 1.5054298416288,
+    "steady_state_flag": 0.0,
+    "ss_max_rel_state_rate_per_s": 2.0131756417533875e-05,
+    "ss_max_temp_rate_F_per_s": 6.818849372128474e-05,
+    "ss_max_kpi_slope_per_s": 2.4148223770984837e-07,
+    "ss_max_mv_rate_per_s": 0.1467694755971782,
+    "ss_global_inventory_rate_frac_feed": 0.015054298416288
+  }
+}

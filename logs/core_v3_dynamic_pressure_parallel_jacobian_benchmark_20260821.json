@@ -1,0 +1,68 @@
+{
+  "schema": "core-v3-dynamic-pressure-parallel-jacobian-benchmark-v1",
+  "checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\ui_runs\\core_v3_checkpoint_20260820_212559.npz",
+  "checkpoint_final_time_s": 360.0,
+  "matrix_shape": [
+    262,
+    262
+  ],
+  "color_count": 16,
+  "task_count": 32,
+  "worker_count": 8,
+  "serial": {
+    "wall_s": 1.041054500034079,
+    "logical_provider_calls": 3840,
+    "rank": 262,
+    "condition": 10641525.423631499
+  },
+  "parallel": {
+    "wall_s": 0.3009279000107199,
+    "logical_provider_calls": 3840,
+    "rank": 262,
+    "condition": 10641525.423631499,
+    "worker_ids": [
+      275692,
+      319500,
+      320656,
+      322872,
+      323472,
+      324660,
+      324776,
+      325416
+    ],
+    "startup_worker_ids": [
+      275692,
+      319500,
+      320656,
+      322872,
+      323472,
+      324660,
+      324776,
+      325416
+    ]
+  },
+  "comparison": {
+    "matrix_max_abs_difference": 0.0,
+    "matrix_relative_difference": 0.0,
+    "spectrum_relative_difference": 0.0,
+    "parallel_matrix_speedup": 3.459481490406817,
+    "startup_wall_s_adjusted": 8.91652789999498,
+    "projected_1200_root_speedup": 3.3761191614899877
+  },
+  "gates": {
+    "shape": true,
+    "process_isolation": true,
+    "matrix_exact": true,
+    "matrix_relative": true,
+    "spectrum": true,
+    "rank": true,
+    "condition": true,
+    "provider": true,
+    "logical_work_parity": true,
+    "matrix_speed": true,
+    "projected_long_run_speed": true
+  },
+  "pass_gate": true,
+  "nonlinear_solve_attempted": false,
+  "state_advance_attempted": false
+}

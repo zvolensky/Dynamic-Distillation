@@ -1,5 +1,7 @@
 # DD-102 Core V3 Pressure-Layer Numerical Result
 
+Status: Historical reference. This document evaluates the earlier algebraic pressure-layer feasibility path and is not the current accepted Core V3 pressure-dynamic formulation. Current accepted status is documented in `docs/dynamic_model_current_state_2026-08-20.md` and `docs/model_architecture.md`.
+
 - Classification: `dd102_core_v3_pressure_layer_numerical_passed`
 - Decision: `authorize_one_frozen_pressure_layer_steady_root_contract`
 - Wall clock: `8.950 s`

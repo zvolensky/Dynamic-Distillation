@@ -2,6 +2,8 @@
 
 Date: 2026-07-25
 
+Status: Historical reference. This document describes the earlier reduced fixed-pressure Core V3 feasibility layer and is superseded by the accepted vapor-holdup C3/C4 current-state model summarized in `docs/dynamic_model_current_state_2026-08-20.md` and `docs/model_architecture.md`.
+
 ## Decision
 
 DD-095 passes its structural gate. The reduced Core V3 dynamic extension has

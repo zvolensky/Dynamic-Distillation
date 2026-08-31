@@ -1,5 +1,7 @@
 # DD-100 Core V3 Longer Open-Loop Result
 
+Status: Historical reference. This result pertains to the earlier fixed-pressure reduced DAE path and is superseded by the accepted vapor-holdup C3/C4 dynamic model described in `docs/dynamic_model_current_state_2026-08-20.md`.
+
 ## Decision
 
 DD-100 passes every frozen gate in its single execution from contract commit

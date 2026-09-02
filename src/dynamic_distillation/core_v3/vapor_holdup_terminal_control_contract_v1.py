@@ -136,7 +136,7 @@ def terminal_geometry_from_specs(
         sump_gross_capacity_ft3=vertical_cylinder_capacity_ft3(
             sump_diameter, sump_height
         ),
-        provenance="normalized C3/C4 workbook terminal dimensions",
+        provenance="normalized workbook terminal dimensions",
     )
 
 
@@ -371,10 +371,11 @@ def build_vapor_holdup_terminal_control_contract(
         geometry=geometry,
         controllers=controllers,
         level_definition=(
-            "Terminal liquid volume equals total NL divided by live DWSIM liquid "
-            "molar density. Reflux-drum level uses the workbook horizontal drum "
-            "with two hemispherical heads; sump level uses the workbook vertical "
-            "cylinder. Reboiler vapor extension is excluded from sump level."
+            "Terminal liquid volume equals total NL divided by the live declared "
+            "liquid-density provider result. Reflux-drum level uses the workbook "
+            "horizontal drum with two hemispherical heads; sump level uses the "
+            "workbook vertical cylinder. Reboiler vapor extension is excluded "
+            "from sump level."
         ),
         controller_definition=(
             "Each PI controller owns its terminal liquid product rate: the drum "

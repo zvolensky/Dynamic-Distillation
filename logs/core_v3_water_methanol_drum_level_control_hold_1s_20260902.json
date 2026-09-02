@@ -1,0 +1,403 @@
+{
+  "schema_id": "core-v3-water-methanol-drum-level-control-v1",
+  "classification": "drum_level_control_hold_passed",
+  "component_specific_logic": false,
+  "starting_state": "accepted_hydraulic_partial_reboiler_stationary_root",
+  "reboiler_type": "partial",
+  "timestep_sec": 0.5,
+  "duration_requested_sec": 1.0,
+  "duration_completed_sec": 1.0,
+  "feed_multiplier": 1.0,
+  "controller": {
+    "controlled_variable": "geometry_based_distillate_drum_level_fraction",
+    "manipulated_variable": "distillate_flow_lbmolph",
+    "setpoint_fraction": 0.5024572188590056,
+    "kc": 42.0,
+    "ti_sec": 365.0,
+    "activation": "bumpless_at_current_level",
+    "bottoms_level_controller_active": false,
+    "numerical_distillate_ratio_guard": [
+      0.1,
+      10.0
+    ],
+    "equipment_flow_limit_claimed": false
+  },
+  "structural_contract": {
+    "dimension": 100,
+    "structural_rank": 100,
+    "base_contract_passed": true,
+    "pass_gate": true
+  },
+  "steps": [
+    {
+      "step_index": 1,
+      "time_sec": 0.5,
+      "feed_multiplier": 1.0,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "scaled_residual_inf_norm": 8.881784197001292e-15,
+      "controller_residual_inf_norm": 0.0,
+      "component_identity_error_lbmol": 2.0491830454716364e-13,
+      "energy_identity_absolute_error_BTU": 0.0,
+      "minimum_bound_distance": 0.01,
+      "distillate_lbmolph": 7936.639999999997,
+      "drum_level_fraction": 0.5024572188590056,
+      "drum_level_error": 0.0,
+      "controller_rate_per_sec": 0.0,
+      "controller_memory": 0.0,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "provider": true
+      },
+      "pass_gate": true
+    },
+    {
+      "step_index": 2,
+      "time_sec": 1.0,
+      "feed_multiplier": 1.0,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "scaled_residual_inf_norm": 8.881784197001292e-15,
+      "controller_residual_inf_norm": 0.0,
+      "component_identity_error_lbmol": 2.0491830454716364e-13,
+      "energy_identity_absolute_error_BTU": 0.0,
+      "minimum_bound_distance": 0.01,
+      "distillate_lbmolph": 7936.639999999997,
+      "drum_level_fraction": 0.5024572188590056,
+      "drum_level_error": 0.0,
+      "controller_rate_per_sec": 0.0,
+      "controller_memory": 0.0,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "provider": true
+      },
+      "pass_gate": true
+    }
+  ],
+  "global_conservation": {
+    "actual_component_change_lbmol": [
+      -2.615963001773025e-14,
+      -2.046696145896476e-13
+    ],
+    "expected_component_change_lbmol": [
+      7.579122514774402e-16,
+      4.973799150320702e-16
+    ],
+    "component_identity_error_lbmol": 2.0516699450467968e-13,
+    "actual_energy_change_BTU": 0.0,
+    "expected_energy_change_BTU": 0.0,
+    "energy_identity_absolute_error_BTU": 0.0,
+    "energy_identity_relative_error": 0.0
+  },
+  "controller_response": {
+    "initial_distillate_lbmolph": 7936.639999999997,
+    "final_distillate_lbmolph": 7936.639999999997,
+    "distillate_change_lbmolph": 0.0,
+    "minimum_distillate_lbmolph": 7936.639999999997,
+    "maximum_distillate_lbmolph": 7936.639999999997,
+    "initial_drum_level_fraction": 0.5024572188590056,
+    "final_drum_level_fraction": 0.5024572188590056,
+    "maximum_absolute_level_error_fraction": 0.0,
+    "final_controller_memory": 0.0,
+    "final_controller_rate_per_sec": 0.0
+  },
+  "end_of_run": {
+    "schema_id": "core-v3-end-of-run-summary-v1",
+    "time_sec": 1.0,
+    "duties": {
+      "condenser_BTUph": -364260682.1583766,
+      "reboiler_BTUph": 370180573.11605537
+    },
+    "products": {
+      "distillate": {
+        "phase": "liquid",
+        "flow_lbmolph": 7936.639999999997,
+        "temperature_F": 148.73850989759836,
+        "pressure_psia": 14.7,
+        "mole_fraction": {
+          "Water": 0.016635182820791978,
+          "Methanol": 0.983364817179208
+        },
+        "molar_enthalpy_BTU_lbmol": -101176.5477042254,
+        "molar_density_lbmol_ft3": 1.478437275215125
+      },
+      "bottoms": {
+        "phase": "liquid",
+        "flow_lbmolph": 7936.64,
+        "temperature_F": 215.5991593760056,
+        "pressure_psia": 17.645284999392643,
+        "mole_fraction": {
+          "Water": 0.9833648171792078,
+          "Methanol": 0.01663518282079228
+        },
+        "molar_enthalpy_BTU_lbmol": -119924.09815498447,
+        "molar_density_lbmol_ft3": 3.056502332371539
+      }
+    },
+    "terminal_levels": {
+      "distillate_drum_fraction": 0.5024572188590056,
+      "bottom_drum_fraction": 0.5174655468524237
+    },
+    "steady_state": {
+      "score": 0.0,
+      "steady": false,
+      "criterion": "score <= 1.0 after at least 60 seconds",
+      "terms": {
+        "relative_state_rate": 0.0,
+        "temperature_rate": 0.0,
+        "product_composition_slope": 0.0,
+        "product_flow_rate": 0.0,
+        "global_inventory_rate": 0.0
+      },
+      "raw": {
+        "maximum_relative_state_rate_per_s": 0.0,
+        "maximum_temperature_rate_F_per_s": 0.0,
+        "maximum_product_composition_slope_per_s": 0.0,
+        "maximum_product_flow_rate_lbmolph_per_s": 0.0,
+        "global_inventory_rate_fraction_feed": 0.0
+      }
+    },
+    "profiles": [
+      {
+        "stage": 1,
+        "volume": "reflux_drum",
+        "node_type": "reflux_drum",
+        "temperature_F": 148.73850989759836,
+        "pressure_psia": 14.7,
+        "liquid_inventory_lbmol": 3968.3233333333305,
+        "vapor_inventory_lbmol": 6.1077757519293945,
+        "liquid_flow_out_lbmolph": 15873.3,
+        "vapor_flow_out_lbmolph": null,
+        "liquid_mole_fraction": {
+          "Water": 0.016635182820791978,
+          "Methanol": 0.983364817179208
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.006890298409246458,
+          "Methanol": 0.9931097015907535
+        },
+        "liquid_enthalpy_BTU_lbmol": -101176.5477042254,
+        "vapor_enthalpy_BTU_lbmol": -85723.57979975163
+      },
+      {
+        "stage": 2,
+        "volume": "rectifying_volume_1",
+        "node_type": "tray",
+        "temperature_F": 150.63647318534322,
+        "pressure_psia": 15.110923911286221,
+        "liquid_inventory_lbmol": 123.67471225019767,
+        "vapor_inventory_lbmol": 1.3393594757232012,
+        "liquid_flow_out_lbmolph": 15819.320569339643,
+        "vapor_flow_out_lbmolph": 23809.939999999995,
+        "liquid_mole_fraction": {
+          "Water": 0.039980684664844446,
+          "Methanol": 0.9600193153351556
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.016635182820791974,
+          "Methanol": 0.9833648171792081
+        },
+        "liquid_enthalpy_BTU_lbmol": -101610.03204255408,
+        "vapor_enthalpy_BTU_lbmol": -85877.8664745215
+      },
+      {
+        "stage": 3,
+        "volume": "rectifying_volume_2",
+        "node_type": "tray",
+        "temperature_F": 152.85246619783027,
+        "pressure_psia": 15.508568818916226,
+        "liquid_inventory_lbmol": 125.32115608428197,
+        "vapor_inventory_lbmol": 1.3714064499523633,
+        "liquid_flow_out_lbmolph": 15719.034099448561,
+        "vapor_flow_out_lbmolph": 23755.96056933964,
+        "liquid_mole_fraction": {
+          "Water": 0.07700066750436184,
+          "Methanol": 0.9229993324956381
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.03218117501273984,
+          "Methanol": 0.9678188249872602
+        },
+        "liquid_enthalpy_BTU_lbmol": -102323.32253019999,
+        "vapor_enthalpy_BTU_lbmol": -86131.76543135679
+      },
+      {
+        "stage": 4,
+        "volume": "rectifying_volume_3",
+        "node_type": "tray",
+        "temperature_F": 155.61709796547234,
+        "pressure_psia": 15.891126012937837,
+        "liquid_inventory_lbmol": 128.05191592026551,
+        "vapor_inventory_lbmol": 1.4014509253866143,
+        "liquid_flow_out_lbmolph": 15549.564538242561,
+        "vapor_flow_out_lbmolph": 23655.67409944855,
+        "liquid_mole_fraction": {
+          "Water": 0.13512642471734634,
+          "Methanol": 0.8648735752826535
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.056747635680163014,
+          "Methanol": 0.9432523643198371
+        },
+        "liquid_enthalpy_BTU_lbmol": -103467.53447343317,
+        "vapor_enthalpy_BTU_lbmol": -86540.12313611033
+      },
+      {
+        "stage": 5,
+        "volume": "rectifying_volume_4",
+        "node_type": "tray",
+        "temperature_F": 159.29454573860133,
+        "pressure_psia": 16.255609232911088,
+        "liquid_inventory_lbmol": 132.62219246983946,
+        "vapor_inventory_lbmol": 1.4287301709546112,
+        "liquid_flow_out_lbmolph": 15283.070203177083,
+        "vapor_flow_out_lbmolph": 23486.204538242553,
+        "liquid_mole_fraction": {
+          "Water": 0.22486291215624807,
+          "Methanol": 0.7751370878437519
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.095084947238319,
+          "Methanol": 0.904915052761681
+        },
+        "liquid_enthalpy_BTU_lbmol": -105254.72604773323,
+        "vapor_enthalpy_BTU_lbmol": -87183.7871881871
+      },
+      {
+        "stage": 6,
+        "volume": "rectifying_volume_5",
+        "node_type": "tray",
+        "temperature_F": 164.4353342255866,
+        "pressure_psia": 16.597705546713375,
+        "liquid_inventory_lbmol": 140.3193385914495,
+        "vapor_inventory_lbmol": 1.4519029274470838,
+        "liquid_flow_out_lbmolph": 14900.952512027981,
+        "vapor_flow_out_lbmolph": 23219.710203177077,
+        "liquid_mole_fraction": {
+          "Water": 0.3581991179440648,
+          "Methanol": 0.6418008820559351
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.15368939141494145,
+          "Methanol": 0.8463106085850586
+        },
+        "liquid_enthalpy_BTU_lbmol": -107920.5826194014,
+        "vapor_enthalpy_BTU_lbmol": -88173.21589726093
+      },
+      {
+        "stage": 7,
+        "volume": "rectifying_volume_6",
+        "node_type": "tray",
+        "temperature_F": 171.6981506250225,
+        "pressure_psia": 16.912394698182702,
+        "liquid_inventory_lbmol": 152.71519562412357,
+        "vapor_inventory_lbmol": 1.468756568566105,
+        "liquid_flow_out_lbmolph": 14439.449432175355,
+        "vapor_flow_out_lbmolph": 22837.59251202797,
+        "liquid_mole_fraction": {
+          "Water": 0.5363740806716378,
+          "Methanol": 0.4636259193283622
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.23949702670441136,
+          "Methanol": 0.7605029732955886
+        },
+        "liquid_enthalpy_BTU_lbmol": -111469.56195321876,
+        "vapor_enthalpy_BTU_lbmol": -89626.81285327906
+      },
+      {
+        "stage": 8,
+        "volume": "feed_tray",
+        "node_type": "feed_tray",
+        "temperature_F": 181.08524751147291,
+        "pressure_psia": 17.215822420361445,
+        "liquid_inventory_lbmol": 209.45001227282916,
+        "vapor_inventory_lbmol": 1.4355827606376612,
+        "liquid_flow_out_lbmolph": 29601.882806858102,
+        "vapor_flow_out_lbmolph": 22376.08943217535,
+        "liquid_mole_fraction": {
+          "Water": 0.7159135370776386,
+          "Methanol": 0.28408646292236134
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.352026384943023,
+          "Methanol": 0.647973615056977
+        },
+        "liquid_enthalpy_BTU_lbmol": -115004.05180226063,
+        "vapor_enthalpy_BTU_lbmol": -91539.68849971637
+      },
+      {
+        "stage": 9,
+        "volume": "stripping_tray",
+        "node_type": "tray",
+        "temperature_F": 200.16988492609974,
+        "pressure_psia": 17.467402047265516,
+        "liquid_inventory_lbmol": 233.97041235854607,
+        "vapor_inventory_lbmol": 1.423234623753122,
+        "liquid_flow_out_lbmolph": 29091.847479076077,
+        "vapor_flow_out_lbmolph": 21665.2428068581,
+        "liquid_mole_fraction": {
+          "Water": 0.9134957863640741,
+          "Methanol": 0.08650421363592581
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.6179379664076718,
+          "Methanol": 0.3820620335923282
+        },
+        "liquid_enthalpy_BTU_lbmol": -118755.70997310494,
+        "vapor_enthalpy_BTU_lbmol": -96115.30850733683
+      },
+      {
+        "stage": 10,
+        "volume": "combined_reboiler_sump",
+        "node_type": "reboiler_sump",
+        "temperature_F": 215.5991593760056,
+        "pressure_psia": 17.645284999392643,
+        "liquid_inventory_lbmol": 3081.51625787747,
+        "vapor_inventory_lbmol": 3.5240804834930572,
+        "liquid_flow_out_lbmolph": 7936.64,
+        "vapor_flow_out_lbmolph": 21155.20747907607,
+        "liquid_mole_fraction": {
+          "Water": 0.9833648171792078,
+          "Methanol": 0.01663518282079228
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.887283547827672,
+          "Methanol": 0.11271645217232797
+        },
+        "liquid_enthalpy_BTU_lbmol": -119924.09815498447,
+        "vapor_enthalpy_BTU_lbmol": -100819.05537535671
+      }
+    ]
+  },
+  "wall_clock_sec": 57.80225969996536,
+  "clock_time_per_sim_time": 57.80225969996536,
+  "sim_time_per_clock_time": 0.01730036170195954,
+  "workbook_sha256": "66d9899289714c680d4a99e03f956f1abfa2a8586c213763f6ca9aeef813c757",
+  "feed_disturbance_removed": true,
+  "restoration": {
+    "feed_multiplier_after_run": 1.0,
+    "disturbance_active_at_end": false,
+    "method": "experiment-local feed inputs discarded; source case unchanged"
+  },
+  "gates": {
+    "structural_contract": true,
+    "trajectory_complete": true,
+    "component_identity": true,
+    "energy_identity": true,
+    "provider": true
+  },
+  "pass_gate": true
+}

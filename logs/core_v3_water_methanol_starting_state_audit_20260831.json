@@ -1,0 +1,224 @@
+{
+  "schema_id": "core-v3-water-methanol-starting-state-audit-v1",
+  "classification": "usable_starting_state_not_steady",
+  "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\water_methanol_template_10stage_chemsep_excess_enthalpy_p14p7_to_p17p7_geometry_20260713.xlsx",
+  "workbook_sha256": "66d9899289714c680d4a99e03f956f1abfa2a8586c213763f6ca9aeef813c757",
+  "property_package": "unifac",
+  "components": [
+    "Water",
+    "Methanol"
+  ],
+  "stream_names": {
+    "feed": "Feed1",
+    "distillate": "Top",
+    "bottoms": "Bottom"
+  },
+  "stage_count": 10,
+  "feed_stage_1based": 8,
+  "volume_roles": [
+    "reflux_drum",
+    "rectifying_volume_1",
+    "rectifying_volume_2",
+    "rectifying_volume_3",
+    "rectifying_volume_4",
+    "rectifying_volume_5",
+    "rectifying_volume_6",
+    "feed_tray",
+    "stripping_tray",
+    "combined_reboiler_sump"
+  ],
+  "dynamic_dimension": 98,
+  "stationary_dimension": 100,
+  "dynamic_structural_audit": {
+    "volume_count": 10,
+    "component_count": 2,
+    "state_coordinate_count": 40,
+    "liquid_state_count": 20,
+    "vapor_state_count": 20,
+    "derivative_variable_count": 40,
+    "algebraic_variable_count": 58,
+    "solve_variable_count": 98,
+    "row_count": 98,
+    "expected_solve_count": 98,
+    "structural_rank": 98,
+    "structural_nullity": 0,
+    "zero_solve_columns": [],
+    "zero_rows": [],
+    "unregistered_solve_dependencies": [],
+    "unregistered_state_dependencies": [],
+    "missing_vapor_volume_declarations": [],
+    "extra_vapor_volume_declarations": [],
+    "nonpositive_vapor_volume_parameters": [],
+    "missing_ownership_quantities": [],
+    "duplicate_ownership_quantities": [],
+    "independent_vapor_composition_variables": [],
+    "unowned_vapor_states": [],
+    "vapor_balance_count": 20,
+    "liquid_balance_count": 20,
+    "equilibrium_count": 20,
+    "vapor_volume_eos_count": 10,
+    "pressure_drop_count": 9,
+    "pressure_anchor_count": 1,
+    "phase_transfer_count": 20,
+    "phase_transfer_registry_consistent": true,
+    "energy_balance_count": 10,
+    "francis_count": 8,
+    "phase_transfer_cancellation_passed": true,
+    "liquid_transport_cancellation_passed": true,
+    "vapor_transport_cancellation_passed": true,
+    "total_component_conservation_passed": true,
+    "total_energy_storage_includes_both_phases": true,
+    "every_energy_row_uses_vapor_inventory": true,
+    "pressure_ownership_consistent": true,
+    "provider_ownership_complete": true,
+    "fallback_permitted": false,
+    "preparation_only": true,
+    "pass_gate": true
+  },
+  "stationary_structural_audit": {
+    "volume_count": 10,
+    "component_count": 2,
+    "variable_count": 100,
+    "row_count": 100,
+    "structural_rank": 100,
+    "structural_nullity": 0,
+    "zero_columns": [],
+    "zero_rows": [],
+    "unregistered_dependencies": [],
+    "liquid_balance_count": 20,
+    "vapor_balance_count": 20,
+    "equilibrium_count": 20,
+    "eos_count": 10,
+    "energy_count": 10,
+    "francis_count": 8,
+    "pressure_drop_count": 9,
+    "pressure_anchor_count": 1,
+    "terminal_inventory_target_count": 2,
+    "product_flow_variable_count": 2,
+    "fixed_product_flow_parameters": [],
+    "preparation_only": true,
+    "pass_gate": true
+  },
+  "source_adjustments": {
+    "top_temperature_workbook_F": 149.072,
+    "top_temperature_bubble_F": 149.10969469414144,
+    "top_temperature_change_F": 0.037694694141436,
+    "top_bubble_residual_inf_norm": 9.103828801926325e-15,
+    "top_bubble_vapor_mole_fraction": [
+      0.01197968379908135,
+      0.9880203162009187
+    ],
+    "note": "Only the total-condenser bubble state was reconstructed; the workbook was not edited."
+  },
+  "physical_checks": {
+    "minimum_free_vapor_volume_ft3": 568.5569489733351,
+    "minimum_liquid_density_lbmol_ft3": 1.4879395648625038,
+    "minimum_vapor_inventory_lbmol": 1.3368439281969835,
+    "maximum_relative_eos_residual": 3.887292085516579e-16,
+    "terminal_inventory_residual_lbmol": [
+      0.0,
+      0.0
+    ]
+  },
+  "starting_residual": {
+    "scaled_inf_norm": 1.6507013465611724,
+    "raw_block_inf_norms": {
+      "francis_hydraulics": 5923.707664933193,
+      "full_phase_equilibrium": 1.6507013465611724,
+      "liquid_component_balance": 0.0940968779141258,
+      "pressure_anchor": 0.0,
+      "terminal_liquid_inventory_target": 0.0,
+      "total_energy_balance": 20174484.728831943,
+      "vapor_component_balance": 3.637978807091713e-12,
+      "vapor_pressure_drop": 0.9047875770916658,
+      "vapor_volume_eos": 2.2737367544323206e-13
+    },
+    "scaled_block_inf_norms": {
+      "francis_hydraulics": 0.4260618025039338,
+      "full_phase_equilibrium": 1.6507013465611724,
+      "liquid_component_balance": 1.1856009333184546e-05,
+      "pressure_anchor": 0.0,
+      "terminal_liquid_inventory_target": 0.0,
+      "total_energy_balance": 0.05472085474892032,
+      "vapor_component_balance": 4.583777022885897e-16,
+      "vapor_pressure_drop": 0.9047875770916658,
+      "vapor_volume_eos": 3.887292085516579e-16
+    },
+    "dominant_rows": [
+      {
+        "row": "phase_fugacity[combined_reboiler_sump,Methanol]",
+        "raw_residual": -1.6507013465611724,
+        "scaled_residual": -1.6507013465611724
+      },
+      {
+        "row": "vapor_pressure_drop[rectifying_volume_1->reflux_drum]",
+        "raw_residual": -0.9047875770916658,
+        "scaled_residual": -0.9047875770916658
+      },
+      {
+        "row": "vapor_pressure_drop[rectifying_volume_2->rectifying_volume_1]",
+        "raw_residual": -0.8519851248971653,
+        "scaled_residual": -0.8519851248971653
+      },
+      {
+        "row": "vapor_pressure_drop[rectifying_volume_3->rectifying_volume_2]",
+        "raw_residual": -0.7878776634256721,
+        "scaled_residual": -0.7878776634256721
+      },
+      {
+        "row": "vapor_pressure_drop[rectifying_volume_4->rectifying_volume_3]",
+        "raw_residual": -0.7080940783306422,
+        "scaled_residual": -0.7080940783306422
+      },
+      {
+        "row": "vapor_pressure_drop[rectifying_volume_5->rectifying_volume_4]",
+        "raw_residual": -0.6092093858343235,
+        "scaled_residual": -0.6092093858343235
+      },
+      {
+        "row": "vapor_pressure_drop[rectifying_volume_6->rectifying_volume_5]",
+        "raw_residual": -0.5068851417750224,
+        "scaled_residual": -0.5068851417750224
+      },
+      {
+        "row": "vapor_pressure_drop[feed_tray->rectifying_volume_6]",
+        "raw_residual": -0.44994760585410665,
+        "scaled_residual": -0.44994760585410665
+      },
+      {
+        "row": "francis_hydraulics[rectifying_volume_6]",
+        "raw_residual": 5923.707664933193,
+        "scaled_residual": 0.4260618025039338
+      },
+      {
+        "row": "phase_fugacity[combined_reboiler_sump,Water]",
+        "raw_residual": 0.3697962879177929,
+        "scaled_residual": 0.3697962879177929
+      }
+    ],
+    "component_telescoping_error_lbmolph": [
+      1.1368683772161603e-13,
+      5.115907697472721e-13
+    ],
+    "energy_telescoping_error_BTUph": 4.842877388000488e-08
+  },
+  "provider_calls": {
+    "preparation": 94,
+    "governing_residual": 60,
+    "fallback_attempted": false,
+    "pass_gate": true
+  },
+  "prospective_jacobian": {
+    "color_count": 22,
+    "central_residual_evaluations": 44,
+    "uncolored_central_residual_evaluations": 200
+  },
+  "starting_state_usable": true,
+  "starting_state_is_steady": false,
+  "nonlinear_solve_attempted": false,
+  "jacobian_evaluated": false,
+  "timestep_attempted": false,
+  "dynamic_integration_attempted": false,
+  "pass_gate": true,
+  "decision": "ready_for_stationary_jacobian_audit"
+}

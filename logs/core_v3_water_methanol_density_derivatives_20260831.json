@@ -1,0 +1,357 @@
+{
+  "schema_id": "core-v3-water-methanol-density-derivative-audit-v1",
+  "classification": "liquid_density_derivative_noise_isolated",
+  "source_root_result": "logs/core_v3_water_methanol_stationary_root_20260831.json",
+  "difference_steps": [
+    1e-05,
+    5e-06
+  ],
+  "locations": [
+    {
+      "volume_role": "rectifying_volume_2",
+      "perturbed_inventory_component": "Water",
+      "temperature_F": 159.25581243546875,
+      "pressure_psia": 16.92625197751611,
+      "liquid_mole_fraction": [
+        0.15673730084579626,
+        0.8432626991542037
+      ],
+      "properties": {
+        "liquid_density": {
+          "central_derivatives": [
+            1533.9686400655416,
+            3067.8290956320793
+          ],
+          "plus_minus_values": [
+            [
+              1.6092639896107626,
+              1.5785846168094517
+            ],
+            [
+              1.609263445769075,
+              1.5785851548127543
+            ]
+          ],
+          "relative_derivative_change": 0.4999823679064851
+        },
+        "liquid_enthalpy": {
+          "central_derivatives": [
+            -356.6938856238266,
+            -356.693884350534
+          ],
+          "plus_minus_values": [
+            [
+              -15503.788349439865,
+              -15503.781215562152
+            ],
+            [
+              -15503.786565960472,
+              -15503.782999021629
+            ]
+          ],
+          "relative_derivative_change": 3.569706781643373e-09
+        },
+        "liquid_fugacity_coefficients": [
+          {
+            "fugacity_component": "Water",
+            "central_derivatives": [
+              -0.036182860402300676,
+              -0.036182860413402906
+            ],
+            "plus_minus_values": [
+              [
+                0.4151210668963862,
+                0.41512179055359427
+              ],
+              [
+                0.41512124781147536,
+                0.4151216096400795
+              ]
+            ],
+            "relative_derivative_change": 3.0683672101664635e-10
+          },
+          {
+            "fugacity_component": "Methanol",
+            "central_derivatives": [
+              0.01795589495978689,
+              0.017955894926480198
+            ],
+            "plus_minus_values": [
+              [
+                1.108332091808739,
+                1.1083317326908397
+              ],
+              [
+                1.1083320020281306,
+                1.1083318224691814
+              ]
+            ],
+            "relative_derivative_change": 1.8549167732015959e-09
+          }
+        ]
+      }
+    },
+    {
+      "volume_role": "rectifying_volume_2",
+      "perturbed_inventory_component": "Methanol",
+      "temperature_F": 159.25581243546875,
+      "pressure_psia": 16.92625197751611,
+      "liquid_mole_fraction": [
+        0.15673730084579626,
+        0.8432626991542037
+      ],
+      "properties": {
+        "liquid_density": {
+          "central_derivatives": [
+            -1533.9686400655194,
+            -3067.8290956320793
+          ],
+          "plus_minus_values": [
+            [
+              1.578584616809452,
+              1.6092639896107623
+            ],
+            [
+              1.5785851548127543,
+              1.609263445769075
+            ]
+          ],
+          "relative_derivative_change": 0.49998236790649236
+        },
+        "liquid_enthalpy": {
+          "central_derivatives": [
+            356.6938849871803,
+            356.693884350534
+          ],
+          "plus_minus_values": [
+            [
+              -15503.781215562165,
+              -15503.788349439865
+            ],
+            [
+              -15503.782999021629,
+              -15503.786565960472
+            ]
+          ],
+          "relative_derivative_change": 1.7848533940073882e-09
+        },
+        "liquid_fugacity_coefficients": [
+          {
+            "fugacity_component": "Water",
+            "central_derivatives": [
+              0.036182860405076234,
+              0.03618286043005625
+            ],
+            "plus_minus_values": [
+              [
+                0.41512179055359444,
+                0.41512106689638634
+              ],
+              [
+                0.4151216096400795,
+                0.4151212478114752
+              ]
+            ],
+            "relative_derivative_change": 6.903826219697023e-10
+          },
+          {
+            "fugacity_component": "Methanol",
+            "central_derivatives": [
+              -0.01795589493758243,
+              -0.017955894926480198
+            ],
+            "plus_minus_values": [
+              [
+                1.10833173269084,
+                1.1083320918087387
+              ],
+              [
+                1.1083318224691814,
+                1.1083320020281306
+              ]
+            ],
+            "relative_derivative_change": 6.183055918318022e-10
+          }
+        ]
+      }
+    },
+    {
+      "volume_role": "stripping_tray",
+      "perturbed_inventory_component": "Water",
+      "temperature_F": 217.8439357234074,
+      "pressure_psia": 21.378128790605558,
+      "liquid_mole_fraction": [
+        0.9509922978863917,
+        0.04900770211360826
+      ],
+      "properties": {
+        "liquid_density": {
+          "central_derivatives": [
+            1874.2680490820394,
+            0.1627202647291881
+          ],
+          "plus_minus_values": [
+            [
+              3.0754037219443546,
+              3.037918360962714
+            ],
+            [
+              3.0379208017715054,
+              3.037919174568858
+            ]
+          ],
+          "relative_derivative_change": 0.9999131819673238
+        },
+        "liquid_enthalpy": {
+          "central_derivatives": [
+            -241.7422236248967,
+            -241.74222380679564
+          ],
+          "plus_minus_values": [
+            [
+              -16883.440560966876,
+              -16883.435726122403
+            ],
+            [
+              -16883.439352263533,
+              -16883.436934841295
+            ]
+          ],
+          "relative_derivative_change": 7.524500167581907e-10
+        },
+        "liquid_fugacity_coefficients": [
+          {
+            "fugacity_component": "Water",
+            "central_derivatives": [
+              -0.00433198314442329,
+              -0.004331983127769945
+            ],
+            "plus_minus_values": [
+              [
+                0.7738933914023777,
+                0.7738934780420406
+              ],
+              [
+                0.7738934130620064,
+                0.7738934563818377
+              ]
+            ],
+            "relative_derivative_change": 3.844277508516109e-09
+          },
+          {
+            "fugacity_component": "Methanol",
+            "central_derivatives": [
+              0.584123430336092,
+              0.5841234308689991
+            ],
+            "plus_minus_values": [
+              [
+                5.377579545714029,
+                5.377567863245423
+              ],
+              [
+                5.377576625111201,
+                5.377570783876893
+              ]
+            ],
+            "relative_derivative_change": 9.123192525033118e-10
+          }
+        ]
+      }
+    },
+    {
+      "volume_role": "stripping_tray",
+      "perturbed_inventory_component": "Methanol",
+      "temperature_F": 217.8439357234074,
+      "pressure_psia": 21.378128790605558,
+      "liquid_mole_fraction": [
+        0.9509922978863917,
+        0.04900770211360826
+      ],
+      "properties": {
+        "liquid_density": {
+          "central_derivatives": [
+            -1874.2680490820394,
+            -0.1627202647291881
+          ],
+          "plus_minus_values": [
+            [
+              3.037918360962714,
+              3.0754037219443546
+            ],
+            [
+              3.037919174568858,
+              3.0379208017715054
+            ]
+          ],
+          "relative_derivative_change": 0.9999131819673238
+        },
+        "liquid_enthalpy": {
+          "central_derivatives": [
+            241.7422236248967,
+            241.74222380679564
+          ],
+          "plus_minus_values": [
+            [
+              -16883.435726122403,
+              -16883.440560966876
+            ],
+            [
+              -16883.436934841295,
+              -16883.439352263533
+            ]
+          ],
+          "relative_derivative_change": 7.524500167581907e-10
+        },
+        "liquid_fugacity_coefficients": [
+          {
+            "fugacity_component": "Water",
+            "central_derivatives": [
+              0.00433198314442329,
+              0.004331983127769945
+            ],
+            "plus_minus_values": [
+              [
+                0.7738934780420406,
+                0.7738933914023777
+              ],
+              [
+                0.7738934563818377,
+                0.7738934130620064
+              ]
+            ],
+            "relative_derivative_change": 3.844277508516109e-09
+          },
+          {
+            "fugacity_component": "Methanol",
+            "central_derivatives": [
+              -0.584123430336092,
+              -0.5841234308689991
+            ],
+            "plus_minus_values": [
+              [
+                5.377567863245423,
+                5.377579545714029
+              ],
+              [
+                5.377570783876893,
+                5.377576625111201
+              ]
+            ],
+            "relative_derivative_change": 9.123192525033118e-10
+          }
+        ]
+      }
+    }
+  ],
+  "maximum_density_derivative_relative_change": 0.9999131819673238,
+  "minimum_density_derivative_relative_change": 0.4999823679064851,
+  "maximum_enthalpy_or_fugacity_derivative_relative_change": 3.844277508516109e-09,
+  "logical_provider_calls": 64,
+  "provider_fallback_attempted": false,
+  "nonlinear_solve_attempted": false,
+  "retry_attempted": false,
+  "timestep_attempted": false,
+  "pass_gate": true,
+  "decision": "repair_or_replace_live_liquid_density_derivative_path_before_resolving"
+}

@@ -1,0 +1,289 @@
+{
+  "schema_id": "core-v3-chemsep-parity-audit-v1",
+  "classification": "parity_not_established",
+  "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\water_methanol_template_10stage_chemsep_excess_enthalpy_p14p7_to_p17p7_geometry_20260713.xlsx",
+  "workbook_sha256": "66d9899289714c680d4a99e03f956f1abfa2a8586c213763f6ca9aeef813c757",
+  "components": [
+    "Water",
+    "Methanol"
+  ],
+  "bulk_property_provider": "dwsim_unifac",
+  "liquid_density_provider": "clapeyron_vtpr",
+  "terminal_semantics_repair": {
+    "scope": "total terminal phase mapping; no component names or fitted component constants",
+    "top_temperature_workbook_F": 149.072,
+    "top_temperature_reconstructed_F": 149.10969469414144,
+    "top_temperature_change_F": 0.037694694141436,
+    "top_reconstructed_vapor_mole_fraction": [
+      0.01197968379908135,
+      0.9880203162009187
+    ],
+    "bottom_temperature_workbook_F": 202.766,
+    "bottom_temperature_reconstructed_F": 212.56173632199096,
+    "bottom_temperature_change_F": 9.795736321990972,
+    "bottom_workbook_vapor_mole_fraction": [
+      0.9704019029598098,
+      0.029598097040190292
+    ],
+    "bottom_reconstructed_vapor_mole_fraction": [
+      0.8162505932211676,
+      0.18374940677883247
+    ],
+    "reason": "A total condenser and a total reboiler do not supply independent resident-vapor states. Their equilibrium vapor states are reconstructed from terminal liquid composition and pressure."
+  },
+  "thermodynamic_equilibrium": {
+    "log_fugacity_residual_by_stage_component": [
+      [
+        -2.5535129566378632e-15,
+        -9.103828801926325e-15
+      ],
+      [
+        0.045918744503385615,
+        0.022763662859380585
+      ],
+      [
+        0.06748063394960553,
+        0.04497184153585282
+      ],
+      [
+        0.08756013041949709,
+        0.06616092371099608
+      ],
+      [
+        0.10705399730733585,
+        0.08725228180421463
+      ],
+      [
+        0.12514151624056513,
+        0.1076227310315166
+      ],
+      [
+        0.1426524367083394,
+        0.12766231742127668
+      ],
+      [
+        0.1604569476538696,
+        0.1472597739513843
+      ],
+      [
+        0.1755998690044358,
+        0.1658728332758415
+      ],
+      [
+        2.2204460492503128e-16,
+        1.554312234475218e-15
+      ]
+    ],
+    "maximum_interior_abs_log_fugacity_residual": 0.1755998690044358,
+    "maximum_interior_fugacity_ratio_error": 0.19196102266791892,
+    "maximum_terminal_abs_log_fugacity_residual_after_reconstruction": 9.103828801926325e-15,
+    "interior_close_gate": false,
+    "meaning": "Terminal placeholder error is removed. Remaining interior mismatch is a bulk VLE/provider disagreement, not a density-model issue."
+  },
+  "pressure_drop": {
+    "base_dry_tray_coefficient": 40.0,
+    "rows": [
+      {
+        "link": "combined_reboiler_sump->stripping_tray",
+        "symbol": "V[combined_reboiler_sump->stripping_tray]",
+        "actual_drop_psia": 0.3333333333333002,
+        "liquid_head_drop_psia": 0.0,
+        "dry_tray_drop_at_base_coefficient_psia": 0.5816591710530312,
+        "equation_residual_psia": -0.24832583771973105,
+        "required_dry_tray_coefficient": 22.922931498171764
+      },
+      {
+        "link": "stripping_tray->feed_tray",
+        "symbol": "V[stripping_tray->feed_tray]",
+        "actual_drop_psia": 0.33333333333339965,
+        "liquid_head_drop_psia": 0.032574671045101894,
+        "dry_tray_drop_at_base_coefficient_psia": 0.5830026938172379,
+        "equation_residual_psia": -0.2822440315289402,
+        "required_dry_tray_coefficient": 20.635147348569937
+      },
+      {
+        "link": "feed_tray->rectifying_volume_6",
+        "symbol": "V[feed_tray->rectifying_volume_6]",
+        "actual_drop_psia": 0.3333333333333002,
+        "liquid_head_drop_psia": 0.028113750262914697,
+        "dry_tray_drop_at_base_coefficient_psia": 0.7557564330442855,
+        "equation_residual_psia": -0.45053684997390003,
+        "required_dry_tray_coefficient": 16.15438888642581
+      },
+      {
+        "link": "rectifying_volume_6->rectifying_volume_5",
+        "symbol": "V[rectifying_volume_6->rectifying_volume_5]",
+        "actual_drop_psia": 0.3333333333333002,
+        "liquid_head_drop_psia": 0.006950692615256982,
+        "dry_tray_drop_at_base_coefficient_psia": 0.832459400773709,
+        "equation_residual_psia": -0.5060767600556657,
+        "required_dry_tray_coefficient": 15.682813620205135
+      },
+      {
+        "link": "rectifying_volume_5->rectifying_volume_4",
+        "symbol": "V[rectifying_volume_5->rectifying_volume_4]",
+        "actual_drop_psia": 0.33333333333339965,
+        "liquid_head_drop_psia": 0.00993155147187231,
+        "dry_tray_drop_at_base_coefficient_psia": 0.931190036375892,
+        "equation_residual_psia": -0.6077882545143647,
+        "required_dry_tray_coefficient": 13.891977758704465
+      },
+      {
+        "link": "rectifying_volume_4->rectifying_volume_3",
+        "symbol": "V[rectifying_volume_4->rectifying_volume_3]",
+        "actual_drop_psia": 0.3333333333333002,
+        "liquid_head_drop_psia": 0.01614348901207437,
+        "dry_tray_drop_at_base_coefficient_psia": 1.0232709108533211,
+        "equation_residual_psia": -0.7060810665320953,
+        "required_dry_tray_coefficient": 12.399056435864727
+      },
+      {
+        "link": "rectifying_volume_3->rectifying_volume_2",
+        "symbol": "V[rectifying_volume_3->rectifying_volume_2]",
+        "actual_drop_psia": 0.3333333333333002,
+        "liquid_head_drop_psia": 0.02135746402978071,
+        "dry_tray_drop_at_base_coefficient_psia": 1.0990947524084207,
+        "equation_residual_psia": -0.7871188831049012,
+        "required_dry_tray_coefficient": 11.353920801455708
+      },
+      {
+        "link": "rectifying_volume_2->rectifying_volume_1",
+        "symbol": "V[rectifying_volume_2->rectifying_volume_1]",
+        "actual_drop_psia": 0.33333333333339965,
+        "liquid_head_drop_psia": 0.024877118352586564,
+        "dry_tray_drop_at_base_coefficient_psia": 1.160263199985426,
+        "equation_residual_psia": -0.8518069850046129,
+        "required_dry_tray_coefficient": 10.634008386534628
+      },
+      {
+        "link": "rectifying_volume_1->reflux_drum",
+        "symbol": "V[rectifying_volume_1->reflux_drum]",
+        "actual_drop_psia": 0.3333333333333002,
+        "liquid_head_drop_psia": 0.027116505751677438,
+        "dry_tray_drop_at_base_coefficient_psia": 1.2109625960823447,
+        "equation_residual_psia": -0.904745768500722,
+        "required_dry_tray_coefficient": 10.114823647643043
+      }
+    ],
+    "maximum_abs_residual_psia": 0.904745768500722,
+    "required_coefficient_minimum": 10.114823647643043,
+    "required_coefficient_maximum": 22.922931498171764,
+    "single_coefficient_compatible_gate": false,
+    "meaning": "The workbook pressure profile is prescribed nearly uniformly. It cannot be reproduced by the present hydraulic equation with one dry-tray coefficient."
+  },
+  "liquid_hydraulics": {
+    "rows": [
+      {
+        "volume": "rectifying_volume_1",
+        "chemsep_liquid_flow_lbmolph": 15733.8,
+        "francis_calculated_liquid_flow_lbmolph": 15103.217531737579,
+        "residual_lbmolph": 630.5824682624207,
+        "relative_residual": 0.04007820540889173
+      },
+      {
+        "volume": "rectifying_volume_2",
+        "chemsep_liquid_flow_lbmolph": 15517.3,
+        "francis_calculated_liquid_flow_lbmolph": 14214.255711250142,
+        "residual_lbmolph": 1303.0442887498575,
+        "relative_residual": 0.08397364804120934
+      },
+      {
+        "volume": "rectifying_volume_3",
+        "chemsep_liquid_flow_lbmolph": 15193.1,
+        "francis_calculated_liquid_flow_lbmolph": 12809.912628372527,
+        "residual_lbmolph": 2383.187371627473,
+        "relative_residual": 0.15685984898588656
+      },
+      {
+        "volume": "rectifying_volume_4",
+        "chemsep_liquid_flow_lbmolph": 14746.9,
+        "francis_calculated_liquid_flow_lbmolph": 10723.6509024713,
+        "residual_lbmolph": 4023.2490975287,
+        "relative_residual": 0.27281998911830285
+      },
+      {
+        "volume": "rectifying_volume_5",
+        "chemsep_liquid_flow_lbmolph": 14249.7,
+        "francis_calculated_liquid_flow_lbmolph": 8300.297501063238,
+        "residual_lbmolph": 5949.402498936763,
+        "relative_residual": 0.41751071944930507
+      },
+      {
+        "volume": "rectifying_volume_6",
+        "chemsep_liquid_flow_lbmolph": 13903.4,
+        "francis_calculated_liquid_flow_lbmolph": 7548.480354539598,
+        "residual_lbmolph": 6354.919645460402,
+        "relative_residual": 0.4570766607779681
+      },
+      {
+        "volume": "feed_tray",
+        "chemsep_liquid_flow_lbmolph": 28948.7,
+        "francis_calculated_liquid_flow_lbmolph": 24147.313072672743,
+        "residual_lbmolph": 4801.386927327258,
+        "relative_residual": 0.1658584643637627
+      },
+      {
+        "volume": "stripping_tray",
+        "chemsep_liquid_flow_lbmolph": 28977.5,
+        "francis_calculated_liquid_flow_lbmolph": 30596.909807383465,
+        "residual_lbmolph": -1619.4098073834648,
+        "relative_residual": -0.05588507660714226
+      }
+    ],
+    "maximum_abs_residual_lbmolph": 6354.919645460402,
+    "maximum_abs_relative_residual": 0.4570766607779681
+  },
+  "material_closure": {
+    "feed_component_lbmolph": [
+      7936.64,
+      7936.64
+    ],
+    "chemsep_distillate_lbmolph": 7936.64,
+    "chemsep_bottoms_lbmolph": 7936.64,
+    "external_component_residual_lbmolph": [
+      -9.094947017729282e-13,
+      -8.526512829121202e-13
+    ],
+    "maximum_local_component_residual_lbmolph": 3243.506040610623,
+    "global_close_gate": true
+  },
+  "energy_closure": {
+    "chemsep_condenser_duty_BTUph": -364900000.0,
+    "chemsep_reboiler_duty_BTUph": 368680000.0,
+    "core_property_global_stationary_residual_BTUph": -2180914.4120529033,
+    "condenser_duty_required_with_fixed_chemsep_state_BTUph": -367080914.4120529,
+    "required_condenser_duty_change_BTUph": -2180914.4120529033,
+    "maximum_local_energy_residual_BTUph": 21085778.01298555,
+    "global_close_gate": false
+  },
+  "terminal_inventory_translation": {
+    "liquid_moles_lbmol": [
+      3968.32333333333,
+      3081.51625787747
+    ],
+    "liquid_density_lbmol_ft3": [
+      1.4903714829692272,
+      3.020734926875742
+    ],
+    "calculated_level_fraction": [
+      0.4992002884089388,
+      0.5235926650843835
+    ],
+    "workbook_nominal_level_fraction": [
+      0.5,
+      0.5
+    ],
+    "meaning": "Molar holdups match the workbook targets; level disagreement comes from density and vessel-volume translation."
+  },
+  "provider_calls": {
+    "preparation": 156,
+    "audit_residual": 60,
+    "fallback_attempted": false,
+    "pass_gate": true
+  },
+  "decision": {
+    "repair_applied": "generic total-reboiler resident-vapor reconstruction",
+    "do_not_apply": "Do not tune a water-methanol-specific pressure coefficient or force the ChemSep product split into the governing equations.",
+    "next_gate": "separate prescribed-pressure steady-state parity from free-pressure dynamic initialization, then qualify the bulk VLE/enthalpy provider"
+  }
+}

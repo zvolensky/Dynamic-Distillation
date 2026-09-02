@@ -1,0 +1,302 @@
+{
+  "schema_id": "core-v3-stationary-linearized-feasibility-audit-v1",
+  "classification": "coordinated_closure_conflicts_with_active_generic_bound",
+  "source_root_result": "logs/core_v3_water_methanol_vtpr_density_stationary_root_20260831.json",
+  "component_specific_logic": false,
+  "dimension": 100,
+  "density_model": "VTPR",
+  "base_scaled_residual_inf_norm": 0.0037835298620745497,
+  "base_least_squares_cost": 7.92297061630782e-05,
+  "global_energy_residual_BTUph": 12477070.921696514,
+  "active_coordinate_bounds": [
+    {
+      "index": 39,
+      "variable": "NV[combined_reboiler_sump,Methanol]",
+      "block": "vapor_component_inventory",
+      "side": "upper",
+      "coordinate": 2.3025850929940455,
+      "bound": 2.302585092994046,
+      "distance": 4.440892098500626e-16
+    }
+  ],
+  "step_results": [
+    {
+      "step": 1e-05,
+      "color_count": 22,
+      "rank": 100,
+      "condition": 2802.959204324796,
+      "correction_l2_norm": 5.8038627097727336,
+      "correction_inf_norm": 2.3895866852819303,
+      "predicted_residual_inf_norm": 2.89701530993558e-15,
+      "maximum_feasible_step_fraction": 3.1051603508551197e-16,
+      "bound_violation_count": 3,
+      "bound_violations": [
+        {
+          "index": 39,
+          "variable": "NV[combined_reboiler_sump,Methanol]",
+          "block": "vapor_component_inventory",
+          "coordinate": 2.3025850929940455,
+          "correction": 1.430165143412856,
+          "target_coordinate": 3.7327502364069014,
+          "lower_bound": -2.3025850929940455,
+          "upper_bound": 2.302585092994046,
+          "bound_violation": true,
+          "bound_overshoot": 1.4301651434128555
+        },
+        {
+          "index": 17,
+          "variable": "NL[stripping_tray,Methanol]",
+          "block": "liquid_component_inventory",
+          "coordinate": 1.7241920983607284,
+          "correction": 1.3299709982681627,
+          "target_coordinate": 3.054163096628891,
+          "lower_bound": -2.3025850929940455,
+          "upper_bound": 2.302585092994046,
+          "bound_violation": true,
+          "bound_overshoot": 0.7515780036348452
+        },
+        {
+          "index": 19,
+          "variable": "NL[combined_reboiler_sump,Methanol]",
+          "block": "liquid_component_inventory",
+          "coordinate": 0.4018455413267297,
+          "correction": 1.9985469289993802,
+          "target_coordinate": 2.40039247032611,
+          "lower_bound": -2.3025850929940455,
+          "upper_bound": 2.302585092994046,
+          "bound_violation": true,
+          "bound_overshoot": 0.09780737733206424
+        }
+      ],
+      "active_bounds_with_outward_correction": [
+        {
+          "index": 39,
+          "variable": "NV[combined_reboiler_sump,Methanol]",
+          "block": "vapor_component_inventory",
+          "coordinate": 2.3025850929940455,
+          "correction": 1.430165143412856,
+          "target_coordinate": 3.7327502364069014,
+          "lower_bound": -2.3025850929940455,
+          "upper_bound": 2.302585092994046,
+          "bound_violation": true,
+          "bound_overshoot": 1.4301651434128555
+        }
+      ]
+    },
+    {
+      "step": 5e-06,
+      "color_count": 22,
+      "rank": 100,
+      "condition": 2802.959193592781,
+      "correction_l2_norm": 5.803862688161468,
+      "correction_inf_norm": 2.3895866803903307,
+      "predicted_residual_inf_norm": 2.897927564419773e-15,
+      "maximum_feasible_step_fraction": 3.105160365853004e-16,
+      "bound_violation_count": 3,
+      "bound_violations": [
+        {
+          "index": 39,
+          "variable": "NV[combined_reboiler_sump,Methanol]",
+          "block": "vapor_component_inventory",
+          "coordinate": 2.3025850929940455,
+          "correction": 1.4301651365051768,
+          "target_coordinate": 3.7327502294992225,
+          "lower_bound": -2.3025850929940455,
+          "upper_bound": 2.302585092994046,
+          "bound_violation": true,
+          "bound_overshoot": 1.4301651365051766
+        },
+        {
+          "index": 17,
+          "variable": "NL[stripping_tray,Methanol]",
+          "block": "liquid_component_inventory",
+          "coordinate": 1.7241920983607284,
+          "correction": 1.3299709918328868,
+          "target_coordinate": 3.054163090193615,
+          "lower_bound": -2.3025850929940455,
+          "upper_bound": 2.302585092994046,
+          "bound_violation": true,
+          "bound_overshoot": 0.7515779971995693
+        },
+        {
+          "index": 19,
+          "variable": "NL[combined_reboiler_sump,Methanol]",
+          "block": "liquid_component_inventory",
+          "coordinate": 0.4018455413267297,
+          "correction": 1.9985469198975327,
+          "target_coordinate": 2.4003924612242624,
+          "lower_bound": -2.3025850929940455,
+          "upper_bound": 2.302585092994046,
+          "bound_violation": true,
+          "bound_overshoot": 0.09780736823021652
+        }
+      ],
+      "active_bounds_with_outward_correction": [
+        {
+          "index": 39,
+          "variable": "NV[combined_reboiler_sump,Methanol]",
+          "block": "vapor_component_inventory",
+          "coordinate": 2.3025850929940455,
+          "correction": 1.4301651365051768,
+          "target_coordinate": 3.7327502294992225,
+          "lower_bound": -2.3025850929940455,
+          "upper_bound": 2.302585092994046,
+          "bound_violation": true,
+          "bound_overshoot": 1.4301651365051766
+        }
+      ]
+    }
+  ],
+  "matrix_relative_change": 1.494566288043492e-10,
+  "correction_relative_change": 4.117017860628446e-09,
+  "global_energy_gradient_relative_change": 6.971713586836763e-11,
+  "energy_sensitivity_by_variable_block": [
+    {
+      "block": "liquid_component_inventory",
+      "sensitive_variable_count": 4,
+      "within_bounds_count": 0,
+      "maximum_absolute_energy_derivative_BTUph_per_coordinate": 1860504.397756214,
+      "best_single_variable_candidate": {
+        "index": 19,
+        "variable": "NL[combined_reboiler_sump,Methanol]",
+        "block": "liquid_component_inventory",
+        "raw_global_energy_derivative_BTUph_per_coordinate": 1860504.397756214,
+        "single_variable_energy_closure_correction": -6.706284025312695,
+        "target_coordinate": -6.304438483985965,
+        "within_bounds": false,
+        "predicted_scaled_residual_inf_norm": 5.740407687519327,
+        "predicted_least_squares_cost": 16.74331838581916
+      }
+    },
+    {
+      "block": "pressure",
+      "sensitive_variable_count": 2,
+      "within_bounds_count": 0,
+      "maximum_absolute_energy_derivative_BTUph_per_coordinate": 430.80002231482126,
+      "best_single_variable_candidate": {
+        "index": 79,
+        "variable": "P[combined_reboiler_sump]",
+        "block": "pressure",
+        "raw_global_energy_derivative_BTUph_per_coordinate": 318.2590083339019,
+        "single_variable_energy_closure_correction": -39204.14063694366,
+        "target_coordinate": -39199.3961920837,
+        "within_bounds": false,
+        "predicted_scaled_residual_inf_norm": 40047.50805164134,
+        "predicted_least_squares_cost": 806537463.4755358
+      }
+    },
+    {
+      "block": "solved_condenser_duty",
+      "sensitive_variable_count": 1,
+      "within_bounds_count": 1,
+      "maximum_absolute_energy_derivative_BTUph_per_coordinate": 380390358.73413086,
+      "best_single_variable_candidate": {
+        "index": 97,
+        "variable": "Q_C",
+        "block": "solved_condenser_duty",
+        "raw_global_energy_derivative_BTUph_per_coordinate": 380390358.73413086,
+        "single_variable_energy_closure_correction": -0.03280070231858113,
+        "target_coordinate": 0.008773939499124056,
+        "within_bounds": true,
+        "predicted_scaled_residual_inf_norm": 0.03384254888167817,
+        "predicted_least_squares_cost": 0.0006518887635674664
+      }
+    },
+    {
+      "block": "temperature",
+      "sensitive_variable_count": 2,
+      "within_bounds_count": 1,
+      "maximum_absolute_energy_derivative_BTUph_per_coordinate": 2358154.597879083,
+      "best_single_variable_candidate": {
+        "index": 69,
+        "variable": "T[combined_reboiler_sump]",
+        "block": "temperature",
+        "raw_global_energy_derivative_BTUph_per_coordinate": 1952227.1931159908,
+        "single_variable_energy_closure_correction": -6.3911981995198,
+        "target_coordinate": -4.516006407959775,
+        "within_bounds": true,
+        "predicted_scaled_residual_inf_norm": 1.2248683648312462,
+        "predicted_least_squares_cost": 1.3599047189439006
+      }
+    },
+    {
+      "block": "terminal_level_product_flow",
+      "sensitive_variable_count": 2,
+      "within_bounds_count": 2,
+      "maximum_absolute_energy_derivative_BTUph_per_coordinate": 141266450.98328716,
+      "best_single_variable_candidate": {
+        "index": 99,
+        "variable": "B",
+        "block": "terminal_level_product_flow",
+        "raw_global_energy_derivative_BTUph_per_coordinate": -141266450.98328716,
+        "single_variable_energy_closure_correction": 0.08832295874108596,
+        "target_coordinate": 0.14474649117918437,
+        "within_bounds": true,
+        "predicted_scaled_residual_inf_norm": 0.09074181200134947,
+        "predicted_least_squares_cost": 0.004649120020884828
+      }
+    }
+  ],
+  "limits": {
+    "condition": 100000000.0,
+    "matrix_relative_change": 0.05,
+    "correction_relative_change": 0.05
+  },
+  "derivative_gate_pass": true,
+  "coordinated_bound_conflict": true,
+  "provider": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {
+      "declared_liquid_density": "clapeyron_vtpr"
+    },
+    "total_calls": 5340,
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true,
+    "grouped_record_summary": [
+      {
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "quantity": "liquid_density",
+        "group_count": 890,
+        "call_count": 890
+      },
+      {
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "quantity": "phase_enthalpy",
+        "group_count": 890,
+        "call_count": 1780
+      },
+      {
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "evaluation_kind": "jacobian",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 890,
+        "call_count": 890
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "condenser_bubble_equilibrium",
+        "group_count": 89,
+        "call_count": 178
+      },
+      {
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "stage_fugacity_equilibrium",
+        "group_count": 801,
+        "call_count": 1602
+      }
+    ]
+  },
+  "logical_provider_calls": 5340,
+  "wall_clock_sec": 1.5527995000011288,
+  "nonlinear_solve_attempted": false,
+  "bounds_changed": false,
+  "equations_changed": false,
+  "timestep_attempted": false,
+  "pass_gate": true,
+  "decision": "review_generic_bound_construction_before_any_second_solve"
+}

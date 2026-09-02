@@ -1,0 +1,3529 @@
+{
+  "schema_id": "core-v3-stationary-endpoint-closure-audit-v1",
+  "classification": "active_bound_has_only_marginal_local_descent",
+  "source_root_result": "logs/core_v3_water_methanol_vtpr_density_stationary_root_20260831.json",
+  "component_specific_logic": false,
+  "component_count": 2,
+  "volume_count": 10,
+  "density_model": "VTPR",
+  "base_metrics": {
+    "scaled_residual_inf_norm": 0.0037835298620745497,
+    "least_squares_cost": 7.92297061630782e-05,
+    "energy_residual_inf_norm_BTUph": 1394911.789549645,
+    "eos_relative_residual_inf_norm": 0.00011081026458064291
+  },
+  "active_coordinate_bounds": [
+    {
+      "index": 39,
+      "variable": "NV[combined_reboiler_sump,Methanol]",
+      "block": "vapor_component_inventory",
+      "side": "upper",
+      "coordinate": 2.3025850929940455,
+      "bound": 2.302585092994046,
+      "distance": 4.440892098500626e-16
+    }
+  ],
+  "bound_probes": [
+    {
+      "bound": {
+        "index": 39,
+        "variable": "NV[combined_reboiler_sump,Methanol]",
+        "block": "vapor_component_inventory",
+        "side": "upper",
+        "coordinate": 2.3025850929940455,
+        "bound": 2.302585092994046,
+        "distance": 4.440892098500626e-16
+      },
+      "trials": [
+        {
+          "sense": "outward",
+          "step": 0.0001,
+          "scaled_residual_inf_norm": 0.0037835298620745497,
+          "least_squares_cost": 7.922679831924042e-05,
+          "energy_residual_inf_norm_BTUph": 1394911.789549645,
+          "eos_relative_residual_inf_norm": 8.645849389194247e-05
+        },
+        {
+          "sense": "inward",
+          "step": 0.0001,
+          "scaled_residual_inf_norm": 0.0037835298620745497,
+          "least_squares_cost": 7.924895746812983e-05,
+          "energy_residual_inf_norm_BTUph": 1394911.789549645,
+          "eos_relative_residual_inf_norm": 0.0001351596019225099
+        },
+        {
+          "sense": "outward",
+          "step": 0.001,
+          "scaled_residual_inf_norm": 0.0037835298620745497,
+          "least_squares_cost": 7.993630531533061e-05,
+          "energy_residual_inf_norm_BTUph": 1394911.789549645,
+          "eos_relative_residual_inf_norm": 0.00013281698305332108
+        },
+        {
+          "sense": "inward",
+          "step": 0.001,
+          "scaled_residual_inf_norm": 0.0037835298620745497,
+          "least_squares_cost": 8.01574531951942e-05,
+          "energy_residual_inf_norm_BTUph": 1394911.789549645,
+          "eos_relative_residual_inf_norm": 0.00035419417744432524
+        },
+        {
+          "sense": "outward",
+          "step": 0.01,
+          "scaled_residual_inf_norm": 0.007491549699487871,
+          "least_squares_cost": 0.00016006339372746253,
+          "energy_residual_inf_norm_BTUph": 1396138.0344200619,
+          "eos_relative_residual_inf_norm": 0.002336452474749134
+        },
+        {
+          "sense": "inward",
+          "step": 0.01,
+          "scaled_residual_inf_norm": 0.007627805222987496,
+          "least_squares_cost": 0.0001618312670638119,
+          "energy_residual_inf_norm_BTUph": 1398609.9995318092,
+          "eos_relative_residual_inf_norm": 0.0025337393255478987
+        },
+        {
+          "sense": "outward",
+          "step": 0.05,
+          "scaled_residual_inf_norm": 0.03750700047625548,
+          "least_squares_cost": 0.002144821221697629,
+          "energy_residual_inf_norm_BTUph": 1463609.3961033896,
+          "eos_relative_residual_inf_norm": 0.012373761832859036
+        },
+        {
+          "sense": "inward",
+          "step": 0.05,
+          "scaled_residual_inf_norm": 0.038085997040516746,
+          "least_squares_cost": 0.0020999010427346803,
+          "energy_residual_inf_norm_BTUph": 1464054.772515338,
+          "eos_relative_residual_inf_norm": 0.011986919069743323
+        }
+      ]
+    }
+  ],
+  "best_outward_scaled_residual_inf_norm": 0.0037835298620745497,
+  "best_outward_least_squares_cost": 7.922679831924042e-05,
+  "outward_least_squares_cost_improvement": 2.9078438377886165e-09,
+  "relative_outward_least_squares_cost_improvement": 3.6701434078316694e-05,
+  "outward_local_descent_detected": true,
+  "bound_materially_limits_local_descent": false,
+  "vapor_inventory_eos_comparison": [
+    {
+      "volume_id": "reflux_drum",
+      "actual_total_lbmol": 6.09590852342262,
+      "eos_required_total_lbmol": 6.095908523422599,
+      "components": [
+        {
+          "component": "Water",
+          "actual_lbmol": 0.0329237963174864,
+          "eos_required_lbmol": 0.03292379631748629,
+          "actual_to_required_ratio": 1.0000000000000033
+        },
+        {
+          "component": "Methanol",
+          "actual_lbmol": 6.062984727105134,
+          "eos_required_lbmol": 6.062984727105113,
+          "actual_to_required_ratio": 1.0000000000000033
+        }
+      ]
+    },
+    {
+      "volume_id": "rectifying_volume_1",
+      "actual_total_lbmol": 1.4020003977549917,
+      "eos_required_total_lbmol": 1.4020003977549895,
+      "components": [
+        {
+          "component": "Water",
+          "actual_lbmol": 0.018227733581645488,
+          "eos_required_lbmol": 0.01822773358164546,
+          "actual_to_required_ratio": 1.0000000000000016
+        },
+        {
+          "component": "Methanol",
+          "actual_lbmol": 1.3837726641733463,
+          "eos_required_lbmol": 1.383772664173344,
+          "actual_to_required_ratio": 1.0000000000000016
+        }
+      ]
+    },
+    {
+      "volume_id": "rectifying_volume_2",
+      "actual_total_lbmol": 1.4907882916845223,
+      "eos_required_total_lbmol": 1.4907882916845212,
+      "components": [
+        {
+          "component": "Water",
+          "actual_lbmol": 0.037057557697545686,
+          "eos_required_lbmol": 0.03705755769754566,
+          "actual_to_required_ratio": 1.0000000000000007
+        },
+        {
+          "component": "Methanol",
+          "actual_lbmol": 1.4537307339869767,
+          "eos_required_lbmol": 1.4537307339869756,
+          "actual_to_required_ratio": 1.0000000000000007
+        }
+      ]
+    },
+    {
+      "volume_id": "rectifying_volume_3",
+      "actual_total_lbmol": 1.572705194425642,
+      "eos_required_total_lbmol": 1.5727051944256414,
+      "components": [
+        {
+          "component": "Water",
+          "actual_lbmol": 0.067902476147807,
+          "eos_required_lbmol": 0.06790247614780698,
+          "actual_to_required_ratio": 1.0000000000000004
+        },
+        {
+          "component": "Methanol",
+          "actual_lbmol": 1.504802718277835,
+          "eos_required_lbmol": 1.5048027182778345,
+          "actual_to_required_ratio": 1.0000000000000002
+        }
+      ]
+    },
+    {
+      "volume_id": "rectifying_volume_4",
+      "actual_total_lbmol": 1.6476521786369553,
+      "eos_required_total_lbmol": 1.6476521786369545,
+      "components": [
+        {
+          "component": "Water",
+          "actual_lbmol": 0.11755503246836095,
+          "eos_required_lbmol": 0.1175550324683609,
+          "actual_to_required_ratio": 1.0000000000000004
+        },
+        {
+          "component": "Methanol",
+          "actual_lbmol": 1.5300971461685944,
+          "eos_required_lbmol": 1.5300971461685935,
+          "actual_to_required_ratio": 1.0000000000000007
+        }
+      ]
+    },
+    {
+      "volume_id": "rectifying_volume_5",
+      "actual_total_lbmol": 1.7148893654383066,
+      "eos_required_total_lbmol": 1.714889365438307,
+      "components": [
+        {
+          "component": "Water",
+          "actual_lbmol": 0.1960497177622306,
+          "eos_required_lbmol": 0.19604971776223065,
+          "actual_to_required_ratio": 0.9999999999999997
+        },
+        {
+          "component": "Methanol",
+          "actual_lbmol": 1.518839647676076,
+          "eos_required_lbmol": 1.5188396476760764,
+          "actual_to_required_ratio": 0.9999999999999997
+        }
+      ]
+    },
+    {
+      "volume_id": "rectifying_volume_6",
+      "actual_total_lbmol": 1.7727483432304985,
+      "eos_required_total_lbmol": 1.7727483432304987,
+      "components": [
+        {
+          "component": "Water",
+          "actual_lbmol": 0.31664217231475167,
+          "eos_required_lbmol": 0.3166421723147517,
+          "actual_to_required_ratio": 0.9999999999999998
+        },
+        {
+          "component": "Methanol",
+          "actual_lbmol": 1.4561061709157468,
+          "eos_required_lbmol": 1.456106170915747,
+          "actual_to_required_ratio": 0.9999999999999999
+        }
+      ]
+    },
+    {
+      "volume_id": "feed_tray",
+      "actual_total_lbmol": 1.7609013854512416,
+      "eos_required_total_lbmol": 1.7609013854512399,
+      "components": [
+        {
+          "component": "Water",
+          "actual_lbmol": 0.4754923129911031,
+          "eos_required_lbmol": 0.4754923129911027,
+          "actual_to_required_ratio": 1.0000000000000009
+        },
+        {
+          "component": "Methanol",
+          "actual_lbmol": 1.2854090724601386,
+          "eos_required_lbmol": 1.2854090724601372,
+          "actual_to_required_ratio": 1.000000000000001
+        }
+      ]
+    },
+    {
+      "volume_id": "stripping_tray",
+      "actual_total_lbmol": 1.789478624822384,
+      "eos_required_total_lbmol": 1.789478624822383,
+      "components": [
+        {
+          "component": "Water",
+          "actual_lbmol": 0.8027526368115603,
+          "eos_required_lbmol": 0.80275263681156,
+          "actual_to_required_ratio": 1.0000000000000004
+        },
+        {
+          "component": "Methanol",
+          "actual_lbmol": 0.9867259880108236,
+          "eos_required_lbmol": 0.9867259880108232,
+          "actual_to_required_ratio": 1.0000000000000004
+        }
+      ]
+    },
+    {
+      "volume_id": "combined_reboiler_sump",
+      "actual_total_lbmol": 4.355726215749555,
+      "eos_required_total_lbmol": 4.356208928413481,
+      "components": [
+        {
+          "component": "Water",
+          "actual_lbmol": 3.292795386090193,
+          "eos_required_lbmol": 3.29316030205457,
+          "actual_to_required_ratio": 0.9998891897354194
+        },
+        {
+          "component": "Methanol",
+          "actual_lbmol": 1.0629308296593616,
+          "eos_required_lbmol": 1.0630486263589105,
+          "actual_to_required_ratio": 0.9998891897354194
+        }
+      ]
+    }
+  ],
+  "energy_closure": {
+    "rows": [
+      {
+        "volume_id": "reflux_drum",
+        "contributions": [
+          {
+            "volume_id": "reflux_drum",
+            "category": "liquid_link",
+            "label": "R:out",
+            "rate_BTUph": 245313131.60075226
+          },
+          {
+            "volume_id": "reflux_drum",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_1->reflux_drum]:in",
+            "rate_BTUph": 16865949.458982196
+          },
+          {
+            "volume_id": "reflux_drum",
+            "category": "external",
+            "label": "condenser_duty",
+            "rate_BTUph": -380390358.7277884
+          },
+          {
+            "volume_id": "reflux_drum",
+            "category": "external",
+            "label": "distillate_enthalpy",
+            "rate_BTUph": 118211277.66805454
+          }
+        ],
+        "net_energy_transport_BTUph": 6.07222318649292e-07,
+        "stationary_energy_residual_BTUph": -6.07222318649292e-07
+      },
+      {
+        "volume_id": "rectifying_volume_1",
+        "contributions": [
+          {
+            "volume_id": "rectifying_volume_1",
+            "category": "liquid_link",
+            "label": "R:in",
+            "rate_BTUph": -245313131.60075226
+          },
+          {
+            "volume_id": "rectifying_volume_1",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_1]:out",
+            "rate_BTUph": 243130353.4336581
+          },
+          {
+            "volume_id": "rectifying_volume_1",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_2->rectifying_volume_1]:in",
+            "rate_BTUph": 17653815.83652672
+          },
+          {
+            "volume_id": "rectifying_volume_1",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_1->reflux_drum]:out",
+            "rate_BTUph": -16865949.458982196
+          }
+        ],
+        "net_energy_transport_BTUph": -1394911.789549645,
+        "stationary_energy_residual_BTUph": 1394911.789549645
+      },
+      {
+        "volume_id": "rectifying_volume_2",
+        "contributions": [
+          {
+            "volume_id": "rectifying_volume_2",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_1]:in",
+            "rate_BTUph": -243130353.4336581
+          },
+          {
+            "volume_id": "rectifying_volume_2",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_2]:out",
+            "rate_BTUph": 240975781.75418153
+          },
+          {
+            "volume_id": "rectifying_volume_2",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_3->rectifying_volume_2]:in",
+            "rate_BTUph": 18417258.76433528
+          },
+          {
+            "volume_id": "rectifying_volume_2",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_2->rectifying_volume_1]:out",
+            "rate_BTUph": -17653815.83652672
+          }
+        ],
+        "net_energy_transport_BTUph": -1391128.7516680025,
+        "stationary_energy_residual_BTUph": 1391128.7516680025
+      },
+      {
+        "volume_id": "rectifying_volume_3",
+        "contributions": [
+          {
+            "volume_id": "rectifying_volume_3",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_2]:in",
+            "rate_BTUph": -240975781.75418153
+          },
+          {
+            "volume_id": "rectifying_volume_3",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_3]:out",
+            "rate_BTUph": 238799546.86405718
+          },
+          {
+            "volume_id": "rectifying_volume_3",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_4->rectifying_volume_3]:in",
+            "rate_BTUph": 19204917.087835785
+          },
+          {
+            "volume_id": "rectifying_volume_3",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_3->rectifying_volume_2]:out",
+            "rate_BTUph": -18417258.76433528
+          }
+        ],
+        "net_energy_transport_BTUph": -1388576.5666238442,
+        "stationary_energy_residual_BTUph": 1388576.5666238442
+      },
+      {
+        "volume_id": "rectifying_volume_4",
+        "contributions": [
+          {
+            "volume_id": "rectifying_volume_4",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_3]:in",
+            "rate_BTUph": -238799546.86405718
+          },
+          {
+            "volume_id": "rectifying_volume_4",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_4]:out",
+            "rate_BTUph": 236544461.09639335
+          },
+          {
+            "volume_id": "rectifying_volume_4",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_5->rectifying_volume_4]:in",
+            "rate_BTUph": 20073270.19201941
+          },
+          {
+            "volume_id": "rectifying_volume_4",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_4->rectifying_volume_3]:out",
+            "rate_BTUph": -19204917.087835785
+          }
+        ],
+        "net_energy_transport_BTUph": -1386732.663480211,
+        "stationary_energy_residual_BTUph": 1386732.663480211
+      },
+      {
+        "volume_id": "rectifying_volume_5",
+        "contributions": [
+          {
+            "volume_id": "rectifying_volume_5",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_4]:in",
+            "rate_BTUph": -236544461.09639335
+          },
+          {
+            "volume_id": "rectifying_volume_5",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_5]:out",
+            "rate_BTUph": 234150744.06470188
+          },
+          {
+            "volume_id": "rectifying_volume_5",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_6->rectifying_volume_5]:in",
+            "rate_BTUph": 21081598.38567105
+          },
+          {
+            "volume_id": "rectifying_volume_5",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_5->rectifying_volume_4]:out",
+            "rate_BTUph": -20073270.19201941
+          }
+        ],
+        "net_energy_transport_BTUph": -1385388.8380398229,
+        "stationary_energy_residual_BTUph": 1385388.8380398229
+      },
+      {
+        "volume_id": "rectifying_volume_6",
+        "contributions": [
+          {
+            "volume_id": "rectifying_volume_6",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_5]:in",
+            "rate_BTUph": -234150744.06470188
+          },
+          {
+            "volume_id": "rectifying_volume_6",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_6]:out",
+            "rate_BTUph": 231602294.47325796
+          },
+          {
+            "volume_id": "rectifying_volume_6",
+            "category": "vapor_link",
+            "label": "V[feed_tray->rectifying_volume_6]:in",
+            "rate_BTUph": 22245535.416999444
+          },
+          {
+            "volume_id": "rectifying_volume_6",
+            "category": "vapor_link",
+            "label": "V[rectifying_volume_6->rectifying_volume_5]:out",
+            "rate_BTUph": -21081598.38567105
+          }
+        ],
+        "net_energy_transport_BTUph": -1384512.560115531,
+        "stationary_energy_residual_BTUph": 1384512.560115531
+      },
+      {
+        "volume_id": "feed_tray",
+        "contributions": [
+          {
+            "volume_id": "feed_tray",
+            "category": "liquid_link",
+            "label": "L[rectifying_volume_6]:in",
+            "rate_BTUph": -231602294.47325796
+          },
+          {
+            "volume_id": "feed_tray",
+            "category": "liquid_link",
+            "label": "L[feed_tray]:out",
+            "rate_BTUph": 488460469.5754467
+          },
+          {
+            "volume_id": "feed_tray",
+            "category": "vapor_link",
+            "label": "V[stripping_tray->feed_tray]:in",
+            "rate_BTUph": 24247498.55212469
+          },
+          {
+            "volume_id": "feed_tray",
+            "category": "vapor_link",
+            "label": "V[feed_tray->rectifying_volume_6]:out",
+            "rate_BTUph": -22245535.416999444
+          },
+          {
+            "volume_id": "feed_tray",
+            "category": "external",
+            "label": "feed_enthalpy",
+            "rate_BTUph": -260244440.8433015
+          }
+        ],
+        "net_energy_transport_BTUph": -1384302.605987493,
+        "stationary_energy_residual_BTUph": 1384302.605987493
+      },
+      {
+        "volume_id": "stripping_tray",
+        "contributions": [
+          {
+            "volume_id": "stripping_tray",
+            "category": "liquid_link",
+            "label": "L[feed_tray]:in",
+            "rate_BTUph": -488460469.5754467
+          },
+          {
+            "volume_id": "stripping_tray",
+            "category": "liquid_link",
+            "label": "L[stripping_tray]:out",
+            "rate_BTUph": 486431340.74741477
+          },
+          {
+            "volume_id": "stripping_tray",
+            "category": "vapor_link",
+            "label": "V[combined_reboiler_sump->stripping_tray]:in",
+            "rate_BTUph": 24894590.593291007
+          },
+          {
+            "volume_id": "stripping_tray",
+            "category": "vapor_link",
+            "label": "V[stripping_tray->feed_tray]:out",
+            "rate_BTUph": -24247498.55212469
+          }
+        ],
+        "net_energy_transport_BTUph": -1382036.7868656404,
+        "stationary_energy_residual_BTUph": 1382036.7868656404
+      },
+      {
+        "volume_id": "combined_reboiler_sump",
+        "contributions": [
+          {
+            "volume_id": "combined_reboiler_sump",
+            "category": "liquid_link",
+            "label": "L[stripping_tray]:in",
+            "rate_BTUph": -486431340.74741477
+          },
+          {
+            "volume_id": "combined_reboiler_sump",
+            "category": "vapor_link",
+            "label": "V[combined_reboiler_sump->stripping_tray]:out",
+            "rate_BTUph": -24894590.593291007
+          },
+          {
+            "volume_id": "combined_reboiler_sump",
+            "category": "external",
+            "label": "reboiler_duty",
+            "rate_BTUph": 368680000.0
+          },
+          {
+            "volume_id": "combined_reboiler_sump",
+            "category": "external",
+            "label": "bottoms_enthalpy",
+            "rate_BTUph": 141266450.98133886
+          }
+        ],
+        "net_energy_transport_BTUph": -1379480.3593669161,
+        "stationary_energy_residual_BTUph": 1379480.3593669161
+      }
+    ],
+    "same_residual_sign_on_all_volumes": false,
+    "relative_residual_spread": 1.0000000000004245,
+    "material_residuals_same_sign": true,
+    "material_residual_relative_spread": 0.011062656648497492,
+    "global_external_energy_rate_BTUph": -12477070.921696484,
+    "sum_stationary_energy_residual_BTUph": 12477070.921696514,
+    "ledger_reproduction_tolerance_BTUph": 1e-06
+  },
+  "provider": {
+    "provider_identity": "dwsim",
+    "interface_provider_identities": {
+      "declared_liquid_density": "clapeyron_vtpr"
+    },
+    "total_calls": 540,
+    "grouped_records": [
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[reflux_drum]",
+        "state_id": "endpoint_closure:base:1:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "condenser_bubble_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:base:1:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:base:1:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:base:1:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:base:1:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "liquid_density",
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:base:1:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:base:1:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:base:1:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:base:1:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "phase_enthalpy",
+        "provider_interface": "dwsim.declared_phase_enthalpy",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:base:1:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[feed_tray]",
+        "state_id": "endpoint_closure:base:1:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_1]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_2]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_3]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_4]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_5]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_6]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[stripping_tray]",
+        "state_id": "endpoint_closure:base:1:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "stage_fugacity_equilibrium",
+        "provider_interface": "dwsim.direct_imposed_phase_fugacity",
+        "caller": "vapor_holdup_fugacity[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 2
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:base:1:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[combined_reboiler_sump]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:combined_reboiler_sump",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:base:1:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[feed_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:feed_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_1]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_1",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_2]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_2",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_3]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_3",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_4]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_4",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_5]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_5",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:base:1:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[rectifying_volume_6]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:rectifying_volume_6",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:base:1:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[reflux_drum]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:reflux_drum",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:base:1:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-02:7:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-03:5:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_1.0e-04:3:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_inward_5.0e-02:9:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-02:6:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-03:4:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_1.0e-04:2:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      },
+      {
+        "quantity": "vapor_compressibility_factor",
+        "provider_interface": "dwsim.declared_vapor_compressibility_factor",
+        "caller": "vapor_holdup_properties[stripping_tray]",
+        "state_id": "endpoint_closure:bound_39_outward_5.0e-02:8:stripping_tray",
+        "evaluation_kind": "residual",
+        "count": 1
+      }
+    ],
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true
+  },
+  "residual_evaluations": 9,
+  "nonlinear_solve_attempted": false,
+  "bounds_changed": false,
+  "equations_changed": false,
+  "timestep_attempted": false,
+  "pass_gate": true,
+  "decision": "investigate_generic_energy_closure_before_any_second_solve"
+}

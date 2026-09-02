@@ -1,0 +1,1088 @@
+{
+  "schema_id": "core-v3-water-methanol-reconciled-nominal-v1",
+  "classification": "reconciled_nominal_hold_passed",
+  "component_specific_logic": false,
+  "starting_state": "accepted_hydraulic_total_reboiler_stationary_root",
+  "feed_multiplier": 1.0,
+  "disturbance_active": false,
+  "timestep_sec": 0.5,
+  "duration_requested_sec": 10.0,
+  "duration_completed_sec": 10.0,
+  "step_count_requested": 20,
+  "step_count_completed": 20,
+  "steps": [
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 1,
+      "time_sec": 0.5,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 2,
+      "time_sec": 1.0,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 3,
+      "time_sec": 1.5,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 4,
+      "time_sec": 2.0,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 5,
+      "time_sec": 2.5,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 6,
+      "time_sec": 3.0,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 7,
+      "time_sec": 3.5,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 8,
+      "time_sec": 4.0,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 9,
+      "time_sec": 4.5,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 10,
+      "time_sec": 5.0,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 11,
+      "time_sec": 5.5,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 12,
+      "time_sec": 6.0,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 13,
+      "time_sec": 6.5,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 14,
+      "time_sec": 7.0,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 15,
+      "time_sec": 7.5,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 16,
+      "time_sec": 8.0,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 17,
+      "time_sec": 8.5,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 18,
+      "time_sec": 9.0,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 45,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 19,
+      "time_sec": 9.5,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    },
+    {
+      "timestep_sec": 0.5,
+      "solver_success": true,
+      "nfev": 1,
+      "njev": 1,
+      "observed": {
+        "function": 89,
+        "jacobian": 1
+      },
+      "scaled_residual_inf_norm": 9.76996261670133e-15,
+      "maximum_coordinate_movement": 0.0,
+      "minimum_bound_distance": 0.01,
+      "component_identity_error_lbmol": 1.1187544717788317e-13,
+      "actual_energy_change_BTU": 0.0,
+      "expected_energy_change_BTU": -4.9670537312825524e-11,
+      "energy_identity_absolute_error_BTU": 4.9670537312825524e-11,
+      "energy_identity_relative_error": 4.9670537312825524e-11,
+      "maximum_fugacity_residual": 9.76996261670133e-15,
+      "maximum_eos_relative_residual": 3.981358634799209e-16,
+      "provider_calls": 2760,
+      "gates": {
+        "solver": true,
+        "residual": true,
+        "bounds": true,
+        "component_identity": true,
+        "energy_identity": true,
+        "physical": true,
+        "fugacity": true,
+        "eos": true,
+        "provider": true,
+        "nominal_feed": true
+      },
+      "pass_gate": true,
+      "step_index": 20,
+      "time_sec": 10.0,
+      "feed_multiplier": 1.0,
+      "disturbance_active": false
+    }
+  ],
+  "global_conservation": {
+    "actual_component_change_lbmol": [
+      5.598299601672352e-14,
+      -1.120215031846783e-13
+    ],
+    "expected_component_change_lbmol": [
+      5.052748343182935e-15,
+      -2.9211201359026336e-15
+    ],
+    "component_identity_error_lbmol": 1.0910038304877566e-13,
+    "actual_energy_change_BTU": 0.0,
+    "expected_energy_change_BTU": -9.934107462565104e-10,
+    "energy_identity_absolute_error_BTU": 9.934107462565104e-10,
+    "energy_identity_relative_error": 9.934107462565104e-10
+  },
+  "state_change": {
+    "maximum_coordinate_movement": 0.0,
+    "maximum_temperature_change_F": 0.0,
+    "maximum_pressure_change_psia": 0.0,
+    "condenser_duty_change_BTUph": 0.0
+  },
+  "endpoint_jacobian": {
+    "requested": true,
+    "rank": 98,
+    "dimension": 98,
+    "condition": 909318.4234297398,
+    "color_count": 22,
+    "minimum_singular_value": 0.009173021266507236,
+    "pass_gate": true
+  },
+  "end_of_run": {
+    "schema_id": "core-v3-end-of-run-summary-v1",
+    "time_sec": 10.0,
+    "duties": {
+      "condenser_BTUph": -365357167.43325925,
+      "reboiler_BTUph": 370687233.7013799
+    },
+    "products": {
+      "distillate": {
+        "phase": "liquid",
+        "flow_lbmolph": 7936.64,
+        "temperature_F": 149.12282653622285,
+        "pressure_psia": 14.7,
+        "mole_fraction": {
+          "Water": 0.030871933910587613,
+          "Methanol": 0.9691280660894124
+        },
+        "molar_enthalpy_BTU_lbmol": -101464.54314620918,
+        "molar_density_lbmol_ft3": 1.4915828052445659
+      },
+      "bottoms": {
+        "phase": "liquid",
+        "flow_lbmolph": 7936.64,
+        "temperature_F": 211.26298381696122,
+        "pressure_psia": 17.671024176461056,
+        "mole_fraction": {
+          "Water": 0.9691280660894122,
+          "Methanol": 0.03087193391058779
+        },
+        "molar_enthalpy_BTU_lbmol": -119710.41938725553,
+        "molar_density_lbmol_ft3": 3.0190426434386435
+      }
+    },
+    "terminal_levels": {
+      "distillate_drum_fraction": 0.49908319187760297,
+      "bottom_drum_fraction": 0.5238861578566142
+    },
+    "steady_state": {
+      "score": 0.0,
+      "steady": false,
+      "criterion": "score <= 1.0 after at least 60 seconds",
+      "terms": {
+        "relative_state_rate": 0.0,
+        "temperature_rate": 0.0,
+        "product_composition_slope": 0.0,
+        "product_flow_rate": 0.0,
+        "global_inventory_rate": 0.0
+      },
+      "raw": {
+        "maximum_relative_state_rate_per_s": 0.0,
+        "maximum_temperature_rate_F_per_s": 0.0,
+        "maximum_product_composition_slope_per_s": 0.0,
+        "maximum_product_flow_rate_lbmolph_per_s": 0.0,
+        "global_inventory_rate_fraction_feed": 0.0
+      }
+    },
+    "profiles": [
+      {
+        "stage": 1,
+        "volume": "reflux_drum",
+        "node_type": "reflux_drum",
+        "temperature_F": 149.12282653622285,
+        "pressure_psia": 14.7,
+        "liquid_inventory_lbmol": 3968.32333333333,
+        "vapor_inventory_lbmol": 6.1573003463747185,
+        "liquid_flow_out_lbmolph": 15873.3,
+        "vapor_flow_out_lbmolph": null,
+        "liquid_mole_fraction": {
+          "Water": 0.030871933910587613,
+          "Methanol": 0.9691280660894124
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.012789331299427964,
+          "Methanol": 0.9872106687005721
+        },
+        "liquid_enthalpy_BTU_lbmol": -101464.54314620918,
+        "vapor_enthalpy_BTU_lbmol": -85824.1566241363
+      },
+      {
+        "stage": 2,
+        "volume": "rectifying_volume_1",
+        "node_type": "tray",
+        "temperature_F": 151.65680151358663,
+        "pressure_psia": 15.138380174224844,
+        "liquid_inventory_lbmol": 125.33942672095395,
+        "vapor_inventory_lbmol": 1.3405835682826994,
+        "liquid_flow_out_lbmolph": 15755.402720676473,
+        "vapor_flow_out_lbmolph": 23809.939999999995,
+        "liquid_mole_fraction": {
+          "Water": 0.07413877862309978,
+          "Methanol": 0.9258612213769002
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.030871933910587613,
+          "Methanol": 0.9691280660894124
+        },
+        "liquid_enthalpy_BTU_lbmol": -102299.25812471547,
+        "vapor_enthalpy_BTU_lbmol": -86119.81033994173
+      },
+      {
+        "stage": 3,
+        "volume": "rectifying_volume_2",
+        "node_type": "tray",
+        "temperature_F": 154.83878871100464,
+        "pressure_psia": 15.557763855574144,
+        "liquid_inventory_lbmol": 128.55901963583227,
+        "vapor_inventory_lbmol": 1.3734840598280762,
+        "liquid_flow_out_lbmolph": 15555.656743281475,
+        "vapor_flow_out_lbmolph": 23692.04272067647,
+        "liquid_mole_fraction": {
+          "Water": 0.14242191338186716,
+          "Methanol": 0.8575780866181328
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.059644740499513786,
+          "Methanol": 0.9403552595004863
+        },
+        "liquid_enthalpy_BTU_lbmol": -103644.92718430255,
+        "vapor_enthalpy_BTU_lbmol": -86598.5435807713
+      },
+      {
+        "stage": 4,
+        "volume": "rectifying_volume_3",
+        "node_type": "tray",
+        "temperature_F": 159.11111547767467,
+        "pressure_psia": 15.95444720718922,
+        "liquid_inventory_lbmol": 134.02696089295776,
+        "vapor_inventory_lbmol": 1.4029732745335486,
+        "liquid_flow_out_lbmolph": 15243.775621019025,
+        "vapor_flow_out_lbmolph": 23492.29674328148,
+        "liquid_mole_fraction": {
+          "Water": 0.24793265675361376,
+          "Methanol": 0.7520673432463862
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.1047358565971413,
+          "Methanol": 0.8952641434028586
+        },
+        "liquid_enthalpy_BTU_lbmol": -105747.25008238075,
+        "vapor_enthalpy_BTU_lbmol": -87356.09451770561
+      },
+      {
+        "stage": 5,
+        "volume": "rectifying_volume_4",
+        "node_type": "tray",
+        "temperature_F": 165.1291856716946,
+        "pressure_psia": 16.323204750196638,
+        "liquid_inventory_lbmol": 143.33182577688467,
+        "vapor_inventory_lbmol": 1.4273589274860679,
+        "liquid_flow_out_lbmolph": 14809.63438313816,
+        "vapor_flow_out_lbmolph": 23180.415621019027,
+        "liquid_mole_fraction": {
+          "Water": 0.4027736348746888,
+          "Methanol": 0.5972263651253111
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.17361419570830042,
+          "Methanol": 0.8263858042916995
+        },
+        "liquid_enthalpy_BTU_lbmol": -108839.86138255458,
+        "vapor_enthalpy_BTU_lbmol": -88519.45412133487
+      },
+      {
+        "stage": 6,
+        "volume": "rectifying_volume_5",
+        "node_type": "tray",
+        "temperature_F": 173.5497440636486,
+        "pressure_psia": 16.65857734614174,
+        "liquid_inventory_lbmol": 157.87930594859796,
+        "vapor_inventory_lbmol": 1.4439793848479707,
+        "liquid_flow_out_lbmolph": 14328.353242675468,
+        "vapor_flow_out_lbmolph": 22746.274383138156,
+        "liquid_mole_fraction": {
+          "Water": 0.5981390110247914,
+          "Methanol": 0.40186098897520844
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.2730095308186951,
+          "Methanol": 0.7269904691813049
+        },
+        "liquid_enthalpy_BTU_lbmol": -112718.44984549478,
+        "vapor_enthalpy_BTU_lbmol": -90204.1759942345
+      },
+      {
+        "stage": 7,
+        "volume": "rectifying_volume_6",
+        "node_type": "tray",
+        "temperature_F": 183.6580429430142,
+        "pressure_psia": 16.959414635968276,
+        "liquid_inventory_lbmol": 173.89545049689966,
+        "vapor_inventory_lbmol": 1.451862639156542,
+        "liquid_flow_out_lbmolph": 13988.542133720473,
+        "vapor_flow_out_lbmolph": 22264.993242675464,
+        "liquid_mole_fraction": {
+          "Water": 0.7674571609243358,
+          "Methanol": 0.2325428390756642
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.39592944707674205,
+          "Methanol": 0.604070552923258
+        },
+        "liquid_enthalpy_BTU_lbmol": -116029.89521059465,
+        "vapor_enthalpy_BTU_lbmol": -92297.36242169094
+      },
+      {
+        "stage": 8,
+        "volume": "feed_tray",
+        "node_type": "feed_tray",
+        "temperature_F": 191.93781125127745,
+        "pressure_psia": 17.25229895333849,
+        "liquid_inventory_lbmol": 225.95232357380348,
+        "vapor_inventory_lbmol": 1.421178098315271,
+        "liquid_flow_out_lbmolph": 29208.662982296428,
+        "vapor_flow_out_lbmolph": 21925.182133720475,
+        "liquid_mole_fraction": {
+          "Water": 0.8541616127115592,
+          "Methanol": 0.14583838728844073
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.5008225788044751,
+          "Methanol": 0.49917742119552483
+        },
+        "liquid_enthalpy_BTU_lbmol": -117673.99338334736,
+        "vapor_enthalpy_BTU_lbmol": -94093.60659469114
+      },
+      {
+        "stage": 9,
+        "volume": "stripping_tray",
+        "node_type": "tray",
+        "temperature_F": 211.2629838169612,
+        "pressure_psia": 17.4887367070299,
+        "liquid_inventory_lbmol": 242.62857121511766,
+        "vapor_inventory_lbmol": 1.402181531036869,
+        "liquid_flow_out_lbmolph": 29265.13720883239,
+        "vapor_flow_out_lbmolph": 21272.02298229643,
+        "liquid_mole_fraction": {
+          "Water": 0.9691280660894123,
+          "Methanol": 0.030871933910587786
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.8112673683185279,
+          "Methanol": 0.18873263168147209
+        },
+        "liquid_enthalpy_BTU_lbmol": -119710.4263570987,
+        "vapor_enthalpy_BTU_lbmol": -99488.15303788551
+      },
+      {
+        "stage": 10,
+        "volume": "combined_reboiler_sump",
+        "node_type": "reboiler_sump",
+        "temperature_F": 211.26298381696122,
+        "pressure_psia": 17.671024176461056,
+        "liquid_inventory_lbmol": 3081.51625787747,
+        "vapor_inventory_lbmol": 3.5216347561403634,
+        "liquid_flow_out_lbmolph": 7936.64,
+        "vapor_flow_out_lbmolph": 21328.497208832385,
+        "liquid_mole_fraction": {
+          "Water": 0.9691280660894122,
+          "Methanol": 0.03087193391058779
+        },
+        "vapor_mole_fraction": {
+          "Water": 0.9691280660894122,
+          "Methanol": 0.030871933910587786
+        },
+        "liquid_enthalpy_BTU_lbmol": -119710.41938725553,
+        "vapor_enthalpy_BTU_lbmol": -102330.52496251106
+      }
+    ]
+  },
+  "wall_clock_sec": 63.63311789999716,
+  "clock_time_per_sim_time": 6.363311789999716,
+  "sim_time_per_clock_time": 0.15715087253331722,
+  "workbook_sha256": "66d9899289714c680d4a99e03f956f1abfa2a8586c213763f6ca9aeef813c757",
+  "feed_disturbance_removed": true,
+  "gates": {
+    "trajectory_complete": true,
+    "nominal_feed_throughout": true,
+    "component_identity": true,
+    "energy_identity": true,
+    "provider": true,
+    "endpoint_jacobian": true
+  },
+  "pass_gate": true
+}

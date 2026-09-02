@@ -1,0 +1,605 @@
+{
+  "schema_id": "core-v3-water-methanol-specification-aware-root-v1",
+  "classification": "stationary_root_accepted",
+  "mode": "prescribed_pressure_fixed_bottoms_solved_reboiler_duty",
+  "pressure_mode": "chemsep_constant",
+  "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\water_methanol_template_10stage_chemsep_excess_enthalpy_p14p7_to_p17p7_geometry_20260713.xlsx",
+  "workbook_sha256": "66d9899289714c680d4a99e03f956f1abfa2a8586c213763f6ca9aeef813c757",
+  "bulk_provider": "dwsim_unifac_with_chemsep_profile_fugacity_calibration",
+  "liquid_density_provider": "clapeyron_vtpr",
+  "fugacity_calibration": {
+    "enabled": true,
+    "source": "ChemSep reported equilibrium profile",
+    "equation": "component-wise liquid log-fugacity Chebyshev correction",
+    "component_selection_rule": "largest reported liquid-composition span",
+    "projection_component_index": 0,
+    "projection": [
+      1.0,
+      0.0
+    ],
+    "projection_limits": [
+      0.029598097040190292,
+      0.9704019029598098
+    ],
+    "requested_degree": 4,
+    "fitted_degree": 4,
+    "liquid_log_coefficients": [
+      [
+        0.01774663127921634,
+        -0.006923000596023749,
+        -0.0012491993878966739,
+        -0.0005933708661153025,
+        -0.00023093657464451117
+      ],
+      [
+        -0.0002855997566541283,
+        -0.0006242963594095274,
+        -0.00023251461190499718,
+        -0.00015056315423595738,
+        -7.618570744245973e-05
+      ]
+    ],
+    "terminal_vapor_candidate_rows_1based": [
+      9,
+      10
+    ],
+    "terminal_vapor_candidate_max_errors": [
+      0.008728471095847068,
+      1.8369997826770175
+    ],
+    "selected_terminal_vapor_row_1based": 9,
+    "maximum_abs_log_residual_before": 0.023898166956221076,
+    "rms_log_residual_before": 0.012945637756561924,
+    "maximum_abs_log_residual_after": 0.00019991190844062648,
+    "rms_log_residual_after": 9.908648229866632e-05,
+    "use_limit": "local ChemSep initialization/parity aid; dynamic extrapolation is not qualified"
+  },
+  "specification_ownership": {
+    "pressure_profile": "fixed_original_chemsep_parameter",
+    "pressure_target_psia": [
+      14.6959,
+      14.6959,
+      14.6959,
+      14.6959,
+      14.6959,
+      14.6959,
+      14.6959,
+      14.6959,
+      14.6959,
+      14.6959
+    ],
+    "reflux_lbmolph": 15873.3,
+    "bottoms_lbmolph": 7936.64,
+    "terminal_liquid_inventories": "fixed_targets",
+    "distillate_lbmolph": "solved",
+    "condenser_duty_BTUph": "solved",
+    "reboiler_duty_BTUph": "solved",
+    "reflux_ratio": 2.000002519958067,
+    "variable_names": [
+      "NL[reflux_drum,Water]",
+      "NL[reflux_drum,Methanol]",
+      "NL[rectifying_volume_1,Water]",
+      "NL[rectifying_volume_1,Methanol]",
+      "NL[rectifying_volume_2,Water]",
+      "NL[rectifying_volume_2,Methanol]",
+      "NL[rectifying_volume_3,Water]",
+      "NL[rectifying_volume_3,Methanol]",
+      "NL[rectifying_volume_4,Water]",
+      "NL[rectifying_volume_4,Methanol]",
+      "NL[rectifying_volume_5,Water]",
+      "NL[rectifying_volume_5,Methanol]",
+      "NL[rectifying_volume_6,Water]",
+      "NL[rectifying_volume_6,Methanol]",
+      "NL[feed_tray,Water]",
+      "NL[feed_tray,Methanol]",
+      "NL[stripping_tray,Water]",
+      "NL[stripping_tray,Methanol]",
+      "NL[combined_reboiler_sump,Water]",
+      "NL[combined_reboiler_sump,Methanol]",
+      "NV[reflux_drum,Water]",
+      "NV[reflux_drum,Methanol]",
+      "NV[rectifying_volume_1,Water]",
+      "NV[rectifying_volume_1,Methanol]",
+      "NV[rectifying_volume_2,Water]",
+      "NV[rectifying_volume_2,Methanol]",
+      "NV[rectifying_volume_3,Water]",
+      "NV[rectifying_volume_3,Methanol]",
+      "NV[rectifying_volume_4,Water]",
+      "NV[rectifying_volume_4,Methanol]",
+      "NV[rectifying_volume_5,Water]",
+      "NV[rectifying_volume_5,Methanol]",
+      "NV[rectifying_volume_6,Water]",
+      "NV[rectifying_volume_6,Methanol]",
+      "NV[feed_tray,Water]",
+      "NV[feed_tray,Methanol]",
+      "NV[stripping_tray,Water]",
+      "NV[stripping_tray,Methanol]",
+      "NV[combined_reboiler_sump,Water]",
+      "NV[combined_reboiler_sump,Methanol]",
+      "M_VL[reflux_drum,Water]",
+      "M_VL[reflux_drum,Methanol]",
+      "M_VL[rectifying_volume_1,Water]",
+      "M_VL[rectifying_volume_1,Methanol]",
+      "M_VL[rectifying_volume_2,Water]",
+      "M_VL[rectifying_volume_2,Methanol]",
+      "M_VL[rectifying_volume_3,Water]",
+      "M_VL[rectifying_volume_3,Methanol]",
+      "M_VL[rectifying_volume_4,Water]",
+      "M_VL[rectifying_volume_4,Methanol]",
+      "M_VL[rectifying_volume_5,Water]",
+      "M_VL[rectifying_volume_5,Methanol]",
+      "M_VL[rectifying_volume_6,Water]",
+      "M_VL[rectifying_volume_6,Methanol]",
+      "M_VL[feed_tray,Water]",
+      "M_VL[feed_tray,Methanol]",
+      "M_VL[stripping_tray,Water]",
+      "M_VL[stripping_tray,Methanol]",
+      "M_VL[combined_reboiler_sump,Water]",
+      "M_VL[combined_reboiler_sump,Methanol]",
+      "T[reflux_drum]",
+      "T[rectifying_volume_1]",
+      "T[rectifying_volume_2]",
+      "T[rectifying_volume_3]",
+      "T[rectifying_volume_4]",
+      "T[rectifying_volume_5]",
+      "T[rectifying_volume_6]",
+      "T[feed_tray]",
+      "T[stripping_tray]",
+      "T[combined_reboiler_sump]",
+      "P[reflux_drum]",
+      "P[rectifying_volume_1]",
+      "P[rectifying_volume_2]",
+      "P[rectifying_volume_3]",
+      "P[rectifying_volume_4]",
+      "P[rectifying_volume_5]",
+      "P[rectifying_volume_6]",
+      "P[feed_tray]",
+      "P[stripping_tray]",
+      "P[combined_reboiler_sump]",
+      "L[rectifying_volume_1]",
+      "L[rectifying_volume_2]",
+      "L[rectifying_volume_3]",
+      "L[rectifying_volume_4]",
+      "L[rectifying_volume_5]",
+      "L[rectifying_volume_6]",
+      "L[feed_tray]",
+      "L[stripping_tray]",
+      "V[combined_reboiler_sump->stripping_tray]",
+      "V[stripping_tray->feed_tray]",
+      "V[feed_tray->rectifying_volume_6]",
+      "V[rectifying_volume_6->rectifying_volume_5]",
+      "V[rectifying_volume_5->rectifying_volume_4]",
+      "V[rectifying_volume_4->rectifying_volume_3]",
+      "V[rectifying_volume_3->rectifying_volume_2]",
+      "V[rectifying_volume_2->rectifying_volume_1]",
+      "V[rectifying_volume_1->reflux_drum]",
+      "Q_C",
+      "D",
+      "Q_R"
+    ]
+  },
+  "solver": {
+    "success": true,
+    "status": 1,
+    "message": "`gtol` termination condition is satisfied.",
+    "nfev": 40,
+    "njev": 38,
+    "function_calls_observed": 1757,
+    "jacobian_calls_observed": 39,
+    "wall_clock_sec": 32.77071429998614
+  },
+  "stationary_equation_score": 1.443289932012693e-14,
+  "raw_maxima": {
+    "component_balance_lbmolph": 1.261923898709938e-11,
+    "energy_balance_BTUph": 8.493661880493164e-07,
+    "pressure_target_psia": 1.7763568394002505e-15,
+    "free_pressure_equation_mismatch_psia": 1.2735021037110223,
+    "fugacity": 1.443289932012693e-14,
+    "relative_eos": 4.000438585886676e-16,
+    "terminal_inventory_lbmol": 4.547473508864641e-13
+  },
+  "jacobian": {
+    "rank": 100,
+    "dimension": 100,
+    "condition": 3590.0720590493784,
+    "singular_values": [
+      6.2255713831116095,
+      5.6850684336321375,
+      5.179939922904011,
+      4.665348862033521,
+      4.324207786992144,
+      4.172316296297403,
+      4.021366278564473,
+      3.9771819967557267,
+      3.6534162844944174,
+      3.5574793240904667,
+      3.46889476219351,
+      3.393806600232849,
+      3.2900543624081635,
+      3.15889080251559,
+      3.1011256820162214,
+      3.0419665970560694,
+      2.9889782188047893,
+      2.925959937985008,
+      2.8465055668623065,
+      2.626736978385696,
+      2.454537732089138,
+      2.3751594208675972,
+      2.2944567790609414,
+      2.1787488053127047,
+      2.064107270803557,
+      2.025071237178863,
+      1.99572032703309,
+      1.9172624516905226,
+      1.86015330210011,
+      1.8033948285240262,
+      1.7430809698847376,
+      1.7327259796105143,
+      1.717754111879507,
+      1.6425115618597037,
+      1.578554147583333,
+      1.5630419980221986,
+      1.5420490425745095,
+      1.4741514953082882,
+      1.4490180316812329,
+      1.4182263302523181,
+      1.4122195280700998,
+      1.409073102587357,
+      1.4002225247325917,
+      1.3572294349911065,
+      1.3094674537082351,
+      1.2951609366146588,
+      1.2427263376511741,
+      1.2050696802516723,
+      1.0826641585273096,
+      1.069165744413527,
+      1.0122629021281457,
+      1.0096460664835365,
+      1.0072833548201554,
+      1.0039585281418153,
+      1.002356017895298,
+      1.0020883702868089,
+      1.0020454629903883,
+      0.999983619232305,
+      0.9999117943041862,
+      0.9996851472615232,
+      0.8610486583631808,
+      0.7934896156420997,
+      0.7491787561814484,
+      0.7458870182216083,
+      0.7391727174319482,
+      0.7220743144573399,
+      0.7083131953048626,
+      0.7071136646986651,
+      0.6947807207980848,
+      0.6649560403416065,
+      0.588402845460291,
+      0.5011774522067152,
+      0.48907703696878657,
+      0.439157442606108,
+      0.43254036069675844,
+      0.41651339230603496,
+      0.3956654218065249,
+      0.3638848044191274,
+      0.34020806615710875,
+      0.3332099835391785,
+      0.3142682365528333,
+      0.30212798820832587,
+      0.2681893365560305,
+      0.2646201120151238,
+      0.25686780833008666,
+      0.24153538532287666,
+      0.23763337904401796,
+      0.23342003925610025,
+      0.2244617685431659,
+      0.22010816638034647,
+      0.21690557979600633,
+      0.2037905114549312,
+      0.1956034457307434,
+      0.15976597998035863,
+      0.1145056506912617,
+      0.09911273125137494,
+      0.06276194761515987,
+      0.03389068268136719,
+      0.01143467208072658,
+      0.001734107639265628
+    ]
+  },
+  "duties": {
+    "condenser_BTUph": -384396871.3047136,
+    "reboiler_BTUph": 384494432.07495916
+  },
+  "products": {
+    "distillate": {
+      "flow_lbmolph": 7936.640000000002,
+      "temperature_F": 148.6928969637294,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.015414794703863942,
+        0.984585205296136
+      ],
+      "molar_enthalpy_BTU_lbmol": -15458.981007920385,
+      "molar_density_lbmol_ft3": 1.4773351461050641
+    },
+    "bottoms": {
+      "flow_lbmolph": 7936.64,
+      "temperature_F": 206.636105282148,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.9845852052961362,
+        0.015414794703863761
+      ],
+      "molar_enthalpy_BTU_lbmol": -17318.980456005957,
+      "molar_density_lbmol_ft3": 3.0764090264767208
+    }
+  },
+  "terminal_levels": {
+    "distillate_drum_fraction": 0.5036053437814748,
+    "bottom_sump_fraction": 0.5141171532342461
+  },
+  "chemsep_comparison": {
+    "distillate_flow_difference_lbmolph": 1.8189894035458565e-12,
+    "bottoms_flow_difference_lbmolph": 0.0,
+    "reflux_ratio_difference": 2.5199580671042554e-06,
+    "condenser_duty_difference_BTUph": -19496871.304713607,
+    "reboiler_duty_difference_BTUph": 15814432.074959159,
+    "top_temperature_difference_F": -0.3791030362706067,
+    "bottom_temperature_difference_F": 3.8701052821480175,
+    "top_liquid_mole_fraction_difference": [
+      -0.01418330233632635,
+      0.014183302336326253
+    ],
+    "bottom_liquid_mole_fraction_difference": [
+      0.014183302336326475,
+      -0.014183302336326531
+    ]
+  },
+  "minimum_bound_distance": 0.3534129136532296,
+  "physical_pass": true,
+  "provider": {
+    "provider_identity": "dwsim_chemsep_profile_calibrated",
+    "interface_provider_identities": {
+      "declared_liquid_density": "clapeyron_vtpr"
+    },
+    "total_calls": 105420,
+    "violations": [],
+    "fallback_attempted": false,
+    "pass": true,
+    "grouped_record_summary": [
+      {
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "evaluation_kind": "jacobian",
+        "quantity": "liquid_density",
+        "group_count": 17560,
+        "call_count": 17560
+      },
+      {
+        "provider_interface": "clapeyron_vtpr.declared_liquid_density",
+        "evaluation_kind": "residual",
+        "quantity": "liquid_density",
+        "group_count": 10,
+        "call_count": 10
+      },
+      {
+        "provider_interface": "dwsim_chemsep_profile_calibrated.declared_phase_enthalpy",
+        "evaluation_kind": "jacobian",
+        "quantity": "phase_enthalpy",
+        "group_count": 17560,
+        "call_count": 35120
+      },
+      {
+        "provider_interface": "dwsim_chemsep_profile_calibrated.declared_phase_enthalpy",
+        "evaluation_kind": "residual",
+        "quantity": "phase_enthalpy",
+        "group_count": 10,
+        "call_count": 20
+      },
+      {
+        "provider_interface": "dwsim_chemsep_profile_calibrated.declared_vapor_compressibility_factor",
+        "evaluation_kind": "jacobian",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 17560,
+        "call_count": 17560
+      },
+      {
+        "provider_interface": "dwsim_chemsep_profile_calibrated.declared_vapor_compressibility_factor",
+        "evaluation_kind": "residual",
+        "quantity": "vapor_compressibility_factor",
+        "group_count": 10,
+        "call_count": 10
+      },
+      {
+        "provider_interface": "dwsim_chemsep_profile_calibrated.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "condenser_bubble_equilibrium",
+        "group_count": 1756,
+        "call_count": 3512
+      },
+      {
+        "provider_interface": "dwsim_chemsep_profile_calibrated.direct_imposed_phase_fugacity",
+        "evaluation_kind": "jacobian",
+        "quantity": "stage_fugacity_equilibrium",
+        "group_count": 15804,
+        "call_count": 31608
+      },
+      {
+        "provider_interface": "dwsim_chemsep_profile_calibrated.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "quantity": "condenser_bubble_equilibrium",
+        "group_count": 1,
+        "call_count": 2
+      },
+      {
+        "provider_interface": "dwsim_chemsep_profile_calibrated.direct_imposed_phase_fugacity",
+        "evaluation_kind": "residual",
+        "quantity": "stage_fugacity_equilibrium",
+        "group_count": 9,
+        "call_count": 18
+      }
+    ]
+  },
+  "tray_profiles": [
+    {
+      "stage": 1,
+      "volume": "reflux_drum",
+      "temperature_F": 148.6928969637294,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.015414794703863942,
+        0.984585205296136
+      ],
+      "vapor_mole_fraction": [
+        0.006384452182478231,
+        0.9936155478175218
+      ],
+      "liquid_flow_lbmolph": 15873.3,
+      "vapor_flow_lbmolph": 0.0
+    },
+    {
+      "stage": 2,
+      "volume": "rectifying_volume_1",
+      "temperature_F": 149.28181089231603,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.037207862690442926,
+        0.962792137309557
+      ],
+      "vapor_mole_fraction": [
+        0.01541479470386394,
+        0.984585205296136
+      ],
+      "liquid_flow_lbmolph": 15825.244295235436,
+      "vapor_flow_lbmolph": 23809.94
+    },
+    {
+      "stage": 3,
+      "volume": "rectifying_volume_2",
+      "temperature_F": 150.23868005615202,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.07219678920548651,
+        0.9278032107945134
+      ],
+      "vapor_mole_fraction": [
+        0.029928821476540374,
+        0.9700711785234596
+      ],
+      "liquid_flow_lbmolph": 15747.49988339062,
+      "vapor_flow_lbmolph": 23761.884295235443
+    },
+    {
+      "stage": 4,
+      "volume": "rectifying_volume_3",
+      "temperature_F": 151.79719998364732,
+      "pressure_psia": 14.695900000000002,
+      "liquid_mole_fraction": [
+        0.1280588337323001,
+        0.8719411662676999
+      ],
+      "vapor_mole_fraction": [
+        0.053168939722238066,
+        0.946831060277762
+      ],
+      "liquid_flow_lbmolph": 15621.94357370451,
+      "vapor_flow_lbmolph": 23684.139883390617
+    },
+    {
+      "stage": 5,
+      "volume": "rectifying_volume_4",
+      "temperature_F": 154.3396972932102,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.2160981764733415,
+        0.7839018235266586
+      ],
+      "vapor_mole_fraction": [
+        0.09011023707250237,
+        0.9098897629274977
+      ],
+      "liquid_flow_lbmolph": 15420.596835848117,
+      "vapor_flow_lbmolph": 23558.583573704516
+    },
+    {
+      "stage": 6,
+      "volume": "rectifying_volume_5",
+      "temperature_F": 158.46571387166892,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.3501108911989568,
+        0.6498891088010431
+      ],
+      "vapor_mole_fraction": [
+        0.14790724420337403,
+        0.8520927557966259
+      ],
+      "liquid_flow_lbmolph": 15107.092322537648,
+      "vapor_flow_lbmolph": 23357.236835848114
+    },
+    {
+      "stage": 7,
+      "volume": "rectifying_volume_6",
+      "temperature_F": 164.9320580238996,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.5337588025155278,
+        0.4662411974844722
+      ],
+      "vapor_mole_fraction": [
+        0.2348360568055373,
+        0.7651639431944627
+      ],
+      "liquid_flow_lbmolph": 14669.720973846439,
+      "vapor_flow_lbmolph": 23043.73232253765
+    },
+    {
+      "stage": 8,
+      "volume": "feed_tray",
+      "temperature_F": 173.7640838505973,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.721141738320441,
+        0.27885826167955896
+      ],
+      "vapor_mole_fraction": [
+        0.3517786160132511,
+        0.648221383986749
+      ],
+      "liquid_flow_lbmolph": 29575.244630674195,
+      "vapor_flow_lbmolph": 22606.36097384644
+    },
+    {
+      "stage": 9,
+      "volume": "stripping_tray",
+      "temperature_F": 192.23732432530798,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.9178582718893745,
+        0.0821417281106255
+      ],
+      "vapor_mole_fraction": [
+        0.624515546686344,
+        0.375484453313656
+      ],
+      "liquid_flow_lbmolph": 28886.806281247045,
+      "vapor_flow_lbmolph": 21638.604630674192
+    },
+    {
+      "stage": 10,
+      "volume": "combined_reboiler_sump",
+      "temperature_F": 206.636105282148,
+      "pressure_psia": 14.6959,
+      "liquid_mole_fraction": [
+        0.9845852052961362,
+        0.015414794703863761
+      ],
+      "vapor_mole_fraction": [
+        0.8925798258071833,
+        0.10742017419281662
+      ],
+      "liquid_flow_lbmolph": 0.0,
+      "vapor_flow_lbmolph": 20950.166281247046
+    }
+  ],
+  "pass_gate": true,
+  "decision": "specification_ownership_reconciled"
+}

@@ -1,0 +1,127 @@
+{
+  "schema_id": "core-v3-water-methanol-rejected-root-diagnostic-v1",
+  "classification": "rejected_candidate_derivatives_unreliable",
+  "source_root_result": "logs/core_v3_water_methanol_stationary_root_20260831.json",
+  "source_scaled_residual_inf_norm": 0.01331070831873469,
+  "source_solver_optimality": 13.828993481219499,
+  "dimension": 100,
+  "step_results": [
+    {
+      "step": 1e-05,
+      "rank": 100,
+      "condition": 569429149.9691113,
+      "smallest_singular_value": 5.376926437821108e-06,
+      "largest_singular_value": 3061.7786509349153,
+      "color_count": 22
+    },
+    {
+      "step": 5e-06,
+      "rank": 100,
+      "condition": 1730461008.678545,
+      "smallest_singular_value": 3.537649733809042e-06,
+      "largest_singular_value": 6121.764926718581,
+      "color_count": 22
+    }
+  ],
+  "matrix_relative_frobenius_change": 0.5927584476831046,
+  "gradient_inf_norm_at_h1": 5.645802820698414,
+  "largest_step_sensitive_entries": [
+    {
+      "row": "francis_hydraulics[rectifying_volume_2]",
+      "variable": "NL[rectifying_volume_2,Water]",
+      "derivative_h1": 2158.445938744593,
+      "derivative_h2": 4317.247442884361,
+      "absolute_change": 2158.8015041397675
+    },
+    {
+      "row": "francis_hydraulics[rectifying_volume_2]",
+      "variable": "NL[rectifying_volume_2,Methanol]",
+      "derivative_h1": -2161.6859416006646,
+      "derivative_h2": -4320.487445683016,
+      "absolute_change": 2158.801504082351
+    },
+    {
+      "row": "francis_hydraulics[stripping_tray]",
+      "variable": "NL[stripping_tray,Water]",
+      "derivative_h1": 1373.0235664504878,
+      "derivative_h2": -2.9559043720750617,
+      "absolute_change": 1375.979470822563
+    },
+    {
+      "row": "francis_hydraulics[stripping_tray]",
+      "variable": "NL[stripping_tray,Methanol]",
+      "derivative_h1": -1376.2368720722718,
+      "derivative_h2": -0.279176049195601,
+      "absolute_change": 1375.957696023076
+    },
+    {
+      "row": "vapor_volume_eos[rectifying_volume_2]",
+      "variable": "NL[rectifying_volume_2,Water]",
+      "derivative_h1": 136.10892899205462,
+      "derivative_h2": 272.23042747722553,
+      "absolute_change": 136.12149848517092
+    },
+    {
+      "row": "vapor_volume_eos[rectifying_volume_2]",
+      "variable": "NL[rectifying_volume_2,Methanol]",
+      "derivative_h1": -136.25038505497804,
+      "derivative_h2": -272.37188353438245,
+      "absolute_change": 136.1214984794044
+    },
+    {
+      "row": "vapor_volume_eos[stripping_tray]",
+      "variable": "NL[stripping_tray,Water]",
+      "derivative_h1": 84.78505037253662,
+      "derivative_h2": -0.12525700800813747,
+      "absolute_change": 84.91030738054475
+    },
+    {
+      "row": "vapor_volume_eos[stripping_tray]",
+      "variable": "NL[stripping_tray,Methanol]",
+      "derivative_h1": -84.92353899184315,
+      "derivative_h2": -0.014316121019764524,
+      "absolute_change": 84.90922287082338
+    },
+    {
+      "row": "vapor_pressure_drop[rectifying_volume_2->rectifying_volume_1]",
+      "variable": "NL[rectifying_volume_2,Water]",
+      "derivative_h1": 52.97356024049903,
+      "derivative_h2": 105.9545414070273,
+      "absolute_change": 52.980981166528274
+    },
+    {
+      "row": "vapor_pressure_drop[rectifying_volume_2->rectifying_volume_1]",
+      "variable": "NL[rectifying_volume_2,Methanol]",
+      "derivative_h1": -53.05533907951076,
+      "derivative_h2": -106.03632024601683,
+      "absolute_change": 52.98098116650607
+    },
+    {
+      "row": "vapor_pressure_drop[stripping_tray->feed_tray]",
+      "variable": "NL[stripping_tray,Methanol]",
+      "derivative_h1": -40.57739477519306,
+      "derivative_h2": -0.009339691559029362,
+      "absolute_change": 40.568055083634036
+    },
+    {
+      "row": "vapor_pressure_drop[stripping_tray->feed_tray]",
+      "variable": "NL[stripping_tray,Water]",
+      "derivative_h1": 40.48073206006086,
+      "derivative_h2": -0.08732302357317144,
+      "absolute_change": 40.56805508363403
+    }
+  ],
+  "limits": {
+    "condition": 100000000.0,
+    "matrix_relative_frobenius_change": 0.05
+  },
+  "logical_provider_calls": 5340,
+  "provider_fallback_attempted": false,
+  "wall_clock_sec": 1.6134634999907576,
+  "derivative_gate_pass": false,
+  "nonlinear_solve_attempted": false,
+  "retry_attempted": false,
+  "timestep_attempted": false,
+  "pass_gate": true,
+  "decision": "investigate_local_derivative_noise_before_any_second_solve"
+}

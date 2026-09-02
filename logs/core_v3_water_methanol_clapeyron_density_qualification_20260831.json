@@ -1,0 +1,1995 @@
+{
+  "schema_id": "core-v3-water-methanol-clapeyron-density-qualification-v1",
+  "profiles": [
+    "workbook_start",
+    "rejected_candidate"
+  ],
+  "state_count_per_model": 20,
+  "component_names": [
+    "Water",
+    "Methanol"
+  ],
+  "derivative_steps": [
+    1e-05,
+    5e-06
+  ],
+  "limits": {
+    "maximum_absolute_relative_density_delta": 0.1,
+    "maximum_derivative_relative_change": 1e-05,
+    "maximum_repeatability_absolute_delta": 1e-12
+  },
+  "reference_note": "DWSIM UNIFAC density values are used as continuity checks, not as experimental truth. Candidate ranking is limited to the two model profiles.",
+  "model_results": [
+    {
+      "model": "VTPR",
+      "association_configuration": "not_applicable",
+      "build_seconds": 39.053067500004545,
+      "state_count": 20,
+      "maximum_absolute_relative_density_delta": 0.04174276830179044,
+      "median_absolute_relative_density_delta": 0.017345904511706027,
+      "maximum_derivative_relative_change": 1.6039788633311398e-09,
+      "maximum_repeatability_absolute_delta": 0.0,
+      "states": [
+        {
+          "profile": "workbook_start",
+          "role": "reflux_drum",
+          "temperature_F": 149.10969469414144,
+          "pressure_psia": 14.7,
+          "liquid_mole_fraction": [
+            0.029598097040190292,
+            0.9704019029598098
+          ],
+          "dwsim_density_lbmol_ft3": 1.4879395648625038,
+          "clapeyron_density_lbmol_ft3": 1.4903714829692272,
+          "relative_density_delta": 0.0016344199483317803,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.027686724557440808,
+                0.027686724513031887
+              ],
+              "relative_change": 1.6039788633311398e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.027686724557440808,
+                -0.027686724513031887
+              ],
+              "relative_change": 1.6039788633311398e-09
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_1",
+          "temperature_F": 150.224,
+          "pressure_psia": 15.0333333333333,
+          "liquid_mole_fraction": [
+            0.07140153570076792,
+            0.9285984642992321
+          ],
+          "dwsim_density_lbmol_ft3": 1.528814008038658,
+          "clapeyron_density_lbmol_ft3": 1.5299777395513319,
+          "relative_density_delta": 0.0007611988813255085,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.06639931346974492,
+                0.06639931344754046
+              ],
+              "relative_change": 3.3440798303766605e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.06639931346974492,
+                -0.06639931346974492
+              ],
+              "relative_change": 0.0
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_2",
+          "temperature_F": 152.078,
+          "pressure_psia": 15.3666666666667,
+          "liquid_mole_fraction": [
+            0.138166,
+            0.861834
+          ],
+          "dwsim_density_lbmol_ft3": 1.5914195311849135,
+          "clapeyron_density_lbmol_ft3": 1.5965322592213416,
+          "relative_density_delta": 0.003212683981967524,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.12701781413326785,
+                0.1270178141110634
+              ],
+              "relative_change": 1.7481375068544383e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.12701781413326785,
+                -0.1270178141110634
+              ],
+              "relative_change": 1.7481375068544383e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_3",
+          "temperature_F": 155.138,
+          "pressure_psia": 15.7,
+          "liquid_mole_fraction": [
+            0.242779757220243,
+            0.757220242779757
+          ],
+          "dwsim_density_lbmol_ft3": 1.687135386629081,
+          "clapeyron_density_lbmol_ft3": 1.7100287716067988,
+          "relative_density_delta": 0.01356938225536188,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.21770395793874184,
+                0.2177039579276396
+              ],
+              "relative_change": 5.099691503714206e-11
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.217703957994253,
+                -0.2177039579276396
+              ],
+              "relative_change": 3.0598149014483176e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_4",
+          "temperature_F": 160.052,
+          "pressure_psia": 16.0333333333333,
+          "liquid_mole_fraction": [
+            0.398527,
+            0.601473
+          ],
+          "dwsim_density_lbmol_ft3": 1.8383297558838276,
+          "clapeyron_density_lbmol_ft3": 1.9040809082468217,
+          "relative_density_delta": 0.03576678893030399,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.3362600660583581,
+                0.33626006599174474
+              ],
+              "relative_change": 1.9810078032265837e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.33626006603615366,
+                -0.3362600660583581
+              ],
+              "relative_change": 6.603359344088612e-11
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_5",
+          "temperature_F": 167.558,
+          "pressure_psia": 16.3666666666667,
+          "liquid_mole_fraction": [
+            0.597405,
+            0.402595
+          ],
+          "dwsim_density_lbmol_ft3": 2.156736255956786,
+          "clapeyron_density_lbmol_ft3": 2.208627107266148,
+          "relative_density_delta": 0.02405989659887352,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.43057402920876336,
+                0.4305740291865589
+              ],
+              "relative_change": 5.1569437509519e-11
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.43057402920876336,
+                -0.43057402927537675
+              ],
+              "relative_change": 1.5470831250462234e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_6",
+          "temperature_F": 176.9,
+          "pressure_psia": 16.7,
+          "liquid_mole_fraction": [
+            0.769993,
+            0.230007
+          ],
+          "dwsim_density_lbmol_ft3": 2.510474880579447,
+          "clapeyron_density_lbmol_ft3": 2.5433558956764544,
+          "relative_density_delta": 0.013097528022036228,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.4037570942250212,
+                0.40375709438045243
+              ],
+              "relative_change": 3.84962210226979e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.40375709426943013,
+                -0.4037570943360435
+              ],
+              "relative_change": 1.6498380440113742e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "feed_tray",
+          "temperature_F": 184.37,
+          "pressure_psia": 17.0333333333333,
+          "liquid_mole_fraction": [
+            0.857205,
+            0.142795
+          ],
+          "dwsim_density_lbmol_ft3": 2.7697340999784963,
+          "clapeyron_density_lbmol_ft3": 2.7443019042840398,
+          "relative_density_delta": -0.00918217950764804,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.3192991153921909,
+                0.3192991152367597
+              ],
+              "relative_change": 4.867887693851196e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.31929911548100876,
+                -0.3192991154588043
+              ],
+              "relative_change": 6.954125274995885e-11
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "stripping_tray",
+          "temperature_F": 202.766,
+          "pressure_psia": 17.3666666666667,
+          "liquid_mole_fraction": [
+            0.9704019029598097,
+            0.02959809704019029
+          ],
+          "dwsim_density_lbmol_ft3": 3.1632771771192574,
+          "clapeyron_density_lbmol_ft3": 3.037987865517598,
+          "relative_density_delta": -0.039607440191427805,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.090477410763512,
+                0.09047741067469416
+              ],
+              "relative_change": 9.816576449359585e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.09047741080792092,
+                -0.090477410763512
+              ],
+              "relative_change": 4.908288222270663e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "combined_reboiler_sump",
+          "temperature_F": 202.766,
+          "pressure_psia": 17.7,
+          "liquid_mole_fraction": [
+            0.9704019029598098,
+            0.029598097040190292
+          ],
+          "dwsim_density_lbmol_ft3": 3.1632777353048542,
+          "clapeyron_density_lbmol_ft3": 3.0379899432726623,
+          "relative_density_delta": -0.039606952824241225,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.09047736024836438,
+                0.09047736031497776
+              ],
+              "relative_change": 7.362436442178355e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.0904773602927733,
+                -0.090477360181751
+              ],
+              "relative_change": 1.2270727406642006e-09
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "reflux_drum",
+          "temperature_F": 149.39901787595585,
+          "pressure_psia": 14.699457596230825,
+          "liquid_mole_fraction": [
+            0.038786232984833774,
+            0.9612137670151663
+          ],
+          "dwsim_density_lbmol_ft3": 1.5130770955722517,
+          "clapeyron_density_lbmol_ft3": 1.4988840002434345,
+          "relative_density_delta": -0.0093802856248044,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.03623763676907643,
+                0.0362376367579742
+              ],
+              "relative_change": 3.0637291049083283e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.03623763676907643,
+                -0.0362376367579742
+              ],
+              "relative_change": 3.0637291049083283e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_1",
+          "temperature_F": 154.23697753968744,
+          "pressure_psia": 15.870281112858304,
+          "liquid_mole_fraction": [
+            0.08795576048924307,
+            0.912044239510757
+          ],
+          "dwsim_density_lbmol_ft3": 1.5170473692029565,
+          "clapeyron_density_lbmol_ft3": 1.5413695236355207,
+          "relative_density_delta": 0.016032560964357293,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.08159825590769998,
+                0.08159825590769998
+              ],
+              "relative_change": 0.0
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.08159825590769998,
+                -0.08159825590769998
+              ],
+              "relative_change": 0.0
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_2",
+          "temperature_F": 159.25581243546875,
+          "pressure_psia": 16.92625197751611,
+          "liquid_mole_fraction": [
+            0.15673730084579626,
+            0.8432626991542037
+          ],
+          "dwsim_density_lbmol_ft3": 1.6092629019297697,
+          "clapeyron_density_lbmol_ft3": 1.606934219501989,
+          "relative_density_delta": -0.0014470490961970015,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.14356881291588408,
+                0.14356881286037293
+              ],
+              "relative_change": 3.8665187866240423e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.14356881289367962,
+                -0.1435688129269863
+              ],
+              "relative_change": 2.319911271795026e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_3",
+          "temperature_F": 164.74925530761536,
+          "pressure_psia": 17.881174864068957,
+          "liquid_mole_fraction": [
+            0.25214775297401226,
+            0.7478522470259877
+          ],
+          "dwsim_density_lbmol_ft3": 1.67441474161145,
+          "clapeyron_density_lbmol_ft3": 1.708167626743943,
+          "relative_density_delta": 0.0201580195716679,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.22541850744905997,
+                0.22541850743795774
+              ],
+              "relative_change": 4.925163586561518e-11
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.22541850741575328,
+                -0.22541850739354882
+              ],
+              "relative_change": 9.850327174578471e-11
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_4",
+          "temperature_F": 171.26037114241907,
+          "pressure_psia": 18.74441434925624,
+          "liquid_mole_fraction": [
+            0.3831706509471707,
+            0.6168293490528294
+          ],
+          "dwsim_density_lbmol_ft3": 1.8108841579505204,
+          "clapeyron_density_lbmol_ft3": 1.8671964700257389,
+          "relative_density_delta": 0.031096584410429815,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.3254694408649783,
+                0.3254694409315917
+              ],
+              "relative_change": 2.0466862046047028e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.3254694408649783,
+                -0.3254694409315917
+              ],
+              "relative_change": 2.0466862046047028e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_5",
+          "temperature_F": 179.34720598365703,
+          "pressure_psia": 19.520266997321997,
+          "liquid_mole_fraction": [
+            0.547464272443519,
+            0.452535727556481
+          ],
+          "dwsim_density_lbmol_ft3": 2.033119007630433,
+          "clapeyron_density_lbmol_ft3": 2.10505175535192,
+          "relative_density_delta": 0.0353804904934334,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.4150023590776541,
+                0.41500235905544963
+              ],
+              "relative_change": 5.350441993113657e-11
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.41500235905544963,
+                -0.41500235909985855
+              ],
+              "relative_change": 1.0700883985654769e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_6",
+          "temperature_F": 188.80340462665563,
+          "pressure_psia": 20.212960504705435,
+          "liquid_mole_fraction": [
+            0.7071612208367902,
+            0.2928387791632097
+          ],
+          "dwsim_density_lbmol_ft3": 2.366418754735697,
+          "clapeyron_density_lbmol_ft3": 2.3884070347718422,
+          "relative_density_delta": 0.009291795880227095,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.4294945491034596,
+                0.4294945492144819
+              ],
+              "relative_change": 2.5849525370128295e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.42949454912566404,
+                -0.4294945492144819
+              ],
+              "relative_change": 2.0679620296102636e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "feed_tray",
+          "temperature_F": 197.53341956721334,
+          "pressure_psia": 20.855668027484256,
+          "liquid_mole_fraction": [
+            0.8089965093516258,
+            0.19100349064837427
+          ],
+          "dwsim_density_lbmol_ft3": 2.5545332941319425,
+          "clapeyron_density_lbmol_ft3": 2.6021989645422647,
+          "relative_density_delta": 0.01865924805905476,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.3723618010820217,
+                0.3723618012152485
+              ],
+              "relative_change": 3.577884802367399e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.3723618010820217,
+                -0.3723618012152485
+              ],
+              "relative_change": 3.577884802367399e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "stripping_tray",
+          "temperature_F": 217.8439357234074,
+          "pressure_psia": 21.378128790605558,
+          "liquid_mole_fraction": [
+            0.9509922978863917,
+            0.04900770211360826
+          ],
+          "dwsim_density_lbmol_ft3": 3.037919988171788,
+          "clapeyron_density_lbmol_ft3": 2.9514187628413366,
+          "relative_density_delta": -0.028473832644456035,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.14134950512278976,
+                0.14134950512278976
+              ],
+              "relative_change": 0.0
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.14134950512278976,
+                -0.14134950512278976
+              ],
+              "relative_change": 0.0
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "combined_reboiler_sump",
+          "temperature_F": 229.36623950402142,
+          "pressure_psia": 21.79442048515022,
+          "liquid_mole_fraction": [
+            0.9906919147452145,
+            0.0093080852547855
+          ],
+          "dwsim_density_lbmol_ft3": 3.1880949738549327,
+          "clapeyron_density_lbmol_ft3": 3.0550150640372036,
+          "relative_density_delta": -0.04174276830179044,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.0299459579355954,
+                0.02994595798000432
+              ],
+              "relative_change": 1.482968787128441e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.029945957913390938,
+                -0.029945957891186478
+              ],
+              "relative_change": 7.414843952136178e-10
+            }
+          ]
+        }
+      ],
+      "pass_gate": true
+    },
+    {
+      "model": "CPA",
+      "association_configuration": "esd_combining_rule",
+      "build_seconds": 13.93072459998075,
+      "state_count": 20,
+      "maximum_absolute_relative_density_delta": 0.04331842211193141,
+      "median_absolute_relative_density_delta": 0.016771978073345198,
+      "maximum_derivative_relative_change": 2.09025857869408e-06,
+      "maximum_repeatability_absolute_delta": 0.0,
+      "states": [
+        {
+          "profile": "workbook_start",
+          "role": "reflux_drum",
+          "temperature_F": 149.10969469414144,
+          "pressure_psia": 14.7,
+          "liquid_mole_fraction": [
+            0.029598097040190292,
+            0.9704019029598098
+          ],
+          "dwsim_density_lbmol_ft3": 1.4879395648625038,
+          "clapeyron_density_lbmol_ft3": 1.4810772190149242,
+          "relative_density_delta": -0.004611978879810041,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.021058846755295235,
+                0.021058846666477393
+              ],
+              "relative_change": 4.2176023693072995e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.021058846622068472,
+                -0.021058846666477393
+              ],
+              "relative_change": 2.1088011935477348e-09
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_1",
+          "temperature_F": 150.224,
+          "pressure_psia": 15.0333333333333,
+          "liquid_mole_fraction": [
+            0.07140153570076792,
+            0.9285984642992321
+          ],
+          "dwsim_density_lbmol_ft3": 1.528814008038658,
+          "clapeyron_density_lbmol_ft3": 1.5133973843408666,
+          "relative_density_delta": -0.010084041365875344,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.05714970000569863,
+                0.057149699861369634
+              ],
+              "relative_change": 2.5254549575392125e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.05714970000569863,
+                -0.057149699861369634
+              ],
+              "relative_change": 2.5254549575392125e-09
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_2",
+          "temperature_F": 152.078,
+          "pressure_psia": 15.3666666666667,
+          "liquid_mole_fraction": [
+            0.138166,
+            0.861834
+          ],
+          "dwsim_density_lbmol_ft3": 1.5914195311849135,
+          "clapeyron_density_lbmol_ft3": 1.5731302651368335,
+          "relative_density_delta": -0.01149242276451294,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.1180143296086733,
+                0.11801432973079783
+              ],
+              "relative_change": 1.0348279991704834e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.1180143296086733,
+                -0.11801432973079783
+              ],
+              "relative_change": 1.0348279991704834e-09
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_3",
+          "temperature_F": 155.138,
+          "pressure_psia": 15.7,
+          "liquid_mole_fraction": [
+            0.242779757220243,
+            0.757220242779757
+          ],
+          "dwsim_density_lbmol_ft3": 1.687135386629081,
+          "clapeyron_density_lbmol_ft3": 1.6820379135510504,
+          "relative_density_delta": -0.003021377607528863,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.21470687064928382,
+                0.21470687063818159
+              ],
+              "relative_change": 5.170877956852471e-11
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.21470687064928382,
+                -0.21470687063818159
+              ],
+              "relative_change": 5.170877956852471e-11
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_4",
+          "temperature_F": 160.052,
+          "pressure_psia": 16.0333333333333,
+          "liquid_mole_fraction": [
+            0.398527,
+            0.601473
+          ],
+          "dwsim_density_lbmol_ft3": 1.8383297558838276,
+          "clapeyron_density_lbmol_ft3": 1.8792035382470258,
+          "relative_density_delta": 0.02223419505253396,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.3502069439442756,
+                0.3502069439553778
+              ],
+              "relative_change": 3.170191350536491e-11
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.35020694377774214,
+                -0.3502069439553778
+              ],
+              "relative_change": 5.072306160858386e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_5",
+          "temperature_F": 167.558,
+          "pressure_psia": 16.3666666666667,
+          "liquid_mole_fraction": [
+            0.597405,
+            0.402595
+          ],
+          "dwsim_density_lbmol_ft3": 2.156736255956786,
+          "clapeyron_density_lbmol_ft3": 2.2066531628090855,
+          "relative_density_delta": 0.02314465049420476,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.4744610099916002,
+                0.47446100017722864
+              ],
+              "relative_change": 2.0685306760739174e-08
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.4744610099916002,
+                -0.4744610100360091
+              ],
+              "relative_change": 9.35986731167559e-11
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_6",
+          "temperature_F": 176.9,
+          "pressure_psia": 16.7,
+          "liquid_mole_fraction": [
+            0.769993,
+            0.230007
+          ],
+          "dwsim_density_lbmol_ft3": 2.510474880579447,
+          "clapeyron_density_lbmol_ft3": 2.5880033959440616,
+          "relative_density_delta": 0.03088201199078323,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.46931577724063084,
+                0.4693158727420154
+              ],
+              "relative_change": 2.034906341869102e-07
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.46931577724063084,
+                -0.4693158727420154
+              ],
+              "relative_change": 2.034906341869102e-07
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "feed_tray",
+          "temperature_F": 184.37,
+          "pressure_psia": 17.0333333333333,
+          "liquid_mole_fraction": [
+            0.857205,
+            0.142795
+          ],
+          "dwsim_density_lbmol_ft3": 2.7697340999784963,
+          "clapeyron_density_lbmol_ft3": 2.8285463754176234,
+          "relative_density_delta": 0.021233906691470402,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.3835196347834468,
+                0.3835197057266981
+              ],
+              "relative_change": 1.8497941621832264e-07
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.38351963453919774,
+                -0.3835197057266981
+              ],
+              "relative_change": 1.8561627805819793e-07
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "stripping_tray",
+          "temperature_F": 202.766,
+          "pressure_psia": 17.3666666666667,
+          "liquid_mole_fraction": [
+            0.9704019029598097,
+            0.02959809704019029
+          ],
+          "dwsim_density_lbmol_ft3": 3.1632771771192574,
+          "clapeyron_density_lbmol_ft3": 3.2029065741191545,
+          "relative_density_delta": 0.01252795590805195,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.11555891699099873,
+                0.1155589170576121
+              ],
+              "relative_change": 5.764451863485287e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.11555891699099873,
+                -0.1155589170576121
+              ],
+              "relative_change": 5.764451863485287e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "combined_reboiler_sump",
+          "temperature_F": 202.766,
+          "pressure_psia": 17.7,
+          "liquid_mole_fraction": [
+            0.9704019029598098,
+            0.029598097040190292
+          ],
+          "dwsim_density_lbmol_ft3": 3.1632777353048542,
+          "clapeyron_density_lbmol_ft3": 3.2029105172995513,
+          "relative_density_delta": 0.012529023788319864,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.11555877479363373,
+                0.11555877481583819
+              ],
+              "relative_change": 1.9214863196576435e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.11555876242574924,
+                -0.11555877481583819
+              ],
+              "relative_change": 1.0721893663689651e-07
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "reflux_drum",
+          "temperature_F": 149.39901787595585,
+          "pressure_psia": 14.699457596230825,
+          "liquid_mole_fraction": [
+            0.038786232984833774,
+            0.9612137670151663
+          ],
+          "dwsim_density_lbmol_ft3": 1.5130770955722517,
+          "clapeyron_density_lbmol_ft3": 1.4876528163959255,
+          "relative_density_delta": -0.01680302956850365,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.028713439126359926,
+                0.028713438982030933
+              ],
+              "relative_change": 5.02653104583252e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.028713439126359926,
+                -0.028713438982030933
+              ],
+              "relative_change": 5.02653104583252e-09
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_1",
+          "temperature_F": 154.23697753968744,
+          "pressure_psia": 15.870281112858304,
+          "liquid_mole_fraction": [
+            0.08795576048924307,
+            0.912044239510757
+          ],
+          "dwsim_density_lbmol_ft3": 1.5170473692029565,
+          "clapeyron_density_lbmol_ft3": 1.5229934153687312,
+          "relative_density_delta": 0.003919486158760334,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.0717292338192621,
+                0.07172923397469333
+              ],
+              "relative_change": 2.1669159815976754e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.0717292338192621,
+                -0.07172923397469333
+              ],
+              "relative_change": 2.1669159815976754e-09
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_2",
+          "temperature_F": 159.25581243546875,
+          "pressure_psia": 16.92625197751611,
+          "liquid_mole_fraction": [
+            0.15673730084579626,
+            0.8432626991542037
+          ],
+          "dwsim_density_lbmol_ft3": 1.6092629019297697,
+          "clapeyron_density_lbmol_ft3": 1.5824561016900878,
+          "relative_density_delta": -0.016657812845580555,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.13465703407877783,
+                0.1346570342120046
+              ],
+              "relative_change": 9.893784140921002e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.13465703407877783,
+                -0.1346570342120046
+              ],
+              "relative_change": 9.893784140921002e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_3",
+          "temperature_F": 164.74925530761536,
+          "pressure_psia": 17.881174864068957,
+          "liquid_mole_fraction": [
+            0.25214775297401226,
+            0.7478522470259877
+          ],
+          "dwsim_density_lbmol_ft3": 1.67441474161145,
+          "clapeyron_density_lbmol_ft3": 1.6799337957552807,
+          "relative_density_delta": 0.0032961093847746863,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.22272312706350658,
+                0.22272312720783558
+              ],
+              "relative_change": 6.480197858688864e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.22272312706350658,
+                -0.22272312720783558
+              ],
+              "relative_change": 6.480197858688864e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_4",
+          "temperature_F": 171.26037114241907,
+          "pressure_psia": 18.74441434925624,
+          "liquid_mole_fraction": [
+            0.3831706509471707,
+            0.6168293490528294
+          ],
+          "dwsim_density_lbmol_ft3": 1.8108841579505204,
+          "clapeyron_density_lbmol_ft3": 1.8412000366803716,
+          "relative_density_delta": 0.016740926578186748,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.33753491641697053,
+                0.337534916439175
+              ],
+              "relative_change": 6.578418827524309e-11
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.33753491641697053,
+                -0.337534916439175
+              ],
+              "relative_change": 6.578418827524309e-11
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_5",
+          "temperature_F": 179.34720598365703,
+          "pressure_psia": 19.520266997321997,
+          "liquid_mole_fraction": [
+            0.547464272443519,
+            0.452535727556481
+          ],
+          "dwsim_density_lbmol_ft3": 2.033119007630433,
+          "clapeyron_density_lbmol_ft3": 2.094949466956007,
+          "relative_density_delta": 0.030411628189751898,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.4520424592868721,
+                0.4520424588871918
+              ],
+              "relative_change": 8.841653713139676e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.4520424592868721,
+                -0.45204245924246317
+              ],
+              "relative_change": 9.824059681266307e-11
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_6",
+          "temperature_F": 188.80340462665563,
+          "pressure_psia": 20.212960504705435,
+          "liquid_mole_fraction": [
+            0.7071612208367902,
+            0.2928387791632097
+          ],
+          "dwsim_density_lbmol_ft3": 2.366418754735697,
+          "clapeyron_density_lbmol_ft3": 2.4132651729561085,
+          "relative_density_delta": 0.019796334916067637,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.4908794184244058,
+                0.4908794184910192
+              ],
+              "relative_change": 1.3570212758620294e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.4908794184244058,
+                -0.4908794066782462
+              ],
+              "relative_change": 2.3928808500947643e-08
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "feed_tray",
+          "temperature_F": 197.53341956721334,
+          "pressure_psia": 20.855668027484256,
+          "liquid_mole_fraction": [
+            0.8089965093516258,
+            0.19100349064837427
+          ],
+          "dwsim_density_lbmol_ft3": 2.5545332941319425,
+          "clapeyron_density_lbmol_ft3": 2.6651916456661326,
+          "relative_density_delta": 0.04331842211193141,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.4409706176433658,
+                0.4409706176655703
+              ],
+              "relative_change": 5.03536054398592e-11
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.44097061480119487,
+                -0.4409706176655703
+              ],
+              "relative_change": 6.495615101741837e-09
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "stripping_tray",
+          "temperature_F": 217.8439357234074,
+          "pressure_psia": 21.378128790605558,
+          "liquid_mole_fraction": [
+            0.9509922978863917,
+            0.04900770211360826
+          ],
+          "dwsim_density_lbmol_ft3": 3.037919988171788,
+          "clapeyron_density_lbmol_ft3": 3.1044649436268648,
+          "relative_density_delta": 0.021904775541874408,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.17914314702771603,
+                0.17914300967092342
+              ],
+              "relative_change": 7.667432156105491e-07
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.17914314702771603,
+                -0.17914300967092342
+              ],
+              "relative_change": 7.667432156105491e-07
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "combined_reboiler_sump",
+          "temperature_F": 229.36623950402142,
+          "pressure_psia": 21.79442048515022,
+          "liquid_mole_fraction": [
+            0.9906919147452145,
+            0.0093080852547855
+          ],
+          "dwsim_density_lbmol_ft3": 3.1880949738549327,
+          "clapeyron_density_lbmol_ft3": 3.2481809623071225,
+          "relative_density_delta": 0.01884698823119938,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.03975062798922124,
+                0.03975054490013008
+              ],
+              "relative_change": 2.09025857869408e-06
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.03975058646688012,
+                -0.03975054490013008
+              ],
+              "relative_change": 1.0456889755978557e-06
+            }
+          ]
+        }
+      ],
+      "pass_gate": true
+    },
+    {
+      "model": "PCSAFT",
+      "association_configuration": "esd_combining_rule",
+      "build_seconds": 2.816361599951051,
+      "state_count": 20,
+      "maximum_absolute_relative_density_delta": 0.060271679742305184,
+      "median_absolute_relative_density_delta": 0.021550425609553274,
+      "maximum_derivative_relative_change": 1.5705130746870113e-07,
+      "maximum_repeatability_absolute_delta": 0.0,
+      "states": [
+        {
+          "profile": "workbook_start",
+          "role": "reflux_drum",
+          "temperature_F": 149.10969469414144,
+          "pressure_psia": 14.7,
+          "liquid_mole_fraction": [
+            0.029598097040190292,
+            0.9704019029598098
+          ],
+          "dwsim_density_lbmol_ft3": 1.4879395648625038,
+          "clapeyron_density_lbmol_ft3": 1.4963633820687559,
+          "relative_density_delta": 0.00566139741504252,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.02803117966632129,
+                0.02803117964411683
+              ],
+              "relative_change": 7.921343574127633e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.02803117966632129,
+                -0.02803117964411683
+              ],
+              "relative_change": 7.921343574127633e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_1",
+          "temperature_F": 150.224,
+          "pressure_psia": 15.0333333333333,
+          "liquid_mole_fraction": [
+            0.07140153570076792,
+            0.9285984642992321
+          ],
+          "dwsim_density_lbmol_ft3": 1.528814008038658,
+          "clapeyron_density_lbmol_ft3": 1.536724967757912,
+          "relative_density_delta": 0.00517457302043107,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.06713055222817843,
+                0.06713055211715613
+              ],
+              "relative_change": 1.6538267417367292e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.06713055222817843,
+                -0.06713055211715613
+              ],
+              "relative_change": 1.6538267417367292e-09
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_2",
+          "temperature_F": 152.078,
+          "pressure_psia": 15.3666666666667,
+          "liquid_mole_fraction": [
+            0.138166,
+            0.861834
+          ],
+          "dwsim_density_lbmol_ft3": 1.5914195311849135,
+          "clapeyron_density_lbmol_ft3": 1.6043914485131405,
+          "relative_density_delta": 0.008151161321093362,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.12799863609025408,
+                0.12799863622348084
+              ],
+              "relative_change": 1.0408451752752258e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.12799863609025408,
+                -0.12799863622348084
+              ],
+              "relative_change": 1.0408451752752258e-09
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_3",
+          "temperature_F": 155.138,
+          "pressure_psia": 15.7,
+          "liquid_mole_fraction": [
+            0.242779757220243,
+            0.757220242779757
+          ],
+          "dwsim_density_lbmol_ft3": 1.687135386629081,
+          "clapeyron_density_lbmol_ft3": 1.7191615095475314,
+          "relative_density_delta": 0.01898254471589209,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.21772750232740276,
+                0.21772750782300673
+              ],
+              "relative_change": 2.5240742554045887e-08
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.21772750232740276,
+                -0.21772750782300673
+              ],
+              "relative_change": 2.5240742554045887e-08
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_4",
+          "temperature_F": 160.052,
+          "pressure_psia": 16.0333333333333,
+          "liquid_mole_fraction": [
+            0.398527,
+            0.601473
+          ],
+          "dwsim_density_lbmol_ft3": 1.8383297558838276,
+          "clapeyron_density_lbmol_ft3": 1.9130051059536495,
+          "relative_density_delta": 0.040621303022927796,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.3306252695289835,
+                0.33062521760385266
+              ],
+              "relative_change": 1.5705130746870113e-07
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.3306252435275603,
+                -0.3306252695844947
+              ],
+              "relative_change": 7.881107944561784e-08
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_5",
+          "temperature_F": 167.558,
+          "pressure_psia": 16.3666666666667,
+          "liquid_mole_fraction": [
+            0.597405,
+            0.402595
+          ],
+          "dwsim_density_lbmol_ft3": 2.156736255956786,
+          "clapeyron_density_lbmol_ft3": 2.209947999143192,
+          "relative_density_delta": 0.024672346022578322,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.40981874591672346,
+                0.40981874565026993
+              ],
+              "relative_change": 6.501740795531638e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.40981874591672346,
+                -0.40981874565026993
+              ],
+              "relative_change": 6.501740795531638e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "rectifying_volume_6",
+          "temperature_F": 176.9,
+          "pressure_psia": 16.7,
+          "liquid_mole_fraction": [
+            0.769993,
+            0.230007
+          ],
+          "dwsim_density_lbmol_ft3": 2.510474880579447,
+          "clapeyron_density_lbmol_ft3": 2.525275830641064,
+          "relative_density_delta": 0.005895677417891888,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.369289729063027,
+                0.36928972901861806
+              ],
+              "relative_change": 1.202549583430926e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.369289729063027,
+                -0.36928972901861806
+              ],
+              "relative_change": 1.202549583430926e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "feed_tray",
+          "temperature_F": 184.37,
+          "pressure_psia": 17.0333333333333,
+          "liquid_mole_fraction": [
+            0.857205,
+            0.142795
+          ],
+          "dwsim_density_lbmol_ft3": 2.7697340999784963,
+          "clapeyron_density_lbmol_ft3": 2.7092311543051815,
+          "relative_density_delta": -0.02184431555136811,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.28479846405637943,
+                0.28479846432283296
+              ],
+              "relative_change": 9.355862453246922e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.2847984637899259,
+                -0.2847984638343348
+              ],
+              "relative_change": 1.5593104115490808e-10
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "stripping_tray",
+          "temperature_F": 202.766,
+          "pressure_psia": 17.3666666666667,
+          "liquid_mole_fraction": [
+            0.9704019029598097,
+            0.02959809704019029
+          ],
+          "dwsim_density_lbmol_ft3": 3.1632771771192574,
+          "clapeyron_density_lbmol_ft3": 2.9726211481637823,
+          "relative_density_delta": -0.060271679742305184,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.0776656097212225,
+                0.07766560981004034
+              ],
+              "relative_change": 1.1435929259713411e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.0776656097212225,
+                -0.07766560981004034
+              ],
+              "relative_change": 1.1435929259713411e-09
+            }
+          ]
+        },
+        {
+          "profile": "workbook_start",
+          "role": "combined_reboiler_sump",
+          "temperature_F": 202.766,
+          "pressure_psia": 17.7,
+          "liquid_mole_fraction": [
+            0.9704019029598098,
+            0.029598097040190292
+          ],
+          "dwsim_density_lbmol_ft3": 3.1632777353048542,
+          "clapeyron_density_lbmol_ft3": 2.9726234317549562,
+          "relative_density_delta": -0.06027112365823423,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.07766552048149578,
+                0.07766552045929132
+              ],
+              "relative_change": 2.8589856032437796e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.07766552048149578,
+                -0.07766552045929132
+              ],
+              "relative_change": 2.8589856032437796e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "reflux_drum",
+          "temperature_F": 149.39901787595585,
+          "pressure_psia": 14.699457596230825,
+          "liquid_mole_fraction": [
+            0.038786232984833774,
+            0.9612137670151663
+          ],
+          "dwsim_density_lbmol_ft3": 1.5130770955722517,
+          "clapeyron_density_lbmol_ft3": 1.505055070272595,
+          "relative_density_delta": -0.0053017954756777305,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.03667867579659756,
+                0.036678676096357776
+              ],
+              "relative_change": 8.172601864399318e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.03667867579659756,
+                -0.036678676096357776
+              ],
+              "relative_change": 8.172601864399318e-09
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_1",
+          "temperature_F": 154.23697753968744,
+          "pressure_psia": 15.870281112858304,
+          "liquid_mole_fraction": [
+            0.08795576048924307,
+            0.912044239510757
+          ],
+          "dwsim_density_lbmol_ft3": 1.5170473692029565,
+          "clapeyron_density_lbmol_ft3": 1.5492945407160679,
+          "relative_density_delta": 0.021256535667738437,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.08245098290782238,
+                0.08245098288561792
+              ],
+              "relative_change": 2.693049822987195e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.08245098290782238,
+                -0.08245098288561792
+              ],
+              "relative_change": 2.693049822987195e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_2",
+          "temperature_F": 159.25581243546875,
+          "pressure_psia": 16.92625197751611,
+          "liquid_mole_fraction": [
+            0.15673730084579626,
+            0.8432626991542037
+          ],
+          "dwsim_density_lbmol_ft3": 1.6092629019297697,
+          "clapeyron_density_lbmol_ft3": 1.616797798064756,
+          "relative_density_delta": 0.004682203340393166,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.14458819791451916,
+                0.14458819794782585
+              ],
+              "relative_change": 2.3035552840054967e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.14458819791451916,
+                -0.14458819794782585
+              ],
+              "relative_change": 2.3035552840054967e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_3",
+          "temperature_F": 164.74925530761536,
+          "pressure_psia": 17.881174864068957,
+          "liquid_mole_fraction": [
+            0.25214775297401226,
+            0.7478522470259877
+          ],
+          "dwsim_density_lbmol_ft3": 1.67441474161145,
+          "clapeyron_density_lbmol_ft3": 1.7199625851155036,
+          "relative_density_delta": 0.027202247073039046,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.22550719582792308,
+                0.2255072111045919
+              ],
+              "relative_change": 6.774359340445535e-08
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.22550719597225208,
+                -0.2255072111045919
+              ],
+              "relative_change": 6.710357399002373e-08
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_4",
+          "temperature_F": 171.26037114241907,
+          "pressure_psia": 18.74441434925624,
+          "liquid_mole_fraction": [
+            0.3831706509471707,
+            0.6168293490528294
+          ],
+          "dwsim_density_lbmol_ft3": 1.8108841579505204,
+          "clapeyron_density_lbmol_ft3": 1.8799371056126053,
+          "relative_density_delta": 0.03813217281675048,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.32125284894490846,
+                0.3212528464580089
+              ],
+              "relative_change": 7.741252982901417e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.3212528504548118,
+                -0.3212528464580089
+              ],
+              "relative_change": 1.2441299378331162e-08
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_5",
+          "temperature_F": 179.34720598365703,
+          "pressure_psia": 19.520266997321997,
+          "liquid_mole_fraction": [
+            0.547464272443519,
+            0.452535727556481
+          ],
+          "dwsim_density_lbmol_ft3": 2.033119007630433,
+          "clapeyron_density_lbmol_ft3": 2.114466921266325,
+          "relative_density_delta": 0.0400113880843119,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.3997434797176069,
+                0.3997434856461978
+              ],
+              "relative_change": 1.483098828218447e-08
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.3997434858238335,
+                -0.39974349821392247
+              ],
+              "relative_change": 3.099509813211821e-08
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "rectifying_volume_6",
+          "temperature_F": 188.80340462665563,
+          "pressure_psia": 20.212960504705435,
+          "liquid_mole_fraction": [
+            0.7071612208367902,
+            0.2928387791632097
+          ],
+          "dwsim_density_lbmol_ft3": 2.366418754735697,
+          "clapeyron_density_lbmol_ft3": 2.386195504896489,
+          "relative_density_delta": 0.008357248741886678,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.40030031671633987,
+                0.4003003163166596
+              ],
+              "relative_change": 9.984510932782428e-10
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.40030031671633987,
+                -0.4003003163166596
+              ],
+              "relative_change": 9.984510932782428e-10
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "feed_tray",
+          "temperature_F": 197.53341956721334,
+          "pressure_psia": 20.855668027484256,
+          "liquid_mole_fraction": [
+            0.8089965093516258,
+            0.19100349064837427
+          ],
+          "dwsim_density_lbmol_ft3": 2.5545332941319425,
+          "clapeyron_density_lbmol_ft3": 2.5859612432282657,
+          "relative_density_delta": 0.012302814439145032,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.3379812404391558,
+                0.33798124046136024
+              ],
+              "relative_change": 6.569731640191923e-11
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.3379812404391558,
+                -0.33798124046136024
+              ],
+              "relative_change": 6.569731640191923e-11
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "stripping_tray",
+          "temperature_F": 217.8439357234074,
+          "pressure_psia": 21.378128790605558,
+          "liquid_mole_fraction": [
+            0.9509922978863917,
+            0.04900770211360826
+          ],
+          "dwsim_density_lbmol_ft3": 3.037919988171788,
+          "clapeyron_density_lbmol_ft3": 2.903651391994477,
+          "relative_density_delta": -0.04419754196953476,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.12258764867656423,
+                0.1225876489208133
+              ],
+              "relative_change": 1.9924443250829417e-09
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.12258764867656423,
+                -0.1225876489208133
+              ],
+              "relative_change": 1.9924443250829417e-09
+            }
+          ]
+        },
+        {
+          "profile": "rejected_candidate",
+          "role": "combined_reboiler_sump",
+          "temperature_F": 229.36623950402142,
+          "pressure_psia": 21.79442048515022,
+          "liquid_mole_fraction": [
+            0.9906919147452145,
+            0.0093080852547855
+          ],
+          "dwsim_density_lbmol_ft3": 3.1880949738549327,
+          "clapeyron_density_lbmol_ft3": 2.9975912333480204,
+          "relative_density_delta": -0.05975472564939365,
+          "repeatability_absolute_delta": 0.0,
+          "component_derivatives": [
+            {
+              "component": "Water",
+              "derivatives": [
+                0.02560256273653749,
+                0.025602562203630438
+              ],
+              "relative_change": 2.0814598026921813e-08
+            },
+            {
+              "component": "Methanol",
+              "derivatives": [
+                -0.02560256273653749,
+                -0.025602562203630438
+              ],
+              "relative_change": 2.0814598026921813e-08
+            }
+          ]
+        }
+      ],
+      "pass_gate": true
+    }
+  ],
+  "selected_density_model": "VTPR",
+  "classification": "clapeyron_density_model_qualified",
+  "source_references": [
+    "https://clapeyronthermo.github.io/Clapeyron.jl/stable/tutorials/bulk_properties/",
+    "https://clapeyronthermo.github.io/Clapeyron.jl/dev/tutorials/basics_model_construction/",
+    "https://clapeyronthermo.github.io/Clapeyron.jl/stable/api/association/"
+  ],
+  "nonlinear_solve_attempted": false,
+  "timestep_attempted": false,
+  "workbook_modified": false,
+  "pass_gate": true,
+  "decision": "authorize_vtpr_density_only_provider_route"
+}

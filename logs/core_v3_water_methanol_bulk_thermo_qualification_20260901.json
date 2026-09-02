@@ -1,0 +1,317 @@
+{
+  "schema_id": "core-v3-water-methanol-bulk-thermo-qualification-v1",
+  "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\water_methanol_template_10stage_chemsep_excess_enthalpy_p14p7_to_p17p7_geometry_20260713.xlsx",
+  "workbook_sha256": "66d9899289714c680d4a99e03f956f1abfa2a8586c213763f6ca9aeef813c757",
+  "components": [
+    "Water",
+    "Methanol"
+  ],
+  "chemsep_method": {
+    "export": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\water-methanol-ChemSep.xls",
+    "export_sha256": "c42a895639193a74ad12b7c64ea70c5099f63c29066a69e5532d95f85e334114",
+    "k_value_model": "DECHEMA K model",
+    "activity_coefficient_model": "UNIFAC Activity coefficient",
+    "vapor_pressure_model": "Antoine Vapour pressure",
+    "enthalpy_model": "Excess Enthalpy(",
+    "unifac_main_group_bip_record": "2 289.6 -181 # 7-6 = H2O-CH3OH"
+  },
+  "selection_rule": "minimum maximum interior log-fugacity residual; external energy residual is the tie-breaker",
+  "candidates": [
+    {
+      "identity": "dwsim_unifac",
+      "available": true,
+      "core_bulk_interface_compatible": true,
+      "interior_log_fugacity_residual": [
+        [
+          0.045918744503385824,
+          0.022763662859380585
+        ],
+        [
+          0.06748063394960553,
+          0.04497184153585282
+        ],
+        [
+          0.08756013041949709,
+          0.06616092371099608
+        ],
+        [
+          0.10705399730733585,
+          0.08725228180421463
+        ],
+        [
+          0.12514151624056513,
+          0.1076227310315166
+        ],
+        [
+          0.1426524367083394,
+          0.12766231742127668
+        ],
+        [
+          0.1604569476538696,
+          0.1472597739513843
+        ],
+        [
+          0.1755998690044358,
+          0.16587283327584132
+        ]
+      ],
+      "maximum_interior_abs_log_fugacity_residual": 0.1755998690044358,
+      "rms_interior_log_fugacity_residual": 0.1145621560048324,
+      "fixed_state_external_energy_rate_BTUph": 3991524.5372847766,
+      "fixed_state_required_condenser_duty_BTUph": -368891524.5372848,
+      "terminal_bubbles": [
+        {
+          "terminal": "top",
+          "workbook_temperature_F": 149.072,
+          "bubble_temperature_F": 149.10969469414144,
+          "temperature_difference_F": 0.037694694141436,
+          "vapor_mole_fraction": [
+            0.01197968379908135,
+            0.9880203162009187
+          ],
+          "residual_inf_norm": 9.103828801926325e-15
+        },
+        {
+          "terminal": "bottom",
+          "workbook_temperature_F": 202.766,
+          "bubble_temperature_F": 212.56173632199096,
+          "temperature_difference_F": 9.795736321990972,
+          "vapor_mole_fraction": [
+            0.8162505932211676,
+            0.18374940677883247
+          ],
+          "residual_inf_norm": 1.554312234475218e-15
+        }
+      ],
+      "wall_clock_sec": 2.3689875000272878
+    },
+    {
+      "identity": "dwsim_nrtl",
+      "available": true,
+      "core_bulk_interface_compatible": true,
+      "interior_log_fugacity_residual": [
+        [
+          0.008398360693144624,
+          0.02277228234432683
+        ],
+        [
+          0.032116123758024695,
+          0.04488899714749032
+        ],
+        [
+          0.057398581370440155,
+          0.06535437342071374
+        ],
+        [
+          0.08718478610063483,
+          0.08303272969157896
+        ],
+        [
+          0.1185145581339149,
+          0.09423166368305183
+        ],
+        [
+          0.14282052395657566,
+          0.10768234308563765
+        ],
+        [
+          0.1614139081611632,
+          0.1316716566176217
+        ],
+        [
+          0.17572552990989299,
+          0.18300905583586563
+        ]
+      ],
+      "maximum_interior_abs_log_fugacity_residual": 0.18300905583586563,
+      "rms_interior_log_fugacity_residual": 0.10850666352285267,
+      "fixed_state_external_energy_rate_BTUph": 3991524.5372847766,
+      "fixed_state_required_condenser_duty_BTUph": -368891524.5372848,
+      "terminal_bubbles": [
+        {
+          "terminal": "top",
+          "workbook_temperature_F": 149.072,
+          "bubble_temperature_F": 149.08850740873336,
+          "temperature_difference_F": 0.016507408733360762,
+          "vapor_mole_fraction": [
+            0.012441011471391605,
+            0.9875589885286084
+          ],
+          "residual_inf_norm": 2.4424906541753412e-15
+        },
+        {
+          "terminal": "bottom",
+          "workbook_temperature_F": 202.766,
+          "bubble_temperature_F": 212.8328225752317,
+          "temperature_difference_F": 10.066822575231697,
+          "vapor_mole_fraction": [
+            0.8205171561838137,
+            0.1794828438161863
+          ],
+          "residual_inf_norm": 5.107025913275707e-15
+        }
+      ],
+      "wall_clock_sec": 1.4461696000071242
+    },
+    {
+      "identity": "dwsim_modfac",
+      "available": true,
+      "core_bulk_interface_compatible": true,
+      "interior_log_fugacity_residual": [
+        [
+          0.03450240203776573,
+          0.02268095477655388
+        ],
+        [
+          0.0566708436233968,
+          0.04469870113508869
+        ],
+        [
+          0.07815488241230954,
+          0.0652120452823442
+        ],
+        [
+          0.10142744708930021,
+          0.08366526087913699
+        ],
+        [
+          0.12459249907497437,
+          0.09742187024314931
+        ],
+        [
+          0.14376916169559079,
+          0.11202660032918381
+        ],
+        [
+          0.16124357725577848,
+          0.13149757136748283
+        ],
+        [
+          0.1756533134279999,
+          0.1557212369399303
+        ]
+      ],
+      "maximum_interior_abs_log_fugacity_residual": 0.1756533134279999,
+      "rms_interior_log_fugacity_residual": 0.10931340681425761,
+      "fixed_state_external_energy_rate_BTUph": 3991524.5372847766,
+      "fixed_state_required_condenser_duty_BTUph": -368891524.5372848,
+      "terminal_bubbles": [
+        {
+          "terminal": "top",
+          "workbook_temperature_F": 149.072,
+          "bubble_temperature_F": 149.10231713228072,
+          "temperature_difference_F": 0.03031713228071453,
+          "vapor_mole_fraction": [
+            0.01212183382882597,
+            0.987878166171174
+          ],
+          "residual_inf_norm": 1.0658141036401446e-14
+        },
+        {
+          "terminal": "bottom",
+          "workbook_temperature_F": 202.766,
+          "bubble_temperature_F": 212.4650716561052,
+          "temperature_difference_F": 9.699071656105218,
+          "vapor_mole_fraction": [
+            0.8146543121394441,
+            0.18534568786055586
+          ],
+          "residual_inf_norm": 8.437694987151153e-15
+        }
+      ],
+      "wall_clock_sec": 1.37390999996569
+    },
+    {
+      "identity": "clapeyron_unifac",
+      "available": false,
+      "core_bulk_interface_compatible": false,
+      "error": "JuliaError: MethodError: no method matching PT_property_gibbs(::Clapeyron.PTFlashWrapper{GammaPhi{UNIFAC{PR{BasicIdeal, PRAlpha, NoTranslation, vdW1fRule}, Float64}, PR{BasicIdeal, PRAlpha, NoTranslation, vdW1fRule}}, Vector{PR{BasicIdeal, PRAlpha, NoTranslation, vdW1fRule}}, Tuple{Float64, Float64, Float64}, Float64}, ::Float64, ::Float64, ::PyArray{Float64, 1, true, true, Float64}, ::typeof(Clapeyron.VT_fugacity_coefficient))",
+      "wall_clock_sec": 46.89257910003653
+    },
+    {
+      "identity": "clapeyron_nrtl",
+      "available": false,
+      "core_bulk_interface_compatible": false,
+      "error": "JuliaError: MethodError: no method matching PT_property_gibbs(::Clapeyron.PTFlashWrapper{GammaPhi{NRTL{PR{BasicIdeal, PRAlpha, NoTranslation, vdW1fRule}}, PR{BasicIdeal, PRAlpha, NoTranslation, vdW1fRule}}, Vector{PR{BasicIdeal, PRAlpha, NoTranslation, vdW1fRule}}, Tuple{Float64, Float64, Float64}, Float64}, ::Float64, ::Float64, ::PyArray{Float64, 1, true, true, Float64}, ::typeof(Clapeyron.VT_fugacity_coefficient))",
+      "wall_clock_sec": 2.920421199989505
+    },
+    {
+      "identity": "clapeyron_vtpr",
+      "available": true,
+      "core_bulk_interface_compatible": true,
+      "interior_log_fugacity_residual": [
+        [
+          0.632169160114641,
+          -0.009864116347656996
+        ],
+        [
+          0.6004515966737165,
+          0.019462636179096517
+        ],
+        [
+          0.5363163188384992,
+          0.06243471587910679
+        ],
+        [
+          0.4307797734123409,
+          0.14675104107739592
+        ],
+        [
+          0.29753937205700337,
+          0.3263216190544647
+        ],
+        [
+          0.20480415088105133,
+          0.5980657369079175
+        ],
+        [
+          0.18147464611830783,
+          0.8065568258874062
+        ],
+        [
+          0.16867968523166693,
+          1.1630233355065982
+        ]
+      ],
+      "maximum_interior_abs_log_fugacity_residual": 1.1630233355065982,
+      "rms_interior_log_fugacity_residual": 0.4948789213891173,
+      "fixed_state_external_energy_rate_BTUph": 421351.10951551795,
+      "fixed_state_required_condenser_duty_BTUph": -365321351.10951555,
+      "terminal_bubbles": [
+        {
+          "terminal": "top",
+          "workbook_temperature_F": 149.072,
+          "bubble_temperature_F": 147.74499936937573,
+          "temperature_difference_F": -1.3270006306242692,
+          "vapor_mole_fraction": [
+            0.006231674553931473,
+            0.9937683254460685
+          ],
+          "residual_inf_norm": 1.5007994846871603e-12
+        },
+        {
+          "terminal": "bottom",
+          "workbook_temperature_F": 202.766,
+          "bubble_temperature_F": 218.72012940259157,
+          "temperature_difference_F": 15.954129402591576,
+          "vapor_mole_fraction": [
+            0.9255519878951854,
+            0.07444801210481455
+          ],
+          "residual_inf_norm": 7.549516567450779e-14
+        }
+      ],
+      "wall_clock_sec": 2.21385860000737
+    }
+  ],
+  "ranking": [
+    "dwsim_unifac",
+    "dwsim_modfac",
+    "dwsim_nrtl",
+    "clapeyron_vtpr"
+  ],
+  "selected_for_prescribed_pressure_gate": "dwsim_unifac",
+  "clapeyron_scope": "VTPR is evaluated as a full bulk provider. Clapeyron UNIFAC/NRTL are rejected if the imposed-phase fugacity interface is unavailable; no fallback is used.",
+  "pass_gate": true,
+  "decision": "run_prescribed_pressure_stationary_parity"
+}

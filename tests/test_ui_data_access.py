@@ -9,8 +9,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import numpy as np
+import pandas as pd
+import pytest
 
 from ui.data_access import _as_list
+from ui.data_access import compact_stage_table
 from ui.data_access import read_runner_phase
 from ui.data_access import validate_excel_input
 
@@ -73,3 +76,34 @@ def test_read_runner_phase_detects_integration(tmp_path: Path) -> None:
     assert phase["phase"] == "integration"
     assert phase["integration_started"] is True
     assert "Integration running" in phase["message"]
+
+
+def test_compact_stage_table_retains_hydraulic_envelope_fields() -> None:
+    snapshot = pd.DataFrame(
+        [
+            {
+                "stage": 2,
+                "T_F": 120.0,
+                "P_psia_hyd": 221.0,
+                "Hydraulic_evaluable": False,
+                "Hydraulic_classification": "not_evaluated",
+                "Flooding_fraction": np.nan,
+                "Backup_fraction_of_tray_spacing": 0.35,
+                "Backup_classification": "normal",
+                "Weeping_classification": "not_evaluated",
+                "Hydraulic_limitation": "no declared tray flooding capacity factor",
+                "Critical_effective_capacity_factor_ft_s": 0.0856,
+                "Hydraulic_critical_effective_capacity_factor_ratio_to_baseline": 1.02,
+                "x_A": 0.8,
+                "y_A": 0.9,
+            }
+        ]
+    )
+
+    table = compact_stage_table(snapshot, component_names=["A"])
+
+    assert table.loc[0, "Hydraulic_classification"] == "not_evaluated"
+    assert table.loc[0, "Backup_fraction_of_tray_spacing"] == pytest.approx(0.35)
+    assert table.loc[0, "Weeping_classification"] == "not_evaluated"
+    assert table.loc[0, "Critical_effective_capacity_factor_ft_s"] == pytest.approx(0.0856)
+    assert table.loc[0, "Hydraulic_critical_effective_capacity_factor_ratio_to_baseline"] == pytest.approx(1.02)

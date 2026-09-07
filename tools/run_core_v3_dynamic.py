@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 from concurrent.futures import ProcessPoolExecutor
 import csv
-from dataclasses import replace
+from dataclasses import asdict, replace
 import hashlib
 import json
 import multiprocessing as mp
@@ -58,6 +58,12 @@ from dynamic_distillation.core_v3.persistent_parallel_colored_jacobian_v1 import
     PersistentParallelColoredJacobian,
 )
 from dynamic_distillation.core_v3.provider_call_audit_v1 import ProviderCallAudit  # noqa: E402
+from dynamic_distillation.core_v3.tray_hydraulic_operating_envelope_v1 import (  # noqa: E402
+    TrayHydraulicOperatingEnvelopeSpec,
+    evaluate_tray_hydraulic_operating_envelope,
+    tray_hydraulic_summary_dict,
+    validate_tray_hydraulic_operating_envelope_spec,
+)
 from dynamic_distillation.excel_case_loader_v1 import load_case_from_excel  # noqa: E402
 
 
@@ -405,6 +411,8 @@ def _write_checkpoint(
     jacobian_refresh_interval: int = 0,
     max_nfev_per_root: int = 40,
     composition_error_limit_molfrac: float | None = None,
+    hydraulic_envelope: Any | None = None,
+    hydraulic_screening_baseline: Mapping[str, Any] | None = None,
     final_time_s: float,
     timestep_sec: float,
     source: str,
@@ -451,6 +459,21 @@ def _write_checkpoint(
             None
             if composition_error_limit_molfrac is None
             else float(composition_error_limit_molfrac)
+        ),
+        "tray_hydraulic_operating_envelope_spec": (
+            asdict(context["tray_hydraulic_operating_envelope_spec"])
+            if context.get("tray_hydraulic_operating_envelope_spec") is not None
+            else None
+        ),
+        "tray_hydraulic_operating_envelope_endpoint": (
+            tray_hydraulic_summary_dict(hydraulic_envelope, include_stages=True)
+            if hydraulic_envelope is not None
+            else None
+        ),
+        "tray_hydraulic_screening_baseline": (
+            dict(hydraulic_screening_baseline)
+            if hydraulic_screening_baseline is not None
+            else None
         ),
     }
     if regulatory is not None:
@@ -778,7 +801,60 @@ def _summary_row(
         "root_memo_hits": float(report.get("memo_hits_delta", np.nan)),
         "root_memo_misses": float(report.get("memo_misses_delta", np.nan)),
         "root_memo_hit_fraction": float(report.get("memo_hit_fraction", np.nan)),
+        "Hydraulic_envelope_fully_evaluable": bool(
+            report.get("hydraulic_envelope_fully_evaluable", False)
+        ),
+        "Hydraulic_overall_classification": str(
+            report.get("hydraulic_overall_classification", "not_evaluated")
+        ),
+        "Hydraulic_max_flooding_fraction": float(
+            report.get("maximum_flooding_fraction", np.nan)
+        ),
+        "Hydraulic_flooding_limiting_stage": report.get(
+            "flooding_limiting_stage"
+        ),
+        "Hydraulic_max_critical_effective_capacity_factor_ft_s": float(
+            report.get(
+                "maximum_critical_effective_capacity_factor_ft_s", np.nan
+            )
+        ),
+        "Hydraulic_critical_effective_capacity_factor_limiting_stage": report.get(
+            "critical_effective_capacity_factor_limiting_stage"
+        ),
+        "Hydraulic_max_backup_fraction": float(
+            report.get("maximum_backup_fraction", np.nan)
+        ),
+        "Hydraulic_backup_limiting_stage": report.get("backup_limiting_stage"),
+        "Hydraulic_max_load_fraction": float(
+            report.get("maximum_hydraulic_load_fraction", np.nan)
+        ),
+        "Hydraulic_limiting_stage": report.get("hydraulic_limiting_stage"),
+        "Hydraulic_predicted_flooding": bool(
+            report.get("predicted_flooding", False)
+        ),
+        "Hydraulic_hard_stop_reached": bool(
+            report.get("hydraulic_hard_stop_reached", False)
+        ),
+        "Hydraulic_screening_baseline_source": str(
+            report.get("hydraulic_screening_baseline_source", "")
+        ),
+        "Hydraulic_column_max_critical_factor_ratio_to_baseline": float(
+            report.get(
+                "hydraulic_column_max_critical_factor_ratio_to_baseline",
+                np.nan,
+            )
+        ),
     }
+    for metric_name in _HYDRAULIC_SCREENING_METRICS:
+        row[f"Hydraulic_max_stage_{metric_name}_ratio_to_baseline"] = float(
+            report.get(
+                f"hydraulic_max_stage_{metric_name}_ratio_to_baseline",
+                np.nan,
+            )
+        )
+        row[f"Hydraulic_max_stage_{metric_name}_ratio_stage"] = report.get(
+            f"hydraulic_max_stage_{metric_name}_ratio_stage"
+        )
     feed_disturbance = dict(context.get("feed_temperature_disturbance", {}))
     row.update(
         {
@@ -855,6 +931,446 @@ def _composition_quality_pass(
     if not np.isfinite(limit) or limit <= 0.0:
         raise ValueError("composition error limit must be positive when declared")
     return abs(float(error_molfrac)) < limit
+
+
+def _hydraulic_envelope_spec_from_checkpoint(
+    checkpoint_metadata: Mapping[str, Any],
+    *,
+    capacity_factor_ft_s: float | None = None,
+    system_factor: float | None = None,
+    advisory_fraction: float | None = None,
+    high_loading_fraction: float | None = None,
+    predicted_flooding_fraction: float | None = None,
+    hard_stop_fraction: float | None = None,
+) -> TrayHydraulicOperatingEnvelopeSpec:
+    saved = dict(
+        checkpoint_metadata.get("tray_hydraulic_operating_envelope_spec", {}) or {}
+    )
+    defaults = TrayHydraulicOperatingEnvelopeSpec()
+    return TrayHydraulicOperatingEnvelopeSpec(
+        capacity_factor_ft_s=(
+            capacity_factor_ft_s
+            if capacity_factor_ft_s is not None
+            else saved.get("capacity_factor_ft_s", defaults.capacity_factor_ft_s)
+        ),
+        system_factor=float(
+            system_factor
+            if system_factor is not None
+            else saved.get("system_factor", defaults.system_factor)
+        ),
+        correlation_name=str(
+            saved.get("correlation_name", defaults.correlation_name)
+        ),
+        correlation_version=str(
+            saved.get("correlation_version", defaults.correlation_version)
+        ),
+        surface_tension_treatment=str(
+            saved.get(
+                "surface_tension_treatment", defaults.surface_tension_treatment
+            )
+        ),
+        advisory_fraction=float(
+            advisory_fraction
+            if advisory_fraction is not None
+            else saved.get("advisory_fraction", defaults.advisory_fraction)
+        ),
+        high_loading_fraction=float(
+            high_loading_fraction
+            if high_loading_fraction is not None
+            else saved.get(
+                "high_loading_fraction", defaults.high_loading_fraction
+            )
+        ),
+        predicted_flooding_fraction=float(
+            predicted_flooding_fraction
+            if predicted_flooding_fraction is not None
+            else saved.get(
+                "predicted_flooding_fraction",
+                defaults.predicted_flooding_fraction,
+            )
+        ),
+        hard_stop_fraction=(
+            hard_stop_fraction
+            if hard_stop_fraction is not None
+            else saved.get("hard_stop_fraction", defaults.hard_stop_fraction)
+        ),
+    )
+
+
+def _hydraulic_envelope(
+    context: Mapping[str, Any],
+    evaluation: Any,
+):
+    base = evaluation.base
+    return evaluate_tray_hydraulic_operating_envelope(
+        topology=context["contract"].base.topology.column,
+        endpoint=base.endpoint,
+        properties=base.properties,
+        pressure_drop=base.pressure_drop,
+        hydraulic_geometry=context["spec"].hydraulic_geometry,
+        pressure_link_geometry=context["numerical"].pressure_link_geometry,
+        component_mw_lbm_per_lbmol=context["numerical"].component_mw_lbm_per_lbmol,
+        spec=context["tray_hydraulic_operating_envelope_spec"],
+    )
+
+
+_HYDRAULIC_SCREENING_METRICS = {
+    "vapor_flow": "vapor_flow_lbmolph",
+    "liquid_flow": "liquid_flow_lbmolph",
+    "vapor_superficial_velocity": "vapor_superficial_velocity_ft_s",
+    "vapor_f_factor": "vapor_f_factor",
+    "total_tray_pressure_drop": "total_tray_pressure_drop_psia",
+    "backup_fraction": "backup_fraction_of_tray_spacing",
+    "critical_effective_capacity_factor": (
+        "critical_effective_capacity_factor_ft_s"
+    ),
+}
+
+
+def _critical_effective_capacity_factor_from_stage(
+    stage: Mapping[str, Any],
+) -> float:
+    saved = stage.get("critical_effective_capacity_factor_ft_s")
+    if saved is not None:
+        try:
+            value = float(saved)
+            if np.isfinite(value) and value > 0.0:
+                return value
+        except (TypeError, ValueError):
+            pass
+    velocity = float(stage["vapor_superficial_velocity_ft_s"])
+    rho_l = float(stage["liquid_mass_density_lbm_ft3"])
+    rho_v = float(stage["vapor_mass_density_lbm_ft3"])
+    if not (rho_l > rho_v > 0.0 and velocity > 0.0):
+        return float("nan")
+    return velocity / np.sqrt((rho_l - rho_v) / rho_v)
+
+
+def _hydraulic_screening_baseline_from_endpoint_dict(
+    endpoint: Mapping[str, Any],
+    *,
+    source: str,
+    reference_time_s: float,
+) -> dict[str, Any]:
+    stages = []
+    for saved_stage in endpoint.get("stages", ()):
+        stage = dict(saved_stage)
+        record: dict[str, Any] = {
+            "stage": int(stage["stage"]),
+            "volume": str(stage["volume"]),
+        }
+        for name, field in _HYDRAULIC_SCREENING_METRICS.items():
+            if name == "critical_effective_capacity_factor":
+                value = _critical_effective_capacity_factor_from_stage(stage)
+            else:
+                value = float(stage[field])
+            record[field] = float(value)
+        stages.append(record)
+    if not stages:
+        raise ValueError("hydraulic screening baseline contains no physical trays")
+    critical = np.asarray(
+        [item["critical_effective_capacity_factor_ft_s"] for item in stages],
+        dtype=float,
+    )
+    finite = np.flatnonzero(np.isfinite(critical))
+    if finite.size == 0:
+        maximum = float("nan")
+        limiting_stage = None
+    else:
+        index = int(finite[np.argmax(critical[finite])])
+        maximum = float(critical[index])
+        limiting_stage = int(stages[index]["stage"])
+    return {
+        "schema": "dynamic_distillation.tray_hydraulic_screening_baseline.v1",
+        "source": str(source),
+        "reference_time_s": float(reference_time_s),
+        "stages": stages,
+        "maximum_critical_effective_capacity_factor_ft_s": maximum,
+        "critical_effective_capacity_factor_limiting_stage": limiting_stage,
+    }
+
+
+def _hydraulic_screening_baseline_from_evaluation(
+    hydraulic: Any,
+    *,
+    source: str,
+    reference_time_s: float,
+) -> dict[str, Any]:
+    return _hydraulic_screening_baseline_from_endpoint_dict(
+        tray_hydraulic_summary_dict(hydraulic, include_stages=True),
+        source=source,
+        reference_time_s=reference_time_s,
+    )
+
+
+def _hydraulic_screening_baseline_from_checkpoint(
+    checkpoint_metadata: Mapping[str, Any],
+) -> dict[str, Any] | None:
+    inherited = checkpoint_metadata.get("tray_hydraulic_screening_baseline")
+    if isinstance(inherited, Mapping) and inherited.get("stages"):
+        return dict(inherited)
+    endpoint = checkpoint_metadata.get("tray_hydraulic_operating_envelope_endpoint")
+    if not isinstance(endpoint, Mapping) or not endpoint.get("stages"):
+        return None
+    return _hydraulic_screening_baseline_from_endpoint_dict(
+        endpoint,
+        source="checkpoint_endpoint",
+        reference_time_s=float(checkpoint_metadata.get("final_time_s", 0.0)),
+    )
+
+
+def _hydraulic_screening_relative(
+    hydraulic: Any,
+    baseline: Mapping[str, Any],
+) -> dict[str, Any]:
+    baseline_by_stage = {
+        (int(item["stage"]), str(item["volume"])): item
+        for item in baseline.get("stages", ())
+    }
+    stage_results = []
+    for stage in hydraulic.stages:
+        key = (int(stage.stage), str(stage.volume))
+        saved = baseline_by_stage.get(key)
+        if saved is None:
+            raise ValueError(
+                f"hydraulic screening baseline is missing stage {stage.stage} ({stage.volume})"
+            )
+        result = {"stage": int(stage.stage), "volume": str(stage.volume)}
+        for name, field in _HYDRAULIC_SCREENING_METRICS.items():
+            current = float(getattr(stage, field))
+            reference = float(saved[field])
+            ratio = (
+                current / reference
+                if np.isfinite(current)
+                and np.isfinite(reference)
+                and reference > 0.0
+                else float("nan")
+            )
+            result[f"{name}_ratio_to_baseline"] = float(ratio)
+            result[f"{name}_change_fraction"] = float(ratio - 1.0)
+        stage_results.append(result)
+
+    aggregate: dict[str, Any] = {}
+    for name in _HYDRAULIC_SCREENING_METRICS:
+        field = f"{name}_ratio_to_baseline"
+        ratios = np.asarray([item[field] for item in stage_results], dtype=float)
+        finite = np.flatnonzero(np.isfinite(ratios))
+        if finite.size:
+            index = int(finite[np.argmax(ratios[finite])])
+            aggregate[f"maximum_stage_{field}"] = float(ratios[index])
+            aggregate[f"maximum_stage_{name}_ratio_stage"] = int(
+                stage_results[index]["stage"]
+            )
+        else:
+            aggregate[f"maximum_stage_{field}"] = float("nan")
+            aggregate[f"maximum_stage_{name}_ratio_stage"] = None
+
+    baseline_column_maximum = float(
+        baseline.get("maximum_critical_effective_capacity_factor_ft_s", np.nan)
+    )
+    current_column_maximum = float(
+        hydraulic.maximum_critical_effective_capacity_factor_ft_s
+    )
+    aggregate.update(
+        {
+            "schema": "dynamic_distillation.tray_hydraulic_relative_screening.v1",
+            "baseline_source": str(baseline.get("source", "unknown")),
+            "baseline_reference_time_s": float(
+                baseline.get("reference_time_s", 0.0)
+            ),
+            "fully_comparable": len(stage_results) == len(baseline_by_stage),
+            "column_maximum_critical_effective_capacity_factor_ratio_to_baseline": (
+                current_column_maximum / baseline_column_maximum
+                if np.isfinite(current_column_maximum)
+                and np.isfinite(baseline_column_maximum)
+                and baseline_column_maximum > 0.0
+                else float("nan")
+            ),
+            "stages": stage_results,
+        }
+    )
+    return aggregate
+
+
+def _add_hydraulic_envelope_to_report(
+    report: Mapping[str, Any],
+    hydraulic: Any,
+    screening: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    result = dict(report)
+    result.update(
+        {
+            "tray_hydraulic_operating_envelope": tray_hydraulic_summary_dict(
+                hydraulic, include_stages=True
+            ),
+            "hydraulic_envelope_fully_evaluable": bool(
+                hydraulic.fully_evaluable
+            ),
+            "hydraulic_overall_classification": str(
+                hydraulic.overall_classification
+            ),
+            "maximum_flooding_fraction": float(
+                hydraulic.maximum_flooding_fraction
+            ),
+            "flooding_limiting_stage": hydraulic.flooding_limiting_stage,
+            "maximum_critical_effective_capacity_factor_ft_s": float(
+                hydraulic.maximum_critical_effective_capacity_factor_ft_s
+            ),
+            "critical_effective_capacity_factor_limiting_stage": (
+                hydraulic.critical_effective_capacity_factor_limiting_stage
+            ),
+            "maximum_backup_fraction": float(hydraulic.maximum_backup_fraction),
+            "backup_limiting_stage": hydraulic.backup_limiting_stage,
+            "maximum_hydraulic_load_fraction": float(
+                hydraulic.maximum_hydraulic_load_fraction
+            ),
+            "hydraulic_limiting_stage": hydraulic.limiting_stage,
+            "predicted_flooding": bool(hydraulic.predicted_flooding),
+            "hydraulic_hard_stop_reached": bool(hydraulic.hard_stop_reached),
+            "hydraulic_envelope_quality_pass": not bool(
+                hydraulic.hard_stop_reached
+            ),
+        }
+    )
+    if screening is not None:
+        result["tray_hydraulic_relative_screening"] = dict(screening)
+        result["hydraulic_screening_baseline_source"] = str(
+            screening.get("baseline_source", "unknown")
+        )
+        result[
+            "hydraulic_column_max_critical_factor_ratio_to_baseline"
+        ] = float(
+            screening.get(
+                "column_maximum_critical_effective_capacity_factor_ratio_to_baseline",
+                np.nan,
+            )
+        )
+        for name in _HYDRAULIC_SCREENING_METRICS:
+            result[f"hydraulic_max_stage_{name}_ratio_to_baseline"] = float(
+                screening.get(
+                    f"maximum_stage_{name}_ratio_to_baseline", np.nan
+                )
+            )
+            result[f"hydraulic_max_stage_{name}_ratio_stage"] = screening.get(
+                f"maximum_stage_{name}_ratio_stage"
+            )
+    return result
+
+
+def _hydraulic_trajectory_summary(
+    reports: list[Mapping[str, Any]],
+    *,
+    timestep_sec: float,
+) -> dict[str, Any]:
+    if not reports:
+        return {}
+    alert_states = {"advisory", "high_loading", "predicted_flooding"}
+    classifications = [
+        str(item.get("hydraulic_overall_classification", "not_evaluated"))
+        for item in reports
+    ]
+    loads = np.asarray(
+        [item.get("maximum_hydraulic_load_fraction", np.nan) for item in reports],
+        dtype=float,
+    )
+    finite = np.flatnonzero(np.isfinite(loads))
+    peak_index = int(finite[np.argmax(loads[finite])]) if finite.size else None
+    critical_factors = np.asarray(
+        [
+            item.get(
+                "maximum_critical_effective_capacity_factor_ft_s", np.nan
+            )
+            for item in reports
+        ],
+        dtype=float,
+    )
+    finite_critical = np.flatnonzero(np.isfinite(critical_factors))
+    peak_critical_index = (
+        int(finite_critical[np.argmax(critical_factors[finite_critical])])
+        if finite_critical.size
+        else None
+    )
+    critical_ratios = np.asarray(
+        [
+            item.get(
+                "hydraulic_column_max_critical_factor_ratio_to_baseline",
+                np.nan,
+            )
+            for item in reports
+        ],
+        dtype=float,
+    )
+    finite_ratios = np.flatnonzero(np.isfinite(critical_ratios))
+    peak_ratio_index = (
+        int(finite_ratios[np.argmax(critical_ratios[finite_ratios])])
+        if finite_ratios.size
+        else None
+    )
+    alert_indices = [
+        index for index, value in enumerate(classifications) if value in alert_states
+    ]
+    predicted_indices = [
+        index
+        for index, item in enumerate(reports)
+        if bool(item.get("predicted_flooding", False))
+    ]
+    return {
+        "endpoint_count": len(reports),
+        "evaluable_endpoint_count": int(
+            sum(bool(item.get("hydraulic_envelope_fully_evaluable", False)) for item in reports)
+        ),
+        "not_evaluated_endpoint_count": int(
+            sum(not bool(item.get("hydraulic_envelope_fully_evaluable", False)) for item in reports)
+        ),
+        "first_alert_time_s": (
+            None if not alert_indices else (alert_indices[0] + 1) * float(timestep_sec)
+        ),
+        "first_predicted_flooding_time_s": (
+            None
+            if not predicted_indices
+            else (predicted_indices[0] + 1) * float(timestep_sec)
+        ),
+        "alert_duration_s": len(alert_indices) * float(timestep_sec),
+        "peak_hydraulic_load_fraction": (
+            float("nan") if peak_index is None else float(loads[peak_index])
+        ),
+        "peak_time_s": (
+            None if peak_index is None else (peak_index + 1) * float(timestep_sec)
+        ),
+        "peak_limiting_stage": (
+            None
+            if peak_index is None
+            else reports[peak_index].get("hydraulic_limiting_stage")
+        ),
+        "peak_critical_effective_capacity_factor_ft_s": (
+            float("nan")
+            if peak_critical_index is None
+            else float(critical_factors[peak_critical_index])
+        ),
+        "peak_critical_effective_capacity_factor_time_s": (
+            None
+            if peak_critical_index is None
+            else (peak_critical_index + 1) * float(timestep_sec)
+        ),
+        "peak_critical_effective_capacity_factor_stage": (
+            None
+            if peak_critical_index is None
+            else reports[peak_critical_index].get(
+                "critical_effective_capacity_factor_limiting_stage"
+            )
+        ),
+        "peak_column_max_critical_factor_ratio_to_baseline": (
+            float("nan")
+            if peak_ratio_index is None
+            else float(critical_ratios[peak_ratio_index])
+        ),
+        "peak_column_max_critical_factor_ratio_time_s": (
+            None
+            if peak_ratio_index is None
+            else (peak_ratio_index + 1) * float(timestep_sec)
+        ),
+        "final_classification": classifications[-1],
+    }
 
 
 def _linear_slope(times: list[float], values: list[float]) -> float:
@@ -968,9 +1484,30 @@ def _steady_state_metrics(
     }
 
 
-def _profile_rows(context: Mapping[str, Any], evaluation: Any, *, time_s: float) -> list[dict[str, Any]]:
+def _profile_rows(
+    context: Mapping[str, Any],
+    evaluation: Any,
+    *,
+    time_s: float,
+    hydraulic_envelope: Any | None = None,
+    hydraulic_screening: Mapping[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     rows = dd267._profile(context, evaluation)
     components = list(context["contract"].base.component_names)
+    hydraulic_by_stage = {
+        int(item.stage): item
+        for item in (
+            hydraulic_envelope.stages if hydraulic_envelope is not None else ()
+        )
+    }
+    screening_by_stage = {
+        int(item["stage"]): item
+        for item in (
+            hydraulic_screening.get("stages", ())
+            if hydraulic_screening is not None
+            else ()
+        )
+    }
     output = []
     for stage, item in enumerate(rows, start=1):
         volume = str(item["volume"])
@@ -990,6 +1527,73 @@ def _profile_rows(context: Mapping[str, Any], evaluation: Any, *, time_s: float)
             "L_out_used_lbmolph": item["liquid_flow_lbmolph"],
             "V_out_lbmolph": item["vapor_flow_lbmolph"],
         }
+        hydraulic = hydraulic_by_stage.get(stage)
+        if hydraulic is None:
+            row.update(
+                {
+                    "Hydraulic_evaluable": False,
+                    "Hydraulic_classification": "not_applicable",
+                    "Flooding_fraction": np.nan,
+                    "Flooding_classification": "not_applicable",
+                    "Predicted_flooding_velocity_ft_s": np.nan,
+                    "Vapor_superficial_velocity_ft_s": np.nan,
+                    "Vapor_F_factor": np.nan,
+                    "Liquid_to_vapor_mass_flow_parameter": np.nan,
+                    "Liquid_mass_density_lbm_ft3": np.nan,
+                    "Vapor_mass_density_lbm_ft3": np.nan,
+                    "Critical_effective_capacity_factor_ft_s": np.nan,
+                    "Clear_liquid_height_ft": np.nan,
+                    "Over_weir_head_ft": np.nan,
+                    "Dry_tray_pressure_drop_psia": np.nan,
+                    "Liquid_head_pressure_drop_psia": np.nan,
+                    "Total_tray_pressure_drop_psia": np.nan,
+                    "Backup_head_ft": np.nan,
+                    "Backup_fraction_of_tray_spacing": np.nan,
+                    "Backup_classification": "not_applicable",
+                    "Weeping_classification": "not_applicable",
+                    "Hydraulic_limitation": "not a physical tray pressure link",
+                }
+            )
+        else:
+            row.update(
+                {
+                    "Hydraulic_evaluable": bool(hydraulic.evaluable),
+                    "Hydraulic_classification": hydraulic.overall_classification,
+                    "Flooding_fraction": hydraulic.flooding_fraction,
+                    "Flooding_classification": hydraulic.capacity_classification,
+                    "Predicted_flooding_velocity_ft_s": hydraulic.predicted_flooding_velocity_ft_s,
+                    "Vapor_superficial_velocity_ft_s": hydraulic.vapor_superficial_velocity_ft_s,
+                    "Vapor_F_factor": hydraulic.vapor_f_factor,
+                    "Liquid_to_vapor_mass_flow_parameter": hydraulic.liquid_to_vapor_mass_flow_parameter,
+                    "Liquid_mass_density_lbm_ft3": hydraulic.liquid_mass_density_lbm_ft3,
+                    "Vapor_mass_density_lbm_ft3": hydraulic.vapor_mass_density_lbm_ft3,
+                    "Critical_effective_capacity_factor_ft_s": (
+                        hydraulic.critical_effective_capacity_factor_ft_s
+                    ),
+                    "Clear_liquid_height_ft": hydraulic.clear_liquid_height_ft,
+                    "Over_weir_head_ft": hydraulic.over_weir_head_ft,
+                    "Dry_tray_pressure_drop_psia": hydraulic.dry_tray_pressure_drop_psia,
+                    "Liquid_head_pressure_drop_psia": hydraulic.liquid_head_pressure_drop_psia,
+                    "Total_tray_pressure_drop_psia": hydraulic.total_tray_pressure_drop_psia,
+                    "Backup_head_ft": hydraulic.backup_head_ft,
+                    "Backup_fraction_of_tray_spacing": hydraulic.backup_fraction_of_tray_spacing,
+                    "Backup_classification": hydraulic.backup_classification,
+                    "Weeping_classification": hydraulic.weeping_classification,
+                    "Hydraulic_limitation": hydraulic.limitation,
+                }
+            )
+        screening = screening_by_stage.get(stage)
+        for metric_name in _HYDRAULIC_SCREENING_METRICS:
+            row[f"Hydraulic_{metric_name}_ratio_to_baseline"] = (
+                np.nan
+                if screening is None
+                else screening[f"{metric_name}_ratio_to_baseline"]
+            )
+            row[f"Hydraulic_{metric_name}_change_fraction"] = (
+                np.nan
+                if screening is None
+                else screening[f"{metric_name}_change_fraction"]
+            )
         for index, component in enumerate(components):
             row[f"x_{component}"] = item["liquid_mole_fraction"][index]
             row[f"y_{component}"] = item["vapor_mole_fraction"][index]
@@ -1445,6 +2049,12 @@ def run(
     feed_temperature_step_F: float | None = None,
     jacobian_refresh_interval: int | None = None,
     composition_error_limit_molfrac: float | None = None,
+    tray_flood_capacity_factor_ft_s: float | None = None,
+    tray_hydraulic_system_factor: float | None = None,
+    tray_flood_advisory_fraction: float | None = None,
+    tray_flood_high_loading_fraction: float | None = None,
+    tray_flood_predicted_fraction: float | None = None,
+    tray_flood_hard_stop_fraction: float | None = None,
 ) -> dict[str, Any]:
     if int(parallel_workers) < 1:
         raise ValueError("parallel_workers must be positive")
@@ -1460,6 +2070,19 @@ def run(
     if effective_composition_limit is not None:
         effective_composition_limit = float(effective_composition_limit)
         _composition_quality_pass(0.0, effective_composition_limit)
+    hydraulic_envelope_spec = _hydraulic_envelope_spec_from_checkpoint(
+        saved_metadata,
+        capacity_factor_ft_s=tray_flood_capacity_factor_ft_s,
+        system_factor=tray_hydraulic_system_factor,
+        advisory_fraction=tray_flood_advisory_fraction,
+        high_loading_fraction=tray_flood_high_loading_fraction,
+        predicted_flooding_fraction=tray_flood_predicted_fraction,
+        hard_stop_fraction=tray_flood_hard_stop_fraction,
+    )
+    validate_tray_hydraulic_operating_envelope_spec(hydraulic_envelope_spec)
+    hydraulic_screening_baseline = _hydraulic_screening_baseline_from_checkpoint(
+        saved_metadata
+    )
     inherited_feed_step = float(saved_metadata.get("feed_temperature_step_F", 0.0))
     effective_feed_step = (
         inherited_feed_step
@@ -1560,6 +2183,7 @@ def run(
         regulatory_options=regulatory_options,
         feed_temperature_step_F=effective_feed_step,
     )
+    context["tray_hydraulic_operating_envelope_spec"] = hydraulic_envelope_spec
     metadata, reference, memory, coordinates, prior = _load_checkpoint(
         checkpoint, workbook=workbook, context=context
     )
@@ -1673,6 +2297,8 @@ def run(
     steady_reference_time = 0.0
     started = time.perf_counter()
     final = None
+    hydraulic_envelope = None
+    hydraulic_screening = None
     reports = []
     provider = context.get("provider")
     target_steps = steps
@@ -1744,12 +2370,34 @@ def run(
         report = dict(report)
         report["root_wall_s"] = time.perf_counter() - root_started
         report.update(_memo_delta(memo_before, _memo_snapshot(provider)))
+        hydraulic_envelope = _hydraulic_envelope(context, final)
+        if hydraulic_screening_baseline is None:
+            hydraulic_screening_baseline = (
+                _hydraulic_screening_baseline_from_evaluation(
+                    hydraulic_envelope,
+                    source="first_accepted_endpoint",
+                    reference_time_s=(
+                        float(metadata["final_time_s"])
+                        + float(index) * float(timestep_sec)
+                    ),
+                )
+            )
+        hydraulic_screening = _hydraulic_screening_relative(
+            hydraulic_envelope,
+            hydraulic_screening_baseline,
+        )
+        report = _add_hydraulic_envelope_to_report(
+            report,
+            hydraulic_envelope,
+            hydraulic_screening,
+        )
         if (
             not report["scipy_success"]
             or report["scaled_residual_inf_norm"] >= 1.0e-8
             or report["jacobian_rank"] != len(context["contract"].rows)
             or report["jacobian_condition"] >= 1.0e8
             or not report["physical_pass"]
+            or not report.get("hydraulic_envelope_quality_pass", True)
             or (
                 abs(effective_feed_step) > 1.0e-15
                 and not report.get("disturbance_quality_pass", False)
@@ -1783,7 +2431,15 @@ def run(
                     steady=steady,
                 )
             )
-            profile_rows.extend(_profile_rows(context, final, time_s=segment_time))
+            profile_rows.extend(
+                _profile_rows(
+                    context,
+                    final,
+                    time_s=segment_time,
+                    hydraulic_envelope=hydraulic_envelope,
+                    hydraulic_screening=hydraulic_screening,
+                )
+            )
             _write_csv(summary_path, summary_rows)
             _write_csv(profile_path, profile_rows)
             _write_checkpoint(
@@ -1799,6 +2455,8 @@ def run(
                 jacobian_refresh_interval=effective_refresh_interval,
                 max_nfev_per_root=effective_max_nfev,
                 composition_error_limit_molfrac=effective_composition_limit,
+                hydraulic_envelope=hydraulic_envelope,
+                hydraulic_screening_baseline=hydraulic_screening_baseline,
                 final_time_s=float(metadata["final_time_s"]) + segment_time,
                 timestep_sec=timestep_sec,
                 source=f"in-progress continuation of {checkpoint.resolve()}",
@@ -1833,6 +2491,8 @@ def run(
         jacobian_refresh_interval=effective_refresh_interval,
         max_nfev_per_root=effective_max_nfev,
         composition_error_limit_molfrac=effective_composition_limit,
+        hydraulic_envelope=hydraulic_envelope,
+        hydraulic_screening_baseline=hydraulic_screening_baseline,
         final_time_s=final_time,
         timestep_sec=timestep_sec,
         source=f"continuation of {checkpoint.resolve()}",
@@ -1894,6 +2554,13 @@ def run(
         "jacobian_refresh_interval": effective_refresh_interval,
         "max_nfev_per_root": effective_max_nfev,
         "composition_error_limit_molfrac": effective_composition_limit,
+        "tray_hydraulic_operating_envelope_spec": asdict(
+            hydraulic_envelope_spec
+        ),
+        "tray_hydraulic_screening_baseline": hydraulic_screening_baseline,
+        "tray_hydraulic_operating_envelope_trajectory": _hydraulic_trajectory_summary(
+            reports, timestep_sec=timestep_sec
+        ),
         "started_from_checkpoint": str(checkpoint.resolve()),
         "excel_path": str(workbook),
         "source_final_time_s": float(metadata["final_time_s"]),
@@ -1948,6 +2615,23 @@ def run(
         },
     }
     metadata_path.write_text(json.dumps(run_metadata, indent=2, default=_json_default) + "\n", encoding="utf-8")
+    try:
+        from dynamic_distillation.run_report_v1 import generate_run_report
+
+        report_path = generate_run_report(metadata_path)
+        run_metadata["word_report"] = str(report_path)
+        metadata_path.write_text(
+            json.dumps(run_metadata, indent=2, default=_json_default) + "\n",
+            encoding="utf-8",
+        )
+        print(f"[Output] Wrote Core V3 Word run report: {report_path}", flush=True)
+    except Exception as exc:
+        run_metadata["word_report_error"] = str(exc)
+        metadata_path.write_text(
+            json.dumps(run_metadata, indent=2, default=_json_default) + "\n",
+            encoding="utf-8",
+        )
+        print(f"[Warn] Failed to write Core V3 Word run report: {exc}", flush=True)
     print(json.dumps(run_metadata, indent=2, default=_json_default), flush=True)
     return run_metadata
 
@@ -2015,6 +2699,49 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--tray-flood-capacity-factor-ft-s",
+        type=float,
+        default=None,
+        help=(
+            "Declared Souders-Brown tray capacity factor in ft/s. If omitted "
+            "and not inherited, flooding capacity is reported as not_evaluated; "
+            "the runner never assumes a passing default."
+        ),
+    )
+    parser.add_argument(
+        "--tray-hydraulic-system-factor",
+        type=float,
+        default=None,
+        help="Declared multiplicative tray/system or foaming factor; default 1.0 is recorded.",
+    )
+    parser.add_argument(
+        "--tray-flood-advisory-fraction",
+        type=float,
+        default=None,
+        help="Configurable advisory fraction of declared flooding capacity (default 0.70).",
+    )
+    parser.add_argument(
+        "--tray-flood-high-loading-fraction",
+        type=float,
+        default=None,
+        help="Configurable high-loading fraction of declared flooding capacity (default 0.85).",
+    )
+    parser.add_argument(
+        "--tray-flood-predicted-fraction",
+        type=float,
+        default=None,
+        help="Declared predicted-flooding fraction (default 1.0).",
+    )
+    parser.add_argument(
+        "--tray-flood-hard-stop-fraction",
+        type=float,
+        default=None,
+        help=(
+            "Optional explicit hydraulic hard-stop fraction. If omitted, alerts "
+            "are diagnostic and never alter or stop the governing solve."
+        ),
+    )
+    parser.add_argument(
         "--feed-temperature-step-F",
         type=float,
         default=None,
@@ -2074,6 +2801,12 @@ def main() -> int:
         feed_temperature_step_F=args.feed_temperature_step_F,
         jacobian_refresh_interval=args.jacobian_refresh_interval,
         composition_error_limit_molfrac=args.composition_error_limit_molfrac,
+        tray_flood_capacity_factor_ft_s=args.tray_flood_capacity_factor_ft_s,
+        tray_hydraulic_system_factor=args.tray_hydraulic_system_factor,
+        tray_flood_advisory_fraction=args.tray_flood_advisory_fraction,
+        tray_flood_high_loading_fraction=args.tray_flood_high_loading_fraction,
+        tray_flood_predicted_fraction=args.tray_flood_predicted_fraction,
+        tray_flood_hard_stop_fraction=args.tray_flood_hard_stop_fraction,
     )
     return 0
 

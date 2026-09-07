@@ -98,8 +98,17 @@ def test_ui_exposes_fresh_and_restart_initial_state_modes():
     assert any(uploader.label == "Upload Stored State" for uploader in app.get("file_uploader"))
     restart_buttons = [button for button in app.button if button.label == "Start Core V3 Run"]
     assert len(restart_buttons) == 1
-    assert restart_buttons[0].disabled is False
+    # A restart requires a stored-state path or upload before it can launch.
+    assert restart_buttons[0].disabled is True
     assert app.number_input(key="core_v3_duration_sec").value == 30.0
+    hydraulic_override = app.checkbox(key="core_v3_override_tray_hydraulics")
+    assert hydraulic_override.value is False
+
+    hydraulic_override.set_value(True).run()
+
+    assert not app.exception
+    assert app.number_input(key="core_v3_tray_flood_capacity_factor_ft_s").value is None
+    assert app.number_input(key="core_v3_tray_hydraulic_system_factor").value == pytest.approx(1.0)
 
 
 def test_cli_mode_uses_an_explicit_cli_action_label():

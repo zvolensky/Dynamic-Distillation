@@ -76,11 +76,18 @@ def test_core_v3_checkpoint_records_selected_timestep(tmp_path: Path) -> None:
         final_time_s=10.0,
         timestep_sec=0.5,
         source="test",
+        hydraulic_screening_baseline={
+            "schema": "dynamic_distillation.tray_hydraulic_screening_baseline.v1",
+            "source": "test",
+            "reference_time_s": 10.0,
+            "stages": [{"stage": 2, "volume": "tray_1"}],
+        },
     )
 
     with np.load(checkpoint, allow_pickle=False) as saved:
         metadata = json.loads(str(saved["metadata_json"].item()))
     assert metadata["dt_sec"] == pytest.approx(0.5)
+    assert metadata["tray_hydraulic_screening_baseline"]["source"] == "test"
 
 
 def test_core_v3_runtime_extension_only_increases_target(tmp_path: Path) -> None:
@@ -210,6 +217,137 @@ def test_composition_quality_limit_is_opt_in() -> None:
     assert not runner._composition_quality_pass(0.002, 0.002)
     with pytest.raises(ValueError, match="must be positive"):
         runner._composition_quality_pass(0.0, 0.0)
+
+
+def test_hydraulic_envelope_spec_is_missing_by_default_and_inherited_on_restart() -> None:
+    default = runner._hydraulic_envelope_spec_from_checkpoint({})
+    assert default.capacity_factor_ft_s is None
+    assert default.system_factor == pytest.approx(1.0)
+
+    metadata = {
+        "tray_hydraulic_operating_envelope_spec": {
+            "capacity_factor_ft_s": 0.31,
+            "system_factor": 0.9,
+            "advisory_fraction": 0.65,
+            "high_loading_fraction": 0.82,
+            "predicted_flooding_fraction": 1.0,
+            "hard_stop_fraction": 1.05,
+        }
+    }
+    inherited = runner._hydraulic_envelope_spec_from_checkpoint(metadata)
+    assert inherited.capacity_factor_ft_s == pytest.approx(0.31)
+    assert inherited.system_factor == pytest.approx(0.9)
+    assert inherited.advisory_fraction == pytest.approx(0.65)
+    assert inherited.hard_stop_fraction == pytest.approx(1.05)
+
+    overridden = runner._hydraulic_envelope_spec_from_checkpoint(
+        metadata,
+        capacity_factor_ft_s=0.28,
+        high_loading_fraction=0.88,
+    )
+    assert overridden.capacity_factor_ft_s == pytest.approx(0.28)
+    assert overridden.system_factor == pytest.approx(0.9)
+    assert overridden.high_loading_fraction == pytest.approx(0.88)
+
+
+def _hydraulic_stage(*, velocity_scale: float = 1.0) -> SimpleNamespace:
+    return SimpleNamespace(
+        stage=2,
+        volume="tray_1",
+        vapor_flow_lbmolph=8000.0 * velocity_scale,
+        liquid_flow_lbmolph=6000.0 * velocity_scale,
+        vapor_superficial_velocity_ft_s=0.30 * velocity_scale,
+        vapor_f_factor=0.45 * velocity_scale,
+        total_tray_pressure_drop_psia=0.07 * velocity_scale,
+        backup_fraction_of_tray_spacing=0.35 * velocity_scale,
+        critical_effective_capacity_factor_ft_s=0.085 * velocity_scale,
+    )
+
+
+def test_hydraulic_screening_baseline_and_relative_metrics_are_reproducible() -> None:
+    baseline = runner._hydraulic_screening_baseline_from_endpoint_dict(
+        {"stages": [vars(_hydraulic_stage())]},
+        source="first_accepted_endpoint",
+        reference_time_s=10.0,
+    )
+    changed_evaluation = SimpleNamespace(
+        stages=(_hydraulic_stage(velocity_scale=1.2),),
+        maximum_critical_effective_capacity_factor_ft_s=0.102,
+    )
+
+    result = runner._hydraulic_screening_relative(changed_evaluation, baseline)
+
+    assert result["fully_comparable"] is True
+    assert result[
+        "column_maximum_critical_effective_capacity_factor_ratio_to_baseline"
+    ] == pytest.approx(1.2)
+    assert result["maximum_stage_vapor_flow_ratio_to_baseline"] == pytest.approx(1.2)
+    assert result["maximum_stage_vapor_flow_ratio_stage"] == 2
+    assert result["stages"][0][
+        "critical_effective_capacity_factor_change_fraction"
+    ] == pytest.approx(0.2)
+
+
+def test_hydraulic_screening_baseline_can_be_derived_from_older_checkpoint_endpoint() -> None:
+    stage = {
+        "stage": 2,
+        "volume": "tray_1",
+        "vapor_flow_lbmolph": 8000.0,
+        "liquid_flow_lbmolph": 6000.0,
+        "vapor_superficial_velocity_ft_s": 0.30,
+        "vapor_f_factor": 0.45,
+        "total_tray_pressure_drop_psia": 0.07,
+        "backup_fraction_of_tray_spacing": 0.35,
+        "liquid_mass_density_lbm_ft3": 30.0,
+        "vapor_mass_density_lbm_ft3": 2.2,
+    }
+
+    baseline = runner._hydraulic_screening_baseline_from_checkpoint(
+        {
+            "final_time_s": 12.0,
+            "tray_hydraulic_operating_envelope_endpoint": {"stages": [stage]},
+        }
+    )
+
+    assert baseline is not None
+    expected = 0.30 / np.sqrt((30.0 - 2.2) / 2.2)
+    assert baseline["maximum_critical_effective_capacity_factor_ft_s"] == pytest.approx(expected)
+    assert baseline["source"] == "checkpoint_endpoint"
+
+
+def test_hydraulic_trajectory_summary_records_alert_timing_and_peak_stage() -> None:
+    reports = [
+        {
+            "hydraulic_envelope_fully_evaluable": True,
+            "hydraulic_overall_classification": "normal",
+            "maximum_hydraulic_load_fraction": 0.60,
+            "hydraulic_limiting_stage": 8,
+            "predicted_flooding": False,
+        },
+        {
+            "hydraulic_envelope_fully_evaluable": True,
+            "hydraulic_overall_classification": "advisory",
+            "maximum_hydraulic_load_fraction": 0.75,
+            "hydraulic_limiting_stage": 9,
+            "predicted_flooding": False,
+        },
+        {
+            "hydraulic_envelope_fully_evaluable": True,
+            "hydraulic_overall_classification": "predicted_flooding",
+            "maximum_hydraulic_load_fraction": 1.02,
+            "hydraulic_limiting_stage": 10,
+            "predicted_flooding": True,
+        },
+    ]
+
+    summary = runner._hydraulic_trajectory_summary(reports, timestep_sec=0.5)
+
+    assert summary["first_alert_time_s"] == pytest.approx(1.0)
+    assert summary["first_predicted_flooding_time_s"] == pytest.approx(1.5)
+    assert summary["alert_duration_s"] == pytest.approx(1.0)
+    assert summary["peak_hydraulic_load_fraction"] == pytest.approx(1.02)
+    assert summary["peak_time_s"] == pytest.approx(1.5)
+    assert summary["peak_limiting_stage"] == 10
 
 
 def test_core_v3_controller_retuning_preserves_product_outputs_bumplessly() -> None:

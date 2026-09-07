@@ -1,12 +1,12 @@
 # Experiment Ledger
 
-Updated: 2026-08-20 20:35:45 (local)
+Updated: 2026-08-31 17:56:01 (local)
 
 This file is auto-generated from `logs/**/column_summary_*.csv`, `logs/**/feasibility_trim_search_*.csv`, and `logs/**/run_registry.csv`.
 
-Total runs indexed: **735**
-Runs with known CLI command: **652**
-Runs with unknown CLI command: **83**
+Total runs indexed: **781**  
+Runs with known CLI command: **653**  
+Runs with unknown CLI command: **128**
 
 Primary searchable source: `docs/experiment_ledger.csv`.
 
@@ -14,7 +14,7 @@ Duplicate indicators in CSV: `exact_command_dup_group`, `exact_command_dup_count
 
 ## Duplicate Signals
 
-Exact-command duplicate groups: **90** (rows in groups: **301**)
+Exact-command duplicate groups: **90** (rows in groups: **301**)  
 Suspected-result duplicate groups: **61** (rows in groups: **239**)
 
 ### Exact Command Duplicates (Top 20)
@@ -81,6 +81,7 @@ Suspected-result duplicate groups: **61** (rows in groups: **239**)
 
 | Run ID | Date/Time | Source | Command | Final (P, xD, xB, R, Vb) |
 |---|---|---|---|---|
+| `20260831_175520` | 2026-08-31 17:55:20 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel water_methanol_template_10stage_chemsep_excess_enthalpy_p14p7_to_p17p7_geometry_20260713.xlsx --init-from-checkpoint "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\water_methanol_geometry_levels_fresh300s_20260713\water_methanol_template_10stage_chemsep_excess_enthalpy_p14p7_to_p17p7_geometry__checkpoint_20260713_141904.npz" --run-name water_methanol_reactivation_smoke10s_20260831 --run-description Current_code_10s_compatibility_continuation_from_last_accepted_300s_checkpoint --runtime-mode hydraulic --thermo dwsim --dwsim-property-package unifac --thermo-every 5 --include-energy --use-excel-vapor-holdup --vapor-holdup-relaxation-sec 0 --equilibrium-relaxation-mode composition-exponential --enable-liquid-hydraulic-override --liquid-hydraulic-override-alpha 0.25 --condenser-duty-mode total-condense --enable-pressure-control --pressure-control-mv top-anchor --top-pressure-sp 14.7 --top-pressure-kc -1.0 --top-pressure-ti 60 --top-pressure-anchor-min 14.7 --top-pressure-anchor-max 14.7 --enable-level-control --ignore-workbook-level-pv-mode --top-level-pv-mode true-level --top-level-sp-frac 0.5 --top-level-kc 8 --top-level-ti 120 --bottom-level-pv-mode true-level --bottom-level-sp-frac 0.5 --bottom-level-kc 8 --bottom-level-ti 120 --n-steps 50 --dt 0.2 --log-every 5 --logs-dir logs\water_methanol_reactivation_smoke10s_20260831 --no-word-report --allow-repeat-command` | P=14.480; xD=; xB=; R=; Vb= |
 | `20260820_203504` | 2026-08-20 20:35:04 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx" --runtime-mode hydraulic --thermo clapeyron --include-energy --n-steps 150 --dt 0.2 --log-every 5 --run-name ui_restart_test --init-from-checkpoint "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_10s_restart_runtime_memory_20260706\c3c4_initializer_profile_coeff_trial1_20260601__checkpoint_20260706_134127.npz" --logs-dir "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\ui_runs\20260820_203432_ui-restart-test" --allow-repeat-command` | P=93.420; xD=0.107337; xB=; R=2000.00; Vb= |
 | `20260820_203305` | 2026-08-20 20:33:05 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx" --runtime-mode hydraulic --thermo clapeyron --include-energy --n-steps 150 --dt 0.2 --log-every 5 --run-name ui_restart_test --init-from-checkpoint "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_10s_restart_runtime_memory_20260706\c3c4_initializer_profile_coeff_trial1_20260601__checkpoint_20260706_134127.npz" --logs-dir "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\ui_runs\20260820_203210_ui-restart-test" --allow-repeat-command` | P=93.420; xD=0.107337; xB=; R=2000.00; Vb= |
 | `20260717_155352` | 2026-07-17 15:53:52 | `auto-captured` | `python -m dynamic_distillation.dynamic_run_scaffold_v1 --excel logs\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx --init-from-checkpoint "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_transport_balanced_phase_60s_20260717\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260717_154256.npz" --run-name C3C4_global_inventory_gate_proof_20260717 --run-description One_step_proof_of_global_inventory_steady_state_gate --runtime-mode hydraulic --thermo dwsim --dwsim-property-package pr --include-energy --equilibrium-relaxation-mode composition-exponential --enable-transport-balanced-phase-transfer --equilibrium-tau-sec 0.5 --flash-feed-at-stage-conditions --enable-liquid-hydraulic-override --liquid-hydraulic-model francis --liquid-hydraulic-override-alpha 0.25 --enable-level-control --ignore-workbook-level-pv-mode --top-level-pv-mode true-level --bottom-level-pv-mode true-level --top-level-kc 20 --top-level-ti 120 --bottom-level-kc 3 --bottom-level-ti 300 --enable-pressure-control --pressure-control-mv condenser-duty --top-pressure-sp 222.6194497041178 --top-pressure-kc -300000 --top-pressure-ti 180 --top-pressure-pv-filter-tau-sec 5 --top-pressure-mv-slew-limit-per-s 25000 --condenser-duty-mode specified --condenser-duty-btuph -51600000 --condenser-duty-min-btuph -65000000 --condenser-duty-max-btuph -46000000 --enable-top-drum-resident-condensation --top-drum-resident-condensation-tau-sec 30 --top-drum-resident-condensation-max-frac-per-step 0.10 --reflux 5967.322711692588 --vapor-holdup-relaxation-sec 0 --vapor-flow-relaxation-sec 0 --vapor-flow-zero-temperature-target --use-excel-vapor-holdup --dynamic-vflow-nominal-hi-ratio 1.05 --disable-startup-thermo-conditioning --disable-restart-reentry-settling --enable-bottoms-composition-control --bottoms-comp-component C3 --bottoms-comp-sp 0.04717 --bottoms-comp-kc 50000000 --bottoms-comp-ti 600 --bottoms-comp-mv reboiler-duty --reboiler-duty-btuph 49340000 --reboiler-duty-cmd-min-btuph 45000000 --reboiler-duty-cmd-max-btuph 65000000 --n-steps 1 --dt 0.2 --log-every 1 --logs-dir logs\c3c4_global_inventory_gate_proof_20260717 --no-word-report --allow-repeat-command` | P=223.608; xD=; xB=0.051412; R=; Vb= |
@@ -738,6 +739,52 @@ Suspected-result duplicate groups: **61** (rows in groups: **239**)
 
 | Run ID | Status | CLI Known | t_final(s) | P_top | xD | xB | Reflux | Boilup | D | B | Summary CSV |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| `20260831_175520` | `ok` | Yes | 10.0 | 14.480 |  |  |  |  | 6613.21 | 11273.94 | `logs/water_methanol_reactivation_smoke10s_20260831/column_summary_20260831_175520.csv` |
+| `20260831_080606` | `ok` | No | 0.5 | 221.323 |  |  | 6114.24 |  | 2618.16 | 4470.41 | `logs/core_v3_hydraulic_inverse_screening_smoke_20260831/column_summary_20260831_080606.csv` |
+| `20260831_073520` | `ok` | No | 0.5 | 221.323 |  |  | 6114.04 |  | 2618.05 | 4470.07 | `logs/core_v3_hydraulic_envelope_not_evaluated_smoke_20260831/column_summary_20260831_073520.csv` |
+| `20260830_204510` | `ok` | No | 239.5 | 221.323 |  |  | 6113.84 |  | 2617.94 | 4469.73 | `logs/core_v3_kc3m_compkc30k_feedT_plus5F_complete600s_20260830/column_summary_20260830_204510.csv` |
+| `20260830_195242` | `ok` | No | 360.0 | 221.448 |  |  | 6021.13 |  | 2557.23 | 4377.48 | `logs/core_v3_kc3m_compkc30k_feedT_plus5F_600s_20260830/column_summary_20260830_195242.csv` |
+| `20260830_195142` | `ok` | No | 0.5 | 221.308 |  |  | 5953.78 |  | 2529.23 | 4631.57 | `logs/core_v3_kc3m_compkc30k_feedT_plus5F_preflight_20260830/column_summary_20260830_195142.csv` |
+| `20260830_194920` | `ok` | No | 59.5 | 221.306 |  |  | 5953.78 |  | 2529.33 | 4631.32 | `logs/core_v3_composition_kc30k_hold60s_20260830/column_summary_20260830_194920.csv` |
+| `20260830_194842` | `ok` | No | 0.5 | 221.296 |  |  | 5953.57 |  | 2544.23 | 4630.85 | `logs/core_v3_composition_kc30k_bumpless_preflight_20260830/column_summary_20260830_194842.csv` |
+| `20260830_192407` | `ok` | No | 330.0 | 221.473 |  |  | 5963.69 |  | 2565.60 | 4379.43 | `logs/core_v3_pressure_kc3m_feedT_plus5F_600s_20260830/column_summary_20260830_192407.csv` |
+| `20260830_192306` | `ok` | No | 0.5 | 221.299 |  |  | 5953.57 |  | 2544.26 | 4631.10 | `logs/core_v3_pressure_kc3m_feedT_plus5F_preflight_20260830/column_summary_20260830_192306.csv` |
+| `20260830_192026` | `ok` | No | 59.5 | 221.296 |  |  | 5953.57 |  | 2544.36 | 4630.84 | `logs/core_v3_pressure_kc3m_hold60s_20260830/column_summary_20260830_192026.csv` |
+| `20260830_191942` | `ok` | No | 0.5 | 221.287 |  |  | 5953.52 |  | 2559.30 | 4630.10 | `logs/core_v3_pressure_kc3m_bumpless_preflight_20260830/column_summary_20260830_191942.csv` |
+| `20260830_151608` | `ok` | No | 75.0 | 221.758 |  |  | 5953.94 |  | 2548.51 | 4639.81 | `logs/core_v3_feedT_plus5F_pressure_gate_replay_20260830/column_summary_20260830_151608.csv` |
+| `20260830_150908` | `ok` | No | 90.0 | 221.843 |  |  | 5954.10 |  | 2546.83 | 4629.53 | `logs/core_v3_feedT_plus5F_600s_20260830/column_summary_20260830_150908.csv` |
+| `20260830_150806` | `ok` | No | 0.5 | 221.289 |  |  | 5953.52 |  | 2559.32 | 4630.35 | `logs/core_v3_feedT_plus5F_preflight160_20260830/column_summary_20260830_150806.csv` |
+| `20260830_142858` | `ok` | No | 300.0 | 221.286 |  |  | 5953.51 |  | 2559.42 | 4630.10 | `logs/core_v3_regulatory_bumpless_hold600s_20260830/column_summary_20260830_142858.csv` |
+| `20260830_141919` | `ok` | No | 300.0 | 221.270 |  |  | 5953.06 |  | 2623.54 | 4625.01 | `logs/core_v3_regulatory_bumpless_hold300s_20260830/column_summary_20260830_141919.csv` |
+| `20260830_141706` | `ok` | No | 10.0 | 221.319 |  |  | 5952.50 |  | 2640.94 | 4622.35 | `logs/core_v3_regulatory_bumpless_hold10s_20260830/column_summary_20260830_141706.csv` |
+| `20260830_141622` | `ok` | No | 0.5 | 221.321 |  |  | 5952.48 |  | 2640.39 | 4622.36 | `logs/core_v3_regulatory_bumpless_1step_20260830/column_summary_20260830_141622.csv` |
+| `20260830_100317` | `ok` | No | 1500.0 | 221.321 |  |  | 5952.48 |  | 2640.36 | 4622.36 | `logs/core_v3_dt05_followup1500s_20260830/column_summary_20260830_100317.csv` |
+| `20260830_094659` | `ok` | No | 60.0 | 221.104 |  |  | 5952.48 |  | 2441.65 | 4630.61 | `logs/core_v3_dt025_reference60s_20260830/column_summary_20260830_094659.csv` |
+| `20260830_093728` | `ok` | No | 300.0 | 221.186 |  |  | 5952.48 |  | 2355.89 | 4633.41 | `logs/core_v3_dt05_continuation300s_20260830/column_summary_20260830_093728.csv` |
+| `20260829_130654` | `ok` | No | 1800.0 | 221.089 |  |  | 5952.48 |  | 2470.87 | 4629.58 | `logs/core_v3_drum_kc4_assessment1800s_20260829/column_summary_20260829_130654.csv` |
+| `20260829_124851` | `ok` | No | 300.0 | 221.483 |  |  | 5952.48 |  | 2186.98 | 4638.56 | `logs/core_v3_drum_kc4_screen300s_20260829/column_summary_20260829_124851.csv` |
+| `20260829_105802` | `ok` | No | 1800.0 | 221.259 |  |  | 5952.48 |  | 2078.70 | 4642.83 | `logs/core_v3_drum_kc2_assessment1800s_20260829/column_summary_20260829_105802.csv` |
+| `20260829_103656` | `ok` | No | 300.0 | 220.638 |  |  | 5952.48 |  | 3181.35 | 4607.77 | `logs/core_v3_drum_kc2_screen300s_20260829/column_summary_20260829_103656.csv` |
+| `20260829_103625` | `ok` | No | 0.2 | 220.958 |  |  | 5952.48 |  | 3160.69 | 4607.34 | `logs/core_v3_drum_kc2_bumpless_smoke_serial_20260829/column_summary_20260829_103625.csv` |
+| `20260829_063954` | `ok` | No | 1230.0 | 220.959 |  |  | 5952.48 |  | 3160.58 | 4607.34 | `logs/core_v3_parallel_level_settle_followup1800s_20260829/column_summary_20260829_063954.csv` |
+| `20260828_212503` | `ok` | No | 900.0 | 222.255 |  |  | 5952.48 |  | 2683.13 | 4616.36 | `logs/core_v3_parallel_level_settle_final900s_20260828/column_summary_20260828_212503.csv` |
+| `20260828_203117` | `ok` | No | 900.0 | 222.668 |  |  | 5952.48 |  | 2213.15 | 4629.10 | `logs/core_v3_parallel_level_settle_continue900s_retry_20260828/column_summary_20260828_203117.csv` |
+| `20260828_202953` | `ok` | No | 0.2 | 222.432 |  |  | 5952.48 |  | 1929.75 | 4639.02 | `logs/core_v3_recovery_checkpoint_smoke_20260828/column_summary_20260828_202953.csv` |
+| `20260828_193553` | `ok` | No | 840.0 | 222.672 |  |  | 5952.48 |  | 2186.83 | 4629.90 | `logs/core_v3_parallel_level_settle_continue900s_20260828/column_summary_20260828_193553.csv` |
+| `20260828_163322` | `ok` | No | 1800.0 | 222.432 |  |  | 5952.48 |  | 1929.71 | 4639.02 | `logs/core_v3_parallel_level_settle_1800s_20260828/column_summary_20260828_163322.csv` |
+| `20260821_100827` | `ok` | No | 300.0 | 220.646 |  |  | 5952.48 |  | 2163.01 | 4549.95 | `logs/core_v3_parallel_300s_test_20260821/column_summary_20260821_100827.csv` |
+| `20260821_100603` | `ok` | No | 3.8 | 220.431 |  |  | 5952.48 |  | 2480.46 | 4991.09 | `logs/ui_runs/column_summary_20260821_100603.csv` |
+| `20260821_100311` | `ok` | No | 60.0 | 221.328 | 0.104467 |  | 5626.70 |  | 2371.47 | 4761.97 | `logs/ui_runs/20260821_100256_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260821_100311.csv` |
+| `20260821_095342` | `ok` | No | 1.0 | 220.310 |  |  | 5952.48 |  | 2309.38 | 4798.91 | `logs/core_v3_parallel_production_smoke_20260821/column_summary_20260821_095342.csv` |
+| `20260821_090339` | `ok` | No | 30.0 | 220.327 |  |  | 5952.48 |  | 2293.98 | 4740.19 | `logs/ui_runs/20260821_090332_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260821_090339.csv` |
+| `20260821_083319` | `ok` | No | 30.0 | 220.416 |  |  | 5952.48 |  | 2464.50 | 5083.93 | `logs/ui_runs/20260821_083306_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260821_083319.csv` |
+| `20260820_212559` | `ok` | No | 300.0 | 220.309 |  |  | 5952.48 |  | 2309.92 | 4801.05 | `logs/ui_runs/column_summary_20260820_212559.csv` |
+| `20260820_211538` | `ok` | No | 0.2 | 220.433 |  |  | 5952.48 |  | 2482.60 | 4976.04 | `logs/ui_runs/20260820_very-long-core-v3-checkpoint-filename-regression-validation/column_summary_20260820_211538.csv` |
+| `20260820_210915` | `ok` | No | 0.5 | 220.433 |  |  | 5952.48 |  | 2482.45 | 4977.13 | `logs/core_v3_ss_reporting_smoke_20260820/column_summary_20260820_210915.csv` |
+| `20260820_205512` | `ok` | No | 60.0 | 220.393 |  |  | 5952.48 |  | 2446.44 | 5148.05 | `logs/ui_runs/20260820_205506_distillation-column-template-20stage-chemsep-warmer-feed-see/column_summary_20260820_205512.csv` |
+| `20260820_205117` | `ok` | No | 0.2 | 220.433 |  |  |  |  | 2482.45 | 4977.13 | `logs/core_v3_ui_reload_20260820/column_summary_20260820_205117.csv` |
+| `20260820_205046` | `ok` | No | 0.2 | 220.433 |  |  |  |  | 2482.60 | 4976.04 | `logs/core_v3_ui_smoke_profiles_20260820/column_summary_20260820_205046.csv` |
+| `20260820_204514` | `ok` | No | 0.2 | 220.433 |  |  |  |  | 2482.60 | 4976.04 | `logs/core_v3_ui_smoke_20260820/column_summary_20260820_204514.csv` |
 | `20260820_203504` | `ok` | Yes | 30.0 | 93.420 | 0.107337 |  | 2000.00 |  | 2186.10 | 4761.98 | `logs/ui_runs/20260820_203432_ui-restart-test/column_summary_20260820_203504.csv` |
 | `20260820_203305` | `ok` | Yes | 30.0 | 93.420 | 0.107337 |  | 2000.00 |  | 2186.10 | 4761.98 | `logs/ui_runs/20260820_203210_ui-restart-test/column_summary_20260820_203305.csv` |
 | `20260717_155352` | `ok` | Yes | 0.2 | 223.608 |  | 0.051412 |  |  | 2974.72 | 4695.03 | `logs/c3c4_global_inventory_gate_proof_20260717/column_summary_20260717_155352.csv` |
@@ -752,49 +799,3 @@ Suspected-result duplicate groups: **61** (rows in groups: **239**)
 | `20260716_095832` | `ok` | Yes | 2700.0 | 224.939 |  | 0.055224 |  |  | 3128.20 | 4434.96 | `logs/c3c4_QR_xB_C3_control_continue2700s_QR65_20260716/column_summary_20260716_095832.csv` |
 | `20260716_092914` | `ok` | Yes | 300.0 | 225.496 |  | 0.118480 |  |  | 3160.68 | 4531.47 | `logs/c3c4_QR_xB_C3_control_continue300s_20260716/column_summary_20260716_092914.csv` |
 | `20260716_085716` | `ok` | Yes | 300.0 | 228.321 |  | 0.125556 |  |  | 2608.05 | 4753.20 | `logs/c3c4_QR_xB_C3_control_300s_20260716/column_summary_20260716_085716.csv` |
-| `20260716_085109` | `ok` | Yes | 60.0 | 220.853 |  | 0.123837 |  |  | 2011.03 | 5527.31 | `logs/c3c4_QR_dutymode_handoff_Q49p34_60s_20260716/column_summary_20260716_085109.csv` |
-| `20260716_084847` | `ok` | Yes | 0.2 | 221.878 |  | 0.122784 |  |  | 2255.95 | 4792.66 | `logs/c3c4_QR_dutymode_Q50_one_step_20260716/column_summary_20260716_084847.csv` |
-| `20260716_084652` | `ok` | Yes | 0.2 | 221.896 |  | 0.122782 |  |  | 2256.19 | 4793.63 | `logs/c3c4_QR_xB_C3_one_step_proof_20260716/column_summary_20260716_084652.csv` |
-| `20260713_144657` | `ok` | No | 270.0 | 14.621 |  |  |  |  | 5506.50 | 15922.15 | `logs/water_methanol_geometry_levels_continue300s_r2_20260713/column_summary_20260713_144657.csv` |
-| `20260713_141904` | `ok` | Yes | 300.0 | 14.560 |  |  |  |  | 6659.13 | 10906.07 | `logs/water_methanol_geometry_levels_fresh300s_20260713/column_summary_20260713_141904.csv` |
-| `20260713_131522` | `ok` | Yes | 300.0 | 14.544 |  |  |  |  | 7048.45 | 10547.84 | `logs/water_methanol_newchemsep_p14p7_17p7_truelevel300s_20260713/column_summary_20260713_131522.csv` |
-| `20260713_123606` | `ok` | Yes | 300.0 | 14.026 |  |  |  |  | 7936.64 | 7936.64 | `logs/water_methanol_newchemsep_p14p7_17p7_topanchor_continue300s_r2_20260713/column_summary_20260713_123606.csv` |
-| `20260713_123354` | `ok` | No | 30.0 | 14.310 |  |  |  |  | 7936.64 | 7936.64 | `logs/water_methanol_newchemsep_p14p7_17p7_topanchor_continue300s_20260713/column_summary_20260713_123354.csv` |
-| `20260713_122346` | `ok` | Yes | 60.0 | 14.341 |  |  |  |  | 7936.64 | 7936.64 | `logs/water_methanol_newchemsep_p14p7_17p7_topanchor60s_20260713/column_summary_20260713_122346.csv` |
-| `20260713_121008` | `ok` | Yes | 60.0 | 14.341 |  |  |  |  | 7936.64 | 7936.64 | `logs/water_methanol_newchemsep_p14p7_17p7_dwsim60s_20260713/column_summary_20260713_121008.csv` |
-| `20260713_120510` | `ok` | Yes | 60.0 | 3.487 |  |  |  |  | 7936.64 | 7936.64 | `logs/water_methanol_newchemsep_p14p7_17p7_smoke60s_20260713/column_summary_20260713_120510.csv` |
-| `20260713_095628` | `ok` | No | 190.0 | 17.533 |  |  |  |  | 11030.05 | 8025.21 | `logs/water_methanol_levelonly_settle_continue300s_20260713/column_summary_20260713_095628.csv` |
-| `20260713_094107` | `ok` | No | 390.0 | 16.393 |  |  |  |  | 11244.57 | 8011.93 | `logs/water_methanol_controlled_settle_continue600s_20260713/column_summary_20260713_094107.csv` |
-| `20260713_084152` | `ok` | Yes | 0.2 | 14.366 |  |  |  |  | 7936.64 | 7936.64 | `logs/water_methanol_stream_alias_verification_20260713/column_summary_20260713_084152.csv` |
-| `20260713_083431` | `ok` | Yes | 60.0 | 15.159 |  |  |  |  |  | 7936.64 | `logs/water_methanol_feed1fix_fullfrancis_totalcond_60s_20260713/column_summary_20260713_083431.csv` |
-| `20260713_083219` | `ok` | No | 210.0 | 20.622 |  |  |  |  |  | 7936.64 | `logs/water_methanol_feed1fix_dt1_continue300s_20260713/column_summary_20260713_083219.csv` |
-| `20260713_083134` | `ok` | Yes | 20.0 | 16.384 |  |  |  |  |  | 7936.64 | `logs/water_methanol_feed1fix_dt1_probe20s_20260713/column_summary_20260713_083134.csv` |
-| `20260713_082456` | `ok` | Yes | 120.0 | 16.062 |  |  |  |  |  | 7936.64 | `logs/water_methanol_feed1fix_topalign_totalcond_alpha025_120s_20260713/column_summary_20260713_082456.csv` |
-| `20260713_082025` | `ok` | No | 90.0 | 16.546 |  |  |  |  |  | 7936.64 | `logs/water_methanol_feed1fix_totalcond_alpha025_continue180s_20260713/column_summary_20260713_082025.csv` |
-| `20260713_081717` | `ok` | Yes | 60.0 | 15.159 |  |  |  |  |  | 7936.64 | `logs/water_methanol_feed1fix_totalcond_alpha025_60s_20260713/column_summary_20260713_081717.csv` |
-| `20260713_081624` | `ok` | Yes | 0.4 | 14.369 |  |  |  |  |  | 7936.64 | `logs/water_methanol_feed1_fix_live_probe_20260713/column_summary_20260713_081624.csv` |
-| `20260713_081143` | `ok` | No | 25.0 | 14.622 |  |  |  |  |  | 7936.64 | `logs/water_methanol_dwsim_unifac_totalcond_alpha025_60s_20260713/column_summary_20260713_081143.csv` |
-| `20260713_080935` | `ok` | No | 25.0 | 14.623 |  |  |  |  |  | 7936.64 | `logs/water_methanol_dwsim_unifac_alpha025_60s_20260713/column_summary_20260713_080935.csv` |
-| `20260713_080610` | `ok` | No | 30.0 | 14.672 |  |  |  |  |  | 7936.64 | `logs/water_methanol_dwsim_unifac_fullfrancis_60s_20260713/column_summary_20260713_080610.csv` |
-| `20260713_080524` | `ok` | Yes | 0.4 | 14.368 |  |  |  |  |  | 7936.64 | `logs/water_methanol_dwsim_unifac_live_probe_r2_20260713/column_summary_20260713_080524.csv` |
-| `20260713_080424` | `ok` | Yes | 0.6 | 14.696 |  |  |  |  |  | 7936.64 | `logs/water_methanol_dwsim_unifac_current_probe_20260713/column_summary_20260713_080424.csv` |
-| `20260712_181509` | `ok` | Yes | 0.2 | 221.871 |  |  |  |  | 2255.86 | 4808.17 | `logs/c3c4_dd060_phase_exponential_onestep_20260712/column_summary_20260712_181509.csv` |
-| `20260712_110933` | `ok` | Yes | 300.0 | 221.871 |  |  |  |  | 2254.42 | 4808.05 | `logs/c3c4_dd058_extended_composition_settle_hold300s_r2_20260712/column_summary_20260712_110933.csv` |
-| `20260712_110857` | `ok` | Yes | 0.2 | 221.732 |  |  |  |  | 2260.25 | 4765.62 | `logs/c3c4_dd058_restart_proof_20260712/column_summary_20260712_110857.csv` |
-| `20260712_110522` | `ok` | Yes | 300.0 | 402.164 |  |  |  |  | 7386.93 | 4494.07 | `logs/c3c4_dd058_extended_composition_settle_hold300s_20260712/column_summary_20260712_110522.csv` |
-| `20260712_105152` | `ok` | Yes | 300.0 | 221.732 |  |  |  |  | 2258.70 | 4765.54 | `logs/c3c4_dd057_final_composition_settle_hold300s_20260712/column_summary_20260712_105152.csv` |
-| `20260712_104153` | `ok` | Yes | 300.0 | 221.917 |  |  |  |  | 2304.70 | 4776.04 | `logs/c3c4_dd056_bottom_inventory_settle_continue300s_20260712/column_summary_20260712_104153.csv` |
-| `20260712_103152` | `ok` | Yes | 300.0 | 222.218 |  |  |  |  | 2218.65 | 4833.61 | `logs/c3c4_dd055_composition_settle_continue300s_20260712/column_summary_20260712_103152.csv` |
-| `20260712_101442` | `ok` | Yes | 300.0 | 221.098 |  |  |  |  | 1999.48 | 4902.47 | `logs/c3c4_dd054_composition_settle_continue300s_20260712/column_summary_20260712_101442.csv` |
-| `20260712_092336` | `ok` | Yes | 300.0 | 220.832 |  |  |  |  | 2503.56 | 4913.11 | `logs/c3c4_dd053_unchanged_operating_point_hold_300s_20260712/column_summary_20260712_092336.csv` |
-| `20260712_085859` | `ok` | Yes | 90.0 | 222.525 |  |  |  |  | 2901.16 | 4925.24 | `logs/c3c4_dd052_pressure_settle_90s_20260712/column_summary_20260712_085859.csv` |
-| `20260712_085323` | `ok` | Yes | 120.0 | 223.397 |  |  |  |  | 2832.45 | 4921.14 | `logs/c3c4_dd051_pressure_resident_margin_120s_20260712/column_summary_20260712_085323.csv` |
-| `20260712_084602` | `ok` | Yes | 120.0 | 226.806 |  |  |  |  | 2562.40 | 4885.53 | `logs/c3c4_dd050_pressure_duty_55cap_120s_20260712/column_summary_20260712_084602.csv` |
-| `20260711_214317` | `ok` | Yes | 180.0 | 225.234 |  |  |  |  | 2364.10 | 4815.21 | `logs/c3c4_dd049_chemsep_reflux_product_split_180s_r3_20260711/column_summary_20260711_214317.csv` |
-| `20260711_214218` | `ok` | Yes | 0.2 | 223.208 |  |  |  |  | 2344.57 | 4720.39 | `logs/c3c4_dd049_one_step_diagnostic_20260711/column_summary_20260711_214218.csv` |
-| `20260711_214109` | `ok` | No | 0.0 | 222.619 |  |  |  |  | 2386.93 | 4761.98 | `logs/c3c4_dd049_chemsep_reflux_product_split_180s_r2_20260711/column_summary_20260711_214109.csv` |
-| `20260711_170234` | `ok` | Yes | 180.0 | 223.213 |  |  |  |  | 3523.80 | 4720.23 | `logs/c3c4_dd048_selective_integral_rebase_180s_r2_20260711/column_summary_20260711_170234.csv` |
-| `20260711_165906` | `ok` | No | 65.0 | 223.001 |  |  |  |  | 3614.65 | 7987.96 | `logs/c3c4_dd048_selective_integral_rebase_180s_20260711/column_summary_20260711_165906.csv` |
-| `20260711_163320` | `ok` | Yes | 180.0 | 224.680 |  |  |  |  | 3623.58 | 8176.58 | `logs/c3c4_dd047_chemsep_duty_control_isolation_180s_r2_20260711/column_summary_20260711_163320.csv` |
-| `20260711_160221` | `ok` | Yes | 300.0 | 232.165 | 0.075139 |  | 4894.54 |  | 3573.55 | 8565.61 | `logs/c3c4_dd046_inventory_coordination_continue300s_20260711/column_summary_20260711_160221.csv` |
-| `20260711_155521` | `ok` | Yes | 120.0 | 232.872 | 0.083153 |  | 5814.75 |  | 2936.80 | 6543.44 | `logs/c3c4_dd046_inventory_coordination_120s_20260711/column_summary_20260711_155521.csv` |

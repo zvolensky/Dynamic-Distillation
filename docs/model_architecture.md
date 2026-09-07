@@ -4,7 +4,7 @@ This document summarizes the architecture of the dynamic distillation model in t
 
 For project terminology, see `docs/glossary.md`.
 
-## Current status (2026-08-30)
+## Current status (2026-08-29)
 
 The repository's accepted current state is not the older prescribed-pressure, negligible-vapor-holdup feasibility layer described in the earlier v1/v2 architecture notes. The current accepted Core V3 formulation includes:
 
@@ -13,11 +13,9 @@ The repository's accepted current state is not the older prescribed-pressure, ne
 - explicit vapor free-volume and EOS closure;
 - pressure movement coupled to vapor inventory, temperature, free volume, and interstage pressure loss;
 - geometry-based terminal level control;
-- implicit reflux-drum pressure control through condenser duty;
-- implicit distillate n-butane control through reflux flow;
-- accepted bumpless activation, restart, and a 600-second controlled hold for the 20-volume C3/C4 hydrocarbon case.
+- accepted short-horizon dynamic evidence for the 20-volume C3/C4 hydrocarbon case.
 
-The conserved Core V3 foundation is summarized in `docs/dynamic_model_current_state_2026-08-20.md`; the later regulatory-control qualification and next-test boundary are recorded in `docs/core_v3_regulatory_controls_20260830.md`. Together with this architecture document, those records define the current validated scope. The historical sections below still document the evolution of the earlier v1/v2 model, but they should be read as development history rather than as the current operating description.
+The accepted current-state summary is in `docs/dynamic_model_current_state_2026-08-20.md`. That document is the best current source of truth for what is validated today. The historical sections below still document the evolution of the earlier v1/v2 model, but they should be read as development history rather than as the current operating description.
 
 ## Target architecture: what an optimal formulation would look like
 
@@ -37,11 +35,11 @@ This target architecture is the benchmark against which the current Core V3 impl
 
 ## Where Core V3 falls short of the optimal architecture
 
-Core V3 is accepted for a narrow, short-horizon operating window, not as a universally optimal or production-ready architecture. Several gaps remain relative to the ideal formulation above.
+Core V3 is accepted based on a narrow, short-horizon evidence set, not restricted to short runtimes. Longer simulations are permitted and may be useful, but they require their own duration-specific residual, conservation, physicality, drift, refinement, provider, and performance checks. The accepted evidence does not automatically extend to those longer runs or to different operating conditions. Several gaps remain relative to the ideal formulation above.
 
 1. Validation scope remains limited.
-   - The accepted evidence covers a 20-volume C3/C4 case, including a 600-second four-controller hold.
-   - Feed-temperature disturbance rejection, broader disturbances, longer closed-loop horizons, and wider species families are not yet established as robustly as the target architecture would require.
+   - The accepted evidence covers a 20-volume C3/C4 case over a short dynamic window.
+   - Longer-duration drift, controller interaction, broader disturbances, and wider species families are not yet established as robustly as the target architecture would require.
 
 2. Initialization and restart remain fragile.
    - The model still depends on careful state construction and acceptance checks before entering dynamics.
@@ -51,9 +49,8 @@ Core V3 is accepted for a narrow, short-horizon operating window, not as a unive
    - The accepted dynamic trajectories require many provider calls and relatively expensive solves.
    - An optimal design would reduce nonlinear overhead while preserving physical fidelity and convergence quality.
 
-4. Regulatory-control validation is not yet closed.
-   - The initial pressure-to-condenser-duty and distillate-composition-to-reflux PI design has passed bumpless activation, restart, and unchanged-input qualification.
-   - Its first thermodynamically consistent disturbance-rejection test was executed and failed the `0.5 psi` pressure-error gate at `87.0 s`, so the tuning remains a baseline rather than a final production optimum.
+4. Pressure-control design is not yet closed.
+   - The current accepted model can move pressure dynamically under fixed duty, but no fully accepted pressure controller or operating strategy has been established as the final production design.
 
 5. Provider governance is still operationally strict but not yet universal.
    - The current runtime enforces ownership and no-fallback checks, but a more optimal architecture would make this governance even more systematic, reusable, and portable across property providers.
@@ -104,6 +101,7 @@ The governing residuals are organized into the following classes:
 
    - each stage includes total two-phase energy storage;
    - the residual includes enthalpy transport, heat duties, and latent/ sensible energy exchange;
+  - external column-wall heat loss is assumed to be zero: no ambient or wall-temperature term and no per-volume `U A` parameter is currently part of the governing equations;
    - the formulation does not collapse the column to a purely liquid-energy or constant-enthalpy description.
 3. Equilibrium and phase closure
 
@@ -174,6 +172,15 @@ $$
 $$
 \frac{d E_j}{dt} = \text{net enthalpy transport, heat duty, and phase-energy terms}.
 $$
+
+The current energy balance assumes an adiabatic column apart from explicitly
+specified feed, condenser, reboiler, and other declared process duties. In
+particular, column-wall heat loss is set to zero because the repository does
+not have defensible per-volume heat-transfer coefficients, areas, ambient
+temperatures, or wall temperatures. Adding a term such as
+`Q_loss,j = U_j A_j (T_j - T_ambient,j)` would be a separately parameterized
+model variant requiring new validation and would not be an appropriate tuning
+substitute for unresolved thermo, duty, or closure errors.
 
 These are the true dynamic equations of the model: they represent accumulation and change over time.
 
@@ -395,7 +402,7 @@ This model differs fundamentally from simplified textbook treatments of distilla
 - **Rigorous energy topology** with temperature and enthalpy states on trays and boundary vessels
 - **Hydraulic-pressure and explicit vapor-inventory paths** that are intended to be coupled
 
-The intended formulation resembles the DAE structure used by rigorous commercial dynamic simulators. The repository has now progressed substantially beyond the older feasibility stage: the current accepted C3/C4 formulation includes explicit vapor holdup, pressure-dynamic closure, terminal level control, and qualified pressure/composition regulatory control. However, the model is still not a general industrial production claim; longer closed-loop horizons, thermally consistent disturbance rejection, and broader mixtures remain open evidence areas.
+The intended formulation resembles the DAE structure used by rigorous commercial dynamic simulators. The repository has now progressed substantially beyond the older feasibility stage: the current accepted C3/C4 formulation includes explicit vapor holdup and pressure-dynamic closure, with formal evidence currently covering a 30-second pressure-dynamic trajectory. This is an evidence boundary rather than a runtime limit: longer runs can be executed, but their long-horizon drift, broader disturbance response, and pressure-control behavior require separate evidence before being included in the accepted claim.
 
 Initialization is still not a trivial "switch to dynamics" operation for a rigorous model, but the current formulation is no longer best described as a structurally incomplete fixed-pressure model. The main residual issues are now in validation scope, controller design, runtime cost, and longer-horizon stability rather than basic missing vapor-holdup architecture.
 
@@ -981,6 +988,8 @@ Implementation note: `column_rhs_v1.py` now treats a dry stage-1 total condenser
 
 ## 6) Coupling Behavior (Important)
 
+This section documents a legacy sequential-hybrid RHS behavior retained for historical provenance. It is not the active current Core V3 architecture described in the current-state summary and the earlier sections of this document.
+
 Current architecture is sequential inside each RHS call, not fully simultaneous:
 
 1. Vapor flow (`V_out`) is computed first.
@@ -1135,6 +1144,8 @@ Duplicate command identity:
 - command identity normalization is applied for duplicate guard behavior.
 
 ## 11) Known Architectural Constraints
+
+This section records legacy runtime constraints from the older sequential-hybrid branch. It is retained for design history and debugging context, not as the accepted current Core V3 formulation. The current accepted status is described in the current-state summary and the top-level architecture sections.
 
 - Default integrator is explicit Euler (timestep-sensitive); optional per-step stiff modes (`BDF`/`Radau`) and pilot `IDA` fixed-point mode are available.
 - `P/V` coupling is sequential with previous-step feedback, not full-step simultaneous.
@@ -3301,163 +3312,3 @@ the complete ordered pressure profile. The final drum-to-top-tray pressure drop
 is `0.047538 psia`. Thus the reflux drum is no longer an artificial pressure
 anchor; its pressure responds through the same vapor-inventory and energy
 equations as the rest of the column.
-
-### Pressure and distillate-composition regulatory successor
-
-On 2026-08-30, the dynamic-pressure architecture was extended with two implicit
-PI loops while retaining both workbook-backed terminal level loops. Reflux-drum
-pressure manipulates condenser-duty magnitude, and distillate n-butane mole
-fraction manipulates reflux. Drum and sump levels continue to manipulate
-distillate and bottoms flow. Reboiler duty remains fixed. This pairing gives
-each loop a distinct manipulated variable and preserves the live terminal
-liquid compositions used by the product streams.
-
-Pressure uses the existing native `Q_C` algebraic coordinate, so replacing the
-fixed-duty specification with a pressure-controller output requires one PI
-memory/rate pair but no duplicate duty variable. Composition control adds one
-PI memory/rate pair and one absolute log-reflux output. Reflux is coupled to the
-top liquid material and energy transport rows. Together these additions enlarge
-the pressure-dynamic terminal-control system from `262 x 262` to a structurally
-full-rank `265 x 265` residual.
-
-The initial baseline tuning is `300,000 BTU/h/psi` with `Ti = 180 s` for
-pressure and `5,000 lbmol/h/mole-fraction` with `Ti = 600 s` for distillate
-n-butane. Duty magnitude and reflux are each bounded to `0.5-1.5` times their
-activation references. Controller memories, outputs, tuning, setpoints, and
-activation state are native checkpoint data. An older two-level-controller
-checkpoint is upgraded by back-calculating the new memories so that duty and
-reflux do not jump at activation. Later continuations inherit all four memories.
-
-The first controlled endpoint changed pressure by only `-0.000129 psi`, duty by
-`+38.8 BTU/h`, reflux by `+0.000759 lbmol/h`, and distillate n-butane by
-`+1.52e-7` mole fraction. It closed at `2.65e-12`, retained numerical rank 265,
-and had condition number `4.74e6`. The inherited restart and subsequent
-600-second unchanged-input qualification accepted every endpoint. Pressure
-remained within `0.05313 psi`, reached a smooth minimum, and recovered. The
-composition drift increment fell by about 99 percent over the final five-minute
-segment. The final steady-state score was `0.7001`, with the steady-state flag
-asserted. The accepted restart is
-`logs/core_v3_regulatory_bumpless_hold600s_20260830/core_v3_checkpoint_20260830_142858.npz`.
-
-### +5 F feed-temperature disturbance result
-
-The test starts from the
-accepted four-controller checkpoint and steps feed temperature from `174.999 F`
-to `179.999 F`. Feed pressure remains `232.06 psia`; component rates remain
-`2380.99/3968.32/793.664 lbmol/h` for n-propane/n-butane/n-pentane; controller
-setpoints, tuning, limits, and memories remain unchanged; and reboiler duty and
-all other boundary conditions remain fixed.
-
-Core V3 receives feed energy as `feed_enthalpy_BTUph`, not as a temperature
-label. The disturbance must therefore query the governed DWSIM Peng-Robinson
-provider for liquid feed molar enthalpy at the baseline and disturbed
-temperatures, using the unchanged feed pressure and composition. The disturbed
-energy rate is the unchanged component-flow total times the disturbed molar
-enthalpy. A fixed enthalpy multiplier is not an acceptable representation of
-this experiment.
-
-The primary frozen horizon is 600 seconds at the validated 0.5-second timestep.
-One extension is permitted only when all hard gates pass but recovery remains
-incomplete, with an absolute maximum disturbance horizon of 1200 seconds. No
-tuning, timestep, limit, setpoint, or disturbance change is permitted between
-segments. Required evidence and acceptance limits are recorded in
-`docs/core_v3_regulatory_controls_20260830.md`; documenting this boundary does
-not authorize classifying the disturbance as accepted before it is run.
-
-The governed boundary evaluation produced a liquid-feed enthalpy step of
-`+1.489019923 MMBTU/h`, from `-36.661427886` to `-35.172407964 MMBTU/h`, with
-zero baseline parity error. Preflight exposed a numerical rather than physical
-restriction: the two feed-adjacent vapor-flow log coordinates pinned at the
-generic `+/-0.01` solve envelope. The regulatory successor now gives only
-vapor-flow log coordinates a `+/-0.05` envelope, permits 160 nonlinear
-evaluations for a nonzero feed-temperature disturbance, and refreshes its
-colored Jacobian every five callbacks. Controller output bounds, tuning,
-setpoints, physical equations, timestep, and the disturbance itself were not
-changed. The first accepted disturbed endpoint at `t = 0.5 s` closed at
-`5.319745e-12`, with rank 265, condition `4.655299e6`, and no active bound.
-
-The response nevertheless fails its frozen pressure-quality requirement. With
-all response gates evaluated at every endpoint, the first violation is at
-`t = 87.0 s`: drum pressure is `221.823624947 psia`, giving error
-`+0.502398936 psi` against the strict `0.5 psi` limit. The same endpoint has
-residual `3.912488e-13`, rank 265, condition `4.654713e6`, physical pass,
-distillate n-butane error `+0.000212060`, levels `0.497944/0.499906`, duty ratio
-`1.002867`, and reflux ratio `1.000266`. Thus numerical closure, composition
-control, level control, and actuator margin all pass; current pressure-loop
-disturbance rejection does not. The run stops without an accepted 600-second
-checkpoint or the conditional 1200-second extension. Any tuning, disturbance,
-or acceptance-criterion change requires a new, separately frozen experiment.
-
-The separately frozen successor changes only pressure proportional gain from
-`0.300` to `3.000 MMBTU/h/psi`, retaining `Ti = 180 s`. This value is derived
-from the `1.489020 MMBTU/h` heat step: it is `2.93%` of reference condenser
-duty, so approximately `2.98 MMBTU/h/psi` is required to supply the same
-proportional duty fraction at the `0.5 psi` pressure boundary. The rounded
-`3.000 MMBTU/h/psi` trial isolates proportional authority without changing
-integral time or any other loop. Regulatory memory back-calculation preserves
-the saved condenser duty during the gain change. A 60-second unchanged-input
-qualification is required before repeating the identically defined
-disturbance and its existing hard gates.
-
-The pressure-gain successor was executed. Its bumpless endpoint and full
-60-second unchanged-input qualification passed, and the repeated `+5 F`
-disturbance confirmed that pressure authority was corrected: logged pressure
-error peaked near `+0.305 psi`, turned, and recovered to `+0.131714 psi` by the
-eventual stop. The run instead reached the distillate n-butane hard gate at
-`t = 355.0 s`, with composition error `+0.002001574` against the strict
-`0.002` limit. That endpoint retained residual `8.159130e-13`, rank 265,
-condition `4.584253e6`, physical pass, levels `0.501798/0.497794`, duty ratio
-`1.034782`, and reflux ratio `1.002143`. Thus the pressure retuning succeeds in
-its intended role, while the existing slow, low-authority composition loop is
-the next limiting controller. The 600-second disturbance and conditional
-extension remain unaccepted; composition retuning requires a separately frozen
-successor.
-
-The next frozen successor holds the qualified pressure loop fixed and changes
-only distillate n-butane proportional gain from `5,000` to
-`30,000 lbmol/h` per mole fraction, retaining `Ti = 600 s`. At the `0.002`
-composition boundary this increases proportional reflux authority from
-`10` to `60 lbmol/h`, approximately `1%` of reference reflux. The composition
-memory is back-calculated for a bumpless gain change. A 60-second unchanged
-qualification precedes the identical thermal disturbance and unchanged gates.
-
-The composition-gain successor was executed. Its bumpless endpoint and full
-60-second unchanged-input qualification passed, as did the first disturbed
-endpoint. The continuation crossed the `0.002` n-butane gate at `t = 372.5 s`,
-only `17.5 s` later than the `5,000`-gain case. At failure, composition error
-was `+0.002001712`, pressure error `+0.117186 psi`, levels
-`0.501821/0.498161`, duty ratio `1.034741`, and reflux ratio `1.012240`.
-Residual `7.803185e-13`, rank 265, condition `4.584860e6`, physicality, and all
-non-composition gates passed. A sixfold gain increase therefore generated a
-meaningful unsaturated reflux response but only marginally delayed the overhead
-composition front. The limiting behavior is dominated by column transport
-delay rather than proportional authority alone. Further blind gain escalation
-is not justified; a separately declared diagnostic should establish peak and
-turning behavior or assess feed-forward/alternative-MV structure first.
-
-### Composition acceptance semantics correction
-
-Subsequent requirements review established that no distillate n-butane product
-band had been declared for this experiment. Accordingly, the former
-`+/-0.002` threshold is retained only as a historical response marker; crossing
-it does not establish a product-quality or model failure. Core V3 now treats
-composition as a logged diagnostic by default and enforces a composition stop
-only when the run explicitly supplies
-`--composition-error-limit-molfrac`.
-
-The dual-retuned `+5 F` feed-temperature trajectory is therefore resumed to
-the original 600-second horizon to evaluate the robustness and physical
-response of the first-principles model. The numerical, physical, pressure,
-terminal-level, controller-memory, and manipulated-variable protections remain
-active during this continuation.
-
-The continuation subsequently completed all 600 seconds without violating an
-active protection. The final endpoint had residual `4.752459e-13`, full rank
-`265`, condition `4.596800e6`, physical pass, no active solve bound, pressure
-error `+0.00188159 psi`, terminal levels `0.502705/0.501203`, condenser-duty
-ratio `1.031551`, and reflux ratio `1.027108`. Distillate n-butane was
-`0.123656477` mole fraction (`+0.003784725` above setpoint) and still rising,
-but at a declining sampled rate. Thus the declared result is a stable,
-numerically sound first-principles trajectory with a delayed composition
-response, not a composition-quality qualification. Its native restart is
-`logs/core_v3_kc3m_compkc30k_feedT_plus5F_complete600s_20260830/core_v3_checkpoint_20260830_204510.npz`.

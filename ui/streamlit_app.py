@@ -193,6 +193,61 @@ def _render_progress_metrics(active: Dict[str, Any], summary_row: Dict[str, Any]
         )
 
 
+def _render_hydraulic_envelope_status(summary_row: Dict[str, Any]) -> None:
+    """Render the latest tray-hydraulic classification without implying false safety."""
+
+    if "Hydraulic_overall_classification" not in summary_row:
+        return
+    classification = str(
+        summary_row.get("Hydraulic_overall_classification", "not_evaluated")
+        or "not_evaluated"
+    ).strip().lower()
+    backup_fraction = summary_row.get("Hydraulic_max_backup_fraction")
+    backup_stage = summary_row.get("Hydraulic_backup_limiting_stage")
+    flood_fraction = summary_row.get("Hydraulic_max_flooding_fraction")
+    flood_stage = summary_row.get("Hydraulic_flooding_limiting_stage")
+    critical_factor = summary_row.get(
+        "Hydraulic_max_critical_effective_capacity_factor_ft_s"
+    )
+    critical_stage = summary_row.get(
+        "Hydraulic_critical_effective_capacity_factor_limiting_stage"
+    )
+    critical_ratio = summary_row.get(
+        "Hydraulic_column_max_critical_factor_ratio_to_baseline"
+    )
+    backup_text = _fmt_metric(backup_fraction, nd=3)
+    backup_stage_text = _fmt_metric(backup_stage, nd=0)
+
+    if classification == "not_evaluated":
+        st.warning(
+            "Tray flooding capacity: NOT EVALUATED. Supply a declared tray capacity "
+            "factor (or inherit one from the checkpoint) before interpreting the column "
+            "as hydraulically safe. Weeping is also not evaluated without hole/valve geometry. "
+            f"The available backup screen is {backup_text} of tray spacing at stage "
+            f"{backup_stage_text}. Critical effective capacity factor is "
+            f"{_fmt_metric(critical_factor, nd=5)} ft/s at stage "
+            f"{_fmt_metric(critical_stage, nd=0)}, or "
+            f"{_fmt_metric(critical_ratio, nd=3)} times its saved baseline. "
+            "This inverse metric is a relative screening result, not a flooding prediction."
+        )
+        return
+
+    flood_text = _fmt_metric(flood_fraction, nd=3)
+    flood_stage_text = _fmt_metric(flood_stage, nd=0)
+    message = (
+        f"Tray hydraulic envelope: {classification.upper().replace('_', ' ')}; "
+        f"maximum flooding fraction {flood_text} at stage {flood_stage_text}; "
+        f"maximum backup fraction {backup_text} at stage {backup_stage_text}. "
+        "Weeping remains not evaluated without hole/valve geometry."
+    )
+    if classification == "normal":
+        st.success(message)
+    elif classification == "advisory":
+        st.warning(message)
+    else:
+        st.error(message)
+
+
 def _trend_chart(summary_df: pd.DataFrame, column: str, label: str) -> None:
     raise NotImplementedError
 
@@ -777,6 +832,11 @@ def _reset_form_state(*, include_launch_mode: bool = True) -> None:
         "core_v3_timestep_sec",
         "_core_v3_timestep_source",
         "core_v3_log_every_n_steps",
+        "core_v3_override_tray_hydraulics",
+        "core_v3_tray_flood_capacity_factor_ft_s",
+        "core_v3_tray_hydraulic_system_factor",
+        "core_v3_tray_flood_hard_stop_enabled",
+        "core_v3_tray_flood_hard_stop_fraction",
     ]
     if not include_launch_mode:
         widget_keys = [key for key in widget_keys if key != "launch_mode"]
@@ -977,6 +1037,7 @@ def _render_live_dashboard(
             "Waiting for fresh run artifacts in the selected logs directory..."
         )
     _render_progress_metrics(active, summary_row)
+    _render_hydraulic_envelope_status(summary_row)
 
     tabs = st.tabs(["Progress", "Trends", "Stage Profiles", "Column Schematic", "Run Configuration", "Warnings"])
 
@@ -1086,6 +1147,41 @@ def _render_live_dashboard(
 
         st.subheader("Steady-State Score")
         _trend_chart(trends_df, "steady_state_score", "Steady-State Score", exclude_time_zero=True)
+
+        st.subheader("Tray Hydraulic Operating Envelope")
+        hydraulic_cols = [
+            column
+            for column in (
+                "Hydraulic_max_flooding_fraction",
+                "Hydraulic_max_backup_fraction",
+            )
+            if column in trends_df.columns
+        ]
+        _trend_chart(
+            trends_df,
+            hydraulic_cols,
+            "Maximum Tray Hydraulic Load",
+            y_unit="fraction of limit (-)",
+        )
+        hydraulic_screening_row = st.columns(2)
+        with hydraulic_screening_row[0]:
+            _trend_chart(
+                trends_df,
+                "Hydraulic_max_critical_effective_capacity_factor_ft_s",
+                "Critical Effective Capacity Factor",
+                y_unit="ft/s",
+            )
+        with hydraulic_screening_row[1]:
+            _trend_chart(
+                trends_df,
+                "Hydraulic_column_max_critical_factor_ratio_to_baseline",
+                "Critical Capacity Demand / Baseline",
+                y_unit="ratio (-)",
+            )
+        st.caption(
+            "Critical effective capacity factor is an inverse screening metric. "
+            "It does not establish actual percent flooding without tray capacity data."
+        )
 
     with tabs[2]:
         _stage_profile_panel(
@@ -1313,6 +1409,12 @@ def main() -> None:
         or checkpoint_timestep
     )
     core_v3_log_every_n_steps = int(st.session_state.get("core_v3_log_every_n_steps", 4) or 4)
+    core_v3_override_tray_hydraulics = bool(
+        st.session_state.get("core_v3_override_tray_hydraulics", False)
+    )
+    core_v3_tray_flood_capacity_factor_ft_s: Optional[float] = None
+    core_v3_tray_hydraulic_system_factor: Optional[float] = None
+    core_v3_tray_flood_hard_stop_fraction: Optional[float] = None
 
     cli_command_text = str(st.session_state.get("cli_command_text", "") or "")
 
@@ -1360,6 +1462,83 @@ def main() -> None:
                 "Validated Core V3 implicit timesteps: 0.25 and 0.5 s. "
                 "Thermodynamics: live DWSIM Peng-Robinson. Jacobian: 8 persistent workers."
             )
+            with st.sidebar.expander("Tray Hydraulic Envelope", expanded=False):
+                core_v3_override_tray_hydraulics = st.checkbox(
+                    "Declare/override flooding inputs",
+                    value=core_v3_override_tray_hydraulics,
+                    key="core_v3_override_tray_hydraulics",
+                    help=(
+                        "When off, the continuation inherits hydraulic inputs from the "
+                        "checkpoint. If none exist, flooding capacity is reported as not evaluated."
+                    ),
+                )
+                if core_v3_override_tray_hydraulics:
+                    capacity_factor_input = st.number_input(
+                        "Declared capacity factor C (ft/s)",
+                        min_value=0.001,
+                        max_value=10.0,
+                        value=None,
+                        step=0.01,
+                        format="%.4f",
+                        placeholder="Enter design/correlation value",
+                        key="core_v3_tray_flood_capacity_factor_ft_s",
+                        help=(
+                            "Use a tray-design/vendor/correlation value appropriate to the "
+                            "tray type and surface-tension treatment; this is not calibrated "
+                            "by the dynamic model."
+                        ),
+                    )
+                    core_v3_tray_flood_capacity_factor_ft_s = (
+                        None
+                        if capacity_factor_input is None
+                        else float(capacity_factor_input)
+                    )
+                    core_v3_tray_hydraulic_system_factor = float(
+                        st.number_input(
+                            "Hydraulic system factor",
+                            min_value=0.001,
+                            max_value=2.0,
+                            value=float(
+                                st.session_state.get(
+                                    "core_v3_tray_hydraulic_system_factor", 1.0
+                                )
+                            ),
+                            step=0.05,
+                            format="%.3f",
+                            key="core_v3_tray_hydraulic_system_factor",
+                        )
+                    )
+                    hard_stop_enabled = st.checkbox(
+                        "Stop at declared hydraulic load",
+                        value=bool(
+                            st.session_state.get(
+                                "core_v3_tray_flood_hard_stop_enabled", False
+                            )
+                        ),
+                        key="core_v3_tray_flood_hard_stop_enabled",
+                        help="Optional protection; alerts alone do not stop or alter the simulation.",
+                    )
+                    if hard_stop_enabled:
+                        core_v3_tray_flood_hard_stop_fraction = float(
+                            st.number_input(
+                                "Hard-stop load fraction",
+                                min_value=0.01,
+                                max_value=5.0,
+                                value=float(
+                                    st.session_state.get(
+                                        "core_v3_tray_flood_hard_stop_fraction", 1.0
+                                    )
+                                ),
+                                step=0.05,
+                                format="%.3f",
+                                key="core_v3_tray_flood_hard_stop_fraction",
+                            )
+                        )
+                else:
+                    st.caption(
+                        "No UI default is imposed. Missing capacity and tray-opening inputs are "
+                        "shown as not evaluated, not safe."
+                    )
         else:
             with st.sidebar.expander("Advanced Run Overrides", expanded=False):
                 st.caption("UI override > workbook-supported Excel setting > runner default")
@@ -1512,6 +1691,9 @@ def main() -> None:
                     core_v3_duration_sec=core_v3_duration_sec,
                     core_v3_timestep_sec=core_v3_timestep_sec,
                     core_v3_log_every_n_steps=core_v3_log_every_n_steps,
+                    core_v3_tray_flood_capacity_factor_ft_s=core_v3_tray_flood_capacity_factor_ft_s,
+                    core_v3_tray_hydraulic_system_factor=core_v3_tray_hydraulic_system_factor,
+                    core_v3_tray_flood_hard_stop_fraction=core_v3_tray_flood_hard_stop_fraction,
                 )
             except Exception as exc:
                 preview_spec = None
@@ -1694,6 +1876,9 @@ def main() -> None:
                 core_v3_duration_sec=core_v3_duration_sec,
                 core_v3_timestep_sec=core_v3_timestep_sec,
                 core_v3_log_every_n_steps=core_v3_log_every_n_steps,
+                core_v3_tray_flood_capacity_factor_ft_s=core_v3_tray_flood_capacity_factor_ft_s,
+                core_v3_tray_hydraulic_system_factor=core_v3_tray_hydraulic_system_factor,
+                core_v3_tray_flood_hard_stop_fraction=core_v3_tray_flood_hard_stop_fraction,
             )
         if spec is None:
             st.error("No valid launch specification is available.")

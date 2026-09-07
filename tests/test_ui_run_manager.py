@@ -188,6 +188,42 @@ def test_build_launch_spec_uses_core_v3_runner_for_core_checkpoint(monkeypatch, 
     assert spec.integrator == "implicit-trf"
 
 
+def test_build_launch_spec_adds_declared_core_v3_hydraulic_envelope_inputs(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 60.0,
+            "n_steps": 300,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "core_v3.npz"
+    _write_core_v3_checkpoint(checkpoint_path)
+
+    spec = build_launch_spec(
+        excel_path=excel_path,
+        initialization_mode="restart",
+        checkpoint_path=checkpoint_path,
+        run_name="Hydraulic envelope UI",
+        run_description="",
+        core_v3_duration_sec=5.0,
+        core_v3_tray_flood_capacity_factor_ft_s=0.31,
+        core_v3_tray_hydraulic_system_factor=0.9,
+        core_v3_tray_flood_hard_stop_fraction=1.05,
+    )
+
+    assert spec.command[spec.command.index("--tray-flood-capacity-factor-ft-s") + 1] == "0.31"
+    assert spec.command[spec.command.index("--tray-hydraulic-system-factor") + 1] == "0.9"
+    assert spec.command[spec.command.index("--tray-flood-hard-stop-fraction") + 1] == "1.05"
+
+
 def test_inspect_stored_state_accepts_core_v3_checkpoint(tmp_path: Path) -> None:
     checkpoint_path = tmp_path / "core_v3.npz"
     _write_core_v3_checkpoint(checkpoint_path)
@@ -638,6 +674,44 @@ def test_build_launch_spec_from_cli_accepts_reusable_core_v3_runner(monkeypatch,
     assert Path(spec.command[2]).name == "run_core_v3_dynamic.py"
     assert spec.n_steps == 20
     assert spec.command[spec.command.index("--parallel-workers") + 1] == "8"
+
+
+def test_build_launch_spec_from_cli_preserves_core_v3_hydraulic_options(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(
+        "ui.run_manager.infer_simulation_settings",
+        lambda excel_path: {
+            "n_stages": 20,
+            "n_components": 3,
+            "dt_sec": 0.2,
+            "log_every_n_steps": 5,
+            "t_final_sec": 60.0,
+            "n_steps": 300,
+        },
+    )
+    excel_path = tmp_path / "case.xlsx"
+    excel_path.write_bytes(b"placeholder")
+    checkpoint_path = tmp_path / "core_v3.npz"
+    _write_core_v3_checkpoint(checkpoint_path)
+
+    spec = build_launch_spec_from_cli(
+        (
+            "python tools/run_core_v3_dynamic.py --duration-sec 5 "
+            "--tray-flood-capacity-factor-ft-s 0.31 "
+            "--tray-hydraulic-system-factor 0.9 "
+            "--tray-flood-advisory-fraction 0.7 "
+            "--tray-flood-high-loading-fraction 0.85 "
+            "--tray-flood-predicted-fraction 1.0 "
+            "--tray-flood-hard-stop-fraction 1.05"
+        ),
+        default_excel_path=excel_path,
+        initialization_mode="restart",
+        default_checkpoint_path=checkpoint_path,
+    )
+
+    assert spec.command[spec.command.index("--tray-flood-capacity-factor-ft-s") + 1] == "0.31"
+    assert spec.command[spec.command.index("--tray-flood-hard-stop-fraction") + 1] == "1.05"
 
 
 def test_build_launch_spec_from_cli_inherits_core_v3_checkpoint_timestep(

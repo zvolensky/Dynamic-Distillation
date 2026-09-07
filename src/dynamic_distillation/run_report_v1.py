@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import math
 import tempfile
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional, Sequence
 
@@ -640,4 +641,209 @@ def generate_run_report(
     return str(output)
 
 
-__all__ = ["generate_run_report"]
+def generate_core_v3_run_report(
+    summary: Mapping[str, Any],
+    *,
+    output_path: str | Path,
+    title: str = "Core V3 Dynamic Run",
+    metadata: Optional[Mapping[str, Any]] = None,
+    trajectory: Optional[Mapping[str, Any]] = None,
+) -> str:
+    """Create a DOCX report from a structured Core V3 end-of-run summary."""
+    output = Path(output_path).expanduser().resolve()
+    duties = summary["duties"]
+    products = summary["products"]
+    levels = summary["terminal_levels"]
+    steady = summary["steady_state"]
+    metadata_values = metadata or {}
+    simulated_seconds = float(summary["time_sec"])
+    elapsed_seconds = metadata_values.get(
+        "wall_clock_sec",
+        metadata_values.get("wall_elapsed_s", metadata_values.get("elapsed_wall_sec")),
+    )
+    ratio = metadata_values.get("clock_time_per_sim_time", metadata_values.get("simulation_wall_ratio"))
+    if ratio is None and elapsed_seconds is not None and simulated_seconds > 0.0:
+        ratio = float(elapsed_seconds) / simulated_seconds
+    doc = Document()
+    _style_document(doc)
+    _add_header_footer(doc, title)
+
+    kicker = doc.add_paragraph()
+    _set_run(kicker.add_run("DYNAMIC DISTILLATION  /  CORE V3 RUN"), size=8.5, color=TEAL, bold=True)
+    doc.add_paragraph(title, style="Title")
+    if metadata:
+        details = []
+        for key in (
+            "classification",
+            "decision",
+            "started_at_local",
+            "ended_at_local",
+            "time_sec",
+            "timestep_sec",
+        ):
+            if key in metadata and metadata[key] is not None:
+                details.append(f"{key.replace('_', ' ').title()}: {metadata[key]}")
+        details.append(
+            "Report generated: "
+            + datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
+        )
+        if details:
+            paragraph = doc.add_paragraph(" | ".join(details))
+            _set_run(paragraph.runs[0], size=9.5, color=MID_GRAY)
+
+    doc.add_paragraph("Run Identity", style="Heading 1")
+    identity = [
+        ["Status", str((metadata or {}).get("classification", "completed"))],
+        ["Simulation started", str((metadata or {}).get("started_at_local", "Not recorded"))],
+        ["Simulation ended", str((metadata or {}).get("ended_at_local", "Not recorded"))],
+        [
+            "Report generated",
+            datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z"),
+        ],
+        ["Simulated time", _fmt(summary["time_sec"], 3, " s")],
+        ["Elapsed clock time", _fmt(elapsed_seconds, 3, " s")],
+        ["Clock / simulated time", _fmt(ratio, 6)],
+        ["CLI command", str(metadata_values.get("launch_command", "Not recorded"))],
+        ["Input workbook", str((metadata or {}).get("workbook", (metadata or {}).get("excel_path", "Not reported")))],
+        ["Source checkpoint", str((metadata or {}).get("started_from_checkpoint", "None"))],
+    ]
+    _add_table(doc, ("Item", "Value"), identity, (1.55, 5.39), header_fill=TEAL, font_size=8.2)
+
+    doc.add_paragraph("Operating Summary", style="Heading 1")
+    _add_metric_strip(
+        doc,
+        (
+            ("Condenser duty", _fmt(duties["condenser_BTUph"], 1, " BTU/h"), PALE_BLUE),
+            ("Reboiler duty", _fmt(duties["reboiler_BTUph"], 1, " BTU/h"), PALE_GOLD),
+            ("Steady-state score", _fmt(steady["score"], 4), PALE_TEAL),
+        ),
+    )
+    product_rows = []
+    for key, label in (("distillate", "Distillate"), ("bottoms", "Bottoms")):
+        stream = products[key]
+        composition = ", ".join(
+            f"{name}={float(value):.6f}"
+            for name, value in stream["mole_fraction"].items()
+        )
+        product_rows.append(
+            [
+                label,
+                _fmt(stream["flow_lbmolph"], 3, " lbmol/h"),
+                _fmt(stream["temperature_F"], 2, " F"),
+                _fmt(stream["pressure_psia"], 2, " psia"),
+                composition,
+            ]
+        )
+    _add_table(
+        doc,
+        ("Product", "Flow", "Temperature", "Pressure", "Mole fractions"),
+        product_rows,
+        (0.9, 1.25, 1.0, 1.0, 2.75),
+    )
+    doc.add_paragraph(
+        f"Terminal levels: distillate drum {_fmt(100.0 * float(levels['distillate_drum_fraction']), 3, '%')}; "
+        f"bottom drum {_fmt(100.0 * float(levels['bottom_drum_fraction']), 3, '%')}. "
+        f"Steady state: {'PASS' if steady['steady'] else 'REVIEW'}."
+    )
+
+    if trajectory is not None and "time_sec" in trajectory:
+        times = np.asarray(trajectory["time_sec"], dtype=float)
+        if times.ndim == 1 and times.size > 1:
+            trend = pd.DataFrame({"time_s": times})
+            for key, column in (("condenser_duty_BTUph", "Qc_BTUph"),):
+                if key in trajectory and np.asarray(trajectory[key]).shape == times.shape:
+                    trend[column] = np.asarray(trajectory[key], dtype=float)
+            for key, column in (("pressure_psia", "P_psia"), ("temperature_F", "T_F")):
+                if key in trajectory:
+                    values = np.asarray(trajectory[key], dtype=float)
+                    if values.ndim == 2 and values.shape[0] == times.size:
+                        trend[f"{column}_top"] = values[:, 0]
+                        trend[f"{column}_bottom"] = values[:, -1]
+            for key, column in (
+                ("liquid_component_inventory_lbmol", "liquid_inventory_lbmol"),
+                ("vapor_component_inventory_lbmol", "vapor_inventory_lbmol"),
+            ):
+                if key in trajectory:
+                    values = np.asarray(trajectory[key], dtype=float)
+                    if values.ndim == 3 and values.shape[0] == times.size:
+                        trend[column] = np.sum(values, axis=(1, 2))
+            trend["distillate_lbmolph"] = float(products["distillate"]["flow_lbmolph"])
+            trend["bottoms_lbmolph"] = float(products["bottoms"]["flow_lbmolph"])
+            doc.add_page_break()
+            doc.add_paragraph("Dynamic Trends", style="Heading 1")
+            with tempfile.TemporaryDirectory(prefix="core_v3_report_") as temp_dir:
+                chart = Path(temp_dir) / "dynamic_trends.png"
+                if _plot_series(
+                    trend,
+                    chart,
+                    [
+                        ("Product flows", (("distillate_lbmolph", "Distillate", 1.0), ("bottoms_lbmolph", "Bottoms", 1.0))),
+                        ("Pressure and temperature", (("P_psia_top", "Top pressure", 1.0), ("P_psia_bottom", "Bottom pressure", 1.0), ("T_F_top", "Top temperature", 1.0), ("T_F_bottom", "Bottom temperature", 1.0))),
+                        ("Duties and stored inventories", (("Qc_BTUph", "Condenser duty", 1.0e-6), ("liquid_inventory_lbmol", "Liquid inventory", 1.0), ("vapor_inventory_lbmol", "Vapor inventory", 1.0))),
+                    ],
+                    cumulative_offset_s=0.0,
+                ):
+                    doc.add_picture(str(chart), width=Inches(6.75))
+
+    doc.add_paragraph("Final Volume Profiles", style="Heading 1")
+    components = tuple(products["distillate"]["mole_fraction"].keys())
+    profile_rows = []
+    for row in summary["profiles"]:
+        liquid_x = ", ".join(
+            f"{name}={float(row['liquid_mole_fraction'][name]):.5f}" for name in components
+        )
+        vapor_y = ", ".join(
+            f"{name}={float(row['vapor_mole_fraction'][name]):.5f}" for name in components
+        )
+        profile_rows.append(
+            [
+                row["volume"],
+                row["node_type"],
+                _fmt(row["temperature_F"], 2),
+                _fmt(row["pressure_psia"], 2),
+                _fmt(row["liquid_inventory_lbmol"], 2),
+                _fmt(row["vapor_inventory_lbmol"], 2),
+                _fmt(row.get("liquid_flow_out_lbmolph"), 2),
+                _fmt(row.get("vapor_flow_out_lbmolph"), 2),
+                liquid_x,
+                vapor_y,
+            ]
+        )
+    _add_table(
+        doc,
+        ("Volume", "Type", "T (F)", "P (psia)", "ML", "MV", "L out", "V out", "Liquid x", "Vapor y"),
+        profile_rows,
+        (0.95, 0.65, 0.5, 0.6, 0.55, 0.55, 0.6, 0.6, 1.2, 1.2),
+        font_size=7.5,
+    )
+    config_rows = []
+    for key in (
+        "classification",
+        "decision",
+        "timestep_sec",
+        "duration_completed_sec",
+        "duration_requested_sec",
+        "feed_multiplier",
+        "provider",
+    ):
+        if metadata and key in metadata:
+            config_rows.append([key.replace("_", " ").title(), str(metadata[key])])
+    tuning = (metadata or {}).get("controller_tuning")
+    if isinstance(tuning, Mapping):
+        for key in ("drum_kc", "drum_ti_sec", "sump_kc", "sump_ti_sec"):
+            if key in tuning:
+                config_rows.append([key.replace("_", " ").title(), str(tuning[key])])
+    if config_rows:
+        doc.add_paragraph("Simulation Configuration", style="Heading 1")
+        _add_table(doc, ("Parameter", "Value"), config_rows, (2.3, 4.64), header_fill=TEAL, font_size=8.0)
+    launch_command = str((metadata or {}).get("launch_command") or "").strip()
+    if launch_command:
+        doc.add_paragraph("Exact Launch Command", style="Heading 2")
+        paragraph = doc.add_paragraph(launch_command)
+        _set_run(paragraph.runs[0], size=7.5, color=INK)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    doc.save(output)
+    return str(output)
+
+
+__all__ = ["generate_core_v3_run_report", "generate_run_report"]

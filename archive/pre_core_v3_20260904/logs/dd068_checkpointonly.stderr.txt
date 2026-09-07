@@ -1,2 +1,0 @@
-DD-068 start: checkpoint
-  converged=True objective=0.49628408 violation=1.82962e-07

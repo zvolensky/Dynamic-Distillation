@@ -26,7 +26,9 @@ sandbox/mini8/runs/pytest_tmp/
 .DS_Store
 Thumbs.db
 
-# Logs / outputs
+# Generated run results and local historical archives
+logs/
+archive/
 *.log
 *.csv
 *.tmp
@@ -44,7 +46,5 @@ logs/*screen*.json
 logs/*screen*.png
 logs/thermo_table_vs_*.json
 
-# Local agent environments and bulky generated trajectories/archives
+# Local agent environments
 .codex/
-logs/archive/
-logs/*trajectory*.json

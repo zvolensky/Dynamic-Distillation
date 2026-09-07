@@ -1,0 +1,181 @@
+{
+  "run_id": "20260706_125619",
+  "run_name": "c3c4_topboundary_probe_after_pyclapeyron_20260706",
+  "run_description": "",
+  "status": "completed",
+  "pid": 31520,
+  "started_at_local": "2026-07-06 12:56:19",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_profile_coeff_trial1_20260601.xlsx",
+  "logs_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\topboundary_probe_after_pyclapeyron_20260706",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "clapeyron",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 1,
+  "n_steps": 5,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\topboundary_probe_after_pyclapeyron_20260706\\column_profile_20260706_125619.csv",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\topboundary_probe_after_pyclapeyron_20260706\\column_summary_20260706_125619.csv",
+  "runtime_control_json": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\topboundary_probe_after_pyclapeyron_20260706\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\topboundary_probe_after_pyclapeyron_20260706\\startup_trace_c3c4_topboundary_probe_after_pyclapeyron_20260706.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 45.828874700004235,
+    "equilibrium_relaxation_backend_build": 0.00419589999364689,
+    "francis_autocalibration": 2.719998883549124e-05
+  },
+  "startup_build_info": {},
+  "init_pack_top_drum_vapor": {
+    "enabled": false,
+    "applied": false,
+    "target_pressure_psia": NaN,
+    "raw_pressure_initial_psia": NaN,
+    "raw_pressure_final_psia": NaN,
+    "top_vapor_initial_lbmol": NaN,
+    "top_vapor_final_lbmol": NaN,
+    "scale_factor": NaN,
+    "reason": "disabled"
+  },
+  "init_match_condenser_duty": {
+    "enabled": false,
+    "applied": false,
+    "q_calc_BTUph": NaN,
+    "top_pressure_sp_psia": NaN,
+    "reason": "disabled"
+  },
+  "init_align_top_liquid_to_condensate": {
+    "enabled": false,
+    "applied": false,
+    "top_L_total_lbmol": NaN,
+    "condensate_total_lbmolph": NaN,
+    "max_composition_delta": NaN,
+    "reason": "disabled"
+  },
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "feed_stage_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 38.67871350000496,
+      "cp_requests": 1,
+      "cp_wall_sec": 3.224909500000649
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 20,
+      "liquid_density_requests": 20,
+      "liquid_density_wall_sec": 0.00109119999979157
+    },
+    "reboiler_equilibrium_helper_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.0002649999951245263,
+      "cp_requests": 1,
+      "cp_wall_sec": 0.00012179999612271786
+    },
+    "main_tray_refresh": {
+      "batch_flash_requests": 6,
+      "batch_flash_rows": 120,
+      "flash_cache_misses": 110,
+      "flash_requests": 110,
+      "backend_flash_equivalents": 110,
+      "wall_sec": 0.014881699971738271,
+      "cp_requests": 110,
+      "cp_wall_sec": 0.010052999889012426,
+      "flash_cache_hits": 10,
+      "flash_cache_evictions": 25
+    },
+    "energy_vapor_flow_enthalpy_refresh": {
+      "batch_flash_requests": 12,
+      "batch_flash_rows": 125,
+      "flash_cache_hits": 6,
+      "flash_cache_misses": 113,
+      "flash_requests": 113,
+      "backend_flash_equivalents": 113,
+      "wall_sec": 0.017097199946874753,
+      "cp_requests": 113,
+      "cp_wall_sec": 0.01263250014744699,
+      "flash_cache_evictions": 32
+    },
+    "top_drum_liquid_density_lookup": {
+      "liquid_density_cache_misses": 1,
+      "liquid_density_requests": 1,
+      "liquid_density_wall_sec": 0.000199399990378879
+    },
+    "condenser_duty_reuse_diag": {
+      "full_packet_misses": 1,
+      "bubble_state_miss_no_packet": 1,
+      "fresh_solves": 1,
+      "full_packet_hits": 5
+    },
+    "condenser_duty_bubble_point_helper_flash": {
+      "flash_cache_misses": 30,
+      "flash_requests": 30,
+      "backend_flash_equivalents": 30,
+      "wall_sec": 18.986020000025746,
+      "cp_requests": 30,
+      "cp_wall_sec": 0.0024751000164542347
+    },
+    "condenser_duty_helper_flash": {
+      "flash_cache_misses": 7,
+      "flash_requests": 7,
+      "backend_flash_equivalents": 7,
+      "wall_sec": 0.0017620999860810116,
+      "cp_requests": 7,
+      "cp_wall_sec": 0.0007484999514417723,
+      "flash_cache_hits": 1,
+      "flash_cache_evictions": 2
+    },
+    "temperature_state_enthalpy_refresh": {
+      "flash_cache_hits": 5,
+      "flash_cache_misses": 31,
+      "flash_requests": 31,
+      "backend_flash_equivalents": 31,
+      "wall_sec": 0.008201199976610951,
+      "cp_requests": 31,
+      "cp_wall_sec": 0.0028542999498313293
+    },
+    "temperature_state_cp_lookup": {
+      "flash_cache_misses": 18,
+      "flash_requests": 18,
+      "backend_flash_equivalents": 18,
+      "wall_sec": 0.004708899985416792,
+      "cp_requests": 18,
+      "cp_wall_sec": 0.0020566000166581944
+    },
+    "bottom_sump_cp_lookup": {
+      "flash_cache_misses": 6,
+      "flash_requests": 6,
+      "backend_flash_equivalents": 6,
+      "wall_sec": 0.0016674999933457002,
+      "cp_requests": 6,
+      "cp_wall_sec": 0.0007183000416262075,
+      "flash_cache_evictions": 2
+    }
+  },
+  "ended_at_local": "2026-07-06 12:56:39",
+  "elapsed_wall_sec": 20.014552099994035,
+  "final_time_s": 1.0,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\topboundary_probe_after_pyclapeyron_20260706\\c3c4_initializer_profile_coeff_trial1_20260601__restart_20260706_125619.xlsx",
+  "restart_export_error": "",
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\topboundary_probe_after_pyclapeyron_20260706\\c3c4_initializer_profile_coeff_trial1_20260601__checkpoint_20260706_125619.npz",
+  "native_checkpoint_export_error": "",
+  "native_checkpoint_init": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "reason": "disabled",
+    "schema": "",
+    "source_run_id": "",
+    "source_final_time_s": NaN,
+    "restored_memory_keys": []
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "block_summary": [
+    {
+      "max_abs_rate_per_h": 1050.1687271369813,
+      "max_abs_rate_per_s": 0.2917135353158281,
+      "max_relative_rate_per_s": 0.018797057101041622,
+      "state_block": "tray_L",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 6
+    },
+    {
+      "max_abs_rate_per_h": 400.7925061848282,
+      "max_abs_rate_per_s": 0.11133125171800784,
+      "max_relative_rate_per_s": 0.010775885825052395,
+      "state_block": "tray_V",
+      "worst_component_1based": 3,
+      "worst_component_name": "n-Pentane",
+      "worst_stage_1based": 10
+    },
+    {
+      "max_abs_rate_per_h": 4517588.801169071,
+      "max_abs_rate_per_s": 1254.88577810252,
+      "max_relative_rate_per_s": 0.004939975512788956,
+      "state_block": "tray_EL_BTU",
+      "worst_component_1based": "",
+      "worst_component_name": "",
+      "worst_stage_1based": 6
+    },
+    {
+      "max_abs_rate_per_h": 458.93832137019064,
+      "max_abs_rate_per_s": 0.12748286704727518,
+      "max_relative_rate_per_s": 0.003315556054612866,
+      "state_block": "bottom_L",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 21
+    },
+    {
+      "max_abs_rate_per_h": 1083.5428891326178,
+      "max_abs_rate_per_s": 0.3009841358701716,
+      "max_relative_rate_per_s": 0.0011413964377306749,
+      "state_block": "top_L",
+      "worst_component_1based": 2,
+      "worst_component_name": "n-Butane",
+      "worst_stage_1based": 0
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "bottom_T_f",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 21
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "bottom_V",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 21
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "top_V",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 0
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "tray_EV_BTU",
+      "worst_component_1based": "",
+      "worst_component_name": "",
+      "worst_stage_1based": 1
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "tray_T_f",
+      "worst_component_1based": "",
+      "worst_component_name": "",
+      "worst_stage_1based": 1
+    }
+  ],
+  "clapeyron_model": "PR",
+  "debug_freeze_active_diag": 0.0,
+  "debug_freeze_tray_vapor_derivatives": false,
+  "debug_max_orig_dmVdt": 0.0,
+  "debug_max_orig_dmVdt_rel_per_s": 0.0,
+  "debug_override_reflux_composition": false,
+  "debug_reflux_comp2_delta": NaN,
+  "debug_reflux_orig_comp2": NaN,
+  "debug_reflux_overridden": 0.0,
+  "debug_reflux_target_comp2": NaN,
+  "debug_reflux_target_delta_max": 0.0,
+  "debug_reflux_target_stage": -1.0,
+  "debug_worst_v_comp": -1.0,
+  "debug_worst_v_stage": -1.0,
+  "diag_dM_total_dt_lbmolph": NaN,
+  "diag_global_mass_closure_error_lbmolph": NaN,
+  "equilibrium_relaxation": false,
+  "excel": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_boundary_window_trial2_20260601.xlsx",
+  "flash_feed_at_stage_conditions": false,
+  "gate_pass": false,
+  "include_boundary_states": true,
+  "include_energy": true,
+  "include_temperature": true,
+  "include_vapor_states": true,
+  "max_abs_rate_per_s": 1254.88577810252,
+  "max_abs_tray_total_rate_lbmolph": 2.823905603194593,
+  "max_relative_rate_per_s": 0.018797057101041622,
+  "pressure_model": "spec",
+  "relative_rate_gate": 0.0001,
+  "runtime_mode": "parity",
+  "scenario": "default",
+  "thermo_mode": "clapeyron",
+  "total_state_inventory_rate_lbmolph": -1.1305146382514044,
+  "tray_total_rate_gate_lbmolph": 1.0,
+  "use_excel_vapor_holdup": true,
+  "vapor_flow_model": "profile",
+  "vapor_holdup_relaxation_sec": null
+}

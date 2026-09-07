@@ -1,0 +1,10 @@
+DD-068 start: checkpoint
+  converged=False objective=0.49628408 violation=9.09648e-07
+DD-068 start: dd067
+  converged=False objective=2.5814852 violation=4.88371e-06
+DD-068 start: linear
+  converged=False objective=1.2290219 violation=0
+DD-068 start: random-small
+  converged=False objective=0.72371874 violation=0.53435
+DD-068 start: random-moderate
+  converged=True objective=0.49628408 violation=6.0579e-07

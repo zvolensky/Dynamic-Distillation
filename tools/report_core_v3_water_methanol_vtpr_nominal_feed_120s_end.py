@@ -28,6 +28,9 @@ DEFAULT_MATRIX = Path(
 DEFAULT_DOC = Path(
     "docs/core_v3_water_methanol_vtpr_nominal_feed_120s_end_summary_20260901.md"
 )
+DEFAULT_DOCX = Path(
+    "docs/core_v3_water_methanol_vtpr_nominal_feed_120s_end_summary_20260901.docx"
+)
 
 
 def _markdown(summary: dict) -> str:
@@ -59,10 +62,12 @@ def main() -> int:
     parser.add_argument("--json", type=Path, default=DEFAULT_JSON)
     parser.add_argument("--matrix", type=Path, default=DEFAULT_MATRIX)
     parser.add_argument("--doc", type=Path, default=DEFAULT_DOC)
+    parser.add_argument("--docx", type=Path, default=DEFAULT_DOCX)
     args = parser.parse_args()
     json_path = support.rooted(args.json)
     matrix_path = support.rooted(args.matrix)
     doc_path = support.rooted(args.doc)
+    docx_path = support.rooted(args.docx)
     report = json.loads(json_path.read_text(encoding="utf-8"))
     if not report.get("pass_gate") or report.get("feed_multiplier") != 1.0:
         raise RuntimeError("end summary requires the accepted nominal-feed run")
@@ -84,6 +89,13 @@ def main() -> int:
     json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     doc_path.parent.mkdir(parents=True, exist_ok=True)
     doc_path.write_text(_markdown(summary), encoding="utf-8")
+    support.write_core_v3_docx_report(
+        summary,
+        docx_path,
+        title="Core V3 Water-Methanol 120-second End Summary",
+        metadata=report,
+        trajectory=evidence,
+    )
     print(support.format_end_of_run_summary(summary), flush=True)
     return 0
 

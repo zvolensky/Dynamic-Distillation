@@ -1,0 +1,124 @@
+{
+  "block_summary": [
+    {
+      "max_abs_rate_per_h": 858.9229746309554,
+      "max_abs_rate_per_s": 0.2385897151752654,
+      "max_relative_rate_per_s": 0.041678271666777664,
+      "state_block": "tray_V",
+      "worst_component_1based": 2,
+      "worst_component_name": "n-Butane",
+      "worst_stage_1based": 2
+    },
+    {
+      "max_abs_rate_per_h": 49830424.89924061,
+      "max_abs_rate_per_s": 13841.784694233504,
+      "max_relative_rate_per_s": 0.041464754202584594,
+      "state_block": "tray_EL_BTU",
+      "worst_component_1based": "",
+      "worst_component_name": "",
+      "worst_stage_1based": 2
+    },
+    {
+      "max_abs_rate_per_h": 858.9249567742121,
+      "max_abs_rate_per_s": 0.23859026577061448,
+      "max_relative_rate_per_s": 0.02116641142910891,
+      "state_block": "tray_L",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 19
+    },
+    {
+      "max_abs_rate_per_h": 1.817293541027798,
+      "max_abs_rate_per_s": 0.0005048037613966105,
+      "max_relative_rate_per_s": 5.017277365342691e-06,
+      "state_block": "bottom_L",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 21
+    },
+    {
+      "max_abs_rate_per_h": 1.611473454676826e-08,
+      "max_abs_rate_per_s": 4.4763151518800726e-12,
+      "max_relative_rate_per_s": 3.390889237789435e-14,
+      "state_block": "top_L",
+      "worst_component_1based": 2,
+      "worst_component_name": "n-Butane",
+      "worst_stage_1based": 0
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "bottom_T_f",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 21
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "bottom_V",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 21
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "top_V",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 0
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "tray_EV_BTU",
+      "worst_component_1based": "",
+      "worst_component_name": "",
+      "worst_stage_1based": 1
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "tray_T_f",
+      "worst_component_1based": "",
+      "worst_component_name": "",
+      "worst_stage_1based": 1
+    }
+  ],
+  "clapeyron_model": "PR",
+  "debug_freeze_active_diag": 0.0,
+  "debug_freeze_tray_vapor_derivatives": false,
+  "debug_max_orig_dmVdt": 0.0,
+  "debug_max_orig_dmVdt_rel_per_s": 0.0,
+  "debug_worst_v_comp": -1.0,
+  "debug_worst_v_stage": -1.0,
+  "diag_dM_total_dt_lbmolph": NaN,
+  "diag_global_mass_closure_error_lbmolph": NaN,
+  "equilibrium_relaxation": false,
+  "excel": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_depropanizer_chemsep_warmer_feed_pr76_source_energy_reconciled_20260531.xlsx",
+  "flash_feed_at_stage_conditions": false,
+  "gate_pass": false,
+  "include_boundary_states": true,
+  "include_energy": true,
+  "include_temperature": true,
+  "include_vapor_states": true,
+  "max_abs_rate_per_s": 13841.784694233504,
+  "max_abs_tray_total_rate_lbmolph": 0.00555564900434069,
+  "max_relative_rate_per_s": 0.041678271666777664,
+  "pressure_model": "spec",
+  "relative_rate_gate": 0.0001,
+  "runtime_mode": "parity",
+  "scenario": "spec_profile_no_feed_flash",
+  "thermo_mode": "clapeyron",
+  "total_state_inventory_rate_lbmolph": 2.0777112154238622e-11,
+  "tray_total_rate_gate_lbmolph": 1.0,
+  "use_excel_vapor_holdup": true,
+  "vapor_flow_model": "profile",
+  "vapor_holdup_relaxation_sec": null
+}

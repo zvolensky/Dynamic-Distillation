@@ -1,0 +1,8 @@
+{
+  "classification": "dd073_continuation_stopped",
+  "accepted": false,
+  "final_stage": 0,
+  "final_scaled_inf_norm": 0.7001245277583251,
+  "wall_time_sec": 619.5317439999781,
+  "reason": "stage 1 local_closure stopped at lambda=0.6173584: solver_success=True; homotopy_inf=6.909e-04; rank=160/160; condition=9.556e+03; condition_growth_pass=False; conservation_pass=True; saturation=0"
+}

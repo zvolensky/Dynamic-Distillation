@@ -1,0 +1,460 @@
+{
+  "classification": "local_uv_passed_global_hydraulics_failed_or_unverified",
+  "decision": "Do not begin the production DAE rewrite. Local closure and global hydraulic closure are not yet both demonstrated under the strict gates.",
+  "thermo_mode": "dwsim",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx",
+  "checkpoint_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260717_111627.npz",
+  "checkpoint_run_id": "20260717_111627",
+  "checkpoint_time_s": 2400.000000000008,
+  "terminal_mapping_complete": true,
+  "terminal_coupling_complete": false,
+  "mapping_notes": [
+    "Interior tray totals and U are frozen; checkpoint liquid/vapor splits are guesses only.",
+    "Condenser stage, reflux drum, reboiler stage, and bottoms sump now have explicit inventory ownership and volume mappings.",
+    "An empty total-condenser stage is eliminated as an algebraic topology placeholder instead of assigning -P*V energy to an empty vessel.",
+    "Terminal inventory accounting includes 12.686165 lbmol in virtual terminal stages, top-vessel vapor=107.728968 lbmol, and bottom-vessel vapor=1e-08 lbmol.",
+    "The current simultaneous algebraic residual still couples liquid-only terminal nodes; terminal conserved nodes are not yet unknowns in that solve."
+  ],
+  "terminal_inventory": {
+    "accounting_complete": true,
+    "algebraic_coupling_complete": false,
+    "component_balance_abs_max_lbmol": 2.2737367544323206e-13,
+    "energy_balance_abs_BTU": 1.862645149230957e-09,
+    "checkpoint_total_components_lbmol": [
+      1856.5410375938702,
+      1456.3330229553603,
+      198.25802997864798
+    ],
+    "mapped_total_components_lbmol": [
+      1856.5410375938704,
+      1456.3330229553603,
+      198.25802997864798
+    ],
+    "checkpoint_total_internal_energy_BTU": -16038840.921680124,
+    "mapped_total_internal_energy_BTU": -16038840.921680126,
+    "expected_source_blocks": [
+      "tray_stage_1",
+      "top_boundary",
+      "tray_stage_N",
+      "bottom_boundary"
+    ],
+    "mapped_source_blocks": [
+      "bottom_boundary",
+      "top_boundary",
+      "tray_stage_1",
+      "tray_stage_N"
+    ],
+    "nodes": [
+      {
+        "node_id": "condenser_stage",
+        "topology_role": "eliminated_algebraic_total_condenser_stage",
+        "source_blocks": [
+          "tray_stage_1"
+        ],
+        "conserved": false,
+        "total_inventory_lbmol": 1.3185535562704156e-14,
+        "total_component_inventory_lbmol": [
+          1.239008895481672e-14,
+          7.771561172376071e-16,
+          1.8290490649830582e-17
+        ],
+        "total_internal_energy_BTU": 0.0,
+        "fixed_total_volume_ft3": 0.0,
+        "liquid_inventory_lbmol": 1.3185535562704156e-14,
+        "vapor_inventory_lbmol": 0.0,
+        "temperature_guess_F": 113.4320000051196,
+        "pressure_guess_psia": 223.11226945451506
+      },
+      {
+        "node_id": "reflux_drum",
+        "topology_role": "reflux_drum",
+        "source_blocks": [
+          "top_boundary"
+        ],
+        "conserved": true,
+        "total_inventory_lbmol": 1516.2690548890664,
+        "total_component_inventory_lbmol": [
+          1402.0066163056208,
+          114.12631185210478,
+          0.1361267313409928
+        ],
+        "total_internal_energy_BTU": -8591502.449106509,
+        "fixed_total_volume_ft3": 4330.14226723964,
+        "liquid_inventory_lbmol": 1408.5400872490711,
+        "vapor_inventory_lbmol": 107.7289676399954,
+        "temperature_guess_F": 113.4320000051196,
+        "pressure_guess_psia": 223.11226945451503
+      },
+      {
+        "node_id": "reboiler_stage",
+        "topology_role": "partial_reboiler_stage",
+        "source_blocks": [
+          "tray_stage_N"
+        ],
+        "conserved": true,
+        "total_inventory_lbmol": 12.686165011727462,
+        "total_component_inventory_lbmol": [
+          1.2481234048859589,
+          10.17800303086784,
+          1.2600385759736628
+        ],
+        "total_internal_energy_BTU": 20763.05828500983,
+        "fixed_total_volume_ft3": 291.9001062667717,
+        "liquid_inventory_lbmol": 0.0,
+        "vapor_inventory_lbmol": 12.686165011727462,
+        "temperature_guess_F": 218.69720801770302,
+        "pressure_guess_psia": 232.18431675245486
+      },
+      {
+        "node_id": "bottoms_sump",
+        "topology_role": "bottoms_sump",
+        "source_blocks": [
+          "bottom_boundary"
+        ],
+        "conserved": true,
+        "total_inventory_lbmol": 791.927222133847,
+        "total_component_inventory_lbmol": [
+          40.6391042577942,
+          618.8342807660898,
+          132.4538371099629
+        ],
+        "total_internal_energy_BTU": -3249924.0394377667,
+        "fixed_total_volume_ft3": 3113.6011335122303,
+        "liquid_inventory_lbmol": 791.927222123847,
+        "vapor_inventory_lbmol": 1.0000000000000002e-08,
+        "temperature_guess_F": 214.47078167540948,
+        "pressure_guess_psia": 232.18431675245486
+      }
+    ]
+  },
+  "terminal_closure": {
+    "converged": true,
+    "strict_gate_pass": false,
+    "component_relative_max": 2.039881400908624e-12,
+    "energy_relative_max": 1.0048047052457854e-13,
+    "volume_relative_max": 4.995131263113727e-12,
+    "equilibrium_beta_max": 1.743417910038403e-11,
+    "accepted_projection_count": 0,
+    "attempted_projection_count": 0,
+    "bottom_minus_top_pressure_psi": -13.947580854843721,
+    "pressure_ordering_pass": false,
+    "assemblies": [
+      {
+        "assembly_id": "top_terminal",
+        "source_node_ids": [
+          "condenser_stage",
+          "reflux_drum"
+        ],
+        "T_F": 114.83774865625567,
+        "P_psia": 213.56401185697567,
+        "beta_vapor": 0.06358003800854105,
+        "component_relative_residual": 2.039881400908624e-12,
+        "energy_relative_residual": 1.0048047052457854e-13,
+        "volume_relative_residual": 4.995131263113727e-12,
+        "equilibrium_beta_residual": 1.743417910038403e-11,
+        "accepted_projection_count": 0,
+        "attempted_projection_count": 0
+      },
+      {
+        "assembly_id": "bottom_terminal",
+        "source_node_ids": [
+          "reboiler_stage",
+          "bottoms_sump"
+        ],
+        "T_F": 205.23720011740085,
+        "P_psia": 199.61643100213195,
+        "beta_vapor": 0.08695881629385926,
+        "component_relative_residual": 7.393567632080591e-13,
+        "energy_relative_residual": 3.7165636883488574e-14,
+        "volume_relative_residual": 9.734884443888363e-13,
+        "equilibrium_beta_residual": 4.306777157125907e-12,
+        "accepted_projection_count": 0,
+        "attempted_projection_count": 0
+      }
+    ]
+  },
+  "local_closure": {
+    "converged": true,
+    "strict_gate_pass": false,
+    "component_relative_max": 5.780955548492112e-11,
+    "energy_relative_max": 4.7261889852530514e-12,
+    "volume_relative_max": 1.1507400881701866e-10,
+    "equilibrium_beta_max": 6.190165047215146e-11,
+    "negative_phase_count": 0,
+    "projection_count": 0,
+    "attempted_projection_count": 8,
+    "fugacity_residual_available": false,
+    "stages": [
+      {
+        "stage": 2,
+        "converged": true,
+        "iterations": 10,
+        "T_F": 162.73749443184278,
+        "P_psia": 321.8903728926258,
+        "beta_vapor": 0.7213629711143789,
+        "component_relative_residual": 9.930143830626618e-12,
+        "energy_relative_residual": 1.85587402190266e-14,
+        "volume_relative_residual": 2.182136039994444e-15,
+        "equilibrium_beta_residual": 4.27247126566499e-12,
+        "projection_count": 3,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 3,
+        "converged": true,
+        "iterations": 60,
+        "T_F": 172.4455872081895,
+        "P_psia": 320.54984348533446,
+        "beta_vapor": 0.3035759857881069,
+        "component_relative_residual": 6.573223664127838e-13,
+        "energy_relative_residual": 3.7423968121462843e-14,
+        "volume_relative_residual": 3.533477749289744e-13,
+        "equilibrium_beta_residual": 3.7719827261639693e-13,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 4,
+        "converged": true,
+        "iterations": 51,
+        "T_F": 179.39487171720296,
+        "P_psia": 309.7234462027316,
+        "beta_vapor": 0.2810377233729562,
+        "component_relative_residual": 1.1876790755288935e-13,
+        "energy_relative_residual": 5.192605325353473e-13,
+        "volume_relative_residual": 5.108052623250514e-12,
+        "equilibrium_beta_residual": 3.874678355941796e-12,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 5,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 184.70476575809673,
+        "P_psia": 299.92878123674194,
+        "beta_vapor": 0.2649535374488034,
+        "component_relative_residual": 1.6590190437182506e-11,
+        "energy_relative_residual": 3.294017705371076e-12,
+        "volume_relative_residual": 2.383371719520032e-11,
+        "equilibrium_beta_residual": 1.6968260130312274e-11,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 6,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 188.0382775867576,
+        "P_psia": 291.52141995557645,
+        "beta_vapor": 0.25492359343116144,
+        "component_relative_residual": 1.1417739341159137e-11,
+        "energy_relative_residual": 2.9767810347494738e-12,
+        "volume_relative_residual": 2.375602400511537e-11,
+        "equilibrium_beta_residual": 1.8193113682229978e-11,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 7,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 190.24073680800507,
+        "P_psia": 285.4717854863488,
+        "beta_vapor": 0.247946608158994,
+        "component_relative_residual": 8.013102913075185e-12,
+        "energy_relative_residual": 1.6841841873399082e-12,
+        "volume_relative_residual": 1.545167867267756e-11,
+        "equilibrium_beta_residual": 1.2338630117625371e-11,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 8,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 191.87313475339738,
+        "P_psia": 281.2634768272896,
+        "beta_vapor": 0.242744225706871,
+        "component_relative_residual": 6.180856709688027e-12,
+        "energy_relative_residual": 1.0273983955135484e-12,
+        "volume_relative_residual": 1.0612285228175872e-11,
+        "equilibrium_beta_residual": 3.807565374103206e-12,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 9,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 193.24179374476867,
+        "P_psia": 277.7386960455535,
+        "beta_vapor": 0.2380708520048653,
+        "component_relative_residual": 1.1862092421624313e-11,
+        "energy_relative_residual": 8.463248368527491e-13,
+        "volume_relative_residual": 9.104623750589137e-12,
+        "equilibrium_beta_residual": 1.2631645729399565e-11,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 10,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 194.69612177513278,
+        "P_psia": 274.2362052487724,
+        "beta_vapor": 0.23260470694928645,
+        "component_relative_residual": 1.2216237717070914e-11,
+        "energy_relative_residual": 5.918277098801544e-13,
+        "volume_relative_residual": 6.7415802054212134e-12,
+        "equilibrium_beta_residual": 1.2886997025063351e-11,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 11,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 196.3521668865644,
+        "P_psia": 270.11869724107277,
+        "beta_vapor": 0.2251118415544727,
+        "component_relative_residual": 7.51930113128408e-12,
+        "energy_relative_residual": 3.4212229251228024e-13,
+        "volume_relative_residual": 4.096207800648313e-12,
+        "equilibrium_beta_residual": 1.019659356948921e-11,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 12,
+        "converged": true,
+        "iterations": 4,
+        "T_F": 182.99318908631656,
+        "P_psia": 230.2948296775561,
+        "beta_vapor": 0.15077855905288368,
+        "component_relative_residual": 6.234347199338887e-12,
+        "energy_relative_residual": 4.706418561695381e-13,
+        "volume_relative_residual": 1.2524060858553838e-11,
+        "equilibrium_beta_residual": 9.054812455389083e-12,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 13,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 183.2775132027746,
+        "P_psia": 223.38136678980547,
+        "beta_vapor": 0.14809337512412357,
+        "component_relative_residual": 2.3491756094109107e-12,
+        "energy_relative_residual": 3.926723421059421e-12,
+        "volume_relative_residual": 7.726805249673945e-11,
+        "equilibrium_beta_residual": 8.701039888592277e-12,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 14,
+        "converged": true,
+        "iterations": 6,
+        "T_F": 184.63786317331355,
+        "P_psia": 217.87080188805425,
+        "beta_vapor": 0.14551773952127975,
+        "component_relative_residual": 2.6692404741059655e-12,
+        "energy_relative_residual": 1.821354857566249e-12,
+        "volume_relative_residual": 3.6371344660486154e-11,
+        "equilibrium_beta_residual": 3.0252189642254734e-12,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 15,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 186.21159966946172,
+        "P_psia": 212.12780628061589,
+        "beta_vapor": 0.14530681590325778,
+        "component_relative_residual": 1.0422155528750642e-12,
+        "energy_relative_residual": 2.191318684555732e-14,
+        "volume_relative_residual": 5.3600655263044876e-14,
+        "equilibrium_beta_residual": 6.716849298982197e-13,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 16,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 189.8811740227933,
+        "P_psia": 210.40239407659564,
+        "beta_vapor": 0.14252419056667703,
+        "component_relative_residual": 1.8823394875694908e-12,
+        "energy_relative_residual": 1.9993427490516112e-14,
+        "volume_relative_residual": 6.443304680066222e-14,
+        "equilibrium_beta_residual": 5.239697564718426e-13,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 17,
+        "converged": true,
+        "iterations": 9,
+        "T_F": 191.2619701350451,
+        "P_psia": 202.4665962982582,
+        "beta_vapor": 0.14309184280554751,
+        "component_relative_residual": 2.55795619380065e-11,
+        "energy_relative_residual": 6.703903060787178e-13,
+        "volume_relative_residual": 1.3906519418206849e-11,
+        "equilibrium_beta_residual": 2.600705761857114e-11,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 18,
+        "converged": true,
+        "iterations": 9,
+        "T_F": 198.29946103735386,
+        "P_psia": 208.6275025342519,
+        "beta_vapor": 0.09889309098569413,
+        "component_relative_residual": 3.495825841431713e-12,
+        "energy_relative_residual": 4.7261889852530514e-12,
+        "volume_relative_residual": 1.1507400881701866e-10,
+        "equilibrium_beta_residual": 4.984596069235181e-12,
+        "projection_count": 5,
+        "accepted_projection_count": 0
+      },
+      {
+        "stage": 19,
+        "converged": true,
+        "iterations": 5,
+        "T_F": 200.28040245190923,
+        "P_psia": 205.16057842694676,
+        "beta_vapor": 0.09381475324704441,
+        "component_relative_residual": 5.780955548492112e-11,
+        "energy_relative_residual": 1.253419593508761e-12,
+        "volume_relative_residual": 1.2087055719106095e-11,
+        "equilibrium_beta_residual": 6.190165047215146e-11,
+        "projection_count": 0,
+        "accepted_projection_count": 0
+      }
+    ]
+  },
+  "hydraulic_closure": {
+    "converged": false,
+    "failed": false,
+    "iterations": 12,
+    "strict_gate_pass": false,
+    "liquid_flow_scaled_residual": 1.0545431353958683,
+    "vapor_flow_scaled_residual": 6.815372534587078,
+    "pressure_drop_scaled_residual": 6.815372534587078,
+    "local_vs_global_pressure_max_psi": 86.77810343811075,
+    "active_liquid_limiter_count": 18,
+    "active_vapor_limiter_count": 18,
+    "projection_count": 5,
+    "attempted_projection_count": 29,
+    "perturbations_run": false,
+    "perturbation_pressure_spread_max_psi": null,
+    "perturbation_flow_relative_spread_max": null,
+    "perturbation_converged": []
+  }
+}

@@ -43,3 +43,8 @@ logs/_write_recheck_*.txt
 logs/*screen*.json
 logs/*screen*.png
 logs/thermo_table_vs_*.json
+
+# Local agent environments and bulky generated trajectories/archives
+.codex/
+logs/archive/
+logs/*trajectory*.json

@@ -1,0 +1,130 @@
+{
+  "audit_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\initialization_audits\\c3c4_initializer_profile_coeff_trial1_20260601",
+  "best_max_relative_rate_per_s_inprocess": 0.023805024454571826,
+  "best_objective_norm": 2.5874936269638495,
+  "blocks": [
+    [
+      "T",
+      0
+    ],
+    [
+      "T",
+      1
+    ],
+    [
+      "T",
+      2
+    ],
+    [
+      "X",
+      0
+    ],
+    [
+      "X",
+      1
+    ],
+    [
+      "X",
+      2
+    ],
+    [
+      "X",
+      3
+    ],
+    [
+      "X",
+      4
+    ],
+    [
+      "X",
+      5
+    ],
+    [
+      "X",
+      6
+    ],
+    [
+      "X",
+      7
+    ],
+    [
+      "X",
+      8
+    ],
+    [
+      "Y",
+      0
+    ],
+    [
+      "Y",
+      1
+    ],
+    [
+      "Y",
+      2
+    ],
+    [
+      "Y",
+      3
+    ],
+    [
+      "Y",
+      4
+    ],
+    [
+      "Y",
+      5
+    ],
+    [
+      "Y",
+      6
+    ],
+    [
+      "Y",
+      7
+    ],
+    [
+      "Y",
+      8
+    ],
+    [
+      "EL",
+      0
+    ],
+    [
+      "EL",
+      1
+    ],
+    [
+      "EL",
+      2
+    ],
+    [
+      "B",
+      0
+    ],
+    [
+      "QC",
+      0
+    ]
+  ],
+  "boilup_base_lbmolph": 8036.48438795388,
+  "boilup_opt_lbmolph": 8030.025322439712,
+  "condenser_duty_base_BTUph": -50449300.0,
+  "condenser_duty_opt_BTUph": -49988182.4365081,
+  "degree": 2,
+  "eval_count": 220,
+  "input": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_pf_closure_trial2_syncV_20260601.xlsx",
+  "least_squares_message": "The maximum number of function evaluations is exceeded.",
+  "least_squares_success": false,
+  "max_abs_curve_EL_rel": 0.12106442889205052,
+  "max_abs_curve_T_F": 4.4999999948804446,
+  "max_abs_curve_X_logit": 0.2399999999689975,
+  "max_abs_curve_Y_logit": 0.15277212796191947,
+  "max_abs_delta_T_F": 4.49999999488044,
+  "max_abs_delta_x": 0.0633417638066987,
+  "max_abs_delta_y": 0.036887168974919504,
+  "max_rel_delta_EL": 0.12106442889205052,
+  "n_variables": 26,
+  "output": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_profile_coeff_trial1_20260601.xlsx"
+}

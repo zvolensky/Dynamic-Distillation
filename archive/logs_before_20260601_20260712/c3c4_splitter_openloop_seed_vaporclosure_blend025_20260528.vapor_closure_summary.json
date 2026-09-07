@@ -1,0 +1,31 @@
+{
+  "blend": 0.25,
+  "input": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_seed_20260526.xlsx",
+  "max_abs_delta_y": 0.02135139573443312,
+  "max_abs_tray_V_rate_after_lbmolps": 0.24228863965133685,
+  "max_abs_tray_V_rate_before_lbmolps": 0.2381313013878894,
+  "max_inferred_sum_error": 0.033127856703150105,
+  "max_raw_negative_before_clip": 0.0,
+  "output": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_seed_vaporclosure_blend025_20260528.xlsx",
+  "updated_stages": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ]
+}

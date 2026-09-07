@@ -34,6 +34,13 @@ or erase a completed simulation.
 
 Use `--no-word-report` to suppress report generation for a particular run.
 
+Core V3 dynamic runs also generate a DOCX report after their JSON and trajectory
+artifacts are written. The Core V3 report uses the structured end-of-run summary
+and saved trajectory evidence to include operating results, final inventories
+and flows, provenance, configuration, and multi-panel dynamic trend charts.
+Report-generation failures are recorded in run metadata as
+`word_report_error` without changing the simulation result.
+
 ## Data Interpretation
 
 The report labels true geometry-based vessel levels as percent. If a loop uses

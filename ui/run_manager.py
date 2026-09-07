@@ -452,6 +452,12 @@ def build_launch_spec(
     core_v3_timestep_sec: Optional[float] = None,
     core_v3_log_every_n_steps: int = 4,
     core_v3_parallel_workers: int = 8,
+    core_v3_tray_flood_capacity_factor_ft_s: Optional[float] = None,
+    core_v3_tray_hydraulic_system_factor: Optional[float] = None,
+    core_v3_tray_flood_advisory_fraction: Optional[float] = None,
+    core_v3_tray_flood_high_loading_fraction: Optional[float] = None,
+    core_v3_tray_flood_predicted_fraction: Optional[float] = None,
+    core_v3_tray_flood_hard_stop_fraction: Optional[float] = None,
 ) -> SimulationLaunchSpec:
     settings = infer_simulation_settings(excel_path)
     mode = str(initialization_mode or "fresh").strip().lower().replace("_", "-")
@@ -514,6 +520,17 @@ def build_launch_spec(
         ]
         if run_description_clean:
             command.extend(["--run-description", run_description_clean])
+        hydraulic_options = (
+            ("--tray-flood-capacity-factor-ft-s", core_v3_tray_flood_capacity_factor_ft_s),
+            ("--tray-hydraulic-system-factor", core_v3_tray_hydraulic_system_factor),
+            ("--tray-flood-advisory-fraction", core_v3_tray_flood_advisory_fraction),
+            ("--tray-flood-high-loading-fraction", core_v3_tray_flood_high_loading_fraction),
+            ("--tray-flood-predicted-fraction", core_v3_tray_flood_predicted_fraction),
+            ("--tray-flood-hard-stop-fraction", core_v3_tray_flood_hard_stop_fraction),
+        )
+        for flag, value in hydraulic_options:
+            if value is not None:
+                command.extend([flag, str(float(value))])
         return SimulationLaunchSpec(
             excel_path=excel_path,
             initialization_mode=mode,
@@ -643,6 +660,12 @@ def build_launch_spec_from_cli(
             "--run-name",
             "--run-description",
             "--parallel-workers",
+            "--tray-flood-capacity-factor-ft-s",
+            "--tray-hydraulic-system-factor",
+            "--tray-flood-advisory-fraction",
+            "--tray-flood-high-loading-fraction",
+            "--tray-flood-predicted-fraction",
+            "--tray-flood-hard-stop-fraction",
         }
         for token in raw_argv:
             text = str(token or "").strip()
@@ -674,6 +697,10 @@ def build_launch_spec_from_cli(
         run_description = str(_find_last_option_value(raw_argv, "--run-description") or "")
         parallel_workers_text = _find_last_option_value(raw_argv, "--parallel-workers")
         parallel_workers = int(parallel_workers_text) if parallel_workers_text else 8
+        def _optional_float(flag: str) -> Optional[float]:
+            value = _find_last_option_value(raw_argv, flag)
+            return None if value is None else float(value)
+
         return build_launch_spec(
             excel_path=excel_path,
             initialization_mode="restart",
@@ -685,6 +712,24 @@ def build_launch_spec_from_cli(
             core_v3_timestep_sec=timestep,
             core_v3_log_every_n_steps=log_every,
             core_v3_parallel_workers=parallel_workers,
+            core_v3_tray_flood_capacity_factor_ft_s=_optional_float(
+                "--tray-flood-capacity-factor-ft-s"
+            ),
+            core_v3_tray_hydraulic_system_factor=_optional_float(
+                "--tray-hydraulic-system-factor"
+            ),
+            core_v3_tray_flood_advisory_fraction=_optional_float(
+                "--tray-flood-advisory-fraction"
+            ),
+            core_v3_tray_flood_high_loading_fraction=_optional_float(
+                "--tray-flood-high-loading-fraction"
+            ),
+            core_v3_tray_flood_predicted_fraction=_optional_float(
+                "--tray-flood-predicted-fraction"
+            ),
+            core_v3_tray_flood_hard_stop_fraction=_optional_float(
+                "--tray-flood-hard-stop-fraction"
+            ),
         )
     _validate_runner_argv(raw_argv)
     if _has_any_flag(raw_argv, "--no-write-logs", "--no-logs"):

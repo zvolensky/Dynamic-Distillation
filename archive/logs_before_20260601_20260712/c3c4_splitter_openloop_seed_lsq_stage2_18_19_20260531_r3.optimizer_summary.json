@@ -1,0 +1,44 @@
+{
+  "audit_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\initialization_audits\\c3c4_lsq_stage2_18_19_20260531_r3",
+  "best_max_relative_rate_per_s_inprocess": 0.03065784767147187,
+  "best_objective_norm": 0.07439316518846992,
+  "blocks": [
+    [
+      "L",
+      1
+    ],
+    [
+      "V",
+      1
+    ],
+    [
+      "L",
+      17
+    ],
+    [
+      "V",
+      17
+    ],
+    [
+      "L",
+      18
+    ],
+    [
+      "V",
+      18
+    ]
+  ],
+  "eval_count": 114,
+  "input": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_seed_20260526.xlsx",
+  "least_squares_message": "The maximum number of function evaluations is exceeded.",
+  "least_squares_success": false,
+  "max_abs_delta_x": 0.06659556628473953,
+  "max_abs_delta_y": 0.06954711311797701,
+  "n_variables": 18,
+  "output": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_splitter_openloop_seed_lsq_stage2_18_19_20260531_r3.xlsx",
+  "stages": [
+    2,
+    18,
+    19
+  ]
+}

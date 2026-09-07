@@ -1,0 +1,106 @@
+{
+  "block_summary": [
+    {
+      "max_abs_rate_per_h": 737.4247545203906,
+      "max_abs_rate_per_s": 0.2048402095889974,
+      "max_relative_rate_per_s": 0.024411194206954243,
+      "state_block": "tray_L",
+      "worst_component_1based": 3,
+      "worst_component_name": "n-Pentane",
+      "worst_stage_1based": 2
+    },
+    {
+      "max_abs_rate_per_h": 708.5685673794284,
+      "max_abs_rate_per_s": 0.1968246020498412,
+      "max_relative_rate_per_s": 0.019521622281570655,
+      "state_block": "tray_V",
+      "worst_component_1based": 3,
+      "worst_component_name": "n-Pentane",
+      "worst_stage_1based": 19
+    },
+    {
+      "max_abs_rate_per_h": 184.21367723339546,
+      "max_abs_rate_per_s": 0.0511704658981654,
+      "max_relative_rate_per_s": 0.00046520951964844316,
+      "state_block": "bottom_L",
+      "worst_component_1based": 3,
+      "worst_component_name": "n-Pentane",
+      "worst_stage_1based": 21
+    },
+    {
+      "max_abs_rate_per_h": 5.2925222604471855e-05,
+      "max_abs_rate_per_s": 1.4701450723464404e-08,
+      "max_relative_rate_per_s": 6.996446988265285e-11,
+      "state_block": "top_L",
+      "worst_component_1based": 3,
+      "worst_component_name": "n-Pentane",
+      "worst_stage_1based": 0
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "bottom_T_f",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 21
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "bottom_V",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 21
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "top_V",
+      "worst_component_1based": 1,
+      "worst_component_name": "n-Propane",
+      "worst_stage_1based": 0
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "tray_T_f",
+      "worst_component_1based": "",
+      "worst_component_name": "",
+      "worst_stage_1based": 1
+    }
+  ],
+  "clapeyron_model": "PR",
+  "debug_freeze_active_diag": 0.0,
+  "debug_freeze_tray_vapor_derivatives": false,
+  "debug_max_orig_dmVdt": 0.0,
+  "debug_max_orig_dmVdt_rel_per_s": 0.0,
+  "debug_worst_v_comp": -1.0,
+  "debug_worst_v_stage": -1.0,
+  "diag_dM_total_dt_lbmolph": NaN,
+  "diag_global_mass_closure_error_lbmolph": NaN,
+  "equilibrium_relaxation": false,
+  "excel": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_iterative_coupled_closure_20260531\\c3c4_coupled_iter03_blend0.0781.xlsx",
+  "flash_feed_at_stage_conditions": false,
+  "gate_pass": false,
+  "include_boundary_states": true,
+  "include_energy": false,
+  "include_temperature": true,
+  "include_vapor_states": true,
+  "max_abs_rate_per_s": 0.2048402095889974,
+  "max_abs_tray_total_rate_lbmolph": 0.08999999999869113,
+  "max_relative_rate_per_s": 0.024411194206954243,
+  "pressure_model": "spec",
+  "relative_rate_gate": 0.0001,
+  "runtime_mode": "parity",
+  "scenario": "default",
+  "thermo_mode": "clapeyron",
+  "total_state_inventory_rate_lbmolph": 0.004000000001650295,
+  "tray_total_rate_gate_lbmolph": 1.0,
+  "use_excel_vapor_holdup": true,
+  "vapor_flow_model": "profile",
+  "vapor_holdup_relaxation_sec": null
+}

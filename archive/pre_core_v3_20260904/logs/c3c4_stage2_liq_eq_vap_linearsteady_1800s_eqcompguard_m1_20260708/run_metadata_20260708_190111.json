@@ -1,0 +1,228 @@
+{
+  "run_id": "20260708_190111",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 3808,
+  "started_at_local": "2026-07-08 19:01:11",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx",
+  "logs_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_liq_eq_vap_linearsteady_1800s_eqcompguard_m1_20260708",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "clapeyron",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 1,
+  "n_steps": 9000,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_liq_eq_vap_linearsteady_1800s_eqcompguard_m1_20260708\\column_profile_20260708_190111.csv",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_liq_eq_vap_linearsteady_1800s_eqcompguard_m1_20260708\\column_summary_20260708_190111.csv",
+  "runtime_control_json": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_liq_eq_vap_linearsteady_1800s_eqcompguard_m1_20260708\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_liq_eq_vap_linearsteady_1800s_eqcompguard_m1_20260708\\startup_trace_20260708_185911.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 71.77934049999749,
+    "equilibrium_relaxation_backend_build": 0.002918800004408695,
+    "francis_autocalibration": 1.5999990864656866e-05
+  },
+  "startup_build_info": {},
+  "init_pack_top_drum_vapor": {
+    "enabled": false,
+    "applied": false,
+    "target_pressure_psia": NaN,
+    "raw_pressure_initial_psia": NaN,
+    "raw_pressure_final_psia": NaN,
+    "top_vapor_initial_lbmol": NaN,
+    "top_vapor_final_lbmol": NaN,
+    "scale_factor": NaN,
+    "reason": "disabled"
+  },
+  "init_match_condenser_duty": {
+    "enabled": false,
+    "applied": false,
+    "q_calc_BTUph": NaN,
+    "top_pressure_sp_psia": NaN,
+    "reason": "disabled"
+  },
+  "init_align_top_liquid_to_condensate": {
+    "enabled": true,
+    "applied": true,
+    "blend": 1.0,
+    "top_L_total_lbmol": 1388.9000000000005,
+    "condensate_total_lbmolph": 8442.394946072436,
+    "max_composition_delta": 0.054882480293147795,
+    "reason": "applied"
+  },
+  "init_align_tray_liquid_to_equilibrium": {
+    "enabled": true,
+    "applied": true,
+    "blend": 1.0,
+    "max_composition_delta": 1.4061674047383121e-10,
+    "max_interior_composition_delta": 1.4061674047383121e-10,
+    "max_K_state_over_K_eq_abs_log_before": 0.713738724433032,
+    "max_K_state_over_K_eq_abs_log_after": 0.7137387243429776,
+    "energy_repacked": true,
+    "scope": "interior",
+    "reason": "applied"
+  },
+  "init_align_tray_vapor_to_equilibrium": {
+    "enabled": false,
+    "applied": false,
+    "blend": NaN,
+    "max_composition_delta": NaN,
+    "max_interior_composition_delta": NaN,
+    "max_K_state_over_K_eq_abs_log_before": NaN,
+    "max_K_state_over_K_eq_abs_log_after": NaN,
+    "energy_repacked": false,
+    "reason": "disabled"
+  },
+  "init_align_tray_vapor_to_linear_steady": {
+    "enabled": true,
+    "applied": true,
+    "blend": 1.0,
+    "scope": "interior",
+    "max_composition_delta": 0.00792662467784555,
+    "max_interior_composition_delta": 0.00792662467784555,
+    "max_y_linear_steady_minus_y_target": 0.00792662460408855,
+    "energy_repacked": true,
+    "reason": "applied"
+  },
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 55,
+      "liquid_density_requests": 55,
+      "liquid_density_wall_sec": 0.002212299994425848,
+      "liquid_density_cache_hits": 265
+    },
+    "reboiler_equilibrium_helper_flash": {
+      "flash_cache_misses": 3,
+      "flash_requests": 3,
+      "backend_flash_equivalents": 3,
+      "wall_sec": 23.468052200012607,
+      "cp_requests": 3,
+      "cp_wall_sec": 2.7407857999933185,
+      "flash_cache_hits": 13
+    },
+    "main_tray_refresh": {
+      "batch_flash_requests": 9016,
+      "batch_flash_rows": 180320,
+      "flash_cache_misses": 162074,
+      "flash_requests": 162074,
+      "backend_flash_equivalents": 162074,
+      "wall_sec": 14.219992202255526,
+      "cp_requests": 162074,
+      "cp_wall_sec": 9.200562001336948,
+      "flash_cache_hits": 18246
+    },
+    "uncategorized": {
+      "flash_cache_hits": 154403,
+      "liquid_density_cache_hits": 2
+    },
+    "energy_vapor_flow_enthalpy_refresh": {
+      "batch_flash_requests": 18032,
+      "batch_flash_rows": 305484,
+      "flash_cache_hits": 15811,
+      "flash_cache_misses": 298714,
+      "flash_requests": 298714,
+      "backend_flash_equivalents": 298714,
+      "wall_sec": 31.168473200450535,
+      "cp_requests": 297048,
+      "cp_wall_sec": 15.370511900779093
+    },
+    "top_reflux_liquid_enthalpy": {
+      "flash_cache_misses": 13438,
+      "flash_requests": 13438,
+      "backend_flash_equivalents": 13438,
+      "wall_sec": 1.2181479007849703,
+      "cp_requests": 13330,
+      "cp_wall_sec": 0.7038331995136105,
+      "flash_cache_hits": 4594
+    },
+    "top_drum_liquid_density_lookup": {
+      "liquid_density_cache_misses": 2,
+      "liquid_density_requests": 2,
+      "liquid_density_wall_sec": 0.00014730001566931605,
+      "liquid_density_cache_hits": 14
+    },
+    "condenser_duty_reuse_diag": {
+      "full_packet_misses": 2150,
+      "bubble_state_miss_no_packet": 31,
+      "fresh_solves": 2150,
+      "bubble_state_hits": 2119,
+      "full_packet_hits": 6881
+    },
+    "condenser_duty_bubble_point_helper_flash": {
+      "flash_cache_misses": 120,
+      "flash_requests": 120,
+      "backend_flash_equivalents": 120,
+      "wall_sec": 15.457761899917386,
+      "cp_requests": 120,
+      "cp_wall_sec": 0.010941799977445044,
+      "flash_cache_hits": 810
+    },
+    "condenser_duty_helper_flash": {
+      "flash_cache_misses": 15814,
+      "flash_requests": 15814,
+      "backend_flash_equivalents": 15814,
+      "wall_sec": 1.3353032004379202,
+      "cp_requests": 15814,
+      "cp_wall_sec": 1.0184577004838502,
+      "flash_cache_hits": 16451
+    },
+    "temperature_state_enthalpy_refresh": {
+      "flash_cache_misses": 4815,
+      "flash_requests": 4815,
+      "backend_flash_equivalents": 4815,
+      "wall_sec": 0.4841980000055628,
+      "cp_requests": 3982,
+      "cp_wall_sec": 0.23200980019464623,
+      "flash_cache_hits": 5034
+    },
+    "temperature_state_cp_lookup": {
+      "flash_cache_hits": 278,
+      "flash_cache_misses": 4561,
+      "flash_requests": 4561,
+      "backend_flash_equivalents": 4561,
+      "wall_sec": 0.3430558999389177,
+      "cp_requests": 4561,
+      "cp_wall_sec": 0.18729450007958803
+    },
+    "bottom_sump_cp_lookup": {
+      "flash_cache_misses": 8704,
+      "flash_requests": 8704,
+      "backend_flash_equivalents": 8704,
+      "wall_sec": 0.995639100423432,
+      "cp_requests": 8704,
+      "cp_wall_sec": 0.4805822998750955,
+      "flash_cache_hits": 15
+    },
+    "equilibrium_relaxation_flash": {
+      "flash_requests": 260,
+      "backend_flash_equivalents": 260
+    }
+  },
+  "ended_at_local": "2026-07-08 19:07:09",
+  "elapsed_wall_sec": 358.02315100000123,
+  "final_time_s": 1800.0000000002722,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_liq_eq_vap_linearsteady_1800s_eqcompguard_m1_20260708\\c3c4_initializer_residual_vapor_state_stage2_20260706__restart_20260708_190111.xlsx",
+  "restart_export_error": "",
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_liq_eq_vap_linearsteady_1800s_eqcompguard_m1_20260708\\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260708_190111.npz",
+  "native_checkpoint_export_error": "",
+  "native_checkpoint_init": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "reason": "disabled",
+    "schema": "",
+    "source_run_id": "",
+    "source_final_time_s": NaN,
+    "restored_memory_keys": []
+  }
+}

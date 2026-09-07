@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 import json
 from pathlib import Path
+import subprocess
 import sys
 from typing import Any, Callable, Mapping
 
@@ -791,3 +792,29 @@ def build_trajectory_end_summary(
     )
     provider_report = compact_provider_report(audit.report())
     return summary, provider_report, audit.record_count
+
+
+def write_core_v3_docx_report(
+    summary: Mapping[str, Any],
+    output_path: Path,
+    *,
+    title: str,
+    metadata: Mapping[str, Any] | None = None,
+    trajectory: Mapping[str, Any] | None = None,
+) -> Path:
+    """Write the human-readable DOCX companion to a Core V3 summary."""
+    if isinstance(metadata, dict):
+        metadata.setdefault(
+            "launch_command",
+            subprocess.list2cmdline([sys.executable, *sys.argv]),
+        )
+    from dynamic_distillation.run_report_v1 import generate_core_v3_run_report
+
+    generate_core_v3_run_report(
+        summary,
+        output_path=rooted(output_path),
+        title=title,
+        metadata=metadata,
+        trajectory=trajectory,
+    )
+    return rooted(output_path)

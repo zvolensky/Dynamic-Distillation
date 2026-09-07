@@ -1,0 +1,7 @@
+{
+  "best_metric": 0.02644452591291279,
+  "best_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_iterative_coupled_closure_continue_20260531\\c3c4_coupled_cont_iter01_blend0.0250.xlsx",
+  "input": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_iterative_coupled_closure_20260531\\c3c4_coupled_iter03_blend0.0781.xlsx",
+  "iterations_run": 3,
+  "ledger": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_iterative_coupled_closure_continue_20260531\\iteration_summary.csv"
+}

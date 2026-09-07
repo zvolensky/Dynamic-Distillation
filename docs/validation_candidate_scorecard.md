@@ -1,6 +1,6 @@
 # Validation Candidate Scorecard
 
-Updated: 2026-05-26
+Updated: 2026-09-02
 
 Purpose: keep validation-source selection disciplined. A candidate is useful only if it can be reproduced from published/source data and can test model physics that the current implementation actually represents.
 
@@ -8,33 +8,39 @@ Purpose: keep validation-source selection disciplined. A candidate is useful onl
 
 | Tier | Role | Acceptance Standard | Current Status |
 |---|---|---|---|
-| Tier 1 | Source-topology/material-balance validation | Reproduce a documented or source-code reference case within stated numeric tolerances. | Accepted for Skogestad Column A constant-relative-volatility case. |
-| Tier 2 | Richer model-physics development benchmark | Exercise energy states, vapor holdup, liquid hydraulics, pressure behavior, and controls where applicable; comparison may be qualitative/digitized if the source lacks tables. | Pending. Candidate sources identified, none accepted. |
+| Tier 1 | Source-equation/topology regression | Reproduce a documented or source-code reference case within stated numeric tolerances, without implying component or thermodynamic validation. | Accepted for the abstract Skogestad Column A constant-relative-volatility equations only. |
+| Tier 2 | Richer model-physics development benchmark | Exercise energy states, vapor holdup, liquid hydraulics, pressure behavior, and controls where applicable; comparison may be qualitative/digitized if the source lacks tables. | Model capability is now demonstrated internally by the accepted Core V3 vapor-holdup/pressure trajectory, but no external literature benchmark is accepted yet. |
 | Tier 3 | Real-chemical/experimental validation | Compare against published experimental or plant data with named components, operating conditions, and dynamic response data. | Pending. |
 
 ## Acceptance Policy
 
 `steady_state_flag` and `steady_state_score` are diagnostics, not validation acceptance criteria by themselves. A validation case is accepted only when the run is compared with an external/source reference or with explicit case-specific KPI tolerances.
 
-The Skogestad Tier 1 workflow is the current accepted pattern: use source-equivalent topology and product draws, confirm a steady/source-equivalent baseline, then compare steady profiles and dynamic disturbance response against the source equations. Future Tier 2 and Tier 3 cases should keep the same distinction between numerical steadiness and source agreement.
+The Skogestad workflow is the current accepted source-equation regression pattern: use source-equivalent topology and product draws, confirm a steady/source-equivalent baseline, then compare steady profiles and dynamic disturbance response against the source equations. Because its components are abstract and defined only through relative volatility, it is not component-level, thermodynamic, or plant validation. Future Tier 2 and Tier 3 cases should keep the same distinction between numerical steadiness, source agreement, and physical validation.
+
+## Current Model Capability Baseline
+
+The model has advanced since the previous scorecard revision. The accepted Core V3 baseline now includes explicit liquid and vapor component inventories, total two-phase energy storage, EOS pressure closure, pressure-drop equations, Francis liquid hydraulics, and geometry-based terminal level control. The current accepted evidence is a bounded 20-volume C3/C4 hydrocarbon case with a stationary root and a 30-second pressure-dynamic trajectory; see `docs/dynamic_model_current_state_2026-08-20.md` and DD-274.
+
+This changes the screening question for literature candidates: explicit vapor holdup, pressure dynamics, energy, and terminal control are now represented by the model, but they still require external comparison. It does not promote any candidate to validation, and it does not make a source profile with different topology or thermodynamic ownership directly interchangeable with Core V3.
 
 ## Candidate Summary
 
 | Candidate | System | Source Type | Dynamic Data | Thermo Burden | Physics Fit | Reproducibility | Recommended Use |
 |---|---|---|---|---|---|---|---|
-| Skogestad Column A (`cola.dat` / `colamod.m`) | Hypothetical binary, alpha = 1.5 | Public source equations/data | Yes, by direct source translation | Constant relative volatility | Excellent for material balance and liquid-holdup dynamics; excludes energy, vapor holdup, named chemicals, density, and controllers | High | Accepted Tier 1 baseline. |
+| Skogestad Column A (`cola.dat` / `colamod.m`) | Abstract binary, alpha = 1.5; components not specified | Public source equations/data | Yes, by direct source translation | Constant relative volatility | Excellent for source-equation material balance and liquid-holdup dynamics; excludes component identity, real thermo, energy, vapor holdup, density, and controllers | High for the abstract equations | Accepted source-equation regression only; not component or thermodynamic validation. |
 | Gani/Ruiz/Cameron industrial debutanizer via ChemSep seed | 1,3-butadiene / isobutene / n-pentane / 1-pentene / 1-hexene / benzene | ChemSep steady-state reconstruction from literature-derived case data | Not yet accepted | ChemSep PR for source parity; Clapeyron PR mismatch under separate model-topology attempt | Useful real-component material-balance parity check when source topology is matched; not yet valid for explicit drum/sump, vapor holdup, energy, or hydraulics | Medium | Accepted only as a narrow source-topology material-balance parity check; full rigorous validation remains open under `DD-030`. |
 | Relative-volatility 30-stage internal case | N-butane / n-pentane labels with constant alpha | Internal synthetic case | Internal only | Constant relative volatility | Good capability scaffold for energy states and vapor inventory; not external validation | High internally | Fast regression/capability probe only. |
 | Wittgens & Skogestad 2000 experimental column | Ethanol / butanol | Experimental + model paper | Yes, mostly plots | UNIFAC/NRTL likely needed for temperature-response validation | Strong tray-hydraulic/holdup fit; includes real column behavior | Medium; chart digitization and thermo setup required | Tier 3 candidate after runtime strategy is acceptable. |
 | Kooijman 1995 dynamic nonequilibrium thesis | BTX design case; extractive n-heptane/toluene/phenol; acetone/water absorber; debutanizer/depropanizer examples | Simulation thesis | Yes, plots | Mixed; BTX uses UNIFAC + Antoine + PR vapor; other cases use UNIQUAC/NRTL/DECHEMA models | Strong for model-physics exploration; includes tray design, pressure drop, holdup variants, vapor holdup effects, and energy/nonequilibrium dynamics | Medium for development benchmark; low for validation because no experimental dynamic comparison was carried out | Tier 2 literature benchmark only; not Tier 3 validation. |
-| Hoffmann et al. 2020 pressure-driven model | Benzene / toluene | Simulation benchmark/model paper | Yes, plots | Light; ideal/Raoult-style benzene-toluene | Strong for energy, pressure-driven vapor/liquid flow, vapor holdup, and tray hydraulics; startup/shutdown focus is a mismatch for current dry-tray capability | Medium | Tier 2 development benchmark only if initialized as an already-wet operating disturbance or if dry-start logic is added. |
+| Hoffmann et al. 2020 pressure-driven model | Benzene / toluene | Simulation benchmark/model paper | Yes, plots | Light; ideal/Raoult-style benzene-toluene | Strong fit for the now-implemented energy, pressure-driven flow, vapor-holdup, and tray-hydraulic capabilities; startup/shutdown focus still requires an already-wet comparison or separate dry-start treatment | Medium | Highest-priority Tier 2 literature candidate for an already-wet disturbance benchmark; not validation-ready until source details are reproduced. |
 | Choe & Luyben 1987 rigorous dynamic models | Reported examples include xylene/toluene vacuum-column behavior in later citations | Simulation/model paper | Likely, but full article inspection needed | Light for xylene/toluene if Raoult/Antoine | Conceptually strong for vapor holdup and pressure dynamics | Unknown until full article is inspected | Keep searching; promising but not validation-ready. |
 | Yiu, Carling & Wood 1990 depropanizer | Light hydrocarbons | Dynamic/control study | Likely plots | PR/SRK or hydrocarbon K-values | Good operating disturbance/control fit; thermo and details may be heavier | Unknown until full article is inspected | Secondary candidate if sufficient case details are available. |
 | Kender et al. 2018 ASU pressure-driven model | N2 / O2 / Ar | Simulation/model paper | Startup plots | Cryogenic thermo; not necessarily simple ideal | Strong pressure/energy/holdup concepts; startup-focused and industrial double-column complexity | Low to medium | Conceptual reference, not near-term validation. |
 
-## Current Accepted Baselines
+## Current Accepted Regression Baselines
 
-### Skogestad Column A, steady profile
+### Skogestad Column A, abstract steady profile
 
 - Accepted run: `logs/validation_skogestad_column_a_rv_source_topology_productdraw_300s/column_summary_20260524_214800.csv`
 - Source-equivalent run requirements:
@@ -44,7 +50,7 @@ The Skogestad Tier 1 workflow is the current accepted pattern: use source-equiva
   - source-equivalent product draws (`D*xD`, `B*xB`), not fixed product component mole flows
 - Comparison result: source `x/y` profiles matched to numerical precision (`max_abs_x_error` and `max_abs_y_error` about `8e-13`).
 
-### Skogestad Column A, +1% feed-rate disturbance
+### Skogestad Column A, abstract +1% feed-rate disturbance
 
 - Accepted profile: `logs/validation_skogestad_column_a_rv_feed_F101_500min_linearL_productdraw/column_profile_20260524_215349.csv`
 - Comparison reference: direct Python translation of Skogestad `colamod.m`.

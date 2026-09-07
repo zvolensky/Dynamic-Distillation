@@ -1,6 +1,10 @@
 # Initializer Implementation Guide
 
-Updated: 2026-07-17
+Updated: 2026-09-02
+
+For the concise operator workflow from ChemSep output through Excel input,
+steady-state qualification, and dynamic operation, see
+[`new_simulation_workflow_chemsep_to_dynamic.md`](new_simulation_workflow_chemsep_to_dynamic.md).
 
 Current model status: `docs/dynamic_model_current_state_2026-08-20.md`.
 

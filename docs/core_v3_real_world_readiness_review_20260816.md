@@ -46,7 +46,7 @@ This means the right characterization is no longer "fixed-pressure, no vapor hol
 
 The model remains limited in important ways:
 
-- The accepted dynamic evidence covers only a 30-second pressure-dynamic window.
+- The accepted dynamic evidence covers a 30-second pressure-dynamic window. This is the scope of the accepted evidence, not a restriction on running the model longer. Longer runs are allowed and can provide useful engineering results, but they must be assessed with duration-specific drift, conservation, physicality, refinement, provider, and performance gates; they are not automatically covered by the 30-second claim.
 - No pressure controller has been designed, tuned, or accepted on this vapor-holdup model.
 - No disturbance-response benchmark has been accepted after pressure release.
 - Long-horizon drift, settling, and controller interaction remain open.

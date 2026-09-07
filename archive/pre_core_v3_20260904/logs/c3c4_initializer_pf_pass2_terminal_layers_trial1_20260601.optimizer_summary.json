@@ -1,0 +1,173 @@
+{
+  "audit_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\initialization_audits\\c3c4_initializer_pf_pass2_terminal_layers_trial1_20260601",
+  "best_max_relative_rate_per_s_inprocess": 0.021981155229071285,
+  "best_objective_norm": 0.04422230052858477,
+  "blocks": [
+    [
+      "L",
+      0
+    ],
+    [
+      "L",
+      1
+    ],
+    [
+      "V",
+      1
+    ],
+    [
+      "L",
+      2
+    ],
+    [
+      "V",
+      2
+    ],
+    [
+      "L",
+      17
+    ],
+    [
+      "V",
+      17
+    ],
+    [
+      "L",
+      18
+    ],
+    [
+      "V",
+      18
+    ],
+    [
+      "L",
+      19
+    ],
+    [
+      "V",
+      19
+    ]
+  ],
+  "boundary_base_lbmolph": {
+    "boilup": 8036.48438795388,
+    "bottoms": 4761.984863193356,
+    "distillate": 2386.929084677035,
+    "reflux": 5967.322711692588
+  },
+  "boundary_blocks": [
+    "boilup"
+  ],
+  "boundary_opt_lbmolph": {
+    "boilup": 8005.5790005967065,
+    "bottoms": 4761.984863193356,
+    "condenser_duty_btu_per_h": -50449300.0,
+    "distillate": 2386.929084677035,
+    "reflux": 5967.322711692588
+  },
+  "chemsep_product_specs": false,
+  "condenser_duty_base_BTUph": -50449300.0,
+  "condenser_duty_mode": "specified",
+  "condenser_duty_opt_BTUph": -50449300.0,
+  "energy_blocks": [
+    [
+      "EL",
+      0
+    ],
+    [
+      "EL",
+      1
+    ],
+    [
+      "EV",
+      1
+    ],
+    [
+      "EL",
+      2
+    ],
+    [
+      "EV",
+      2
+    ],
+    [
+      "EL",
+      17
+    ],
+    [
+      "EV",
+      17
+    ],
+    [
+      "EL",
+      18
+    ],
+    [
+      "EV",
+      18
+    ],
+    [
+      "EL",
+      19
+    ],
+    [
+      "EV",
+      19
+    ]
+  ],
+  "energy_residual_blocks": [
+    "tray_EL_BTU"
+  ],
+  "eval_count": 414,
+  "feed_temperature_base_F": 174.9992,
+  "feed_temperature_opt_F": null,
+  "feed_vapor_fraction_base": 0.0,
+  "feed_vapor_fraction_opt": 0.0,
+  "flow_blocks": [],
+  "input": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_pf_closure_trial2_syncV_20260601.xlsx",
+  "least_squares_message": "`gtol` termination condition is satisfied.",
+  "least_squares_success": true,
+  "max_abs_delta_top_L_x": 0.0,
+  "max_abs_delta_top_V_y": 0.0,
+  "max_abs_delta_x": 0.045062454508089544,
+  "max_abs_delta_y": 0.034816432511893064,
+  "max_rel_delta_L_flow": 0.0,
+  "max_rel_delta_V_flow": 0.0,
+  "max_rel_delta_boundary_flow": 0.003845635213763223,
+  "max_rel_delta_tray_EL": 0.15,
+  "max_rel_delta_tray_EV": 0.0,
+  "n_boundary_variables": 1,
+  "n_composition_variables": 33,
+  "n_condenser_duty_variables": 0,
+  "n_energy_variables": 11,
+  "n_feed_temperature_variables": 0,
+  "n_feed_vapor_fraction_variables": 0,
+  "n_flow_variables": 0,
+  "n_top_composition_variables": 0,
+  "n_top_vapor_total_variables": 0,
+  "n_variables": 45,
+  "output": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_pf_pass2_terminal_layers_trial1_20260601.xlsx",
+  "reflux_ratio": null,
+  "rel_delta_condenser_duty": 0.0,
+  "rel_delta_top_V_total": 0.0,
+  "residual_stages": [
+    1,
+    2,
+    3,
+    18,
+    19,
+    20
+  ],
+  "stages": [
+    1,
+    2,
+    3,
+    18,
+    19,
+    20
+  ],
+  "state_residual_blocks": [
+    "tray_L",
+    "tray_V"
+  ],
+  "top_comp_blocks": []
+}

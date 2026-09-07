@@ -1,0 +1,143 @@
+{
+  "run_id": "20260601_211851",
+  "run_name": "c3c4_topanchor_60s_freeze_serialization_gate_20260602",
+  "run_description": "",
+  "status": "completed",
+  "pid": 16364,
+  "started_at_local": "2026-06-01 21:18:51",
+  "excel_path": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_profile_coeff_trial1_20260601.xlsx",
+  "logs_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "clapeyron",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 1,
+  "n_steps": 300,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\column_profile_20260601_211851.csv",
+  "summary_csv": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\column_summary_20260601_211851.csv",
+  "runtime_control_json": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\startup_trace_c3c4_topanchor_60s_freeze_serialization_gate_20260602.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 0.003421099994739052,
+    "equilibrium_relaxation_backend_build": 0.002753800006757956,
+    "francis_autocalibration": 2.269999822601676e-05
+  },
+  "startup_build_info": {},
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "feed_stage_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 25.32606189999933,
+      "cp_requests": 1,
+      "cp_wall_sec": 1.7979774000050384
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 20,
+      "liquid_density_requests": 20,
+      "liquid_density_wall_sec": 0.0008041000037337653
+    },
+    "reboiler_equilibrium_helper_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 0.00016379999578930438,
+      "cp_requests": 1,
+      "cp_wall_sec": 8.140000136336312e-05
+    },
+    "main_tray_refresh": {
+      "batch_flash_requests": 301,
+      "batch_flash_rows": 6020,
+      "flash_cache_misses": 5420,
+      "flash_requests": 5420,
+      "backend_flash_equivalents": 5420,
+      "wall_sec": 0.42125230022065807,
+      "cp_requests": 5420,
+      "cp_wall_sec": 0.34160819993849145,
+      "flash_cache_hits": 600,
+      "flash_cache_evictions": 5334
+    },
+    "energy_vapor_flow_enthalpy_refresh": {
+      "batch_flash_requests": 602,
+      "batch_flash_rows": 5437,
+      "flash_cache_hits": 35,
+      "flash_cache_misses": 5101,
+      "flash_requests": 5101,
+      "backend_flash_equivalents": 5101,
+      "wall_sec": 0.3512259998169611,
+      "cp_requests": 5101,
+      "cp_wall_sec": 0.268163299675507,
+      "flash_cache_evictions": 5020
+    },
+    "top_drum_liquid_density_lookup": {
+      "liquid_density_cache_misses": 1,
+      "liquid_density_requests": 1,
+      "liquid_density_wall_sec": 0.00013690000196220353
+    },
+    "condenser_duty_reuse_diag": {
+      "full_packet_misses": 1,
+      "bubble_state_miss_no_packet": 1,
+      "fresh_solves": 1,
+      "full_packet_hits": 300
+    },
+    "condenser_duty_bubble_point_helper_flash": {
+      "flash_cache_misses": 30,
+      "flash_requests": 30,
+      "backend_flash_equivalents": 30,
+      "wall_sec": 10.840974600003392,
+      "cp_requests": 30,
+      "cp_wall_sec": 0.00155899998935638
+    },
+    "condenser_duty_helper_flash": {
+      "flash_cache_misses": 302,
+      "flash_requests": 302,
+      "backend_flash_equivalents": 302,
+      "wall_sec": 0.03946750002069166,
+      "cp_requests": 302,
+      "cp_wall_sec": 0.018512099974032026,
+      "flash_cache_hits": 1,
+      "flash_cache_evictions": 297
+    },
+    "temperature_state_enthalpy_refresh": {
+      "flash_cache_hits": 301,
+      "flash_cache_misses": 30,
+      "flash_requests": 30,
+      "backend_flash_equivalents": 30,
+      "wall_sec": 0.005047200000262819,
+      "cp_requests": 30,
+      "cp_wall_sec": 0.002111799993144814
+    },
+    "temperature_state_cp_lookup": {
+      "flash_cache_misses": 18,
+      "flash_requests": 18,
+      "backend_flash_equivalents": 18,
+      "wall_sec": 0.003523699997458607,
+      "cp_requests": 18,
+      "cp_wall_sec": 0.001569100008055102
+    },
+    "bottom_sump_cp_lookup": {
+      "flash_cache_misses": 301,
+      "flash_requests": 301,
+      "backend_flash_equivalents": 301,
+      "wall_sec": 0.03427420002844883,
+      "cp_requests": 301,
+      "cp_wall_sec": 0.017974399990634993,
+      "flash_cache_evictions": 297
+    }
+  },
+  "ended_at_local": "2026-06-01 21:19:12",
+  "elapsed_wall_sec": 21.23568189999787,
+  "final_time_s": 60.00000000000031,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_profile_coeff_trial1_20260601__restart_20260601_211851.xlsx",
+  "restart_export_error": ""
+}

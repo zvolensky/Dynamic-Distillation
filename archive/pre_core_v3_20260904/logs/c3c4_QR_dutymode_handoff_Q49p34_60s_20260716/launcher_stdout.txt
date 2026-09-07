@@ -1,0 +1,491 @@
+[Init] Startup trace active: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_dutymode_handoff_Q49p34_60s_20260716\startup_trace_C3C4_QR_dutymode_handoff_Q49p34_60s_20260716.log
+[Milestone] start  wall=    0.00 s  clock=2026-07-16T08:51:04
+[Milestone] loaded case from Excel  wall=    0.45 s  clock=2026-07-16T08:51:04
+[Milestone] built column spec  wall=    0.45 s  clock=2026-07-16T08:51:04
+[Validation] PASS  errors=0  warnings=0
+[Milestone] validated Excel input  wall=    0.46 s  clock=2026-07-16T08:51:04
+[Milestone] built state vector layout  wall=    0.46 s  clock=2026-07-16T08:51:04
+[Init] Building runner inputs and thermo provider
+[Init] Building thermo provider  mode=dwsim  package=pr
+[Init] Thermo provider ready  mode=dwsim
+[Init] Primary thermo backend build complete  wall=0.00s
+[Init] Equilibrium-relaxation live PR requested, but primary thermo is already DWSIM PR; skipping separate override provider
+[Init] Starting Francis hydraulic autocalibration from seeded liquid profile
+[Init] Francis hydraulic autocalibration complete  no seeded adjustments applied  wall=0.00s
+[Milestone] built inputs and thermo provider  wall=    4.99 s  clock=2026-07-16T08:51:09
+[Init] Runtime mode active: hydraulic
+[Init] Rebased checkpoint controller integral(s): bottoms-composition
+[Init] Loaded native checkpoint  path=C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_dd058_extended_composition_settle_hold300s_r2_20260712\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260712_110933.npz  skipping fresh-startup vapor reseed and restart re-entry conditioning
+[Milestone] packed initial state  wall=    5.06 s  clock=2026-07-16T08:51:09
+[Init] Top-drum startup steadying skipped  explicit boundary restart state detected
+[Init] Native checkpoint state detected  skipped restart re-entry settling
+[Milestone] initialized vapor holdup from spec pressure  wall=    5.06 s  clock=2026-07-16T08:51:09
+[Milestone] resolved logging stream placement  wall=    5.28 s  clock=2026-07-16T08:51:09
+[Control] Level control enabled  top_SP=51.97% full  bottom_SP=49.44% full  top_PV_mode=true-level  bottom_PV_mode=true-level
+[Control] Pressure control enabled  MV=condenser-duty  top_P_SP=222.619 psia  Kc=-3e+05  Ti=180 s  PV_tau=5s  MV_slew=2.5e+04/s  resid_ref=250 BTU/s (auto)  resid_min_gain=0.25
+[Control] Bottoms composition control enabled  component=n-Propane  x_SP=0.047170  Kc=0  Ti=600 s  MV=reboiler_duty_btuph  limits=(45000000.000, 60000000.000)
+[Milestone] ensured logs directory: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_dutymode_handoff_Q49p34_60s_20260716  wall=    5.29 s  clock=2026-07-16T08:51:09
+[Init] Steady-state detector enabled  window=30s  min_time=60s  tol_rel=0.003/s  tol_kpi=0.0001/s  tol_mv=20/s  tol_T=0.15F/s  tol_sp=0.02  require_sp=off
+[Milestone] opened log files  wall=    5.30 s  clock=2026-07-16T08:51:09
+
+[ThermoTrace][runtime_step_0:outer_rhs] feed_stage_flash reused previous packet stage=12 dT_F=0 dP_psia=0 dx_max=0
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=1/20 start T_F=113.432 P_psia=222.619
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=1/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=2/20 start T_F=123.127 P_psia=224.593
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=2/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=3/20 start T_F=133.937 P_psia=224.791
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=3/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=4/20 start T_F=145.120 P_psia=224.971
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=4/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=5/20 start T_F=154.659 P_psia=225.172
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=5/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=6/20 start T_F=161.692 P_psia=225.364
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=6/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=7/20 start T_F=166.490 P_psia=225.545
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=7/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=8/20 start T_F=169.764 P_psia=225.718
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=8/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=9/20 start T_F=172.160 P_psia=225.874
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=9/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=10/20 start T_F=174.239 P_psia=226.031
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=10/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=11/20 start T_F=176.575 P_psia=226.186
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=11/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=12/20 start T_F=179.816 P_psia=226.339
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=12/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=13/20 start T_F=182.973 P_psia=226.500
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=13/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=14/20 start T_F=186.765 P_psia=226.668
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=14/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=15/20 start T_F=191.157 P_psia=226.828
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=15/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=16/20 start T_F=195.987 P_psia=227.019
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=16/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=17/20 start T_F=201.092 P_psia=227.213
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=17/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=18/20 start T_F=206.364 P_psia=227.433
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=18/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=19/20 start T_F=212.041 P_psia=227.710
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=19/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=20/20 start T_F=219.212 P_psia=232.177
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=2/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=3/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=4/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=5/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=6/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=7/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=8/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=9/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=10/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=11/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=12/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=13/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=14/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=15/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=16/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=17/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=18/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=19/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=1/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=2/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=3/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=4/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=5/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=6/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=7/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=8/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=9/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=10/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=11/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=12/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=13/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=14/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=15/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=16/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=17/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=18/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=19/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve start T_vapor_in_F=123.127 P_cond_psia=221.242
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve reused previous bubble state T_bubble_F=113.432
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve done Q_calc_BTUph=-4.92111e+07 T_bubble_F=113.432
+[ThermoTrace][runtime_step_0:outer_rhs] post_flash entering equilibrium split construction
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=1/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=1/20 done beta=0
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=2/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=2/20 done beta=0.16668
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=3/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=3/20 done beta=0.14028
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=4/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=4/20 done beta=0.26852
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=5/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=5/20 done beta=0.34524
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=6/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=6/20 done beta=0.39485
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=7/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=7/20 done beta=0.42563
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=8/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=8/20 done beta=0.44282
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=9/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=9/20 done beta=0.44944
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=10/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=10/20 done beta=0.4425
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=11/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=11/20 done beta=0.42457
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=12/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=12/20 done beta=0.30677
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=13/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=13/20 done beta=0.31803
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=14/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=14/20 done beta=0.33724
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=15/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=15/20 done beta=0.36891
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=16/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=16/20 done beta=0.40725
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=17/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=17/20 done beta=0.47547
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=18/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=18/20 done beta=0.59453
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=19/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=19/20 done beta=1
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=20/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=20/20 done beta=0.99925
+[ThermoTrace][runtime_step_0:outer_rhs] post_flash equilibrium split construction complete
+[ThermoTrace][runtime_step_0:outer_rhs] post_flash target construction complete
+[ThermoTrace][runtime_step_0:outer_rhs] post_flash equilibrium-relaxation diagnostics complete
+[ThermoTrace][runtime_step_0:outer_rhs] energy_holdup block start
+[ThermoTrace][runtime_step_0:outer_rhs] energy_holdup derivatives complete
+[ThermoTrace][runtime_step_0:outer_rhs] energy_holdup diagnostics complete
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state block start
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve start T_vapor_in_F=123.127 P_cond_psia=221.242
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve reused previous bubble state T_bubble_F=113.432
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve done Q_calc_BTUph=-4.91849e+07 T_bubble_F=113.432
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state provider enthalpy refresh start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=1/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=1/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=1/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=2/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=2/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=3/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=3/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=4/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=4/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=5/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=5/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=6/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=6/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=7/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=7/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=8/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=8/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=9/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=9/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=10/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=10/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=11/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=11/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=12/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=12/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=13/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=13/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=14/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=14/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=15/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=15/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=16/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=16/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=17/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=17/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=18/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=18/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=19/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=19/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=20/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=20/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state provider enthalpy refresh complete
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=1/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=1/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=2/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=2/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=3/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=3/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=4/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=4/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=5/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=5/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=6/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=6/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=7/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=7/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=8/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=8/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=9/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=9/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=10/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=10/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=11/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=11/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=12/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=12/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=13/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=13/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=14/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=14/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=15/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=15/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=16/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=16/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=17/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=17/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=18/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=18/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=19/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=19/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=20/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray diagnostics complete
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state bottom sump update complete
+[ThermoTrace][runtime_step_0:outer_rhs] column_rhs return
+[ThermoTrace][runtime_step_1:outer_rhs] feed_stage_flash reused previous packet stage=12 dT_F=0 dP_psia=0.622994 dx_max=0
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=1/20 start T_F=113.432 P_psia=222.619
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=1/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=2/20 start T_F=123.127 P_psia=224.593
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=2/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=3/20 start T_F=133.937 P_psia=224.791
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=3/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=4/20 start T_F=145.120 P_psia=224.971
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=4/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=5/20 start T_F=154.659 P_psia=225.172
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=5/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=6/20 start T_F=161.692 P_psia=225.364
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=6/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=7/20 start T_F=166.490 P_psia=225.545
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=7/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=8/20 start T_F=169.764 P_psia=225.718
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=8/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=9/20 start T_F=172.160 P_psia=225.874
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=9/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=10/20 start T_F=174.239 P_psia=226.031
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=10/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=11/20 start T_F=176.575 P_psia=226.186
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=11/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=12/20 start T_F=179.816 P_psia=226.339
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=12/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=13/20 start T_F=182.973 P_psia=226.500
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=13/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=14/20 start T_F=186.765 P_psia=226.668
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=14/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=15/20 start T_F=191.157 P_psia=226.828
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=15/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=16/20 start T_F=195.987 P_psia=227.019
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=16/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=17/20 start T_F=201.092 P_psia=227.213
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=17/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=18/20 start T_F=206.364 P_psia=227.433
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=18/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=19/20 start T_F=212.042 P_psia=227.710
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=19/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=20/20 start T_F=216.600 P_psia=232.177
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=2/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=3/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=4/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=5/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=6/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=7/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=8/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=9/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=10/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=11/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=12/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=13/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=14/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=15/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=16/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=17/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=18/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=19/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=1/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=2/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=3/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=4/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=5/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=6/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=7/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=8/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=9/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=10/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=11/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=12/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=13/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=14/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=15/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=16/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=17/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=18/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=19/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve start T_vapor_in_F=123.127 P_cond_psia=221.872
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve reused previous bubble state T_bubble_F=113.432
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve done Q_calc_BTUph=-4.8411e+07 T_bubble_F=113.432
+[ThermoTrace][runtime_step_1:outer_rhs] post_flash entering equilibrium split construction
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=1/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=1/20 done beta=0
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=2/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=2/20 done beta=0.16665
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=3/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=3/20 done beta=0.14026
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=4/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=4/20 done beta=0.26851
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=5/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=5/20 done beta=0.34523
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=6/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=6/20 done beta=0.39485
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=7/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=7/20 done beta=0.42562
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=8/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=8/20 done beta=0.44282
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=9/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=9/20 done beta=0.44944
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=10/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=10/20 done beta=0.44249
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=11/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=11/20 done beta=0.42457
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=12/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=12/20 done beta=0.30676
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=13/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=13/20 done beta=0.31802
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=14/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=14/20 done beta=0.33724
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=15/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=15/20 done beta=0.36891
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=16/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=16/20 done beta=0.40724
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=17/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=17/20 done beta=0.47547
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=18/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=18/20 done beta=0.59453
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=19/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=19/20 done beta=1
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=20/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=20/20 done beta=0.74919
+[ThermoTrace][runtime_step_1:outer_rhs] post_flash equilibrium split construction complete
+[ThermoTrace][runtime_step_1:outer_rhs] post_flash target construction complete
+[ThermoTrace][runtime_step_1:outer_rhs] post_flash equilibrium-relaxation diagnostics complete
+[ThermoTrace][runtime_step_1:outer_rhs] energy_holdup block start
+[ThermoTrace][runtime_step_1:outer_rhs] energy_holdup derivatives complete
+[ThermoTrace][runtime_step_1:outer_rhs] energy_holdup diagnostics complete
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state block start
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve start T_vapor_in_F=123.127 P_cond_psia=221.872
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve reused previous bubble state T_bubble_F=113.432
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve done Q_calc_BTUph=-4.84368e+07 T_bubble_F=113.432
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state provider enthalpy refresh start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=1/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=1/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=1/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=2/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=2/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=3/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=3/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=4/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=4/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=5/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=5/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=6/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=6/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=7/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=7/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=8/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=8/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=9/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=9/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=10/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=10/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=11/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=11/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=12/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=12/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=13/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=13/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=14/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=14/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=15/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=15/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=16/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=16/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=17/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=17/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=18/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=18/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=19/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=19/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=20/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=20/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state provider enthalpy refresh complete
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=1/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=1/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=2/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=2/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=3/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=3/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=4/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=4/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=5/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=5/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=6/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=6/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=7/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=7/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=8/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=8/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=9/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=9/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=10/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=10/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=11/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=11/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=12/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=12/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=13/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=13/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=14/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=14/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=15/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=15/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=16/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=16/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=17/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=17/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=18/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=18/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=19/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=19/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=20/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray diagnostics complete
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state bottom sump update complete
+[ThermoTrace][runtime_step_1:outer_rhs] column_rhs return
+[Progress] step=    25  sim_t=      5.00 s  wall=     35.07 s  sim/wall=   0.143  SS=0  score=1.78  rel=0.00533/s  kpi=1.58e-05/s  mv=3.45e-30/s  sp=0.0757
+[Progress] step=    50  sim_t=     10.00 s  wall=     54.21 s  sim/wall=   0.184  SS=0  score=1.13  rel=0.0034/s  kpi=1.59e-05/s  mv=1.83e-29/s  sp=0.0758
+[Progress] step=    75  sim_t=     15.00 s  wall=     70.39 s  sim/wall=   0.213  SS=0  score=0.74  rel=0.00221/s  kpi=1.63e-05/s  mv=0/s  sp=0.0759
+[Progress] step=   100  sim_t=     20.00 s  wall=     98.26 s  sim/wall=   0.204  SS=0  score=0.50  rel=0.0015/s  kpi=1.67e-05/s  mv=5.27e-29/s  sp=0.0759
+[Progress] step=   125  sim_t=     25.00 s  wall=    129.73 s  sim/wall=   0.193  SS=0  score=0.38  rel=0.00115/s  kpi=1.69e-05/s  mv=1.19e-28/s  sp=0.076
+[Progress] step=   150  sim_t=     30.00 s  wall=    160.68 s  sim/wall=   0.187  SS=0  score=0.32  rel=0.00096/s  kpi=1.7e-05/s  mv=0/s  sp=0.0761
+[Progress] step=   175  sim_t=     35.00 s  wall=    178.69 s  sim/wall=   0.196  SS=0  score=0.28  rel=0.000854/s  kpi=1.73e-05/s  mv=0/s  sp=0.0762
+[Progress] step=   200  sim_t=     40.00 s  wall=    194.75 s  sim/wall=   0.205  SS=0  score=0.27  rel=0.000799/s  kpi=1.75e-05/s  mv=0/s  sp=0.0763
+[Progress] step=   225  sim_t=     45.00 s  wall=    212.83 s  sim/wall=   0.211  SS=0  score=0.26  rel=0.000775/s  kpi=1.76e-05/s  mv=0/s  sp=0.0764
+[Progress] step=   250  sim_t=     50.00 s  wall=    244.37 s  sim/wall=   0.205  SS=0  score=0.26  rel=0.000768/s  kpi=1.78e-05/s  mv=0/s  sp=0.0765
+[Progress] step=   275  sim_t=     55.00 s  wall=    275.24 s  sim/wall=   0.200  SS=0  score=0.26  rel=0.000766/s  kpi=1.8e-05/s  mv=0/s  sp=0.0766
+[Progress] step=   300  sim_t=     60.00 s  wall=    306.27 s  sim/wall=   0.196  SS=1  score=0.52  rel=0.00156/s  kpi=1.83e-05/s  mv=0/s  sp=0.0767
+[SteadyState] PASS  score=0.522  rel=0.00156/s  kpi=1.83e-05/s  mv=0/s  dT=0.0103F/s  sp=0.0767
+[Output] Wrote restart workbook: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_dutymode_handoff_Q49p34_60s_20260716\c3c4_initializer_residual_vapor_state_stage2_20260706__restart_20260716_085109.xlsx
+[Output] Wrote native checkpoint: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_dutymode_handoff_Q49p34_60s_20260716\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260716_085109.npz
+Wrote: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_dutymode_handoff_Q49p34_60s_20260716\column_profile_20260716_085109.csv
+Wrote: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_dutymode_handoff_Q49p34_60s_20260716\column_summary_20260716_085109.csv

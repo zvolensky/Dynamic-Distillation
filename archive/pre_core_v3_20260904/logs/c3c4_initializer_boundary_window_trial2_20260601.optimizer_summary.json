@@ -1,0 +1,129 @@
+{
+  "audit_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\initialization_audits\\c3c4_initializer_boundary_window_trial2_20260601",
+  "best_max_relative_rate_per_s_inprocess": 0.005534775903443151,
+  "best_objective_norm": 0.02203202372609746,
+  "blocks": [
+    [
+      "L",
+      0
+    ],
+    [
+      "L",
+      1
+    ],
+    [
+      "V",
+      1
+    ],
+    [
+      "L",
+      2
+    ],
+    [
+      "V",
+      2
+    ],
+    [
+      "L",
+      3
+    ],
+    [
+      "V",
+      3
+    ],
+    [
+      "L",
+      4
+    ],
+    [
+      "V",
+      4
+    ]
+  ],
+  "boundary_base_lbmolph": {
+    "boilup": 8036.48438795388,
+    "bottoms": 4761.984863193356,
+    "distillate": 2386.929084677035,
+    "reflux": 5967.322711692588
+  },
+  "boundary_blocks": [
+    "distillate"
+  ],
+  "boundary_opt_lbmolph": {
+    "boilup": 8036.48438795388,
+    "bottoms": 4761.984863193356,
+    "distillate": 2382.122946234929,
+    "reflux": 5955.307365587322
+  },
+  "chemsep_product_specs": true,
+  "energy_blocks": [
+    [
+      "EL",
+      0
+    ],
+    [
+      "EL",
+      1
+    ],
+    [
+      "EL",
+      2
+    ],
+    [
+      "EL",
+      3
+    ],
+    [
+      "EL",
+      4
+    ]
+  ],
+  "eval_count": 328,
+  "feed_temperature_base_F": 174.9992,
+  "feed_temperature_opt_F": null,
+  "feed_vapor_fraction_base": 0.0,
+  "feed_vapor_fraction_opt": 0.0,
+  "flow_blocks": [],
+  "input": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_chemsep_specs_energy_trial7_boundary_seed_20260531.xlsx",
+  "least_squares_message": "`gtol` termination condition is satisfied.",
+  "least_squares_success": true,
+  "max_abs_delta_top_L_x": 0.09412065973560535,
+  "max_abs_delta_top_V_y": 5.551115123125783e-17,
+  "max_abs_delta_x": 0.13287346329368466,
+  "max_abs_delta_y": 0.07538944247156465,
+  "max_rel_delta_L_flow": 0.0,
+  "max_rel_delta_V_flow": 0.0,
+  "max_rel_delta_boundary_flow": 0.00201352376698552,
+  "max_rel_delta_tray_EL": 0.09903743270402145,
+  "max_rel_delta_tray_EV": 0.0,
+  "n_boundary_variables": 1,
+  "n_composition_variables": 27,
+  "n_energy_variables": 5,
+  "n_feed_temperature_variables": 0,
+  "n_feed_vapor_fraction_variables": 0,
+  "n_flow_variables": 0,
+  "n_top_composition_variables": 6,
+  "n_top_vapor_total_variables": 1,
+  "n_variables": 40,
+  "output": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_boundary_window_trial2_20260601.xlsx",
+  "reflux_ratio": 2.5,
+  "rel_delta_top_V_total": 0.0,
+  "residual_stages": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "stages": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "top_comp_blocks": [
+    "top_L",
+    "top_V"
+  ]
+}

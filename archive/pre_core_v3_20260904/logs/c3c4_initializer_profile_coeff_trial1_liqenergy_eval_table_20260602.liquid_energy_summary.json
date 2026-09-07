@@ -1,0 +1,43 @@
+{
+  "input": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_profile_coeff_trial1_20260601.xlsx",
+  "output": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_profile_coeff_trial1_liqenergy_eval_table_20260602.xlsx",
+  "stages": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "evaluate_only": true,
+  "before_max_abs_scaled_mass_per_s": 0.02468209653603767,
+  "before_max_abs_scaled_energy_F_per_s": 3.169348609102793,
+  "before_scaled_mass_per_s_by_stage": {
+    "2": 0.02468209653603767,
+    "3": -0.0016190372495617936,
+    "4": 0.00019941121877557587,
+    "5": 0.0005961259892758599,
+    "6": 0.0002862713727209972,
+    "7": 0.0002969912465463366,
+    "8": 0.00021386716304768312,
+    "9": 8.888547526139248e-05,
+    "10": 7.865264218596724e-05,
+    "11": 0.0002799748375068343
+  },
+  "before_scaled_energy_F_per_s_by_stage": {
+    "2": -3.169348609102793,
+    "3": 0.4243532075098496,
+    "4": 0.16106964402276805,
+    "5": 0.045801873809842485,
+    "6": 0.04139995199143432,
+    "7": 0.005522538306827564,
+    "8": -0.006635567861664561,
+    "9": -0.0055584337341475845,
+    "10": -0.01575373600800803,
+    "11": -0.050670928608089555
+  }
+}

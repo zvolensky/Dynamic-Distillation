@@ -1,0 +1,69 @@
+{
+  "schema": "dynamic_distillation.core_v3_run_metadata.v1",
+  "status": "completed",
+  "run_id": "20260821_083319",
+  "run_name": "distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323",
+  "run_description": "",
+  "started_from_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\core_v3_checkpoints\\dd274_endpoint_core_v3_checkpoint.npz",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\distillation_column_template_20stage_chemsep_warmer_feed_seed_20260323.xlsx",
+  "source_final_time_s": 60.0,
+  "duration_sec": 30.0,
+  "final_time_s": 90.0,
+  "dt_sec": 0.25,
+  "n_steps": 120,
+  "wall_elapsed_s": 339.6355401999899,
+  "started_at_local": "2026-08-21 08:33:19",
+  "ended_at_local": "2026-08-21 08:38:58",
+  "simulation_wall_ratio": 0.08832997860687634,
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\ui_runs\\20260821_083306_distillation-column-template-20stage-chemsep-warmer-feed-see\\core_v3_checkpoint_20260821_083319.npz",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\ui_runs\\20260821_083306_distillation-column-template-20stage-chemsep-warmer-feed-see\\column_summary_20260821_083319.csv",
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\ui_runs\\20260821_083306_distillation-column-template-20stage-chemsep-warmer-feed-see\\column_profile_20260821_083319.csv",
+  "final_endpoint": {
+    "scipy_success": true,
+    "scipy_status": 3,
+    "nfev": 10,
+    "njev": 8,
+    "function_calls_observed": 42,
+    "jacobian_build_count": 1,
+    "color_count": 16,
+    "scaled_residual_inf_norm": 4.3835456757529257e-13,
+    "controller_residual_inf_norm": 4.9960036108132044e-15,
+    "jacobian_rank": 262,
+    "jacobian_condition": 10660002.543181658,
+    "physical_pass": true,
+    "controller_memory_recurrence_error": 7.047314121155779e-19,
+    "fixed_duty_relative_error": 0.0,
+    "condenser_duty_BTUph": -50894825.691564746,
+    "reflux_drum_pressure_psia": 220.41609718692217,
+    "top_tray_pressure_psia": 220.46360947870423,
+    "bottom_pressure_psia": 221.52781486288703,
+    "top_tray_minus_drum_pressure_psia": 0.04751229178205563,
+    "level_fraction": [
+      0.4408352416327895,
+      0.5188809431216479
+    ],
+    "controller_memory_endpoint": [
+      0.007408021947295354,
+      -0.05605264711362149
+    ],
+    "controller_rate_per_sec": [
+      -0.00024651982653004417,
+      0.0012587295414431515
+    ],
+    "product_log_ratio": [
+      -0.022174357236309946,
+      0.09499489785955671
+    ],
+    "distillate_lbmolph": 2464.50449437749,
+    "bottoms_lbmolph": 5083.928204239211
+  },
+  "final_steady_state": {
+    "steady_state_score": 5.660355571792013,
+    "steady_state_flag": 0.0,
+    "ss_max_rel_state_rate_per_s": 0.00016550033226558374,
+    "ss_max_temp_rate_F_per_s": 0.0012306578349353004,
+    "ss_max_kpi_slope_per_s": 3.6361143660021907e-07,
+    "ss_max_mv_rate_per_s": 3.654647389966247,
+    "ss_global_inventory_rate_frac_feed": 0.05660355571792013
+  }
+}

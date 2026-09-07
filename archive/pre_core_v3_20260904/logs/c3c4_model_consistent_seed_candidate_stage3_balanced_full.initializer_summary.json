@@ -1,0 +1,2173 @@
+{
+  "baseline_audit": {
+    "block_summary": [
+      {
+        "max_abs_rate_per_h": 514.1021384295786,
+        "max_abs_rate_per_s": 0.14280614956377186,
+        "max_relative_rate_per_s": 0.008935388191606695,
+        "state_block": "tray_V",
+        "worst_component_1based": 3,
+        "worst_component_name": "n-Pentane",
+        "worst_stage_1based": 16
+      },
+      {
+        "max_abs_rate_per_h": 2889.416104315109,
+        "max_abs_rate_per_s": 0.8026155845319747,
+        "max_relative_rate_per_s": 0.0064744183161515164,
+        "state_block": "tray_T_f",
+        "worst_component_1based": "",
+        "worst_component_name": "",
+        "worst_stage_1based": 2
+      },
+      {
+        "max_abs_rate_per_h": 887.3399197309851,
+        "max_abs_rate_per_s": 0.24648331103638477,
+        "max_relative_rate_per_s": 0.006410502471399973,
+        "state_block": "bottom_L",
+        "worst_component_1based": 1,
+        "worst_component_name": "n-Propane",
+        "worst_stage_1based": 21
+      },
+      {
+        "max_abs_rate_per_h": 709.3460598892268,
+        "max_abs_rate_per_s": 0.19704057219145188,
+        "max_relative_rate_per_s": 0.005692480889040944,
+        "state_block": "tray_L",
+        "worst_component_1based": 3,
+        "worst_component_name": "n-Pentane",
+        "worst_stage_1based": 9
+      },
+      {
+        "max_abs_rate_per_h": 2713297.091956824,
+        "max_abs_rate_per_s": 753.6936366546734,
+        "max_relative_rate_per_s": 0.0029097586141822417,
+        "state_block": "tray_EL_BTU",
+        "worst_component_1based": "",
+        "worst_component_name": "",
+        "worst_stage_1based": 2
+      },
+      {
+        "max_abs_rate_per_h": 752151.7576737144,
+        "max_abs_rate_per_s": 208.931043798254,
+        "max_relative_rate_per_s": 0.002055312715375071,
+        "state_block": "tray_EV_BTU",
+        "worst_component_1based": "",
+        "worst_component_name": "",
+        "worst_stage_1based": 2
+      },
+      {
+        "max_abs_rate_per_h": 2627.3439344478065,
+        "max_abs_rate_per_s": 0.7298177595688351,
+        "max_relative_rate_per_s": 0.0014869033671901031,
+        "state_block": "top_L",
+        "worst_component_1based": 2,
+        "worst_component_name": "n-Butane",
+        "worst_stage_1based": 0
+      },
+      {
+        "max_abs_rate_per_h": 10.863114899944271,
+        "max_abs_rate_per_s": 0.0030175319166511868,
+        "max_relative_rate_per_s": 1.3610247816489645e-05,
+        "state_block": "bottom_T_f",
+        "worst_component_1based": 1,
+        "worst_component_name": "n-Propane",
+        "worst_stage_1based": 21
+      },
+      {
+        "max_abs_rate_per_h": 0.0,
+        "max_abs_rate_per_s": 0.0,
+        "max_relative_rate_per_s": 0.0,
+        "state_block": "bottom_V",
+        "worst_component_1based": 1,
+        "worst_component_name": "n-Propane",
+        "worst_stage_1based": 21
+      },
+      {
+        "max_abs_rate_per_h": 0.0,
+        "max_abs_rate_per_s": 0.0,
+        "max_relative_rate_per_s": 0.0,
+        "state_block": "top_V",
+        "worst_component_1based": 1,
+        "worst_component_name": "n-Propane",
+        "worst_stage_1based": 0
+      }
+    ],
+    "clapeyron_model": "PR",
+    "condenser_duty_btu_per_h": null,
+    "condenser_duty_mode": "total-condense",
+    "debug_clamp_top_drum_pressure_psia": null,
+    "debug_freeze_active_diag": 0.0,
+    "debug_freeze_tray_vapor_derivatives": false,
+    "debug_max_orig_dmVdt": 0.0,
+    "debug_max_orig_dmVdt_rel_per_s": 0.0,
+    "debug_override_reflux_composition": false,
+    "debug_reflux_comp2_delta": NaN,
+    "debug_reflux_orig_comp2": NaN,
+    "debug_reflux_overridden": 0.0,
+    "debug_reflux_target_comp2": NaN,
+    "debug_reflux_target_delta_max": 0.0,
+    "debug_reflux_target_stage": -1.0,
+    "debug_top_drum_pressure_clamp_active": NaN,
+    "debug_top_drum_pressure_clamp_psia": NaN,
+    "debug_top_drum_pressure_clamp_raw_psia": NaN,
+    "debug_worst_v_comp": -1.0,
+    "debug_worst_v_stage": -1.0,
+    "diag_dM_total_dt_lbmolph": NaN,
+    "diag_global_mass_closure_error_lbmolph": NaN,
+    "diag_total_condenser_boundary_energy_owner": 1.0,
+    "diag_total_condenser_boundary_energy_residual_BTUps": -1.8189894035458565e-12,
+    "diag_total_condenser_boundary_energy_residual_rel": -1.423068103850274e-16,
+    "equilibrium_relaxation": false,
+    "excel": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_model_consistent_seed_candidate_stage2.xlsx",
+    "flash_feed_at_stage_conditions": false,
+    "gate_pass": false,
+    "include_boundary_states": true,
+    "include_energy": true,
+    "include_temperature": true,
+    "include_vapor_states": true,
+    "max_abs_rate_per_s": 753.6936366546734,
+    "max_abs_tray_total_rate_lbmolph": 444.18454458202194,
+    "max_relative_rate_per_s": 0.008935388191606695,
+    "pressure_model": "hydraulic",
+    "relative_rate_gate": 0.0001,
+    "runtime_mode": "hydraulic",
+    "scenario": "default",
+    "thermo_mode": "table",
+    "total_state_inventory_rate_lbmolph": 16.98338423957037,
+    "tray_total_rate_gate_lbmolph": 1.0,
+    "use_excel_vapor_holdup": true,
+    "vapor_flow_model": "energy",
+    "vapor_holdup_relaxation_sec": 10.0
+  },
+  "candidates": [
+    {
+      "audit_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-vle-topL_audit",
+      "audit_summary": {
+        "block_summary": [
+          {
+            "max_abs_rate_per_h": 1096.8693199777006,
+            "max_abs_rate_per_s": 0.3046859222160279,
+            "max_relative_rate_per_s": 0.007924227604514392,
+            "state_block": "bottom_L",
+            "worst_component_1based": 1,
+            "worst_component_name": "n-Propane",
+            "worst_stage_1based": 21
+          },
+          {
+            "max_abs_rate_per_h": 3277.547146448638,
+            "max_abs_rate_per_s": 0.9104297629023995,
+            "max_relative_rate_per_s": 0.007344117465576015,
+            "state_block": "tray_T_f",
+            "worst_component_1based": "",
+            "worst_component_name": "",
+            "worst_stage_1based": 2
+          },
+          {
+            "max_abs_rate_per_h": 141.38350312082858,
+            "max_abs_rate_per_s": 0.03927319531134127,
+            "max_relative_rate_per_s": 0.006311815285092761,
+            "state_block": "tray_V",
+            "worst_component_1based": 3,
+            "worst_component_name": "n-Pentane",
+            "worst_stage_1based": 9
+          },
+          {
+            "max_abs_rate_per_h": 668.1259282701025,
+            "max_abs_rate_per_s": 0.18559053563058403,
+            "max_relative_rate_per_s": 0.005618647154132812,
+            "state_block": "tray_L",
+            "worst_component_1based": 3,
+            "worst_component_name": "n-Pentane",
+            "worst_stage_1based": 19
+          },
+          {
+            "max_abs_rate_per_h": 3036.9542997682915,
+            "max_abs_rate_per_s": 0.8435984166023032,
+            "max_relative_rate_per_s": 0.0020681614628123386,
+            "state_block": "top_L",
+            "worst_component_1based": 2,
+            "worst_component_name": "n-Butane",
+            "worst_stage_1based": 0
+          },
+          {
+            "max_abs_rate_per_h": 1855650.0449192827,
+            "max_abs_rate_per_s": 515.4583458109119,
+            "max_relative_rate_per_s": 0.002001378776826303,
+            "state_block": "tray_EL_BTU",
+            "worst_component_1based": "",
+            "worst_component_name": "",
+            "worst_stage_1based": 2
+          },
+          {
+            "max_abs_rate_per_h": 303881.7027725574,
+            "max_abs_rate_per_s": 84.41158410348817,
+            "max_relative_rate_per_s": 0.0008964048353693847,
+            "state_block": "tray_EV_BTU",
+            "worst_component_1based": "",
+            "worst_component_name": "",
+            "worst_stage_1based": 19
+          },
+          {
+            "max_abs_rate_per_h": 10.863114899944271,
+            "max_abs_rate_per_s": 0.0030175319166511868,
+            "max_relative_rate_per_s": 1.3610247816489645e-05,
+            "state_block": "bottom_T_f",
+            "worst_component_1based": 1,
+            "worst_component_name": "n-Propane",
+            "worst_stage_1based": 21
+          },
+          {
+            "max_abs_rate_per_h": 0.0,
+            "max_abs_rate_per_s": 0.0,
+            "max_relative_rate_per_s": 0.0,
+            "state_block": "bottom_V",
+            "worst_component_1based": 1,
+            "worst_component_name": "n-Propane",
+            "worst_stage_1based": 21
+          },
+          {
+            "max_abs_rate_per_h": 0.0,
+            "max_abs_rate_per_s": 0.0,
+            "max_relative_rate_per_s": 0.0,
+            "state_block": "top_V",
+            "worst_component_1based": 1,
+            "worst_component_name": "n-Propane",
+            "worst_stage_1based": 0
+          }
+        ],
+        "clapeyron_model": "PR",
+        "condenser_duty_btu_per_h": null,
+        "condenser_duty_mode": "total-condense",
+        "debug_clamp_top_drum_pressure_psia": null,
+        "debug_freeze_active_diag": 0.0,
+        "debug_freeze_tray_vapor_derivatives": false,
+        "debug_max_orig_dmVdt": 0.0,
+        "debug_max_orig_dmVdt_rel_per_s": 0.0,
+        "debug_override_reflux_composition": false,
+        "debug_reflux_comp2_delta": NaN,
+        "debug_reflux_orig_comp2": NaN,
+        "debug_reflux_overridden": 0.0,
+        "debug_reflux_target_comp2": NaN,
+        "debug_reflux_target_delta_max": 0.0,
+        "debug_reflux_target_stage": -1.0,
+        "debug_top_drum_pressure_clamp_active": NaN,
+        "debug_top_drum_pressure_clamp_psia": NaN,
+        "debug_top_drum_pressure_clamp_raw_psia": NaN,
+        "debug_worst_v_comp": -1.0,
+        "debug_worst_v_stage": -1.0,
+        "diag_dM_total_dt_lbmolph": NaN,
+        "diag_global_mass_closure_error_lbmolph": NaN,
+        "diag_total_condenser_boundary_energy_owner": 1.0,
+        "diag_total_condenser_boundary_energy_residual_BTUps": -1.8189894035458565e-12,
+        "diag_total_condenser_boundary_energy_residual_rel": -1.2996356523086214e-16,
+        "equilibrium_relaxation": false,
+        "excel": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-vle-topL.xlsx",
+        "flash_feed_at_stage_conditions": false,
+        "gate_pass": false,
+        "include_boundary_states": true,
+        "include_energy": true,
+        "include_temperature": true,
+        "include_vapor_states": true,
+        "max_abs_rate_per_s": 515.4583458109119,
+        "max_abs_tray_total_rate_lbmolph": 649.6924104070158,
+        "max_relative_rate_per_s": 0.007924227604514392,
+        "pressure_model": "hydraulic",
+        "relative_rate_gate": 0.0001,
+        "runtime_mode": "hydraulic",
+        "scenario": "default",
+        "thermo_mode": "table",
+        "total_state_inventory_rate_lbmolph": 16.983384239571976,
+        "tray_total_rate_gate_lbmolph": 1.0,
+        "use_excel_vapor_holdup": true,
+        "vapor_flow_model": "energy",
+        "vapor_holdup_relaxation_sec": 10.0
+      },
+      "name": "coupled-vle-topL",
+      "optimizer_summary": {
+        "audit_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-vle-topL_audit",
+        "best_max_relative_rate_per_s_inprocess": 0.006311815285092769,
+        "best_objective_norm": 0.07419678660077397,
+        "blocks": [
+          [
+            "L",
+            1
+          ],
+          [
+            "V",
+            1
+          ],
+          [
+            "L",
+            2
+          ],
+          [
+            "V",
+            2
+          ],
+          [
+            "L",
+            3
+          ],
+          [
+            "V",
+            3
+          ],
+          [
+            "L",
+            4
+          ],
+          [
+            "V",
+            4
+          ],
+          [
+            "L",
+            5
+          ],
+          [
+            "V",
+            5
+          ],
+          [
+            "L",
+            6
+          ],
+          [
+            "V",
+            6
+          ],
+          [
+            "L",
+            7
+          ],
+          [
+            "V",
+            7
+          ],
+          [
+            "L",
+            8
+          ],
+          [
+            "V",
+            8
+          ],
+          [
+            "L",
+            9
+          ],
+          [
+            "V",
+            9
+          ],
+          [
+            "L",
+            10
+          ],
+          [
+            "V",
+            10
+          ],
+          [
+            "L",
+            11
+          ],
+          [
+            "V",
+            11
+          ],
+          [
+            "L",
+            12
+          ],
+          [
+            "V",
+            12
+          ],
+          [
+            "L",
+            13
+          ],
+          [
+            "V",
+            13
+          ],
+          [
+            "L",
+            14
+          ],
+          [
+            "V",
+            14
+          ],
+          [
+            "L",
+            15
+          ],
+          [
+            "V",
+            15
+          ],
+          [
+            "L",
+            16
+          ],
+          [
+            "V",
+            16
+          ],
+          [
+            "L",
+            17
+          ],
+          [
+            "V",
+            17
+          ],
+          [
+            "L",
+            18
+          ],
+          [
+            "V",
+            18
+          ]
+        ],
+        "boundary_base_lbmolph": {
+          "boilup": 8030.025322439712,
+          "bottoms": 4761.984863193356,
+          "distillate": 2364.009047357104,
+          "reflux": 5910.02261839276
+        },
+        "boundary_blocks": [],
+        "boundary_opt_lbmolph": {
+          "boilup": 8030.025322439712,
+          "bottoms": 4761.984863193356,
+          "condenser_duty_btu_per_h": -51941932.55249542,
+          "distillate": 2364.009047357104,
+          "reflux": 5910.02261839276
+        },
+        "chemsep_product_specs": false,
+        "condenser_duty_base_BTUph": -51941932.55249542,
+        "condenser_duty_mode": "total-condense",
+        "condenser_duty_opt_BTUph": -51941932.55249542,
+        "energy_blocks": [
+          [
+            "EL",
+            1
+          ],
+          [
+            "EV",
+            1
+          ],
+          [
+            "EL",
+            2
+          ],
+          [
+            "EV",
+            2
+          ],
+          [
+            "EL",
+            3
+          ],
+          [
+            "EV",
+            3
+          ],
+          [
+            "EL",
+            4
+          ],
+          [
+            "EV",
+            4
+          ],
+          [
+            "EL",
+            5
+          ],
+          [
+            "EV",
+            5
+          ],
+          [
+            "EL",
+            6
+          ],
+          [
+            "EV",
+            6
+          ],
+          [
+            "EL",
+            7
+          ],
+          [
+            "EV",
+            7
+          ],
+          [
+            "EL",
+            8
+          ],
+          [
+            "EV",
+            8
+          ],
+          [
+            "EL",
+            9
+          ],
+          [
+            "EV",
+            9
+          ],
+          [
+            "EL",
+            10
+          ],
+          [
+            "EV",
+            10
+          ],
+          [
+            "EL",
+            11
+          ],
+          [
+            "EV",
+            11
+          ],
+          [
+            "EL",
+            12
+          ],
+          [
+            "EV",
+            12
+          ],
+          [
+            "EL",
+            13
+          ],
+          [
+            "EV",
+            13
+          ],
+          [
+            "EL",
+            14
+          ],
+          [
+            "EV",
+            14
+          ],
+          [
+            "EL",
+            15
+          ],
+          [
+            "EV",
+            15
+          ],
+          [
+            "EL",
+            16
+          ],
+          [
+            "EV",
+            16
+          ],
+          [
+            "EL",
+            17
+          ],
+          [
+            "EV",
+            17
+          ],
+          [
+            "EL",
+            18
+          ],
+          [
+            "EV",
+            18
+          ]
+        ],
+        "energy_residual_blocks": [
+          "tray_EV_BTU",
+          "tray_EL_BTU"
+        ],
+        "eval_count": 1992,
+        "feed_temperature_base_F": 174.9992,
+        "feed_temperature_opt_F": null,
+        "feed_vapor_fraction_base": 0.0,
+        "feed_vapor_fraction_opt": 0.0,
+        "flow_blocks": [
+          [
+            "VF",
+            1
+          ],
+          [
+            "VF",
+            2
+          ],
+          [
+            "VF",
+            3
+          ],
+          [
+            "VF",
+            4
+          ],
+          [
+            "VF",
+            5
+          ],
+          [
+            "VF",
+            6
+          ],
+          [
+            "VF",
+            7
+          ],
+          [
+            "VF",
+            8
+          ],
+          [
+            "VF",
+            9
+          ],
+          [
+            "VF",
+            10
+          ],
+          [
+            "VF",
+            11
+          ],
+          [
+            "VF",
+            12
+          ],
+          [
+            "VF",
+            13
+          ],
+          [
+            "VF",
+            14
+          ],
+          [
+            "VF",
+            15
+          ],
+          [
+            "VF",
+            16
+          ],
+          [
+            "VF",
+            17
+          ],
+          [
+            "VF",
+            18
+          ]
+        ],
+        "input": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_model_consistent_seed_candidate_stage2.xlsx",
+        "least_squares_message": "`gtol` termination condition is satisfied.",
+        "least_squares_success": true,
+        "max_abs_delta_top_L_x": 0.034725836703491386,
+        "max_abs_delta_top_V_y": 0.0,
+        "max_abs_delta_x": 0.050306895636058446,
+        "max_abs_delta_y": 0.12208526420900923,
+        "max_rel_delta_L_flow": 0.0,
+        "max_rel_delta_V_flow": 0.0887713831782384,
+        "max_rel_delta_boundary_flow": 0.0,
+        "max_rel_delta_tray_EL": 0.023179950369216582,
+        "max_rel_delta_tray_EV": 0.04120983657458492,
+        "n_boundary_variables": 0,
+        "n_composition_variables": 108,
+        "n_condenser_duty_variables": 0,
+        "n_energy_variables": 36,
+        "n_feed_temperature_variables": 0,
+        "n_feed_vapor_fraction_variables": 0,
+        "n_flow_variables": 18,
+        "n_top_composition_variables": 3,
+        "n_top_vapor_total_variables": 0,
+        "n_variables": 165,
+        "output": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-vle-topL.xlsx",
+        "reflux_ratio": null,
+        "rel_delta_condenser_duty": 0.0,
+        "rel_delta_top_V_total": 0.0,
+        "residual_stages": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "stages": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "state_residual_blocks": [
+          "tray_V",
+          "tray_L",
+          "top_L"
+        ],
+        "state_residual_weights": {
+          "bottom_L": 1.0,
+          "bottom_V": 1.0,
+          "top_L": 1.0,
+          "top_V": 1.0,
+          "tray_L": 1.0,
+          "tray_V": 3.0
+        },
+        "top_comp_blocks": [
+          "top_L"
+        ]
+      },
+      "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-vle-topL.xlsx"
+    },
+    {
+      "audit_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-flows-boundary_audit",
+      "audit_summary": {
+        "block_summary": [
+          {
+            "max_abs_rate_per_h": 1099.086695600756,
+            "max_abs_rate_per_s": 0.30530185988909886,
+            "max_relative_rate_per_s": 0.00794024682284949,
+            "state_block": "bottom_L",
+            "worst_component_1based": 1,
+            "worst_component_name": "n-Propane",
+            "worst_stage_1based": 21
+          },
+          {
+            "max_abs_rate_per_h": 145.65999158833844,
+            "max_abs_rate_per_s": 0.04046110877453846,
+            "max_relative_rate_per_s": 0.00630181999146406,
+            "state_block": "tray_V",
+            "worst_component_1based": 3,
+            "worst_component_name": "n-Pentane",
+            "worst_stage_1based": 9
+          },
+          {
+            "max_abs_rate_per_h": 2705.261625512329,
+            "max_abs_rate_per_s": 0.7514615626423136,
+            "max_relative_rate_per_s": 0.006061776769376213,
+            "state_block": "tray_T_f",
+            "worst_component_1based": "",
+            "worst_component_name": "",
+            "worst_stage_1based": 2
+          },
+          {
+            "max_abs_rate_per_h": 481.85631989722,
+            "max_abs_rate_per_s": 0.13384897774922777,
+            "max_relative_rate_per_s": 0.00522876637053817,
+            "state_block": "tray_L",
+            "worst_component_1based": 1,
+            "worst_component_name": "n-Propane",
+            "worst_stage_1based": 19
+          },
+          {
+            "max_abs_rate_per_h": 2117035.7922601923,
+            "max_abs_rate_per_s": 588.0654978500534,
+            "max_relative_rate_per_s": 0.0023231263355064837,
+            "state_block": "tray_EL_BTU",
+            "worst_component_1based": "",
+            "worst_component_name": "",
+            "worst_stage_1based": 2
+          },
+          {
+            "max_abs_rate_per_h": 2564.5282459801315,
+            "max_abs_rate_per_s": 0.7123689572167032,
+            "max_relative_rate_per_s": 0.0021681072365613307,
+            "state_block": "top_L",
+            "worst_component_1based": 2,
+            "worst_component_name": "n-Butane",
+            "worst_stage_1based": 0
+          },
+          {
+            "max_abs_rate_per_h": 322019.01566207525,
+            "max_abs_rate_per_s": 89.44972657279868,
+            "max_relative_rate_per_s": 0.0008880347178830678,
+            "state_block": "tray_EV_BTU",
+            "worst_component_1based": "",
+            "worst_component_name": "",
+            "worst_stage_1based": 19
+          },
+          {
+            "max_abs_rate_per_h": 15.302943031598103,
+            "max_abs_rate_per_s": 0.004250817508777251,
+            "max_relative_rate_per_s": 1.9172847650054957e-05,
+            "state_block": "bottom_T_f",
+            "worst_component_1based": 1,
+            "worst_component_name": "n-Propane",
+            "worst_stage_1based": 21
+          },
+          {
+            "max_abs_rate_per_h": 0.0,
+            "max_abs_rate_per_s": 0.0,
+            "max_relative_rate_per_s": 0.0,
+            "state_block": "bottom_V",
+            "worst_component_1based": 1,
+            "worst_component_name": "n-Propane",
+            "worst_stage_1based": 21
+          },
+          {
+            "max_abs_rate_per_h": 0.0,
+            "max_abs_rate_per_s": 0.0,
+            "max_relative_rate_per_s": 0.0,
+            "state_block": "top_V",
+            "worst_component_1based": 1,
+            "worst_component_name": "n-Propane",
+            "worst_stage_1based": 0
+          }
+        ],
+        "clapeyron_model": "PR",
+        "condenser_duty_btu_per_h": null,
+        "condenser_duty_mode": "total-condense",
+        "debug_clamp_top_drum_pressure_psia": null,
+        "debug_freeze_active_diag": 0.0,
+        "debug_freeze_tray_vapor_derivatives": false,
+        "debug_max_orig_dmVdt": 0.0,
+        "debug_max_orig_dmVdt_rel_per_s": 0.0,
+        "debug_override_reflux_composition": false,
+        "debug_reflux_comp2_delta": NaN,
+        "debug_reflux_orig_comp2": NaN,
+        "debug_reflux_overridden": 0.0,
+        "debug_reflux_target_comp2": NaN,
+        "debug_reflux_target_delta_max": 0.0,
+        "debug_reflux_target_stage": -1.0,
+        "debug_top_drum_pressure_clamp_active": NaN,
+        "debug_top_drum_pressure_clamp_psia": NaN,
+        "debug_top_drum_pressure_clamp_raw_psia": NaN,
+        "debug_worst_v_comp": -1.0,
+        "debug_worst_v_stage": -1.0,
+        "diag_dM_total_dt_lbmolph": NaN,
+        "diag_global_mass_closure_error_lbmolph": NaN,
+        "diag_total_condenser_boundary_energy_owner": 1.0,
+        "diag_total_condenser_boundary_energy_residual_BTUps": 1.8189894035458565e-12,
+        "diag_total_condenser_boundary_energy_residual_rel": 1.3001089843428098e-16,
+        "equilibrium_relaxation": false,
+        "excel": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-flows-boundary.xlsx",
+        "flash_feed_at_stage_conditions": false,
+        "gate_pass": false,
+        "include_boundary_states": true,
+        "include_energy": true,
+        "include_temperature": true,
+        "include_vapor_states": true,
+        "max_abs_rate_per_s": 588.0654978500534,
+        "max_abs_tray_total_rate_lbmolph": 438.06122848272355,
+        "max_relative_rate_per_s": 0.00794024682284949,
+        "pressure_model": "hydraulic",
+        "relative_rate_gate": 0.0001,
+        "runtime_mode": "hydraulic",
+        "scenario": "default",
+        "thermo_mode": "table",
+        "total_state_inventory_rate_lbmolph": 182.24650389851368,
+        "tray_total_rate_gate_lbmolph": 1.0,
+        "use_excel_vapor_holdup": true,
+        "vapor_flow_model": "energy",
+        "vapor_holdup_relaxation_sec": 10.0
+      },
+      "name": "coupled-flows-boundary",
+      "optimizer_summary": {
+        "audit_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-flows-boundary_audit",
+        "best_max_relative_rate_per_s_inprocess": 0.007940246822849493,
+        "best_objective_norm": 0.0744084685881789,
+        "blocks": [
+          [
+            "L",
+            1
+          ],
+          [
+            "V",
+            1
+          ],
+          [
+            "L",
+            2
+          ],
+          [
+            "V",
+            2
+          ],
+          [
+            "L",
+            3
+          ],
+          [
+            "V",
+            3
+          ],
+          [
+            "L",
+            4
+          ],
+          [
+            "V",
+            4
+          ],
+          [
+            "L",
+            5
+          ],
+          [
+            "V",
+            5
+          ],
+          [
+            "L",
+            6
+          ],
+          [
+            "V",
+            6
+          ],
+          [
+            "L",
+            7
+          ],
+          [
+            "V",
+            7
+          ],
+          [
+            "L",
+            8
+          ],
+          [
+            "V",
+            8
+          ],
+          [
+            "L",
+            9
+          ],
+          [
+            "V",
+            9
+          ],
+          [
+            "L",
+            10
+          ],
+          [
+            "V",
+            10
+          ],
+          [
+            "L",
+            11
+          ],
+          [
+            "V",
+            11
+          ],
+          [
+            "L",
+            12
+          ],
+          [
+            "V",
+            12
+          ],
+          [
+            "L",
+            13
+          ],
+          [
+            "V",
+            13
+          ],
+          [
+            "L",
+            14
+          ],
+          [
+            "V",
+            14
+          ],
+          [
+            "L",
+            15
+          ],
+          [
+            "V",
+            15
+          ],
+          [
+            "L",
+            16
+          ],
+          [
+            "V",
+            16
+          ],
+          [
+            "L",
+            17
+          ],
+          [
+            "V",
+            17
+          ],
+          [
+            "L",
+            18
+          ],
+          [
+            "V",
+            18
+          ]
+        ],
+        "boundary_base_lbmolph": {
+          "boilup": 8030.025322439712,
+          "bottoms": 4761.984863193356,
+          "distillate": 2364.009047357104,
+          "reflux": 5910.02261839276
+        },
+        "boundary_blocks": [
+          "distillate"
+        ],
+        "boundary_opt_lbmolph": {
+          "boilup": 8030.025322439712,
+          "bottoms": 4761.984863193356,
+          "condenser_duty_btu_per_h": -51941932.55249542,
+          "distillate": 2198.7459276981604,
+          "reflux": 5496.864819245401
+        },
+        "chemsep_product_specs": true,
+        "condenser_duty_base_BTUph": -51941932.55249542,
+        "condenser_duty_mode": "total-condense",
+        "condenser_duty_opt_BTUph": -51941932.55249542,
+        "energy_blocks": [
+          [
+            "EL",
+            1
+          ],
+          [
+            "EV",
+            1
+          ],
+          [
+            "EL",
+            2
+          ],
+          [
+            "EV",
+            2
+          ],
+          [
+            "EL",
+            3
+          ],
+          [
+            "EV",
+            3
+          ],
+          [
+            "EL",
+            4
+          ],
+          [
+            "EV",
+            4
+          ],
+          [
+            "EL",
+            5
+          ],
+          [
+            "EV",
+            5
+          ],
+          [
+            "EL",
+            6
+          ],
+          [
+            "EV",
+            6
+          ],
+          [
+            "EL",
+            7
+          ],
+          [
+            "EV",
+            7
+          ],
+          [
+            "EL",
+            8
+          ],
+          [
+            "EV",
+            8
+          ],
+          [
+            "EL",
+            9
+          ],
+          [
+            "EV",
+            9
+          ],
+          [
+            "EL",
+            10
+          ],
+          [
+            "EV",
+            10
+          ],
+          [
+            "EL",
+            11
+          ],
+          [
+            "EV",
+            11
+          ],
+          [
+            "EL",
+            12
+          ],
+          [
+            "EV",
+            12
+          ],
+          [
+            "EL",
+            13
+          ],
+          [
+            "EV",
+            13
+          ],
+          [
+            "EL",
+            14
+          ],
+          [
+            "EV",
+            14
+          ],
+          [
+            "EL",
+            15
+          ],
+          [
+            "EV",
+            15
+          ],
+          [
+            "EL",
+            16
+          ],
+          [
+            "EV",
+            16
+          ],
+          [
+            "EL",
+            17
+          ],
+          [
+            "EV",
+            17
+          ],
+          [
+            "EL",
+            18
+          ],
+          [
+            "EV",
+            18
+          ]
+        ],
+        "energy_residual_blocks": [
+          "tray_EV_BTU",
+          "tray_EL_BTU"
+        ],
+        "eval_count": 2220,
+        "feed_temperature_base_F": 174.9992,
+        "feed_temperature_opt_F": null,
+        "feed_vapor_fraction_base": 0.0,
+        "feed_vapor_fraction_opt": 0.0,
+        "flow_blocks": [
+          [
+            "LF",
+            1
+          ],
+          [
+            "VF",
+            1
+          ],
+          [
+            "LF",
+            2
+          ],
+          [
+            "VF",
+            2
+          ],
+          [
+            "LF",
+            3
+          ],
+          [
+            "VF",
+            3
+          ],
+          [
+            "LF",
+            4
+          ],
+          [
+            "VF",
+            4
+          ],
+          [
+            "LF",
+            5
+          ],
+          [
+            "VF",
+            5
+          ],
+          [
+            "LF",
+            6
+          ],
+          [
+            "VF",
+            6
+          ],
+          [
+            "LF",
+            7
+          ],
+          [
+            "VF",
+            7
+          ],
+          [
+            "LF",
+            8
+          ],
+          [
+            "VF",
+            8
+          ],
+          [
+            "LF",
+            9
+          ],
+          [
+            "VF",
+            9
+          ],
+          [
+            "LF",
+            10
+          ],
+          [
+            "VF",
+            10
+          ],
+          [
+            "LF",
+            11
+          ],
+          [
+            "VF",
+            11
+          ],
+          [
+            "LF",
+            12
+          ],
+          [
+            "VF",
+            12
+          ],
+          [
+            "LF",
+            13
+          ],
+          [
+            "VF",
+            13
+          ],
+          [
+            "LF",
+            14
+          ],
+          [
+            "VF",
+            14
+          ],
+          [
+            "LF",
+            15
+          ],
+          [
+            "VF",
+            15
+          ],
+          [
+            "LF",
+            16
+          ],
+          [
+            "VF",
+            16
+          ],
+          [
+            "LF",
+            17
+          ],
+          [
+            "VF",
+            17
+          ],
+          [
+            "LF",
+            18
+          ],
+          [
+            "VF",
+            18
+          ]
+        ],
+        "input": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_model_consistent_seed_candidate_stage2.xlsx",
+        "least_squares_message": "`gtol` termination condition is satisfied.",
+        "least_squares_success": true,
+        "max_abs_delta_top_L_x": 0.0344533649004668,
+        "max_abs_delta_top_V_y": 0.0,
+        "max_abs_delta_x": 0.05020455322725209,
+        "max_abs_delta_y": 0.12208526421260546,
+        "max_rel_delta_L_flow": 0.07162300785883918,
+        "max_rel_delta_V_flow": 0.08848278203921019,
+        "max_rel_delta_boundary_flow": 0.06990798949932243,
+        "max_rel_delta_tray_EL": 0.03685875994683092,
+        "max_rel_delta_tray_EV": 0.041334549476110864,
+        "n_boundary_variables": 1,
+        "n_composition_variables": 108,
+        "n_condenser_duty_variables": 0,
+        "n_energy_variables": 36,
+        "n_feed_temperature_variables": 0,
+        "n_feed_vapor_fraction_variables": 0,
+        "n_flow_variables": 36,
+        "n_top_composition_variables": 3,
+        "n_top_vapor_total_variables": 0,
+        "n_variables": 184,
+        "output": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-flows-boundary.xlsx",
+        "reflux_ratio": 2.5,
+        "rel_delta_condenser_duty": 0.0,
+        "rel_delta_top_V_total": 0.0,
+        "residual_stages": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "stages": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "state_residual_blocks": [
+          "tray_V",
+          "tray_L",
+          "top_L",
+          "bottom_L"
+        ],
+        "state_residual_weights": {
+          "bottom_L": 1.0,
+          "bottom_V": 1.0,
+          "top_L": 1.0,
+          "top_V": 1.0,
+          "tray_L": 1.0,
+          "tray_V": 3.0
+        },
+        "top_comp_blocks": [
+          "top_L"
+        ]
+      },
+      "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-flows-boundary.xlsx"
+    }
+  ],
+  "input": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_model_consistent_seed_candidate_stage2.xlsx",
+  "selected": {
+    "audit_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-flows-boundary_audit",
+    "audit_summary": {
+      "block_summary": [
+        {
+          "max_abs_rate_per_h": 1099.086695600756,
+          "max_abs_rate_per_s": 0.30530185988909886,
+          "max_relative_rate_per_s": 0.00794024682284949,
+          "state_block": "bottom_L",
+          "worst_component_1based": 1,
+          "worst_component_name": "n-Propane",
+          "worst_stage_1based": 21
+        },
+        {
+          "max_abs_rate_per_h": 145.65999158833844,
+          "max_abs_rate_per_s": 0.04046110877453846,
+          "max_relative_rate_per_s": 0.00630181999146406,
+          "state_block": "tray_V",
+          "worst_component_1based": 3,
+          "worst_component_name": "n-Pentane",
+          "worst_stage_1based": 9
+        },
+        {
+          "max_abs_rate_per_h": 2705.261625512329,
+          "max_abs_rate_per_s": 0.7514615626423136,
+          "max_relative_rate_per_s": 0.006061776769376213,
+          "state_block": "tray_T_f",
+          "worst_component_1based": "",
+          "worst_component_name": "",
+          "worst_stage_1based": 2
+        },
+        {
+          "max_abs_rate_per_h": 481.85631989722,
+          "max_abs_rate_per_s": 0.13384897774922777,
+          "max_relative_rate_per_s": 0.00522876637053817,
+          "state_block": "tray_L",
+          "worst_component_1based": 1,
+          "worst_component_name": "n-Propane",
+          "worst_stage_1based": 19
+        },
+        {
+          "max_abs_rate_per_h": 2117035.7922601923,
+          "max_abs_rate_per_s": 588.0654978500534,
+          "max_relative_rate_per_s": 0.0023231263355064837,
+          "state_block": "tray_EL_BTU",
+          "worst_component_1based": "",
+          "worst_component_name": "",
+          "worst_stage_1based": 2
+        },
+        {
+          "max_abs_rate_per_h": 2564.5282459801315,
+          "max_abs_rate_per_s": 0.7123689572167032,
+          "max_relative_rate_per_s": 0.0021681072365613307,
+          "state_block": "top_L",
+          "worst_component_1based": 2,
+          "worst_component_name": "n-Butane",
+          "worst_stage_1based": 0
+        },
+        {
+          "max_abs_rate_per_h": 322019.01566207525,
+          "max_abs_rate_per_s": 89.44972657279868,
+          "max_relative_rate_per_s": 0.0008880347178830678,
+          "state_block": "tray_EV_BTU",
+          "worst_component_1based": "",
+          "worst_component_name": "",
+          "worst_stage_1based": 19
+        },
+        {
+          "max_abs_rate_per_h": 15.302943031598103,
+          "max_abs_rate_per_s": 0.004250817508777251,
+          "max_relative_rate_per_s": 1.9172847650054957e-05,
+          "state_block": "bottom_T_f",
+          "worst_component_1based": 1,
+          "worst_component_name": "n-Propane",
+          "worst_stage_1based": 21
+        },
+        {
+          "max_abs_rate_per_h": 0.0,
+          "max_abs_rate_per_s": 0.0,
+          "max_relative_rate_per_s": 0.0,
+          "state_block": "bottom_V",
+          "worst_component_1based": 1,
+          "worst_component_name": "n-Propane",
+          "worst_stage_1based": 21
+        },
+        {
+          "max_abs_rate_per_h": 0.0,
+          "max_abs_rate_per_s": 0.0,
+          "max_relative_rate_per_s": 0.0,
+          "state_block": "top_V",
+          "worst_component_1based": 1,
+          "worst_component_name": "n-Propane",
+          "worst_stage_1based": 0
+        }
+      ],
+      "clapeyron_model": "PR",
+      "condenser_duty_btu_per_h": null,
+      "condenser_duty_mode": "total-condense",
+      "debug_clamp_top_drum_pressure_psia": null,
+      "debug_freeze_active_diag": 0.0,
+      "debug_freeze_tray_vapor_derivatives": false,
+      "debug_max_orig_dmVdt": 0.0,
+      "debug_max_orig_dmVdt_rel_per_s": 0.0,
+      "debug_override_reflux_composition": false,
+      "debug_reflux_comp2_delta": NaN,
+      "debug_reflux_orig_comp2": NaN,
+      "debug_reflux_overridden": 0.0,
+      "debug_reflux_target_comp2": NaN,
+      "debug_reflux_target_delta_max": 0.0,
+      "debug_reflux_target_stage": -1.0,
+      "debug_top_drum_pressure_clamp_active": NaN,
+      "debug_top_drum_pressure_clamp_psia": NaN,
+      "debug_top_drum_pressure_clamp_raw_psia": NaN,
+      "debug_worst_v_comp": -1.0,
+      "debug_worst_v_stage": -1.0,
+      "diag_dM_total_dt_lbmolph": NaN,
+      "diag_global_mass_closure_error_lbmolph": NaN,
+      "diag_total_condenser_boundary_energy_owner": 1.0,
+      "diag_total_condenser_boundary_energy_residual_BTUps": 1.8189894035458565e-12,
+      "diag_total_condenser_boundary_energy_residual_rel": 1.3001089843428098e-16,
+      "equilibrium_relaxation": false,
+      "excel": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-flows-boundary.xlsx",
+      "flash_feed_at_stage_conditions": false,
+      "gate_pass": false,
+      "include_boundary_states": true,
+      "include_energy": true,
+      "include_temperature": true,
+      "include_vapor_states": true,
+      "max_abs_rate_per_s": 588.0654978500534,
+      "max_abs_tray_total_rate_lbmolph": 438.06122848272355,
+      "max_relative_rate_per_s": 0.00794024682284949,
+      "pressure_model": "hydraulic",
+      "relative_rate_gate": 0.0001,
+      "runtime_mode": "hydraulic",
+      "scenario": "default",
+      "thermo_mode": "table",
+      "total_state_inventory_rate_lbmolph": 182.24650389851368,
+      "tray_total_rate_gate_lbmolph": 1.0,
+      "use_excel_vapor_holdup": true,
+      "vapor_flow_model": "energy",
+      "vapor_holdup_relaxation_sec": 10.0
+    },
+    "name": "coupled-flows-boundary",
+    "optimizer_summary": {
+      "audit_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-flows-boundary_audit",
+      "best_max_relative_rate_per_s_inprocess": 0.007940246822849493,
+      "best_objective_norm": 0.0744084685881789,
+      "blocks": [
+        [
+          "L",
+          1
+        ],
+        [
+          "V",
+          1
+        ],
+        [
+          "L",
+          2
+        ],
+        [
+          "V",
+          2
+        ],
+        [
+          "L",
+          3
+        ],
+        [
+          "V",
+          3
+        ],
+        [
+          "L",
+          4
+        ],
+        [
+          "V",
+          4
+        ],
+        [
+          "L",
+          5
+        ],
+        [
+          "V",
+          5
+        ],
+        [
+          "L",
+          6
+        ],
+        [
+          "V",
+          6
+        ],
+        [
+          "L",
+          7
+        ],
+        [
+          "V",
+          7
+        ],
+        [
+          "L",
+          8
+        ],
+        [
+          "V",
+          8
+        ],
+        [
+          "L",
+          9
+        ],
+        [
+          "V",
+          9
+        ],
+        [
+          "L",
+          10
+        ],
+        [
+          "V",
+          10
+        ],
+        [
+          "L",
+          11
+        ],
+        [
+          "V",
+          11
+        ],
+        [
+          "L",
+          12
+        ],
+        [
+          "V",
+          12
+        ],
+        [
+          "L",
+          13
+        ],
+        [
+          "V",
+          13
+        ],
+        [
+          "L",
+          14
+        ],
+        [
+          "V",
+          14
+        ],
+        [
+          "L",
+          15
+        ],
+        [
+          "V",
+          15
+        ],
+        [
+          "L",
+          16
+        ],
+        [
+          "V",
+          16
+        ],
+        [
+          "L",
+          17
+        ],
+        [
+          "V",
+          17
+        ],
+        [
+          "L",
+          18
+        ],
+        [
+          "V",
+          18
+        ]
+      ],
+      "boundary_base_lbmolph": {
+        "boilup": 8030.025322439712,
+        "bottoms": 4761.984863193356,
+        "distillate": 2364.009047357104,
+        "reflux": 5910.02261839276
+      },
+      "boundary_blocks": [
+        "distillate"
+      ],
+      "boundary_opt_lbmolph": {
+        "boilup": 8030.025322439712,
+        "bottoms": 4761.984863193356,
+        "condenser_duty_btu_per_h": -51941932.55249542,
+        "distillate": 2198.7459276981604,
+        "reflux": 5496.864819245401
+      },
+      "chemsep_product_specs": true,
+      "condenser_duty_base_BTUph": -51941932.55249542,
+      "condenser_duty_mode": "total-condense",
+      "condenser_duty_opt_BTUph": -51941932.55249542,
+      "energy_blocks": [
+        [
+          "EL",
+          1
+        ],
+        [
+          "EV",
+          1
+        ],
+        [
+          "EL",
+          2
+        ],
+        [
+          "EV",
+          2
+        ],
+        [
+          "EL",
+          3
+        ],
+        [
+          "EV",
+          3
+        ],
+        [
+          "EL",
+          4
+        ],
+        [
+          "EV",
+          4
+        ],
+        [
+          "EL",
+          5
+        ],
+        [
+          "EV",
+          5
+        ],
+        [
+          "EL",
+          6
+        ],
+        [
+          "EV",
+          6
+        ],
+        [
+          "EL",
+          7
+        ],
+        [
+          "EV",
+          7
+        ],
+        [
+          "EL",
+          8
+        ],
+        [
+          "EV",
+          8
+        ],
+        [
+          "EL",
+          9
+        ],
+        [
+          "EV",
+          9
+        ],
+        [
+          "EL",
+          10
+        ],
+        [
+          "EV",
+          10
+        ],
+        [
+          "EL",
+          11
+        ],
+        [
+          "EV",
+          11
+        ],
+        [
+          "EL",
+          12
+        ],
+        [
+          "EV",
+          12
+        ],
+        [
+          "EL",
+          13
+        ],
+        [
+          "EV",
+          13
+        ],
+        [
+          "EL",
+          14
+        ],
+        [
+          "EV",
+          14
+        ],
+        [
+          "EL",
+          15
+        ],
+        [
+          "EV",
+          15
+        ],
+        [
+          "EL",
+          16
+        ],
+        [
+          "EV",
+          16
+        ],
+        [
+          "EL",
+          17
+        ],
+        [
+          "EV",
+          17
+        ],
+        [
+          "EL",
+          18
+        ],
+        [
+          "EV",
+          18
+        ]
+      ],
+      "energy_residual_blocks": [
+        "tray_EV_BTU",
+        "tray_EL_BTU"
+      ],
+      "eval_count": 2220,
+      "feed_temperature_base_F": 174.9992,
+      "feed_temperature_opt_F": null,
+      "feed_vapor_fraction_base": 0.0,
+      "feed_vapor_fraction_opt": 0.0,
+      "flow_blocks": [
+        [
+          "LF",
+          1
+        ],
+        [
+          "VF",
+          1
+        ],
+        [
+          "LF",
+          2
+        ],
+        [
+          "VF",
+          2
+        ],
+        [
+          "LF",
+          3
+        ],
+        [
+          "VF",
+          3
+        ],
+        [
+          "LF",
+          4
+        ],
+        [
+          "VF",
+          4
+        ],
+        [
+          "LF",
+          5
+        ],
+        [
+          "VF",
+          5
+        ],
+        [
+          "LF",
+          6
+        ],
+        [
+          "VF",
+          6
+        ],
+        [
+          "LF",
+          7
+        ],
+        [
+          "VF",
+          7
+        ],
+        [
+          "LF",
+          8
+        ],
+        [
+          "VF",
+          8
+        ],
+        [
+          "LF",
+          9
+        ],
+        [
+          "VF",
+          9
+        ],
+        [
+          "LF",
+          10
+        ],
+        [
+          "VF",
+          10
+        ],
+        [
+          "LF",
+          11
+        ],
+        [
+          "VF",
+          11
+        ],
+        [
+          "LF",
+          12
+        ],
+        [
+          "VF",
+          12
+        ],
+        [
+          "LF",
+          13
+        ],
+        [
+          "VF",
+          13
+        ],
+        [
+          "LF",
+          14
+        ],
+        [
+          "VF",
+          14
+        ],
+        [
+          "LF",
+          15
+        ],
+        [
+          "VF",
+          15
+        ],
+        [
+          "LF",
+          16
+        ],
+        [
+          "VF",
+          16
+        ],
+        [
+          "LF",
+          17
+        ],
+        [
+          "VF",
+          17
+        ],
+        [
+          "LF",
+          18
+        ],
+        [
+          "VF",
+          18
+        ]
+      ],
+      "input": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_model_consistent_seed_candidate_stage2.xlsx",
+      "least_squares_message": "`gtol` termination condition is satisfied.",
+      "least_squares_success": true,
+      "max_abs_delta_top_L_x": 0.0344533649004668,
+      "max_abs_delta_top_V_y": 0.0,
+      "max_abs_delta_x": 0.05020455322725209,
+      "max_abs_delta_y": 0.12208526421260546,
+      "max_rel_delta_L_flow": 0.07162300785883918,
+      "max_rel_delta_V_flow": 0.08848278203921019,
+      "max_rel_delta_boundary_flow": 0.06990798949932243,
+      "max_rel_delta_tray_EL": 0.03685875994683092,
+      "max_rel_delta_tray_EV": 0.041334549476110864,
+      "n_boundary_variables": 1,
+      "n_composition_variables": 108,
+      "n_condenser_duty_variables": 0,
+      "n_energy_variables": 36,
+      "n_feed_temperature_variables": 0,
+      "n_feed_vapor_fraction_variables": 0,
+      "n_flow_variables": 36,
+      "n_top_composition_variables": 3,
+      "n_top_vapor_total_variables": 0,
+      "n_variables": 184,
+      "output": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-flows-boundary.xlsx",
+      "reflux_ratio": 2.5,
+      "rel_delta_condenser_duty": 0.0,
+      "rel_delta_top_V_total": 0.0,
+      "residual_stages": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "stages": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "state_residual_blocks": [
+        "tray_V",
+        "tray_L",
+        "top_L",
+        "bottom_L"
+      ],
+      "state_residual_weights": {
+        "bottom_L": 1.0,
+        "bottom_V": 1.0,
+        "top_L": 1.0,
+        "top_V": 1.0,
+        "tray_L": 1.0,
+        "tray_V": 3.0
+      },
+      "top_comp_blocks": [
+        "top_L"
+      ]
+    },
+    "workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full\\coupled-flows-boundary.xlsx"
+  },
+  "selected_output": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_model_consistent_seed_candidate_stage3_balanced_full.xlsx",
+  "selection": "balanced",
+  "work_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage3_balanced_trayVw3_totalw05_full"
+}

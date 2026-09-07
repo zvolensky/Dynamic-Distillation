@@ -1,0 +1,120 @@
+{
+  "audit_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\smoke_20260705\\coupled-vle-topL_audit",
+  "best_max_relative_rate_per_s_inprocess": 0.022715613295480348,
+  "best_objective_norm": 0.036852913373545605,
+  "blocks": [
+    [
+      "L",
+      1
+    ],
+    [
+      "V",
+      1
+    ],
+    [
+      "L",
+      2
+    ],
+    [
+      "V",
+      2
+    ]
+  ],
+  "boundary_base_lbmolph": {
+    "boilup": 8030.025322439712,
+    "bottoms": 4761.984863193356,
+    "distillate": 2386.929084677035,
+    "reflux": 5967.322711692588
+  },
+  "boundary_blocks": [],
+  "boundary_opt_lbmolph": {
+    "boilup": 8030.025322439712,
+    "bottoms": 4761.984863193356,
+    "condenser_duty_btu_per_h": -51941932.55249542,
+    "distillate": 2386.929084677035,
+    "reflux": 5967.322711692588
+  },
+  "chemsep_product_specs": false,
+  "condenser_duty_base_BTUph": -51941932.55249542,
+  "condenser_duty_mode": "total-condense",
+  "condenser_duty_opt_BTUph": -51941932.55249542,
+  "energy_blocks": [
+    [
+      "EL",
+      1
+    ],
+    [
+      "EV",
+      1
+    ],
+    [
+      "EL",
+      2
+    ],
+    [
+      "EV",
+      2
+    ]
+  ],
+  "energy_residual_blocks": [
+    "tray_EV_BTU",
+    "tray_EL_BTU"
+  ],
+  "eval_count": 22,
+  "feed_temperature_base_F": 174.9992,
+  "feed_temperature_opt_F": null,
+  "feed_vapor_fraction_base": 0.0,
+  "feed_vapor_fraction_opt": 0.0,
+  "flow_blocks": [
+    [
+      "VF",
+      1
+    ],
+    [
+      "VF",
+      2
+    ]
+  ],
+  "input": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_profile_coeff_trial1_liqenergy_topboundary2_11_noeq_20260602.xlsx",
+  "least_squares_message": "The maximum number of function evaluations is exceeded.",
+  "least_squares_success": false,
+  "max_abs_delta_top_L_x": 1.3877787807814457e-17,
+  "max_abs_delta_top_V_y": 0.0,
+  "max_abs_delta_x": 2.220446049250313e-16,
+  "max_abs_delta_y": 2.220446049250313e-16,
+  "max_rel_delta_L_flow": 0.0,
+  "max_rel_delta_V_flow": 1.4901161190545475e-08,
+  "max_rel_delta_boundary_flow": 0.0,
+  "max_rel_delta_tray_EL": 0.0,
+  "max_rel_delta_tray_EV": 0.0,
+  "n_boundary_variables": 0,
+  "n_composition_variables": 12,
+  "n_condenser_duty_variables": 0,
+  "n_energy_variables": 4,
+  "n_feed_temperature_variables": 0,
+  "n_feed_vapor_fraction_variables": 0,
+  "n_flow_variables": 2,
+  "n_top_composition_variables": 3,
+  "n_top_vapor_total_variables": 0,
+  "n_variables": 21,
+  "output": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\smoke_20260705\\coupled-vle-topL.xlsx",
+  "reflux_ratio": null,
+  "rel_delta_condenser_duty": 0.0,
+  "rel_delta_top_V_total": 0.0,
+  "residual_stages": [
+    2,
+    3
+  ],
+  "stages": [
+    2,
+    3
+  ],
+  "state_residual_blocks": [
+    "tray_V",
+    "tray_L",
+    "top_L"
+  ],
+  "top_comp_blocks": [
+    "top_L"
+  ]
+}

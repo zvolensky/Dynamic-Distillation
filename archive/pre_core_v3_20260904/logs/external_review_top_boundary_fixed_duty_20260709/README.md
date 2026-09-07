@@ -1,0 +1,28 @@
+﻿# Package Manifest
+
+Package: external_review_top_boundary_fixed_duty_20260709
+Scope: artifacts and learnings created after the previous external-review collection, focused on condenser-duty pressure-control probes and the fixed condenser-duty sweep.
+
+Primary review note: docs/external_review_top_boundary_fixed_duty_20260709.md
+Primary sweep table: logs/fixed_condenser_duty_sweep_34_50MM_20260709.csv
+Human-readable sweep table: logs/fixed_condenser_duty_sweep_34_50MM_20260709.md
+
+Run folders included:
+- logs/c3c4_stage2_productdrawfix_liqhyd_a025_truelevel_condduty_spec_1800s_20260709
+- logs/c3c4_stage2_productdrawfix_liqhyd_a025_truelevel_condduty_spec_kcpos_1800s_20260709
+- logs/c3c4_stage2_productdrawfix_liqhyd_a025_truelevel_condduty_spec_clamp45_1800s_20260709
+- logs/c3c4_stage2_truelevel_fixedcond_Q34MM_1800s_20260709
+- logs/c3c4_stage2_truelevel_fixedcond_Q36MM_1800s_20260709
+- logs/c3c4_stage2_truelevel_fixedcond_Q38MM_1800s_20260709
+- logs/c3c4_stage2_truelevel_fixedcond_Q40MM_1800s_20260709
+- logs/c3c4_stage2_truelevel_fixedcond_Q42MM_1800s_20260709
+- logs/c3c4_stage2_truelevel_fixedcond_Q44MM_1800s_20260709
+- logs/c3c4_stage2_truelevel_fixedcond_Q46MM_1800s_20260709
+- logs/c3c4_stage2_truelevel_fixedcond_Q48MM_1800s_20260709
+- logs/c3c4_stage2_truelevel_fixedcond_Q50MM_1800s_20260709
+
+Source context included:
+- source_context/c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx
+- source_context/experiment_ledger.md
+- source_context/issue_log.md
+- source_context/dynamic_column_initialization_strategy.md

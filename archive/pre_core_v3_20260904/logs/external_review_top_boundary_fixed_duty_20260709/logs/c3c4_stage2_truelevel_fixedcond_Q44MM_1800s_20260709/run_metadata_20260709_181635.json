@@ -1,0 +1,251 @@
+{
+  "run_id": "20260709_181635",
+  "run_name": "",
+  "run_description": "",
+  "status": "completed",
+  "pid": 27336,
+  "started_at_local": "2026-07-09 18:16:35",
+  "excel_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx",
+  "logs_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_truelevel_fixedcond_Q44MM_1800s_20260709",
+  "runtime_mode": "hydraulic",
+  "thermo_mode": "clapeyron",
+  "clapeyron_model": "PR",
+  "clapeyron_pr_parameter_source": "default",
+  "thermo_every_n_steps": 1,
+  "flash_feed_at_stage_conditions": true,
+  "n_steps": 9000,
+  "dt_sec": 0.2,
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_truelevel_fixedcond_Q44MM_1800s_20260709\\column_profile_20260709_181635.csv",
+  "summary_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_truelevel_fixedcond_Q44MM_1800s_20260709\\column_summary_20260709_181635.csv",
+  "runtime_control_json": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_truelevel_fixedcond_Q44MM_1800s_20260709\\runtime_control.json",
+  "startup_trace_log": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_truelevel_fixedcond_Q44MM_1800s_20260709\\startup_trace_20260709_181536.log",
+  "startup_timing_sec": {
+    "primary_backend_build": 26.063402900006622,
+    "equilibrium_relaxation_backend_build": 0.0030931000073906034,
+    "francis_autocalibration": 1.5600002370774746e-05
+  },
+  "startup_build_info": {},
+  "init_pack_top_drum_vapor": {
+    "enabled": false,
+    "applied": false,
+    "target_pressure_psia": NaN,
+    "raw_pressure_initial_psia": NaN,
+    "raw_pressure_final_psia": NaN,
+    "top_vapor_initial_lbmol": NaN,
+    "top_vapor_final_lbmol": NaN,
+    "scale_factor": NaN,
+    "reason": "disabled"
+  },
+  "init_match_condenser_duty": {
+    "enabled": false,
+    "applied": false,
+    "q_calc_BTUph": NaN,
+    "top_pressure_sp_psia": NaN,
+    "reason": "disabled"
+  },
+  "init_align_top_liquid_to_condensate": {
+    "enabled": true,
+    "applied": true,
+    "blend": 1.0,
+    "top_L_total_lbmol": 1388.9000000000005,
+    "condensate_total_lbmolph": 7439.372314904537,
+    "max_composition_delta": 0.054882480293147795,
+    "reason": "applied"
+  },
+  "init_align_tray_liquid_to_equilibrium": {
+    "enabled": true,
+    "applied": true,
+    "blend": 1.0,
+    "max_composition_delta": 1.4061674047383121e-10,
+    "max_interior_composition_delta": 1.4061674047383121e-10,
+    "max_K_state_over_K_eq_abs_log_before": 0.7183906072116073,
+    "max_K_state_over_K_eq_abs_log_after": 0.718390607121616,
+    "energy_repacked": true,
+    "scope": "interior",
+    "reason": "applied"
+  },
+  "init_align_tray_vapor_to_equilibrium": {
+    "enabled": false,
+    "applied": false,
+    "blend": NaN,
+    "max_composition_delta": NaN,
+    "max_interior_composition_delta": NaN,
+    "max_K_state_over_K_eq_abs_log_before": NaN,
+    "max_K_state_over_K_eq_abs_log_after": NaN,
+    "energy_repacked": false,
+    "reason": "disabled"
+  },
+  "init_align_tray_vapor_to_linear_steady": {
+    "enabled": true,
+    "applied": true,
+    "blend": 1.0,
+    "scope": "interior",
+    "max_composition_delta": 0.007884851613280786,
+    "max_interior_composition_delta": 0.007884851613280786,
+    "max_y_linear_steady_minus_y_target": 0.007884851539523674,
+    "energy_repacked": true,
+    "reason": "applied"
+  },
+  "startup_seed_cache": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "saved": false,
+    "reason": "disabled"
+  },
+  "thermo_call_counters": {
+    "feed_stage_flash": {
+      "flash_cache_misses": 1,
+      "flash_requests": 1,
+      "backend_flash_equivalents": 1,
+      "wall_sec": 19.3288157999923,
+      "cp_requests": 1,
+      "cp_wall_sec": 1.3949059000005946,
+      "flash_cache_hits": 9016
+    },
+    "liquid_density_lookup": {
+      "liquid_density_cache_misses": 55,
+      "liquid_density_requests": 55,
+      "liquid_density_wall_sec": 0.0014593000523746014,
+      "liquid_density_cache_hits": 265
+    },
+    "reboiler_equilibrium_helper_flash": {
+      "flash_cache_misses": 3,
+      "flash_requests": 3,
+      "backend_flash_equivalents": 3,
+      "wall_sec": 0.00042539997957646847,
+      "cp_requests": 3,
+      "cp_wall_sec": 0.00014300001203082502,
+      "flash_cache_hits": 13
+    },
+    "main_tray_refresh": {
+      "batch_flash_requests": 9016,
+      "batch_flash_rows": 180320,
+      "flash_cache_misses": 162074,
+      "flash_requests": 162074,
+      "backend_flash_equivalents": 162074,
+      "wall_sec": 11.341657295182813,
+      "cp_requests": 162074,
+      "cp_wall_sec": 7.025432804424781,
+      "flash_cache_hits": 18246
+    },
+    "uncategorized": {
+      "flash_cache_hits": 154863,
+      "liquid_density_cache_hits": 8,
+      "liquid_density_cache_misses": 18001,
+      "liquid_density_requests": 18001,
+      "liquid_density_wall_sec": 0.7051202986622229,
+      "liquid_density_cache_evictions": 17802
+    },
+    "energy_vapor_flow_enthalpy_refresh": {
+      "batch_flash_requests": 18032,
+      "batch_flash_rows": 307113,
+      "flash_cache_hits": 44,
+      "flash_cache_misses": 307069,
+      "flash_requests": 307069,
+      "backend_flash_equivalents": 307069,
+      "wall_sec": 20.577675200765952,
+      "cp_requests": 307069,
+      "cp_wall_sec": 13.379062902240548
+    },
+    "feed_enthalpy_flash": {
+      "flash_cache_hits": 18045,
+      "flash_cache_misses": 9003,
+      "flash_requests": 9003,
+      "backend_flash_equivalents": 9003,
+      "wall_sec": 0.7653864980093203,
+      "cp_requests": 9003,
+      "cp_wall_sec": 0.3830208005674649
+    },
+    "top_reflux_liquid_enthalpy": {
+      "flash_cache_misses": 18005,
+      "flash_requests": 18005,
+      "backend_flash_equivalents": 18005,
+      "wall_sec": 2.7169656994519755,
+      "cp_requests": 18005,
+      "cp_wall_sec": 0.7080363004934043,
+      "flash_cache_hits": 27
+    },
+    "top_drum_liquid_density_lookup": {
+      "liquid_density_cache_misses": 2,
+      "liquid_density_requests": 2,
+      "liquid_density_wall_sec": 6.920000305399299e-05,
+      "liquid_density_cache_hits": 14
+    },
+    "condenser_duty_reuse_diag": {
+      "full_packet_misses": 1786,
+      "bubble_state_miss_no_packet": 32,
+      "fresh_solves": 1786,
+      "full_packet_hits": 7246,
+      "bubble_state_hits": 1754
+    },
+    "condenser_duty_bubble_point_helper_flash": {
+      "flash_cache_misses": 90,
+      "flash_requests": 90,
+      "backend_flash_equivalents": 90,
+      "wall_sec": 7.165119299956132,
+      "cp_requests": 90,
+      "cp_wall_sec": 0.003810999885899946,
+      "flash_cache_hits": 1350
+    },
+    "condenser_duty_helper_flash": {
+      "flash_cache_misses": 19153,
+      "flash_requests": 19153,
+      "backend_flash_equivalents": 19153,
+      "wall_sec": 1.7293383010837715,
+      "cp_requests": 19153,
+      "cp_wall_sec": 0.7529490999295376,
+      "flash_cache_hits": 34943
+    },
+    "temperature_state_enthalpy_refresh": {
+      "flash_cache_hits": 2678,
+      "flash_cache_misses": 6338,
+      "flash_requests": 6338,
+      "backend_flash_equivalents": 6338,
+      "wall_sec": 0.8521758007700555,
+      "cp_requests": 6338,
+      "cp_wall_sec": 0.2546584004594479
+    },
+    "temperature_state_cp_lookup": {
+      "flash_cache_hits": 276,
+      "flash_cache_misses": 12,
+      "flash_requests": 12,
+      "backend_flash_equivalents": 12,
+      "wall_sec": 0.0013896000164095312,
+      "cp_requests": 12,
+      "cp_wall_sec": 0.0005587000632658601
+    },
+    "bottom_sump_cp_lookup": {
+      "flash_cache_misses": 8054,
+      "flash_requests": 8054,
+      "backend_flash_equivalents": 8054,
+      "wall_sec": 0.5758123999112286,
+      "cp_requests": 8054,
+      "cp_wall_sec": 0.3325524003303144,
+      "flash_cache_hits": 15
+    },
+    "equilibrium_relaxation_flash": {
+      "flash_requests": 260,
+      "backend_flash_equivalents": 260
+    }
+  },
+  "ended_at_local": "2026-07-09 18:21:19",
+  "elapsed_wall_sec": 284.51822480000556,
+  "final_time_s": 1800.0000000002722,
+  "error": "",
+  "error_traceback": "",
+  "restart_workbook": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_truelevel_fixedcond_Q44MM_1800s_20260709\\c3c4_initializer_residual_vapor_state_stage2_20260706__restart_20260709_181635.xlsx",
+  "restart_export_error": "",
+  "native_checkpoint": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_truelevel_fixedcond_Q44MM_1800s_20260709\\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260709_181635.npz",
+  "native_checkpoint_export_error": "",
+  "native_checkpoint_init": {
+    "enabled": false,
+    "path": "",
+    "loaded": false,
+    "reason": "disabled",
+    "schema": "",
+    "source_run_id": "",
+    "source_final_time_s": NaN,
+    "restored_memory_keys": []
+  }
+}

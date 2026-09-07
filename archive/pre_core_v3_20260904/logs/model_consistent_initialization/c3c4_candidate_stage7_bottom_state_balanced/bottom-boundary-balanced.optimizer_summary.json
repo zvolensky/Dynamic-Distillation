@@ -1,0 +1,563 @@
+{
+  "audit_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage7_bottom_state_balanced\\bottom-boundary-balanced_audit",
+  "best_max_relative_rate_per_s_inprocess": 0.004986894501241334,
+  "best_objective_norm": 0.0513378060668972,
+  "blocks": [
+    [
+      "L",
+      1
+    ],
+    [
+      "V",
+      1
+    ],
+    [
+      "L",
+      2
+    ],
+    [
+      "V",
+      2
+    ],
+    [
+      "L",
+      3
+    ],
+    [
+      "V",
+      3
+    ],
+    [
+      "L",
+      4
+    ],
+    [
+      "V",
+      4
+    ],
+    [
+      "L",
+      5
+    ],
+    [
+      "V",
+      5
+    ],
+    [
+      "L",
+      6
+    ],
+    [
+      "V",
+      6
+    ],
+    [
+      "L",
+      7
+    ],
+    [
+      "V",
+      7
+    ],
+    [
+      "L",
+      8
+    ],
+    [
+      "V",
+      8
+    ],
+    [
+      "L",
+      9
+    ],
+    [
+      "V",
+      9
+    ],
+    [
+      "L",
+      10
+    ],
+    [
+      "V",
+      10
+    ],
+    [
+      "L",
+      11
+    ],
+    [
+      "V",
+      11
+    ],
+    [
+      "L",
+      12
+    ],
+    [
+      "V",
+      12
+    ],
+    [
+      "L",
+      13
+    ],
+    [
+      "V",
+      13
+    ],
+    [
+      "L",
+      14
+    ],
+    [
+      "V",
+      14
+    ],
+    [
+      "L",
+      15
+    ],
+    [
+      "V",
+      15
+    ],
+    [
+      "L",
+      16
+    ],
+    [
+      "V",
+      16
+    ],
+    [
+      "L",
+      17
+    ],
+    [
+      "V",
+      17
+    ],
+    [
+      "L",
+      18
+    ],
+    [
+      "V",
+      18
+    ]
+  ],
+  "bottom_comp_blocks": [
+    "bottom_L"
+  ],
+  "boundary_base_lbmolph": {
+    "boilup": 7095.805142798358,
+    "bottoms": 5519.329483857467,
+    "distillate": 1573.372275985785,
+    "reflux": 3933.430689964462
+  },
+  "boundary_blocks": [
+    "boilup",
+    "distillate",
+    "bottoms"
+  ],
+  "boundary_opt_lbmolph": {
+    "boilup": 6291.365623637768,
+    "bottoms": 5891.048796515121,
+    "condenser_duty_btu_per_h": -51941932.55249542,
+    "distillate": 1481.006739487818,
+    "reflux": 3702.516848719545
+  },
+  "chemsep_product_specs": true,
+  "condenser_duty_base_BTUph": -51941932.55249542,
+  "condenser_duty_mode": "total-condense",
+  "condenser_duty_opt_BTUph": -51941932.55249542,
+  "energy_blocks": [
+    [
+      "EL",
+      1
+    ],
+    [
+      "EV",
+      1
+    ],
+    [
+      "EL",
+      2
+    ],
+    [
+      "EV",
+      2
+    ],
+    [
+      "EL",
+      3
+    ],
+    [
+      "EV",
+      3
+    ],
+    [
+      "EL",
+      4
+    ],
+    [
+      "EV",
+      4
+    ],
+    [
+      "EL",
+      5
+    ],
+    [
+      "EV",
+      5
+    ],
+    [
+      "EL",
+      6
+    ],
+    [
+      "EV",
+      6
+    ],
+    [
+      "EL",
+      7
+    ],
+    [
+      "EV",
+      7
+    ],
+    [
+      "EL",
+      8
+    ],
+    [
+      "EV",
+      8
+    ],
+    [
+      "EL",
+      9
+    ],
+    [
+      "EV",
+      9
+    ],
+    [
+      "EL",
+      10
+    ],
+    [
+      "EV",
+      10
+    ],
+    [
+      "EL",
+      11
+    ],
+    [
+      "EV",
+      11
+    ],
+    [
+      "EL",
+      12
+    ],
+    [
+      "EV",
+      12
+    ],
+    [
+      "EL",
+      13
+    ],
+    [
+      "EV",
+      13
+    ],
+    [
+      "EL",
+      14
+    ],
+    [
+      "EV",
+      14
+    ],
+    [
+      "EL",
+      15
+    ],
+    [
+      "EV",
+      15
+    ],
+    [
+      "EL",
+      16
+    ],
+    [
+      "EV",
+      16
+    ],
+    [
+      "EL",
+      17
+    ],
+    [
+      "EV",
+      17
+    ],
+    [
+      "EL",
+      18
+    ],
+    [
+      "EV",
+      18
+    ]
+  ],
+  "energy_residual_blocks": [
+    "tray_EV_BTU",
+    "tray_EL_BTU"
+  ],
+  "eval_count": 1520,
+  "feed_temperature_base_F": 174.9992,
+  "feed_temperature_opt_F": null,
+  "feed_vapor_fraction_base": 0.0,
+  "feed_vapor_fraction_opt": 0.0,
+  "flow_blocks": [
+    [
+      "LF",
+      1
+    ],
+    [
+      "VF",
+      1
+    ],
+    [
+      "LF",
+      2
+    ],
+    [
+      "VF",
+      2
+    ],
+    [
+      "LF",
+      3
+    ],
+    [
+      "VF",
+      3
+    ],
+    [
+      "LF",
+      4
+    ],
+    [
+      "VF",
+      4
+    ],
+    [
+      "LF",
+      5
+    ],
+    [
+      "VF",
+      5
+    ],
+    [
+      "LF",
+      6
+    ],
+    [
+      "VF",
+      6
+    ],
+    [
+      "LF",
+      7
+    ],
+    [
+      "VF",
+      7
+    ],
+    [
+      "LF",
+      8
+    ],
+    [
+      "VF",
+      8
+    ],
+    [
+      "LF",
+      9
+    ],
+    [
+      "VF",
+      9
+    ],
+    [
+      "LF",
+      10
+    ],
+    [
+      "VF",
+      10
+    ],
+    [
+      "LF",
+      11
+    ],
+    [
+      "VF",
+      11
+    ],
+    [
+      "LF",
+      12
+    ],
+    [
+      "VF",
+      12
+    ],
+    [
+      "LF",
+      13
+    ],
+    [
+      "VF",
+      13
+    ],
+    [
+      "LF",
+      14
+    ],
+    [
+      "VF",
+      14
+    ],
+    [
+      "LF",
+      15
+    ],
+    [
+      "VF",
+      15
+    ],
+    [
+      "LF",
+      16
+    ],
+    [
+      "VF",
+      16
+    ],
+    [
+      "LF",
+      17
+    ],
+    [
+      "VF",
+      17
+    ],
+    [
+      "LF",
+      18
+    ],
+    [
+      "VF",
+      18
+    ]
+  ],
+  "input": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_model_consistent_seed_candidate_stage6_bottom_boundary_balanced.xlsx",
+  "least_squares_message": "`gtol` termination condition is satisfied.",
+  "least_squares_success": true,
+  "max_abs_delta_bottom_L_x": 0.04634255976688517,
+  "max_abs_delta_bottom_V_y": 0.0,
+  "max_abs_delta_top_L_x": 0.03060077916363768,
+  "max_abs_delta_top_V_y": 0.0,
+  "max_abs_delta_x": 0.028100781441597555,
+  "max_abs_delta_y": 0.007458443705800177,
+  "max_rel_delta_L_flow": 0.054776524302545024,
+  "max_rel_delta_V_flow": 0.11307956328271469,
+  "max_rel_delta_boundary_flow": 0.11336832156066574,
+  "max_rel_delta_tray_EL": 0.015873042562440817,
+  "max_rel_delta_tray_EV": 0.032707862603735614,
+  "n_bottom_composition_variables": 3,
+  "n_boundary_variables": 3,
+  "n_composition_variables": 108,
+  "n_condenser_duty_variables": 0,
+  "n_energy_variables": 36,
+  "n_feed_temperature_variables": 0,
+  "n_feed_vapor_fraction_variables": 0,
+  "n_flow_variables": 36,
+  "n_top_composition_variables": 3,
+  "n_top_vapor_total_variables": 0,
+  "n_variables": 189,
+  "output": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\model_consistent_initialization\\c3c4_candidate_stage7_bottom_state_balanced\\bottom-boundary-balanced.xlsx",
+  "reflux_ratio": 2.5,
+  "rel_delta_condenser_duty": 0.0,
+  "rel_delta_top_V_total": 0.0,
+  "residual_stages": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "stages": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "state_residual_blocks": [
+    "tray_V",
+    "tray_L",
+    "top_L",
+    "bottom_L"
+  ],
+  "state_residual_weights": {
+    "bottom_L": 3.0,
+    "bottom_V": 1.0,
+    "top_L": 1.0,
+    "top_V": 1.0,
+    "tray_L": 3.0,
+    "tray_V": 3.0
+  },
+  "top_comp_blocks": [
+    "top_L"
+  ]
+}

@@ -544,6 +544,7 @@ def main() -> int:
     matrix_path.parent.mkdir(parents=True, exist_ok=True)
     json_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     doc_path.write_text(_markdown(report), encoding="utf-8")
+    support.write_core_v3_docx_report(report["end_of_run"], doc_path.with_suffix(".docx"), title="Core V3 Water-Methanol 120-second Nominal-Feed Run", metadata=report, trajectory=evidence)
     np.savez_compressed(matrix_path, **evidence)
     print(
         json.dumps(

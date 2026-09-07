@@ -1,0 +1,263 @@
+{
+  "baseline_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_60s_condenser_qrecompute_20260706\\column_summary_20260706_132644.csv",
+  "baseline_summary": {
+    "final_K_state_over_K_thermo_max_abs": 1.846508389625074,
+    "final_P_top_drum_psia": 171.93768880997004,
+    "final_T_sump_F": 220.55440047690396,
+    "final_pv_inner_dv_max_lbmolph": 1.4841046746068969,
+    "final_rel_rate_per_s": 0.004903284655712504,
+    "final_score": 1.6344282185708348,
+    "final_temp_rate_F_per_s": 0.2193265026907878,
+    "final_time_s": 60.00000000000031,
+    "peak_K_state_over_K_thermo_max_abs": 1.8465083896250776,
+    "peak_pv_inner_dv_max_lbmolph": 5.001032569656672,
+    "peak_rel_rate_per_s": 0.009335958986828295,
+    "peak_score": 3.4644208127161975,
+    "peak_temp_rate_F_per_s": 0.5196631219074296
+  },
+  "candidates": [
+    {
+      "checks": [
+        {
+          "baseline": 1.6344282185708348,
+          "candidate": 5.629927166321064,
+          "limit": 1.0,
+          "metric": "final_score",
+          "name": "final score ratio",
+          "passed": false,
+          "value": 3.4445851474859785
+        },
+        {
+          "baseline": 3.4644208127161975,
+          "candidate": 53.955217254640374,
+          "limit": 1.0,
+          "metric": "peak_score",
+          "name": "peak score ratio",
+          "passed": false,
+          "value": 15.574094537417947
+        },
+        {
+          "baseline": 0.004903284655712504,
+          "candidate": 0.007498528441352301,
+          "limit": 1.0,
+          "metric": "final_rel_rate_per_s",
+          "name": "final relative state-rate ratio",
+          "passed": false,
+          "value": 1.5292867879119039
+        },
+        {
+          "baseline": 0.009335958986828295,
+          "candidate": 0.16186565176392112,
+          "limit": 1.0,
+          "metric": "peak_rel_rate_per_s",
+          "name": "peak relative state-rate ratio",
+          "passed": false,
+          "value": 17.337870913131734
+        },
+        {
+          "baseline": 0.2193265026907878,
+          "candidate": 0.8444890749481595,
+          "limit": 1.25,
+          "metric": "final_temp_rate_F_per_s",
+          "name": "final temperature-rate ratio",
+          "passed": false,
+          "value": 3.850374052326645
+        },
+        {
+          "baseline": 171.93768880997004,
+          "candidate": 171.38863156625166,
+          "limit": 0.5,
+          "metric": "final_P_top_drum_psia",
+          "name": "P_top_drum_psia final absolute drift",
+          "passed": false,
+          "value": 0.54905724371838
+        },
+        {
+          "baseline": 220.55440047690396,
+          "candidate": 220.55440088399956,
+          "limit": 0.5,
+          "metric": "final_T_sump_F",
+          "name": "T_sump_F final absolute drift",
+          "passed": true,
+          "value": 4.0709559812057705e-07
+        },
+        {
+          "baseline": 1.4841046746068969,
+          "candidate": 17.119565704723755,
+          "limit": 1.0,
+          "metric": "final_pv_inner_dv_max_lbmolph",
+          "name": "pv_inner_dv_max_lbmolph final ratio",
+          "passed": false,
+          "value": 11.535281842069738
+        },
+        {
+          "baseline": 5.001032569656672,
+          "candidate": 17.119565704723755,
+          "limit": 1.0,
+          "metric": "peak_pv_inner_dv_max_lbmolph",
+          "name": "pv_inner_dv_max_lbmolph peak ratio",
+          "passed": false,
+          "value": 3.423206201174378
+        },
+        {
+          "baseline": 1.846508389625074,
+          "candidate": 1.878202427695187,
+          "limit": 1.0,
+          "metric": "final_K_state_over_K_thermo_max_abs",
+          "name": "K_state_over_K_thermo_max_abs final ratio",
+          "passed": false,
+          "value": 1.0171643076458203
+        },
+        {
+          "baseline": 1.8465083896250776,
+          "candidate": 3.9630395126090816,
+          "limit": 1.0,
+          "metric": "peak_K_state_over_K_thermo_max_abs",
+          "name": "K_state_over_K_thermo_max_abs peak ratio",
+          "passed": false,
+          "value": 2.1462342304405957
+        }
+      ],
+      "label": "stage2_vapor_state",
+      "passed": false,
+      "summary": {
+        "final_K_state_over_K_thermo_max_abs": 1.878202427695187,
+        "final_P_top_drum_psia": 171.38863156625166,
+        "final_T_sump_F": 220.55440088399956,
+        "final_pv_inner_dv_max_lbmolph": 17.119565704723755,
+        "final_rel_rate_per_s": 0.007498528441352301,
+        "final_score": 5.629927166321064,
+        "final_temp_rate_F_per_s": 0.8444890749481595,
+        "final_time_s": 60.00000000000031,
+        "peak_K_state_over_K_thermo_max_abs": 3.9630395126090816,
+        "peak_pv_inner_dv_max_lbmolph": 17.119565704723755,
+        "peak_rel_rate_per_s": 0.16186565176392112,
+        "peak_score": 53.955217254640374,
+        "peak_temp_rate_F_per_s": 0.8444890749481595
+      },
+      "summary_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_residual_60s_20260706\\column_summary_20260706_175720.csv"
+    },
+    {
+      "checks": [
+        {
+          "baseline": 1.6344282185708348,
+          "candidate": 7.650396414790716,
+          "limit": 1.0,
+          "metric": "final_score",
+          "name": "final score ratio",
+          "passed": false,
+          "value": 4.680778469109106
+        },
+        {
+          "baseline": 3.4644208127161975,
+          "candidate": 271.66988172174223,
+          "limit": 1.0,
+          "metric": "peak_score",
+          "name": "peak score ratio",
+          "passed": false,
+          "value": 78.4171139731567
+        },
+        {
+          "baseline": 0.004903284655712504,
+          "candidate": 0.009661614169819718,
+          "limit": 1.0,
+          "metric": "final_rel_rate_per_s",
+          "name": "final relative state-rate ratio",
+          "passed": false,
+          "value": 1.9704371351484944
+        },
+        {
+          "baseline": 0.009335958986828295,
+          "candidate": 0.8150096451652268,
+          "limit": 1.0,
+          "metric": "peak_rel_rate_per_s",
+          "name": "peak relative state-rate ratio",
+          "passed": false,
+          "value": 87.29790333431082
+        },
+        {
+          "baseline": 0.2193265026907878,
+          "candidate": 1.1475594622186074,
+          "limit": 1.25,
+          "metric": "final_temp_rate_F_per_s",
+          "name": "final temperature-rate ratio",
+          "passed": false,
+          "value": 5.232196967260571
+        },
+        {
+          "baseline": 171.93768880997004,
+          "candidate": 175.03611872004163,
+          "limit": 0.5,
+          "metric": "final_P_top_drum_psia",
+          "name": "P_top_drum_psia final absolute drift",
+          "passed": false,
+          "value": 3.0984299100715873
+        },
+        {
+          "baseline": 220.55440047690396,
+          "candidate": 224.33661221748082,
+          "limit": 0.5,
+          "metric": "final_T_sump_F",
+          "name": "T_sump_F final absolute drift",
+          "passed": false,
+          "value": 3.782211740576855
+        },
+        {
+          "baseline": 1.4841046746068969,
+          "candidate": 21.04165131159607,
+          "limit": 1.0,
+          "metric": "final_pv_inner_dv_max_lbmolph",
+          "name": "pv_inner_dv_max_lbmolph final ratio",
+          "passed": false,
+          "value": 14.178010265461559
+        },
+        {
+          "baseline": 5.001032569656672,
+          "candidate": 21.04165131159607,
+          "limit": 1.0,
+          "metric": "peak_pv_inner_dv_max_lbmolph",
+          "name": "pv_inner_dv_max_lbmolph peak ratio",
+          "passed": false,
+          "value": 4.207461362932217
+        },
+        {
+          "baseline": 1.846508389625074,
+          "candidate": 1.8517396888915465,
+          "limit": 1.0,
+          "metric": "final_K_state_over_K_thermo_max_abs",
+          "name": "K_state_over_K_thermo_max_abs final ratio",
+          "passed": false,
+          "value": 1.0028330763596123
+        },
+        {
+          "baseline": 1.8465083896250776,
+          "candidate": 1.8747609147395892,
+          "limit": 1.0,
+          "metric": "peak_K_state_over_K_thermo_max_abs",
+          "name": "K_state_over_K_thermo_max_abs peak ratio",
+          "passed": false,
+          "value": 1.0153005127262098
+        }
+      ],
+      "label": "stage4_coupled",
+      "passed": false,
+      "summary": {
+        "final_K_state_over_K_thermo_max_abs": 1.8517396888915465,
+        "final_P_top_drum_psia": 175.03611872004163,
+        "final_T_sump_F": 224.33661221748082,
+        "final_pv_inner_dv_max_lbmolph": 21.04165131159607,
+        "final_rel_rate_per_s": 0.009661614169819718,
+        "final_score": 7.650396414790716,
+        "final_temp_rate_F_per_s": 1.1475594622186074,
+        "final_time_s": 60.00000000000031,
+        "peak_K_state_over_K_thermo_max_abs": 1.8747609147395892,
+        "peak_pv_inner_dv_max_lbmolph": 21.04165131159607,
+        "peak_rel_rate_per_s": 0.8150096451652268,
+        "peak_score": 271.66988172174223,
+        "peak_temp_rate_F_per_s": 1.1475594622186074
+      },
+      "summary_path": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage4_residual_60s_20260706\\column_summary_20260706_175540.csv"
+    }
+  ],
+  "passed": false
+}

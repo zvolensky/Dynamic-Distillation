@@ -1,0 +1,282 @@
+{
+  "audit_dir": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\initialization_audits\\c3c4_vapor_state_stage2_20260706",
+  "best_max_relative_rate_per_s_inprocess": 0.01417589986701371,
+  "best_objective_norm": 0.03853649485363006,
+  "blocks": [
+    [
+      "V",
+      1
+    ],
+    [
+      "V",
+      2
+    ],
+    [
+      "V",
+      3
+    ],
+    [
+      "V",
+      4
+    ],
+    [
+      "V",
+      5
+    ],
+    [
+      "V",
+      6
+    ],
+    [
+      "V",
+      7
+    ],
+    [
+      "V",
+      8
+    ],
+    [
+      "V",
+      9
+    ],
+    [
+      "V",
+      10
+    ],
+    [
+      "V",
+      11
+    ],
+    [
+      "V",
+      12
+    ],
+    [
+      "V",
+      13
+    ],
+    [
+      "V",
+      14
+    ],
+    [
+      "V",
+      15
+    ],
+    [
+      "V",
+      16
+    ],
+    [
+      "V",
+      17
+    ],
+    [
+      "V",
+      18
+    ],
+    [
+      "V",
+      19
+    ]
+  ],
+  "bottom_boundary_balance_weight": 0.0,
+  "bottom_boundary_total_weight": 0.0,
+  "bottom_comp_blocks": [],
+  "bottom_vapor_interface_weight": 0.0,
+  "boundary_base_lbmolph": {
+    "boilup": 8030.025322439712,
+    "bottoms": 4761.984863193356,
+    "distillate": 2386.929084677035,
+    "reflux": 5967.322711692588
+  },
+  "boundary_blocks": [],
+  "boundary_opt_lbmolph": {
+    "boilup": 8030.025322439712,
+    "bottoms": 4761.984863193356,
+    "condenser_duty_btu_per_h": -49988182.4365081,
+    "distillate": 2386.929084677035,
+    "reflux": 5967.322711692588
+  },
+  "chemsep_product_specs": false,
+  "condenser_duty_base_BTUph": -49988182.4365081,
+  "condenser_duty_mode": "total-condense",
+  "condenser_duty_opt_BTUph": -49988182.4365081,
+  "energy_blocks": [],
+  "energy_continuity_penalty": 0.0,
+  "energy_residual_blocks": [
+    "tray_EV_BTU"
+  ],
+  "eval_count": 1463,
+  "feed_temperature_base_F": 174.9992,
+  "feed_temperature_opt_F": null,
+  "feed_vapor_fraction_base": 0.0,
+  "feed_vapor_fraction_opt": 0.0,
+  "flow_blocks": [
+    [
+      "VF",
+      1
+    ],
+    [
+      "VF",
+      2
+    ],
+    [
+      "VF",
+      3
+    ],
+    [
+      "VF",
+      4
+    ],
+    [
+      "VF",
+      5
+    ],
+    [
+      "VF",
+      6
+    ],
+    [
+      "VF",
+      7
+    ],
+    [
+      "VF",
+      8
+    ],
+    [
+      "VF",
+      9
+    ],
+    [
+      "VF",
+      10
+    ],
+    [
+      "VF",
+      11
+    ],
+    [
+      "VF",
+      12
+    ],
+    [
+      "VF",
+      13
+    ],
+    [
+      "VF",
+      14
+    ],
+    [
+      "VF",
+      15
+    ],
+    [
+      "VF",
+      16
+    ],
+    [
+      "VF",
+      17
+    ],
+    [
+      "VF",
+      18
+    ],
+    [
+      "VF",
+      19
+    ]
+  ],
+  "flow_continuity_penalty": 0.05,
+  "input": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_residual_vaporflow_stage1_20260706.xlsx",
+  "least_squares_message": "`ftol` termination condition is satisfied.",
+  "least_squares_success": true,
+  "max_abs_delta_bottom_L_x": 0.0,
+  "max_abs_delta_bottom_V_y": 0.0,
+  "max_abs_delta_top_L_x": 0.0,
+  "max_abs_delta_top_V_y": 0.0,
+  "max_abs_delta_x": 1.1102230246251565e-16,
+  "max_abs_delta_y": 0.082722040003821,
+  "max_rel_delta_L_flow": 0.0,
+  "max_rel_delta_V_flow": 0.08456400939642433,
+  "max_rel_delta_boundary_flow": 0.0,
+  "max_rel_delta_tray_EL": 0.0,
+  "max_rel_delta_tray_EV": 0.0,
+  "max_wall_sec": 240.0,
+  "n_bottom_composition_variables": 0,
+  "n_boundary_variables": 0,
+  "n_composition_variables": 57,
+  "n_condenser_duty_variables": 0,
+  "n_energy_variables": 0,
+  "n_feed_temperature_variables": 0,
+  "n_feed_vapor_fraction_variables": 0,
+  "n_flow_variables": 19,
+  "n_top_composition_variables": 0,
+  "n_top_vapor_total_variables": 0,
+  "n_variables": 76,
+  "output": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx",
+  "profile_continuity_penalty": 0.03,
+  "reflux_ratio": null,
+  "rel_delta_condenser_duty": 0.0,
+  "rel_delta_top_V_total": 0.0,
+  "residual_stages": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "stages": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20
+  ],
+  "state_residual_blocks": [
+    "tray_V"
+  ],
+  "state_residual_weights": {
+    "bottom_L": 1.0,
+    "bottom_V": 1.0,
+    "top_L": 1.0,
+    "top_V": 1.0,
+    "tray_L": 1.0,
+    "tray_V": 1.0
+  },
+  "top_comp_blocks": [],
+  "wall_time_limited": false
+}

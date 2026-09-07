@@ -1,0 +1,210 @@
+{
+  "audit_dir": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\initialization_audits\\c3c4_initializer_specdof_feedvf_trial5_noflash_20260531",
+  "best_max_relative_rate_per_s_inprocess": 0.01826143725415851,
+  "best_objective_norm": 0.06554708123724337,
+  "blocks": [
+    [
+      "L",
+      1
+    ],
+    [
+      "V",
+      1
+    ],
+    [
+      "L",
+      2
+    ],
+    [
+      "V",
+      2
+    ],
+    [
+      "L",
+      3
+    ],
+    [
+      "V",
+      3
+    ],
+    [
+      "L",
+      4
+    ],
+    [
+      "V",
+      4
+    ],
+    [
+      "L",
+      5
+    ],
+    [
+      "V",
+      5
+    ],
+    [
+      "L",
+      6
+    ],
+    [
+      "V",
+      6
+    ],
+    [
+      "L",
+      7
+    ],
+    [
+      "V",
+      7
+    ],
+    [
+      "L",
+      8
+    ],
+    [
+      "V",
+      8
+    ],
+    [
+      "L",
+      9
+    ],
+    [
+      "V",
+      9
+    ],
+    [
+      "L",
+      10
+    ],
+    [
+      "V",
+      10
+    ],
+    [
+      "L",
+      11
+    ],
+    [
+      "V",
+      11
+    ],
+    [
+      "L",
+      12
+    ],
+    [
+      "V",
+      12
+    ],
+    [
+      "L",
+      13
+    ],
+    [
+      "V",
+      13
+    ],
+    [
+      "L",
+      14
+    ],
+    [
+      "V",
+      14
+    ],
+    [
+      "L",
+      15
+    ],
+    [
+      "V",
+      15
+    ],
+    [
+      "L",
+      16
+    ],
+    [
+      "V",
+      16
+    ],
+    [
+      "L",
+      17
+    ],
+    [
+      "V",
+      17
+    ],
+    [
+      "L",
+      18
+    ],
+    [
+      "V",
+      18
+    ]
+  ],
+  "boundary_base_lbmolph": {
+    "boilup": 8036.48438795388,
+    "bottoms": 4761.984863193356,
+    "distillate": 2380.992431596678,
+    "reflux": 5952.481078991695
+  },
+  "boundary_blocks": [
+    "reflux",
+    "boilup",
+    "distillate",
+    "bottoms"
+  ],
+  "boundary_opt_lbmolph": {
+    "boilup": 8002.10116878478,
+    "bottoms": 4784.319461916365,
+    "distillate": 2383.471981625625,
+    "reflux": 5952.642791441955
+  },
+  "eval_count": 2634,
+  "feed_temperature_base_F": 174.9992,
+  "feed_temperature_opt_F": null,
+  "feed_vapor_fraction_base": 0.0,
+  "feed_vapor_fraction_opt": 2.2958874039497803e-41,
+  "flow_blocks": [],
+  "input": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_depropanizer_chemsep_warmer_feed_pr76_source_energy_reconciled_20260531.xlsx",
+  "least_squares_message": "The maximum number of function evaluations is exceeded.",
+  "least_squares_success": false,
+  "max_abs_delta_x": 0.06982041175532257,
+  "max_abs_delta_y": 0.12631932781827915,
+  "max_rel_delta_L_flow": 0.0,
+  "max_rel_delta_V_flow": 0.0,
+  "max_rel_delta_boundary_flow": 0.004690186836929843,
+  "n_boundary_variables": 4,
+  "n_composition_variables": 108,
+  "n_feed_temperature_variables": 0,
+  "n_feed_vapor_fraction_variables": 1,
+  "n_flow_variables": 0,
+  "n_variables": 113,
+  "output": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_initializer_specdof_feedvf_trial5_noflash_20260531.xlsx",
+  "stages": [
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ]
+}

@@ -1,0 +1,720 @@
+[Init] Startup trace active: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\startup_trace_C3C4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717.log
+[Milestone] start  wall=    0.00 s  clock=2026-07-17T11:16:16
+[Milestone] loaded case from Excel  wall=    0.88 s  clock=2026-07-17T11:16:17
+[Milestone] built column spec  wall=    0.89 s  clock=2026-07-17T11:16:17
+[Validation] PASS  errors=0  warnings=0
+[Milestone] validated Excel input  wall=    0.90 s  clock=2026-07-17T11:16:17
+[Milestone] built state vector layout  wall=    0.90 s  clock=2026-07-17T11:16:17
+[Init] Building runner inputs and thermo provider
+[Init] Building thermo provider  mode=dwsim  package=pr
+[Init] Thermo provider ready  mode=dwsim
+[Init] Primary thermo backend build complete  wall=0.01s
+[Init] Equilibrium-relaxation live PR requested, but primary thermo is already DWSIM PR; skipping separate override provider
+[Init] Starting Francis hydraulic autocalibration from seeded liquid profile
+[Init] Francis hydraulic autocalibration complete  no seeded adjustments applied  wall=0.00s
+[Milestone] built inputs and thermo provider  wall=   10.73 s  clock=2026-07-17T11:16:27
+[Init] Runtime mode active: hydraulic
+[Init] Loaded native checkpoint  path=C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_xB_C3_control_300s_Qc65_dwsim_20260716\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260716_165553.npz  skipping fresh-startup vapor reseed and restart re-entry conditioning
+[Milestone] packed initial state  wall=   10.83 s  clock=2026-07-17T11:16:27
+[Init] Top-drum startup steadying skipped  explicit boundary restart state detected
+[Init] Native checkpoint state detected  skipped restart re-entry settling
+[Milestone] initialized vapor holdup from spec pressure  wall=   10.83 s  clock=2026-07-17T11:16:27
+[Milestone] resolved logging stream placement  wall=   11.16 s  clock=2026-07-17T11:16:27
+[Control] Level control enabled  top_SP=51.97% full  bottom_SP=49.44% full  top_PV_mode=true-level  bottom_PV_mode=true-level
+[Control] Pressure control enabled  MV=condenser-duty  top_P_SP=222.619 psia  Kc=-3e+05  Ti=180 s  PV_tau=5s  MV_slew=2.5e+04/s  resid_ref=250 BTU/s (auto)  resid_min_gain=0.25
+[Control] Bottoms composition control enabled  component=n-Propane  x_SP=0.047170  Kc=5e+07  Ti=600 s  MV=reboiler_duty_btuph  limits=(45000000.000, 65000000.000)
+[Milestone] ensured logs directory: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717  wall=   11.17 s  clock=2026-07-17T11:16:27
+[Init] Steady-state detector enabled  window=30s  min_time=60s  tol_rel=0.003/s  tol_kpi=0.0001/s  tol_mv=20/s  tol_T=0.15F/s  tol_sp=0.02  require_sp=off
+[Milestone] opened log files  wall=   11.18 s  clock=2026-07-17T11:16:27
+
+[ThermoTrace][runtime_step_0:outer_rhs] feed_stage_flash reused previous packet stage=12 dT_F=0 dP_psia=0 dx_max=0
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=1/20 start T_F=113.432 P_psia=222.619
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=1/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=2/20 start T_F=123.127 P_psia=224.593
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=2/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=3/20 start T_F=133.937 P_psia=224.791
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=3/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=4/20 start T_F=145.120 P_psia=224.971
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=4/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=5/20 start T_F=154.659 P_psia=225.172
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=5/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=6/20 start T_F=161.692 P_psia=225.364
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=6/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=7/20 start T_F=166.490 P_psia=225.545
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=7/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=8/20 start T_F=169.764 P_psia=225.718
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=8/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=9/20 start T_F=172.160 P_psia=225.874
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=9/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=10/20 start T_F=174.239 P_psia=226.031
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=10/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=11/20 start T_F=176.575 P_psia=226.186
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=11/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=12/20 start T_F=179.816 P_psia=226.339
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=12/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=13/20 start T_F=182.973 P_psia=226.500
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=13/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=14/20 start T_F=186.765 P_psia=226.668
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=14/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=15/20 start T_F=191.157 P_psia=226.828
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=15/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=16/20 start T_F=195.987 P_psia=227.019
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=16/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=17/20 start T_F=201.092 P_psia=227.213
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=17/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=18/20 start T_F=206.364 P_psia=227.433
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=18/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=19/20 start T_F=212.041 P_psia=227.710
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=19/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=20/20 start T_F=208.258 P_psia=232.177
+[ThermoTrace][runtime_step_0:outer_rhs] main_flash stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=2/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=3/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=4/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=4/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=5/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=6/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=7/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=8/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=9/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=10/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=11/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=12/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=13/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=14/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=15/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=16/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=17/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=18/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=19/20 reused packet
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=1/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=2/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=3/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=5/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=6/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=7/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=8/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=9/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=10/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=11/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=12/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=13/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=14/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=15/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=16/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=17/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=18/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=19/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hL_flash stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] energy_vapor_flow hV_flash stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve start T_vapor_in_F=123.127 P_cond_psia=227.678
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve reused previous bubble state T_bubble_F=113.432
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve done Q_calc_BTUph=-4.47361e+07 T_bubble_F=113.432
+[ThermoTrace][runtime_step_0:outer_rhs] post_flash entering equilibrium split construction
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=1/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=1/20 done beta=0
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=2/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=2/20 done beta=0.14414
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=3/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=3/20 done beta=0.095582
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=4/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=4/20 done beta=0.21615
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=5/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=5/20 done beta=0.28551
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=6/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=6/20 done beta=0.33171
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=7/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=7/20 done beta=0.3632
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=8/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=8/20 done beta=0.38719
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=9/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=9/20 done beta=0.40586
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=10/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=10/20 done beta=0.41171
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=11/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=11/20 done beta=0.40421
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=12/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=12/20 done beta=0.30391
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=13/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=13/20 done beta=0.313
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=14/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=14/20 done beta=0.32941
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=15/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=15/20 done beta=0.35708
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=16/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=16/20 done beta=0.38982
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=17/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=17/20 done beta=0.45157
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=18/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=18/20 done beta=0.54111
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=19/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=19/20 done beta=1
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=20/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] eq_split stage=20/20 done beta=0.015729
+[ThermoTrace][runtime_step_0:outer_rhs] post_flash equilibrium split construction complete
+[ThermoTrace][runtime_step_0:outer_rhs] post_flash target construction complete
+[ThermoTrace][runtime_step_0:outer_rhs] post_flash equilibrium-relaxation diagnostics complete
+[ThermoTrace][runtime_step_0:outer_rhs] energy_holdup block start
+[ThermoTrace][runtime_step_0:outer_rhs] energy_holdup derivatives complete
+[ThermoTrace][runtime_step_0:outer_rhs] energy_holdup diagnostics complete
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state block start
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve start T_vapor_in_F=123.127 P_cond_psia=227.678
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve reused previous bubble state T_bubble_F=113.432
+[ThermoTrace][runtime_step_0:outer_rhs] condenser duty thermo solve done Q_calc_BTUph=-4.47155e+07 T_bubble_F=113.432
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state provider enthalpy refresh start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=1/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=1/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=1/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=2/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=2/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=3/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=3/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=4/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=4/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=5/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=5/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=6/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=6/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=7/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=7/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=8/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=8/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=9/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=9/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=10/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=10/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=11/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=11/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=12/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=12/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=13/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=13/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=14/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=14/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=15/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=15/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=16/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=16/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=17/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=17/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=18/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=18/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=19/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=19/20 reused energy packet
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=20/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hL_flash stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=20/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state hV_flash stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state provider enthalpy refresh complete
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=1/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=1/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=2/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=2/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=3/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=3/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=4/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=4/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=5/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=5/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=6/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=6/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=7/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=7/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=8/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=8/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=9/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=9/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=10/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=10/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=11/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=11/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=12/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=12/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=13/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=13/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=14/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=14/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=15/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=15/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=16/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=16/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=17/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=17/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=18/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=18/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=19/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=19/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=20/20 start
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray_loop stage=20/20 done
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state tray diagnostics complete
+[ThermoTrace][runtime_step_0:outer_rhs] temperature_state bottom sump update complete
+[ThermoTrace][runtime_step_0:outer_rhs] column_rhs return
+[ThermoTrace][runtime_step_1:outer_rhs] feed_stage_flash reused previous packet stage=12 dT_F=0 dP_psia=0.638503 dx_max=0
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=1/20 start T_F=113.432 P_psia=222.619
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=1/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=2/20 start T_F=123.127 P_psia=224.593
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=2/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=3/20 start T_F=133.937 P_psia=224.791
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=3/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=4/20 start T_F=145.120 P_psia=224.971
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=4/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=5/20 start T_F=154.659 P_psia=225.172
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=5/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=6/20 start T_F=161.692 P_psia=225.364
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=6/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=7/20 start T_F=166.490 P_psia=225.545
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=7/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=8/20 start T_F=169.764 P_psia=225.718
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=8/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=9/20 start T_F=172.160 P_psia=225.874
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=9/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=10/20 start T_F=174.239 P_psia=226.031
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=10/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=11/20 start T_F=176.575 P_psia=226.186
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=11/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=12/20 start T_F=179.816 P_psia=226.339
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=12/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=13/20 start T_F=182.973 P_psia=226.500
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=13/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=14/20 start T_F=186.765 P_psia=226.668
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=14/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=15/20 start T_F=191.157 P_psia=226.828
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=15/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=16/20 start T_F=195.987 P_psia=227.019
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=16/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=17/20 start T_F=201.092 P_psia=227.213
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=17/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=18/20 start T_F=206.364 P_psia=227.433
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=18/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=19/20 start T_F=212.042 P_psia=227.710
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=19/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=20/20 start T_F=208.031 P_psia=232.177
+[ThermoTrace][runtime_step_1:outer_rhs] main_flash stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=2/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=3/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=4/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=4/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=5/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=6/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=7/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=8/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=9/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=10/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=11/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=12/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=13/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=14/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=15/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=16/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=17/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=18/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=19/20 reused packet
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=1/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=2/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=3/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=5/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=6/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=7/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=8/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=9/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=10/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=11/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=12/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=13/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=14/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=15/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=16/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=17/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=18/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=19/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hL_flash stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] energy_vapor_flow hV_flash stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve start T_vapor_in_F=123.127 P_cond_psia=228.295
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve reused previous bubble state T_bubble_F=113.432
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve done Q_calc_BTUph=-5.19235e+07 T_bubble_F=113.432
+[ThermoTrace][runtime_step_1:outer_rhs] post_flash entering equilibrium split construction
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=1/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=1/20 done beta=0
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=2/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=2/20 done beta=0.14484
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=3/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=3/20 done beta=0.09618
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=4/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=4/20 done beta=0.21655
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=5/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=5/20 done beta=0.28577
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=6/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=6/20 done beta=0.33186
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=7/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=7/20 done beta=0.36327
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=8/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=8/20 done beta=0.3872
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=9/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=9/20 done beta=0.40583
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=10/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=10/20 done beta=0.41168
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=11/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=11/20 done beta=0.4042
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=12/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=12/20 done beta=0.30396
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=13/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=13/20 done beta=0.31308
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=14/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=14/20 done beta=0.32952
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=15/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=15/20 done beta=0.3572
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=16/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=16/20 done beta=0.38993
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=17/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=17/20 done beta=0.45168
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=18/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=18/20 done beta=0.54114
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=19/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=19/20 done beta=1
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=20/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] eq_split stage=20/20 done beta=0.00068184
+[ThermoTrace][runtime_step_1:outer_rhs] post_flash equilibrium split construction complete
+[ThermoTrace][runtime_step_1:outer_rhs] post_flash target construction complete
+[ThermoTrace][runtime_step_1:outer_rhs] post_flash equilibrium-relaxation diagnostics complete
+[ThermoTrace][runtime_step_1:outer_rhs] energy_holdup block start
+[ThermoTrace][runtime_step_1:outer_rhs] energy_holdup derivatives complete
+[ThermoTrace][runtime_step_1:outer_rhs] energy_holdup diagnostics complete
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state block start
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve start T_vapor_in_F=123.127 P_cond_psia=228.295
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve reused previous bubble state T_bubble_F=113.432
+[ThermoTrace][runtime_step_1:outer_rhs] condenser duty thermo solve done Q_calc_BTUph=-5.19465e+07 T_bubble_F=113.432
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state provider enthalpy refresh start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=1/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=1/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=1/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=2/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=2/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=3/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=3/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=4/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=4/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=5/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=5/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=6/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=6/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=7/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=7/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=8/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=8/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=9/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=9/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=10/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=10/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=11/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=11/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=12/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=12/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=13/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=13/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=14/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=14/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=15/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=15/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=16/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=16/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=17/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=17/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=18/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=18/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=19/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=19/20 reused energy packet
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=20/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hL_flash stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=20/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state hV_flash stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state provider enthalpy refresh complete
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=1/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=1/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=2/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=2/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=3/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=3/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=4/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=4/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=5/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=5/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=6/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=6/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=7/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=7/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=8/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=8/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=9/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=9/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=10/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=10/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=11/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=11/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=12/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=12/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=13/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=13/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=14/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=14/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=15/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=15/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=16/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=16/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=17/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=17/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=18/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=18/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=19/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=19/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=20/20 start
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray_loop stage=20/20 done
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state tray diagnostics complete
+[ThermoTrace][runtime_step_1:outer_rhs] temperature_state bottom sump update complete
+[ThermoTrace][runtime_step_1:outer_rhs] column_rhs return
+[Progress] step=    50  sim_t=     10.00 s  wall=     63.24 s  sim/wall=   0.158  SS=0  score=0.24  rel=0.000729/s  kpi=4.66e-06/s  mv=1.83e-29/s  sp=0.0783
+[Progress] step=   100  sim_t=     20.00 s  wall=    124.13 s  sim/wall=   0.161  SS=0  score=0.23  rel=0.000698/s  kpi=5.07e-06/s  mv=5.27e-29/s  sp=0.0783
+[Progress] step=   150  sim_t=     30.00 s  wall=    184.03 s  sim/wall=   0.163  SS=0  score=0.23  rel=0.000684/s  kpi=5.48e-06/s  mv=0/s  sp=0.0782
+[Progress] step=   200  sim_t=     40.00 s  wall=    244.38 s  sim/wall=   0.164  SS=0  score=0.24  rel=0.000705/s  kpi=6.35e-06/s  mv=0/s  sp=0.0782
+[Progress] step=   250  sim_t=     50.00 s  wall=    304.46 s  sim/wall=   0.164  SS=0  score=0.26  rel=0.000769/s  kpi=7.31e-06/s  mv=0/s  sp=0.0781
+[Progress] step=   300  sim_t=     60.00 s  wall=    364.72 s  sim/wall=   0.165  SS=1  score=0.27  rel=0.000816/s  kpi=8.42e-06/s  mv=0/s  sp=0.078
+[Progress] step=   350  sim_t=     70.00 s  wall=    424.73 s  sim/wall=   0.165  SS=1  score=0.29  rel=0.000858/s  kpi=9.64e-06/s  mv=0/s  sp=0.0779
+[Progress] step=   400  sim_t=     80.00 s  wall=    485.41 s  sim/wall=   0.165  SS=1  score=0.30  rel=0.00089/s  kpi=1.09e-05/s  mv=0/s  sp=0.0777
+[Progress] step=   450  sim_t=     90.00 s  wall=    546.08 s  sim/wall=   0.165  SS=1  score=0.30  rel=0.000914/s  kpi=1.23e-05/s  mv=0/s  sp=0.0776
+[Progress] step=   500  sim_t=    100.00 s  wall=    606.39 s  sim/wall=   0.165  SS=1  score=0.31  rel=0.000935/s  kpi=1.37e-05/s  mv=0/s  sp=0.0775
+[Progress] step=   550  sim_t=    110.00 s  wall=    666.92 s  sim/wall=   0.165  SS=1  score=0.32  rel=0.000955/s  kpi=1.51e-05/s  mv=0/s  sp=0.0773
+[Progress] step=   600  sim_t=    120.00 s  wall=    727.20 s  sim/wall=   0.165  SS=1  score=0.37  rel=0.00112/s  kpi=1.66e-05/s  mv=0/s  sp=0.0771
+[Progress] step=   650  sim_t=    130.00 s  wall=    788.32 s  sim/wall=   0.165  SS=1  score=0.34  rel=0.00101/s  kpi=1.8e-05/s  mv=0/s  sp=0.0769
+[Progress] step=   700  sim_t=    140.00 s  wall=    848.76 s  sim/wall=   0.165  SS=1  score=0.34  rel=0.00103/s  kpi=1.95e-05/s  mv=0/s  sp=0.0767
+[Progress] step=   750  sim_t=    150.00 s  wall=    909.28 s  sim/wall=   0.165  SS=1  score=0.35  rel=0.00105/s  kpi=2.11e-05/s  mv=0/s  sp=0.0765
+[Progress] step=   800  sim_t=    160.00 s  wall=    969.58 s  sim/wall=   0.165  SS=1  score=0.36  rel=0.00107/s  kpi=2.26e-05/s  mv=0/s  sp=0.0762
+[Progress] step=   850  sim_t=    170.00 s  wall=   1030.04 s  sim/wall=   0.165  SS=1  score=0.36  rel=0.00109/s  kpi=2.41e-05/s  mv=0/s  sp=0.076
+[Progress] step=   900  sim_t=    180.00 s  wall=   1090.30 s  sim/wall=   0.165  SS=1  score=0.37  rel=0.0011/s  kpi=2.56e-05/s  mv=0/s  sp=0.0757
+[Progress] step=   950  sim_t=    190.00 s  wall=   1151.01 s  sim/wall=   0.165  SS=1  score=0.37  rel=0.00112/s  kpi=2.71e-05/s  mv=0/s  sp=0.0754
+[Progress] step=  1000  sim_t=    200.00 s  wall=   1211.07 s  sim/wall=   0.165  SS=1  score=0.38  rel=0.00114/s  kpi=2.87e-05/s  mv=0/s  sp=0.0751
+[Progress] step=  1050  sim_t=    210.00 s  wall=   1271.86 s  sim/wall=   0.165  SS=1  score=0.39  rel=0.00116/s  kpi=3.02e-05/s  mv=0/s  sp=0.0748
+[Progress] step=  1100  sim_t=    220.00 s  wall=   1334.28 s  sim/wall=   0.165  SS=1  score=0.39  rel=0.00117/s  kpi=3.17e-05/s  mv=0/s  sp=0.0745
+[Progress] step=  1150  sim_t=    230.00 s  wall=   1395.76 s  sim/wall=   0.165  SS=1  score=0.39  rel=0.00118/s  kpi=3.31e-05/s  mv=0/s  sp=0.0741
+[Progress] step=  1200  sim_t=    240.00 s  wall=   1477.67 s  sim/wall=   0.162  SS=1  score=0.40  rel=0.00119/s  kpi=3.46e-05/s  mv=0/s  sp=0.0738
+[Progress] step=  1250  sim_t=    250.00 s  wall=   1543.88 s  sim/wall=   0.162  SS=1  score=0.40  rel=0.0012/s  kpi=3.61e-05/s  mv=0/s  sp=0.0734
+[Progress] step=  1300  sim_t=    260.00 s  wall=   1604.07 s  sim/wall=   0.162  SS=1  score=0.41  rel=0.00122/s  kpi=3.75e-05/s  mv=0/s  sp=0.073
+[Progress] step=  1350  sim_t=    270.00 s  wall=   1664.87 s  sim/wall=   0.162  SS=1  score=0.41  rel=0.00123/s  kpi=3.89e-05/s  mv=0/s  sp=0.0726
+[Progress] step=  1400  sim_t=    280.00 s  wall=   1725.37 s  sim/wall=   0.162  SS=1  score=0.41  rel=0.00123/s  kpi=4.02e-05/s  mv=0/s  sp=0.0722
+[Progress] step=  1450  sim_t=    290.00 s  wall=   1786.63 s  sim/wall=   0.162  SS=1  score=0.42  rel=0.00122/s  kpi=4.16e-05/s  mv=0/s  sp=0.0718
+[Progress] step=  1500  sim_t=    300.00 s  wall=   1848.64 s  sim/wall=   0.162  SS=1  score=0.43  rel=0.00118/s  kpi=4.29e-05/s  mv=0/s  sp=0.0713
+[Progress] step=  1550  sim_t=    310.00 s  wall=   1910.51 s  sim/wall=   0.162  SS=1  score=0.44  rel=0.0012/s  kpi=4.41e-05/s  mv=0/s  sp=0.0709
+[Progress] step=  1600  sim_t=    320.00 s  wall=   1971.96 s  sim/wall=   0.162  SS=1  score=0.45  rel=0.00125/s  kpi=4.52e-05/s  mv=0/s  sp=0.0704
+[Progress] step=  1650  sim_t=    330.00 s  wall=   2032.68 s  sim/wall=   0.162  SS=1  score=0.46  rel=0.00123/s  kpi=4.64e-05/s  mv=0/s  sp=0.0699
+[Progress] step=  1700  sim_t=    340.00 s  wall=   2093.63 s  sim/wall=   0.162  SS=1  score=0.48  rel=0.00122/s  kpi=4.76e-05/s  mv=0/s  sp=0.0694
+[Progress] step=  1750  sim_t=    350.00 s  wall=   2154.73 s  sim/wall=   0.162  SS=1  score=0.49  rel=0.00122/s  kpi=4.87e-05/s  mv=0/s  sp=0.0689
+[Progress] step=  1800  sim_t=    360.00 s  wall=   2216.58 s  sim/wall=   0.162  SS=1  score=0.50  rel=0.00121/s  kpi=4.98e-05/s  mv=0/s  sp=0.0684
+[Progress] step=  1850  sim_t=    370.00 s  wall=   2277.56 s  sim/wall=   0.162  SS=1  score=0.51  rel=0.00121/s  kpi=5.08e-05/s  mv=0/s  sp=0.0679
+[Progress] step=  1900  sim_t=    380.00 s  wall=   2338.84 s  sim/wall=   0.162  SS=1  score=0.52  rel=0.0012/s  kpi=5.18e-05/s  mv=0/s  sp=0.0674
+[Progress] step=  1950  sim_t=    390.00 s  wall=   2400.13 s  sim/wall=   0.162  SS=1  score=0.53  rel=0.0012/s  kpi=5.27e-05/s  mv=0/s  sp=0.0668
+[Progress] step=  2000  sim_t=    400.00 s  wall=   2460.73 s  sim/wall=   0.163  SS=1  score=0.54  rel=0.00118/s  kpi=5.36e-05/s  mv=0/s  sp=0.0663
+[Progress] step=  2050  sim_t=    410.00 s  wall=   2521.54 s  sim/wall=   0.163  SS=1  score=0.54  rel=0.00118/s  kpi=5.44e-05/s  mv=0/s  sp=0.0657
+[Progress] step=  2100  sim_t=    420.00 s  wall=   2582.13 s  sim/wall=   0.163  SS=1  score=0.55  rel=0.00118/s  kpi=5.52e-05/s  mv=0/s  sp=0.0652
+[Progress] step=  2150  sim_t=    430.00 s  wall=   2647.21 s  sim/wall=   0.162  SS=1  score=0.56  rel=0.00117/s  kpi=5.6e-05/s  mv=0/s  sp=0.0646
+[Progress] step=  2200  sim_t=    440.00 s  wall=   2717.83 s  sim/wall=   0.162  SS=1  score=0.57  rel=0.0012/s  kpi=5.67e-05/s  mv=0/s  sp=0.064
+[Progress] step=  2250  sim_t=    450.00 s  wall=   2778.97 s  sim/wall=   0.162  SS=1  score=0.57  rel=0.00116/s  kpi=5.74e-05/s  mv=0/s  sp=0.0635
+[Progress] step=  2300  sim_t=    460.00 s  wall=   2840.13 s  sim/wall=   0.162  SS=1  score=0.58  rel=0.00114/s  kpi=5.8e-05/s  mv=0/s  sp=0.0629
+[Progress] step=  2350  sim_t=    470.00 s  wall=   2901.67 s  sim/wall=   0.162  SS=1  score=0.59  rel=0.00113/s  kpi=5.86e-05/s  mv=0/s  sp=0.0623
+[Progress] step=  2400  sim_t=    480.00 s  wall=   2963.89 s  sim/wall=   0.162  SS=1  score=0.59  rel=0.00112/s  kpi=5.92e-05/s  mv=0/s  sp=0.0617
+[Progress] step=  2450  sim_t=    490.00 s  wall=   3025.19 s  sim/wall=   0.162  SS=1  score=0.60  rel=0.00111/s  kpi=5.97e-05/s  mv=0/s  sp=0.0611
+[Progress] step=  2500  sim_t=    500.00 s  wall=   3086.60 s  sim/wall=   0.162  SS=1  score=0.60  rel=0.0011/s  kpi=6.02e-05/s  mv=0/s  sp=0.0605
+[Progress] step=  2550  sim_t=    510.00 s  wall=   3144.81 s  sim/wall=   0.162  SS=1  score=0.61  rel=0.00109/s  kpi=6.06e-05/s  mv=0/s  sp=0.0599
+[Progress] step=  2600  sim_t=    520.00 s  wall=   3186.53 s  sim/wall=   0.163  SS=1  score=0.61  rel=0.00108/s  kpi=6.1e-05/s  mv=0/s  sp=0.0593
+[Progress] step=  2650  sim_t=    530.00 s  wall=   3250.29 s  sim/wall=   0.163  SS=1  score=0.61  rel=0.00108/s  kpi=6.14e-05/s  mv=0/s  sp=0.0586
+[Progress] step=  2700  sim_t=    540.00 s  wall=   3313.18 s  sim/wall=   0.163  SS=1  score=0.62  rel=0.00106/s  kpi=6.17e-05/s  mv=0/s  sp=0.058
+[Progress] step=  2750  sim_t=    550.00 s  wall=   3375.15 s  sim/wall=   0.163  SS=1  score=0.62  rel=0.00105/s  kpi=6.21e-05/s  mv=0/s  sp=0.0574
+[Progress] step=  2800  sim_t=    560.00 s  wall=   3436.74 s  sim/wall=   0.163  SS=1  score=0.62  rel=0.00102/s  kpi=6.23e-05/s  mv=0/s  sp=0.0568
+[Progress] step=  2850  sim_t=    570.00 s  wall=   3498.03 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000996/s  kpi=6.26e-05/s  mv=0/s  sp=0.0561
+[Progress] step=  2900  sim_t=    580.00 s  wall=   3558.32 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000975/s  kpi=6.27e-05/s  mv=0/s  sp=0.0555
+[Progress] step=  2950  sim_t=    590.00 s  wall=   3618.00 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000957/s  kpi=6.29e-05/s  mv=0/s  sp=0.0549
+[Progress] step=  3000  sim_t=    600.00 s  wall=   3678.23 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000941/s  kpi=6.3e-05/s  mv=0/s  sp=0.0543
+[Progress] step=  3050  sim_t=    610.00 s  wall=   3737.96 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000925/s  kpi=6.31e-05/s  mv=0/s  sp=0.0536
+[Progress] step=  3100  sim_t=    620.00 s  wall=   3798.55 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000911/s  kpi=6.31e-05/s  mv=0/s  sp=0.053
+[Progress] step=  3150  sim_t=    630.00 s  wall=   3858.66 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000896/s  kpi=6.31e-05/s  mv=0/s  sp=0.0524
+[Progress] step=  3200  sim_t=    640.00 s  wall=   3918.56 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.00088/s  kpi=6.31e-05/s  mv=0/s  sp=0.0517
+[Progress] step=  3250  sim_t=    650.00 s  wall=   3978.87 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000863/s  kpi=6.31e-05/s  mv=0/s  sp=0.0511
+[Progress] step=  3300  sim_t=    660.00 s  wall=   4038.93 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000845/s  kpi=6.3e-05/s  mv=0/s  sp=0.0505
+[Progress] step=  3350  sim_t=    670.00 s  wall=   4099.65 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000827/s  kpi=6.29e-05/s  mv=0/s  sp=0.0498
+[Progress] step=  3400  sim_t=    680.00 s  wall=   4160.27 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000808/s  kpi=6.28e-05/s  mv=0/s  sp=0.0492
+[Progress] step=  3450  sim_t=    690.00 s  wall=   4220.94 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000788/s  kpi=6.27e-05/s  mv=0/s  sp=0.0486
+[Progress] step=  3500  sim_t=    700.00 s  wall=   4282.12 s  sim/wall=   0.163  SS=1  score=0.63  rel=0.000762/s  kpi=6.25e-05/s  mv=0/s  sp=0.048
+[Progress] step=  3550  sim_t=    710.00 s  wall=   4344.31 s  sim/wall=   0.163  SS=1  score=0.62  rel=0.000743/s  kpi=6.23e-05/s  mv=0/s  sp=0.0473
+[Progress] step=  3600  sim_t=    720.00 s  wall=   4406.12 s  sim/wall=   0.163  SS=1  score=0.62  rel=0.000724/s  kpi=6.21e-05/s  mv=0/s  sp=0.0467
+[Progress] step=  3650  sim_t=    730.00 s  wall=   4468.32 s  sim/wall=   0.163  SS=1  score=0.62  rel=0.000705/s  kpi=6.19e-05/s  mv=0/s  sp=0.0461
+[Progress] step=  3700  sim_t=    740.00 s  wall=   4530.91 s  sim/wall=   0.163  SS=1  score=0.62  rel=0.000684/s  kpi=6.16e-05/s  mv=0/s  sp=0.0455
+[Progress] step=  3750  sim_t=    750.00 s  wall=   4593.21 s  sim/wall=   0.163  SS=1  score=0.61  rel=0.000663/s  kpi=6.13e-05/s  mv=0/s  sp=0.0449
+[Progress] step=  3800  sim_t=    760.00 s  wall=   4654.53 s  sim/wall=   0.163  SS=1  score=0.61  rel=0.000641/s  kpi=6.1e-05/s  mv=0/s  sp=0.0443
+[Progress] step=  3850  sim_t=    770.00 s  wall=   4715.70 s  sim/wall=   0.163  SS=1  score=0.61  rel=0.000618/s  kpi=6.07e-05/s  mv=0/s  sp=0.0437
+[Progress] step=  3900  sim_t=    780.00 s  wall=   4777.56 s  sim/wall=   0.163  SS=1  score=0.60  rel=0.000617/s  kpi=6.03e-05/s  mv=0/s  sp=0.0431
+[Progress] step=  3950  sim_t=    790.00 s  wall=   4839.82 s  sim/wall=   0.163  SS=1  score=0.60  rel=0.000617/s  kpi=6e-05/s  mv=0/s  sp=0.0425
+[Progress] step=  4000  sim_t=    800.00 s  wall=   4901.74 s  sim/wall=   0.163  SS=1  score=0.60  rel=0.000617/s  kpi=5.96e-05/s  mv=0/s  sp=0.0419
+[Progress] step=  4050  sim_t=    810.00 s  wall=   4962.87 s  sim/wall=   0.163  SS=1  score=0.59  rel=0.000699/s  kpi=5.92e-05/s  mv=0/s  sp=0.0413
+[Progress] step=  4100  sim_t=    820.00 s  wall=   5024.85 s  sim/wall=   0.163  SS=1  score=0.59  rel=0.000616/s  kpi=5.88e-05/s  mv=0/s  sp=0.0407
+[Progress] step=  4150  sim_t=    830.00 s  wall=   5085.01 s  sim/wall=   0.163  SS=1  score=0.58  rel=0.000616/s  kpi=5.83e-05/s  mv=0/s  sp=0.0401
+[Progress] step=  4200  sim_t=    840.00 s  wall=   5146.10 s  sim/wall=   0.163  SS=1  score=0.58  rel=0.000616/s  kpi=5.79e-05/s  mv=0/s  sp=0.0396
+[Progress] step=  4250  sim_t=    850.00 s  wall=   5206.77 s  sim/wall=   0.163  SS=1  score=0.57  rel=0.000614/s  kpi=5.74e-05/s  mv=0/s  sp=0.039
+[Progress] step=  4300  sim_t=    860.00 s  wall=   5267.07 s  sim/wall=   0.163  SS=1  score=0.57  rel=0.00069/s  kpi=5.69e-05/s  mv=0/s  sp=0.0384
+[Progress] step=  4350  sim_t=    870.00 s  wall=   5327.10 s  sim/wall=   0.163  SS=1  score=0.56  rel=0.000612/s  kpi=5.64e-05/s  mv=0/s  sp=0.0379
+[Progress] step=  4400  sim_t=    880.00 s  wall=   5387.18 s  sim/wall=   0.163  SS=1  score=0.56  rel=0.000611/s  kpi=5.6e-05/s  mv=0/s  sp=0.0373
+[Progress] step=  4450  sim_t=    890.00 s  wall=   5447.09 s  sim/wall=   0.163  SS=1  score=0.56  rel=0.000609/s  kpi=5.55e-05/s  mv=0/s  sp=0.0368
+[Progress] step=  4500  sim_t=    900.00 s  wall=   5506.60 s  sim/wall=   0.163  SS=1  score=0.55  rel=0.000607/s  kpi=5.5e-05/s  mv=0/s  sp=0.0362
+[Progress] step=  4550  sim_t=    910.00 s  wall=   5566.55 s  sim/wall=   0.163  SS=1  score=0.54  rel=0.000605/s  kpi=5.44e-05/s  mv=0/s  sp=0.0357
+[Progress] step=  4600  sim_t=    920.00 s  wall=   5626.26 s  sim/wall=   0.164  SS=1  score=0.54  rel=0.000603/s  kpi=5.38e-05/s  mv=0/s  sp=0.0352
+[Progress] step=  4650  sim_t=    930.00 s  wall=   5686.03 s  sim/wall=   0.164  SS=1  score=0.53  rel=0.000601/s  kpi=5.32e-05/s  mv=0/s  sp=0.0346
+[Progress] step=  4700  sim_t=    940.00 s  wall=   5745.49 s  sim/wall=   0.164  SS=1  score=0.53  rel=0.000598/s  kpi=5.27e-05/s  mv=0/s  sp=0.0341
+[Progress] step=  4750  sim_t=    950.00 s  wall=   5805.15 s  sim/wall=   0.164  SS=1  score=0.52  rel=0.000596/s  kpi=5.21e-05/s  mv=0/s  sp=0.0336
+[Progress] step=  4800  sim_t=    960.00 s  wall=   5865.04 s  sim/wall=   0.164  SS=1  score=0.52  rel=0.000593/s  kpi=5.16e-05/s  mv=0/s  sp=0.0331
+[Progress] step=  4850  sim_t=    970.00 s  wall=   5925.11 s  sim/wall=   0.164  SS=1  score=0.51  rel=0.000591/s  kpi=5.1e-05/s  mv=0/s  sp=0.0326
+[Progress] step=  4900  sim_t=    980.00 s  wall=   5984.97 s  sim/wall=   0.164  SS=1  score=0.50  rel=0.000588/s  kpi=5.05e-05/s  mv=0/s  sp=0.0321
+[Progress] step=  4950  sim_t=    990.00 s  wall=   6044.52 s  sim/wall=   0.164  SS=1  score=0.50  rel=0.000586/s  kpi=4.99e-05/s  mv=0/s  sp=0.0316
+[Progress] step=  5000  sim_t=   1000.00 s  wall=   6103.90 s  sim/wall=   0.164  SS=1  score=0.49  rel=0.000583/s  kpi=4.93e-05/s  mv=0/s  sp=0.0311
+[Progress] step=  5050  sim_t=   1010.00 s  wall=   6163.75 s  sim/wall=   0.164  SS=1  score=0.49  rel=0.00058/s  kpi=4.88e-05/s  mv=0/s  sp=0.0306
+[Progress] step=  5100  sim_t=   1020.00 s  wall=   6223.59 s  sim/wall=   0.164  SS=1  score=0.48  rel=0.000578/s  kpi=4.82e-05/s  mv=0/s  sp=0.0301
+[Progress] step=  5150  sim_t=   1030.00 s  wall=   6282.71 s  sim/wall=   0.164  SS=1  score=0.48  rel=0.000575/s  kpi=4.76e-05/s  mv=0/s  sp=0.0297
+[Progress] step=  5200  sim_t=   1040.00 s  wall=   6342.34 s  sim/wall=   0.164  SS=1  score=0.47  rel=0.000572/s  kpi=4.71e-05/s  mv=0/s  sp=0.0292
+[Progress] step=  5250  sim_t=   1050.00 s  wall=   6402.49 s  sim/wall=   0.164  SS=1  score=0.47  rel=0.000569/s  kpi=4.65e-05/s  mv=0/s  sp=0.0287
+[Progress] step=  5300  sim_t=   1060.00 s  wall=   6460.56 s  sim/wall=   0.164  SS=1  score=0.46  rel=0.000566/s  kpi=4.6e-05/s  mv=0/s  sp=0.0283
+[Progress] step=  5350  sim_t=   1070.00 s  wall=   6522.34 s  sim/wall=   0.164  SS=1  score=0.45  rel=0.000563/s  kpi=4.54e-05/s  mv=0/s  sp=0.0278
+[Progress] step=  5400  sim_t=   1080.00 s  wall=   6584.55 s  sim/wall=   0.164  SS=1  score=0.45  rel=0.000845/s  kpi=4.48e-05/s  mv=0/s  sp=0.0274
+[Progress] step=  5450  sim_t=   1090.00 s  wall=   6641.30 s  sim/wall=   0.164  SS=1  score=0.44  rel=0.000556/s  kpi=4.43e-05/s  mv=0/s  sp=0.027
+[Progress] step=  5500  sim_t=   1100.00 s  wall=   6675.64 s  sim/wall=   0.165  SS=1  score=0.44  rel=0.000553/s  kpi=4.37e-05/s  mv=0/s  sp=0.0265
+[Progress] step=  5550  sim_t=   1110.00 s  wall=   6706.78 s  sim/wall=   0.166  SS=1  score=0.43  rel=0.00055/s  kpi=4.32e-05/s  mv=0/s  sp=0.0261
+[Progress] step=  5600  sim_t=   1120.00 s  wall=   6756.70 s  sim/wall=   0.166  SS=1  score=0.43  rel=0.000547/s  kpi=4.26e-05/s  mv=0/s  sp=0.0257
+[Progress] step=  5650  sim_t=   1130.00 s  wall=   6819.52 s  sim/wall=   0.166  SS=1  score=0.42  rel=0.000543/s  kpi=4.2e-05/s  mv=0/s  sp=0.0253
+[Progress] step=  5700  sim_t=   1140.00 s  wall=   6884.34 s  sim/wall=   0.166  SS=1  score=0.41  rel=0.00054/s  kpi=4.15e-05/s  mv=0/s  sp=0.0249
+[Progress] step=  5750  sim_t=   1150.00 s  wall=   6948.91 s  sim/wall=   0.165  SS=1  score=0.41  rel=0.000536/s  kpi=4.09e-05/s  mv=0/s  sp=0.0245
+[Progress] step=  5800  sim_t=   1160.00 s  wall=   7014.46 s  sim/wall=   0.165  SS=1  score=0.40  rel=0.000533/s  kpi=4.04e-05/s  mv=0/s  sp=0.0241
+[Progress] step=  5850  sim_t=   1170.00 s  wall=   7079.05 s  sim/wall=   0.165  SS=1  score=0.40  rel=0.000529/s  kpi=3.98e-05/s  mv=0/s  sp=0.0237
+[Progress] step=  5900  sim_t=   1180.00 s  wall=   7143.62 s  sim/wall=   0.165  SS=1  score=0.39  rel=0.000528/s  kpi=3.93e-05/s  mv=0/s  sp=0.0233
+[Progress] step=  5950  sim_t=   1190.00 s  wall=   7207.53 s  sim/wall=   0.165  SS=1  score=0.39  rel=0.000531/s  kpi=3.87e-05/s  mv=0/s  sp=0.0229
+[Progress] step=  6000  sim_t=   1200.00 s  wall=   7271.60 s  sim/wall=   0.165  SS=1  score=0.38  rel=0.000533/s  kpi=3.82e-05/s  mv=0/s  sp=0.0225
+[Progress] step=  6050  sim_t=   1210.00 s  wall=   7336.17 s  sim/wall=   0.165  SS=1  score=0.38  rel=0.000536/s  kpi=3.76e-05/s  mv=0/s  sp=0.0221
+[Progress] step=  6100  sim_t=   1220.00 s  wall=   7400.63 s  sim/wall=   0.165  SS=1  score=0.37  rel=0.000538/s  kpi=3.71e-05/s  mv=0/s  sp=0.0218
+[Progress] step=  6150  sim_t=   1230.00 s  wall=   7465.16 s  sim/wall=   0.165  SS=1  score=0.37  rel=0.000542/s  kpi=3.66e-05/s  mv=0/s  sp=0.0214
+[Progress] step=  6200  sim_t=   1240.00 s  wall=   7526.60 s  sim/wall=   0.165  SS=1  score=0.36  rel=0.000544/s  kpi=3.61e-05/s  mv=0/s  sp=0.0211
+[Progress] step=  6250  sim_t=   1250.00 s  wall=   7592.61 s  sim/wall=   0.165  SS=1  score=0.36  rel=0.000537/s  kpi=3.55e-05/s  mv=0/s  sp=0.0207
+[Progress] step=  6300  sim_t=   1260.00 s  wall=   7656.69 s  sim/wall=   0.165  SS=1  score=0.35  rel=0.000553/s  kpi=3.5e-05/s  mv=0/s  sp=0.0204
+[Progress] step=  6350  sim_t=   1270.00 s  wall=   7719.51 s  sim/wall=   0.165  SS=1  score=0.35  rel=0.000555/s  kpi=3.45e-05/s  mv=0/s  sp=0.02
+[Progress] step=  6400  sim_t=   1280.00 s  wall=   7786.97 s  sim/wall=   0.164  SS=1  score=0.34  rel=0.000553/s  kpi=3.4e-05/s  mv=0/s  sp=0.0197
+[Progress] step=  6450  sim_t=   1290.00 s  wall=   7855.33 s  sim/wall=   0.164  SS=1  score=0.34  rel=0.000558/s  kpi=3.35e-05/s  mv=0/s  sp=0.0194
+[Progress] step=  6500  sim_t=   1300.00 s  wall=   7922.63 s  sim/wall=   0.164  SS=1  score=0.33  rel=0.000562/s  kpi=3.3e-05/s  mv=0/s  sp=0.019
+[Progress] step=  6550  sim_t=   1310.00 s  wall=   7987.34 s  sim/wall=   0.164  SS=1  score=0.33  rel=0.000566/s  kpi=3.26e-05/s  mv=0/s  sp=0.0187
+[Progress] step=  6600  sim_t=   1320.00 s  wall=   8051.80 s  sim/wall=   0.164  SS=1  score=0.32  rel=0.000569/s  kpi=3.21e-05/s  mv=0/s  sp=0.0184
+[Progress] step=  6650  sim_t=   1330.00 s  wall=   8115.87 s  sim/wall=   0.164  SS=1  score=0.32  rel=0.000572/s  kpi=3.16e-05/s  mv=0/s  sp=0.0181
+[Progress] step=  6700  sim_t=   1340.00 s  wall=   8180.50 s  sim/wall=   0.164  SS=1  score=0.31  rel=0.000575/s  kpi=3.11e-05/s  mv=0/s  sp=0.0178
+[Progress] step=  6750  sim_t=   1350.00 s  wall=   8245.03 s  sim/wall=   0.164  SS=1  score=0.31  rel=0.000577/s  kpi=3.06e-05/s  mv=0/s  sp=0.0175
+[Progress] step=  6800  sim_t=   1360.00 s  wall=   8309.46 s  sim/wall=   0.164  SS=1  score=0.30  rel=0.000581/s  kpi=3.02e-05/s  mv=0/s  sp=0.0172
+[Progress] step=  6850  sim_t=   1370.00 s  wall=   8372.77 s  sim/wall=   0.164  SS=1  score=0.30  rel=0.000583/s  kpi=2.97e-05/s  mv=0/s  sp=0.0169
+[Progress] step=  6900  sim_t=   1380.00 s  wall=   8437.24 s  sim/wall=   0.164  SS=1  score=0.29  rel=0.000586/s  kpi=2.93e-05/s  mv=0/s  sp=0.0166
+[Progress] step=  6950  sim_t=   1390.00 s  wall=   8502.70 s  sim/wall=   0.163  SS=1  score=0.29  rel=0.000589/s  kpi=2.88e-05/s  mv=0/s  sp=0.0163
+[Progress] step=  7000  sim_t=   1400.00 s  wall=   8568.20 s  sim/wall=   0.163  SS=1  score=0.28  rel=0.000592/s  kpi=2.84e-05/s  mv=0/s  sp=0.016
+[Progress] step=  7050  sim_t=   1410.00 s  wall=   8636.88 s  sim/wall=   0.163  SS=1  score=0.28  rel=0.000595/s  kpi=2.79e-05/s  mv=0/s  sp=0.0158
+[Progress] step=  7100  sim_t=   1420.00 s  wall=   8720.44 s  sim/wall=   0.163  SS=1  score=0.27  rel=0.000598/s  kpi=2.75e-05/s  mv=0/s  sp=0.0155
+[Progress] step=  7150  sim_t=   1430.00 s  wall=   8786.59 s  sim/wall=   0.163  SS=1  score=0.27  rel=0.000601/s  kpi=2.7e-05/s  mv=0/s  sp=0.0152
+[Progress] step=  7200  sim_t=   1440.00 s  wall=   8851.53 s  sim/wall=   0.163  SS=1  score=0.27  rel=0.000604/s  kpi=2.66e-05/s  mv=0/s  sp=0.015
+[Progress] step=  7250  sim_t=   1450.00 s  wall=   8915.23 s  sim/wall=   0.163  SS=1  score=0.26  rel=0.000607/s  kpi=2.62e-05/s  mv=0/s  sp=0.0147
+[Progress] step=  7300  sim_t=   1460.00 s  wall=   8977.45 s  sim/wall=   0.163  SS=1  score=0.26  rel=0.00061/s  kpi=2.58e-05/s  mv=0/s  sp=0.0145
+[Progress] step=  7350  sim_t=   1470.00 s  wall=   9039.67 s  sim/wall=   0.163  SS=1  score=0.25  rel=0.000613/s  kpi=2.54e-05/s  mv=0/s  sp=0.0142
+[Progress] step=  7400  sim_t=   1480.00 s  wall=   9103.23 s  sim/wall=   0.163  SS=1  score=0.25  rel=0.000617/s  kpi=2.5e-05/s  mv=0/s  sp=0.014
+[Progress] step=  7450  sim_t=   1490.00 s  wall=   9145.88 s  sim/wall=   0.163  SS=1  score=0.25  rel=0.00062/s  kpi=2.46e-05/s  mv=0/s  sp=0.0137
+[Progress] step=  7500  sim_t=   1500.00 s  wall=   9183.23 s  sim/wall=   0.163  SS=1  score=0.24  rel=0.000623/s  kpi=2.42e-05/s  mv=0/s  sp=0.0135
+[Progress] step=  7550  sim_t=   1510.00 s  wall=   9220.52 s  sim/wall=   0.164  SS=1  score=0.24  rel=0.000626/s  kpi=2.38e-05/s  mv=0/s  sp=0.0132
+[Progress] step=  7600  sim_t=   1520.00 s  wall=   9258.10 s  sim/wall=   0.164  SS=1  score=0.23  rel=0.000629/s  kpi=2.34e-05/s  mv=0/s  sp=0.013
+[Progress] step=  7650  sim_t=   1530.00 s  wall=   9295.74 s  sim/wall=   0.165  SS=1  score=0.23  rel=0.000632/s  kpi=2.3e-05/s  mv=0/s  sp=0.0128
+[Progress] step=  7700  sim_t=   1540.00 s  wall=   9333.30 s  sim/wall=   0.165  SS=1  score=0.23  rel=0.000636/s  kpi=2.26e-05/s  mv=0/s  sp=0.0126
+[Progress] step=  7750  sim_t=   1550.00 s  wall=   9370.90 s  sim/wall=   0.165  SS=1  score=0.22  rel=0.00064/s  kpi=2.22e-05/s  mv=0/s  sp=0.0123
+[Progress] step=  7800  sim_t=   1560.00 s  wall=   9408.83 s  sim/wall=   0.166  SS=1  score=0.22  rel=0.000643/s  kpi=2.19e-05/s  mv=0/s  sp=0.0121
+[Progress] step=  7850  sim_t=   1570.00 s  wall=   9446.44 s  sim/wall=   0.166  SS=1  score=0.22  rel=0.000646/s  kpi=2.15e-05/s  mv=0/s  sp=0.0119
+[Progress] step=  7900  sim_t=   1580.00 s  wall=   9484.13 s  sim/wall=   0.167  SS=1  score=0.22  rel=0.00065/s  kpi=2.12e-05/s  mv=0/s  sp=0.0117
+[Progress] step=  7950  sim_t=   1590.00 s  wall=   9521.45 s  sim/wall=   0.167  SS=1  score=0.22  rel=0.000653/s  kpi=2.08e-05/s  mv=0/s  sp=0.0115
+[Progress] step=  8000  sim_t=   1600.00 s  wall=   9559.11 s  sim/wall=   0.167  SS=1  score=0.22  rel=0.000656/s  kpi=2.05e-05/s  mv=0/s  sp=0.0113
+[Progress] step=  8050  sim_t=   1610.00 s  wall=   9598.33 s  sim/wall=   0.168  SS=1  score=0.22  rel=0.00066/s  kpi=2.01e-05/s  mv=0/s  sp=0.0111
+[Progress] step=  8100  sim_t=   1620.00 s  wall=   9636.93 s  sim/wall=   0.168  SS=1  score=0.22  rel=0.000663/s  kpi=1.98e-05/s  mv=0/s  sp=0.0109
+[Progress] step=  8150  sim_t=   1630.00 s  wall=   9675.43 s  sim/wall=   0.168  SS=1  score=0.22  rel=0.000667/s  kpi=1.94e-05/s  mv=0/s  sp=0.0107
+[Progress] step=  8200  sim_t=   1640.00 s  wall=   9713.21 s  sim/wall=   0.169  SS=1  score=0.22  rel=0.000671/s  kpi=1.91e-05/s  mv=0/s  sp=0.0105
+[Progress] step=  8250  sim_t=   1650.00 s  wall=   9750.88 s  sim/wall=   0.169  SS=1  score=0.22  rel=0.000674/s  kpi=1.87e-05/s  mv=0/s  sp=0.0104
+[Progress] step=  8300  sim_t=   1660.00 s  wall=   9788.23 s  sim/wall=   0.170  SS=1  score=0.23  rel=0.000678/s  kpi=1.84e-05/s  mv=0/s  sp=0.0102
+[Progress] step=  8350  sim_t=   1670.00 s  wall=   9827.19 s  sim/wall=   0.170  SS=1  score=0.23  rel=0.000681/s  kpi=1.81e-05/s  mv=0/s  sp=0.00999
+[Progress] step=  8400  sim_t=   1680.00 s  wall=   9916.50 s  sim/wall=   0.169  SS=1  score=0.23  rel=0.000685/s  kpi=1.77e-05/s  mv=0/s  sp=0.00982
+[Progress] step=  8450  sim_t=   1690.00 s  wall=  10034.03 s  sim/wall=   0.168  SS=1  score=0.23  rel=0.000689/s  kpi=1.74e-05/s  mv=0/s  sp=0.00965
+[Progress] step=  8500  sim_t=   1700.00 s  wall=  10109.35 s  sim/wall=   0.168  SS=1  score=0.23  rel=0.000692/s  kpi=1.71e-05/s  mv=0/s  sp=0.00948
+[Progress] step=  8550  sim_t=   1710.00 s  wall=  10147.78 s  sim/wall=   0.169  SS=1  score=0.23  rel=0.000695/s  kpi=1.68e-05/s  mv=0/s  sp=0.00931
+[Progress] step=  8600  sim_t=   1720.00 s  wall=  10185.94 s  sim/wall=   0.169  SS=1  score=0.23  rel=0.000699/s  kpi=1.65e-05/s  mv=0/s  sp=0.00915
+[Progress] step=  8650  sim_t=   1730.00 s  wall=  10223.77 s  sim/wall=   0.169  SS=1  score=0.23  rel=0.000703/s  kpi=1.62e-05/s  mv=0/s  sp=0.00899
+[Progress] step=  8700  sim_t=   1740.00 s  wall=  10261.59 s  sim/wall=   0.170  SS=1  score=0.24  rel=0.000707/s  kpi=1.59e-05/s  mv=0/s  sp=0.00884
+[Progress] step=  8750  sim_t=   1750.00 s  wall=  10299.09 s  sim/wall=   0.170  SS=1  score=0.24  rel=0.00071/s  kpi=1.56e-05/s  mv=0/s  sp=0.00869
+[Progress] step=  8800  sim_t=   1760.00 s  wall=  10336.63 s  sim/wall=   0.170  SS=1  score=0.24  rel=0.000714/s  kpi=1.53e-05/s  mv=0/s  sp=0.00854
+[Progress] step=  8850  sim_t=   1770.00 s  wall=  10374.52 s  sim/wall=   0.171  SS=1  score=0.24  rel=0.000718/s  kpi=1.5e-05/s  mv=0/s  sp=0.00839
+[Progress] step=  8900  sim_t=   1780.00 s  wall=  10412.42 s  sim/wall=   0.171  SS=1  score=0.24  rel=0.000721/s  kpi=1.47e-05/s  mv=0/s  sp=0.00824
+[Progress] step=  8950  sim_t=   1790.00 s  wall=  10450.10 s  sim/wall=   0.171  SS=1  score=0.24  rel=0.000725/s  kpi=1.44e-05/s  mv=0/s  sp=0.0081
+[Progress] step=  9000  sim_t=   1800.00 s  wall=  10487.61 s  sim/wall=   0.172  SS=1  score=0.24  rel=0.000733/s  kpi=1.41e-05/s  mv=0/s  sp=0.00797
+[Progress] step=  9050  sim_t=   1810.00 s  wall=  10524.95 s  sim/wall=   0.172  SS=1  score=0.25  rel=0.000735/s  kpi=1.38e-05/s  mv=0/s  sp=0.00783
+[Progress] step=  9100  sim_t=   1820.00 s  wall=  10562.38 s  sim/wall=   0.172  SS=1  score=0.25  rel=0.000738/s  kpi=1.35e-05/s  mv=0/s  sp=0.0077
+[Progress] step=  9150  sim_t=   1830.00 s  wall=  10599.92 s  sim/wall=   0.173  SS=1  score=0.25  rel=0.000741/s  kpi=1.32e-05/s  mv=0/s  sp=0.00757
+[Progress] step=  9200  sim_t=   1840.00 s  wall=  10637.68 s  sim/wall=   0.173  SS=1  score=0.25  rel=0.000743/s  kpi=1.29e-05/s  mv=0/s  sp=0.00744
+[Progress] step=  9250  sim_t=   1850.00 s  wall=  10675.43 s  sim/wall=   0.173  SS=1  score=0.25  rel=0.000743/s  kpi=1.26e-05/s  mv=0/s  sp=0.00732
+[Progress] step=  9300  sim_t=   1860.00 s  wall=  10714.28 s  sim/wall=   0.174  SS=1  score=0.25  rel=0.000749/s  kpi=1.23e-05/s  mv=0/s  sp=0.0072
+[Progress] step=  9350  sim_t=   1870.00 s  wall=  10752.29 s  sim/wall=   0.174  SS=1  score=0.25  rel=0.000754/s  kpi=1.21e-05/s  mv=0/s  sp=0.00708
+[Progress] step=  9400  sim_t=   1880.00 s  wall=  10790.91 s  sim/wall=   0.174  SS=1  score=0.25  rel=0.000758/s  kpi=1.18e-05/s  mv=0/s  sp=0.00697
+[Progress] step=  9450  sim_t=   1890.00 s  wall=  10828.78 s  sim/wall=   0.175  SS=1  score=0.28  rel=0.000835/s  kpi=1.15e-05/s  mv=0/s  sp=0.00685
+[Progress] step=  9500  sim_t=   1900.00 s  wall=  10866.86 s  sim/wall=   0.175  SS=1  score=0.26  rel=0.000767/s  kpi=1.12e-05/s  mv=0/s  sp=0.00674
+[Progress] step=  9550  sim_t=   1910.00 s  wall=  10905.12 s  sim/wall=   0.175  SS=1  score=0.26  rel=0.000771/s  kpi=1.1e-05/s  mv=0/s  sp=0.00664
+[Progress] step=  9600  sim_t=   1920.00 s  wall=  10943.08 s  sim/wall=   0.175  SS=1  score=0.26  rel=0.000775/s  kpi=1.07e-05/s  mv=0/s  sp=0.00653
+[Progress] step=  9650  sim_t=   1930.00 s  wall=  10981.19 s  sim/wall=   0.176  SS=1  score=0.26  rel=0.00078/s  kpi=1.05e-05/s  mv=0/s  sp=0.00643
+[Progress] step=  9700  sim_t=   1940.00 s  wall=  11019.83 s  sim/wall=   0.176  SS=1  score=0.26  rel=0.000786/s  kpi=1.02e-05/s  mv=0/s  sp=0.00633
+[Progress] step=  9750  sim_t=   1950.00 s  wall=  11078.99 s  sim/wall=   0.176  SS=1  score=0.26  rel=0.00079/s  kpi=9.95e-06/s  mv=0/s  sp=0.00623
+[Progress] step=  9800  sim_t=   1960.00 s  wall=  11118.11 s  sim/wall=   0.176  SS=1  score=0.27  rel=0.000795/s  kpi=9.7e-06/s  mv=0/s  sp=0.00614
+[Progress] step=  9850  sim_t=   1970.00 s  wall=  11156.43 s  sim/wall=   0.177  SS=1  score=0.27  rel=0.000801/s  kpi=9.45e-06/s  mv=0/s  sp=0.00605
+[Progress] step=  9900  sim_t=   1980.00 s  wall=  11194.04 s  sim/wall=   0.177  SS=1  score=0.27  rel=0.000806/s  kpi=9.2e-06/s  mv=0/s  sp=0.00596
+[Progress] step=  9950  sim_t=   1990.00 s  wall=  11231.89 s  sim/wall=   0.177  SS=1  score=0.27  rel=0.000811/s  kpi=8.95e-06/s  mv=0/s  sp=0.00587
+[Progress] step= 10000  sim_t=   2000.00 s  wall=  11269.64 s  sim/wall=   0.177  SS=1  score=0.27  rel=0.000817/s  kpi=8.71e-06/s  mv=0/s  sp=0.00579
+[Progress] step= 10050  sim_t=   2010.00 s  wall=  11307.69 s  sim/wall=   0.178  SS=1  score=0.27  rel=0.00082/s  kpi=8.47e-06/s  mv=0/s  sp=0.0057
+[Progress] step= 10100  sim_t=   2020.00 s  wall=  11346.14 s  sim/wall=   0.178  SS=1  score=0.28  rel=0.00083/s  kpi=8.22e-06/s  mv=0/s  sp=0.00562
+[Progress] step= 10150  sim_t=   2030.00 s  wall=  11383.79 s  sim/wall=   0.178  SS=1  score=0.28  rel=0.000835/s  kpi=7.98e-06/s  mv=0/s  sp=0.00555
+[Progress] step= 10200  sim_t=   2040.00 s  wall=  11421.32 s  sim/wall=   0.179  SS=1  score=0.28  rel=0.000841/s  kpi=7.74e-06/s  mv=0/s  sp=0.00547
+[Progress] step= 10250  sim_t=   2050.00 s  wall=  11459.17 s  sim/wall=   0.179  SS=1  score=0.28  rel=0.000847/s  kpi=7.5e-06/s  mv=0/s  sp=0.0054
+[Progress] step= 10300  sim_t=   2060.00 s  wall=  11496.64 s  sim/wall=   0.179  SS=1  score=0.28  rel=0.000853/s  kpi=7.27e-06/s  mv=0/s  sp=0.00533
+[Progress] step= 10350  sim_t=   2070.00 s  wall=  11533.96 s  sim/wall=   0.179  SS=1  score=0.29  rel=0.00086/s  kpi=7.03e-06/s  mv=0/s  sp=0.00526
+[Progress] step= 10400  sim_t=   2080.00 s  wall=  11571.50 s  sim/wall=   0.180  SS=1  score=0.29  rel=0.000866/s  kpi=6.8e-06/s  mv=0/s  sp=0.00519
+[Progress] step= 10450  sim_t=   2090.00 s  wall=  11609.02 s  sim/wall=   0.180  SS=1  score=0.29  rel=0.000873/s  kpi=6.57e-06/s  mv=0/s  sp=0.00513
+[Progress] step= 10500  sim_t=   2100.00 s  wall=  11646.65 s  sim/wall=   0.180  SS=1  score=0.29  rel=0.000879/s  kpi=6.34e-06/s  mv=0/s  sp=0.00507
+[Progress] step= 10550  sim_t=   2110.00 s  wall=  11684.22 s  sim/wall=   0.181  SS=1  score=0.30  rel=0.000886/s  kpi=6.12e-06/s  mv=0/s  sp=0.00501
+[Progress] step= 10600  sim_t=   2120.00 s  wall=  11722.36 s  sim/wall=   0.181  SS=1  score=0.30  rel=0.000906/s  kpi=5.9e-06/s  mv=0/s  sp=0.00495
+[Progress] step= 10650  sim_t=   2130.00 s  wall=  11760.34 s  sim/wall=   0.181  SS=1  score=0.29  rel=0.000877/s  kpi=5.69e-06/s  mv=0/s  sp=0.0049
+[Progress] step= 10700  sim_t=   2140.00 s  wall=  11797.81 s  sim/wall=   0.181  SS=1  score=0.35  rel=0.00105/s  kpi=5.47e-06/s  mv=0/s  sp=0.00485
+[Progress] step= 10750  sim_t=   2150.00 s  wall=  11835.28 s  sim/wall=   0.182  SS=1  score=0.31  rel=0.000922/s  kpi=5.26e-06/s  mv=0/s  sp=0.0048
+[Progress] step= 10800  sim_t=   2160.00 s  wall=  11872.86 s  sim/wall=   0.182  SS=1  score=0.31  rel=0.00092/s  kpi=5.06e-06/s  mv=0/s  sp=0.00475
+[Progress] step= 10850  sim_t=   2170.00 s  wall=  11910.23 s  sim/wall=   0.182  SS=1  score=0.31  rel=0.000927/s  kpi=4.85e-06/s  mv=0/s  sp=0.0047
+[Progress] step= 10900  sim_t=   2180.00 s  wall=  11947.50 s  sim/wall=   0.182  SS=1  score=0.31  rel=0.000936/s  kpi=4.65e-06/s  mv=0/s  sp=0.00466
+[Progress] step= 10950  sim_t=   2190.00 s  wall=  11985.79 s  sim/wall=   0.183  SS=1  score=0.31  rel=0.000943/s  kpi=4.45e-06/s  mv=0/s  sp=0.00461
+[Progress] step= 11000  sim_t=   2200.00 s  wall=  12023.40 s  sim/wall=   0.183  SS=1  score=0.32  rel=0.00095/s  kpi=4.26e-06/s  mv=0/s  sp=0.00457
+[Progress] step= 11050  sim_t=   2210.00 s  wall=  12060.65 s  sim/wall=   0.183  SS=1  score=0.32  rel=0.000956/s  kpi=4.06e-06/s  mv=0/s  sp=0.00453
+[Progress] step= 11100  sim_t=   2220.00 s  wall=  12099.86 s  sim/wall=   0.183  SS=1  score=0.32  rel=0.000971/s  kpi=3.86e-06/s  mv=0/s  sp=0.0045
+[Progress] step= 11150  sim_t=   2230.00 s  wall=  12138.40 s  sim/wall=   0.184  SS=1  score=0.33  rel=0.00098/s  kpi=3.67e-06/s  mv=0/s  sp=0.00446
+[Progress] step= 11200  sim_t=   2240.00 s  wall=  12175.76 s  sim/wall=   0.184  SS=1  score=0.33  rel=0.000989/s  kpi=3.47e-06/s  mv=0/s  sp=0.00443
+[Progress] step= 11250  sim_t=   2250.00 s  wall=  12213.49 s  sim/wall=   0.184  SS=1  score=0.33  rel=0.000997/s  kpi=3.28e-06/s  mv=0/s  sp=0.0044
+[Progress] step= 11300  sim_t=   2260.00 s  wall=  12251.39 s  sim/wall=   0.184  SS=1  score=0.34  rel=0.00101/s  kpi=3.09e-06/s  mv=0/s  sp=0.00437
+[Progress] step= 11350  sim_t=   2270.00 s  wall=  12288.98 s  sim/wall=   0.185  SS=1  score=0.34  rel=0.00102/s  kpi=2.91e-06/s  mv=0/s  sp=0.00434
+[Progress] step= 11400  sim_t=   2280.00 s  wall=  12326.26 s  sim/wall=   0.185  SS=1  score=0.34  rel=0.00103/s  kpi=2.72e-06/s  mv=0/s  sp=0.00432
+[Progress] step= 11450  sim_t=   2290.00 s  wall=  12363.88 s  sim/wall=   0.185  SS=1  score=0.35  rel=0.00104/s  kpi=2.54e-06/s  mv=0/s  sp=0.00429
+[Progress] step= 11500  sim_t=   2300.00 s  wall=  12401.47 s  sim/wall=   0.185  SS=1  score=0.35  rel=0.00104/s  kpi=2.37e-06/s  mv=0/s  sp=0.00427
+[Progress] step= 11550  sim_t=   2310.00 s  wall=  12438.85 s  sim/wall=   0.186  SS=1  score=0.35  rel=0.00105/s  kpi=2.19e-06/s  mv=0/s  sp=0.00425
+[Progress] step= 11600  sim_t=   2320.00 s  wall=  12476.59 s  sim/wall=   0.186  SS=1  score=0.35  rel=0.00106/s  kpi=2.02e-06/s  mv=0/s  sp=0.00423
+[Progress] step= 11650  sim_t=   2330.00 s  wall=  12514.51 s  sim/wall=   0.186  SS=1  score=0.36  rel=0.00107/s  kpi=1.84e-06/s  mv=0/s  sp=0.00422
+[Progress] step= 11700  sim_t=   2340.00 s  wall=  12552.03 s  sim/wall=   0.186  SS=1  score=0.36  rel=0.00108/s  kpi=1.67e-06/s  mv=0/s  sp=0.0042
+[Progress] step= 11750  sim_t=   2350.00 s  wall=  12589.72 s  sim/wall=   0.187  SS=1  score=0.59  rel=0.00177/s  kpi=1.5e-06/s  mv=0/s  sp=0.00419
+[Progress] step= 11800  sim_t=   2360.00 s  wall=  12627.31 s  sim/wall=   0.187  SS=1  score=0.52  rel=0.00156/s  kpi=1.33e-06/s  mv=0/s  sp=0.00418
+[Progress] step= 11850  sim_t=   2370.00 s  wall=  12664.95 s  sim/wall=   0.187  SS=1  score=0.46  rel=0.00139/s  kpi=1.17e-06/s  mv=0/s  sp=0.00417
+[Progress] step= 11900  sim_t=   2380.00 s  wall=  12702.28 s  sim/wall=   0.187  SS=1  score=0.40  rel=0.00121/s  kpi=1e-06/s  mv=0/s  sp=0.00416
+[Progress] step= 11950  sim_t=   2390.00 s  wall=  12741.41 s  sim/wall=   0.188  SS=1  score=0.38  rel=0.00113/s  kpi=8.42e-07/s  mv=0/s  sp=0.00415
+[Progress] step= 12000  sim_t=   2400.00 s  wall=  12778.46 s  sim/wall=   0.188  SS=1  score=0.38  rel=0.00114/s  kpi=6.79e-07/s  mv=0/s  sp=0.00415
+[SteadyState] PASS  score=0.38  rel=0.00114/s  kpi=6.79e-07/s  mv=0/s  dT=0.00133F/s  sp=0.00415
+[Output] Wrote restart workbook: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\c3c4_initializer_residual_vapor_state_stage2_20260706__restart_20260717_111627.xlsx
+[Output] Wrote native checkpoint: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260717_111627.npz
+[Output] Wrote Word run report: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\run_report_20260717_111627.docx
+Wrote: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\column_profile_20260717_111627.csv
+Wrote: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\column_summary_20260717_111627.csv
+Wrote: C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\run_report_20260717_111627.docx

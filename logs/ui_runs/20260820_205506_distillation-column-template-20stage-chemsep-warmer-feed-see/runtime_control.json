@@ -1,0 +1,7 @@
+{
+  "requested_total_steps": 560,
+  "requested_total_sim_time_sec": 140.0,
+  "dt_sec": 0.25,
+  "updated_at_local": "2026-08-20 21:00:00",
+  "source": "ui"
+}

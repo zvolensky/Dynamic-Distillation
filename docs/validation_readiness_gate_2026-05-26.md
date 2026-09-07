@@ -13,15 +13,15 @@ Validation is not just obtaining a steady-state flag or forcing a run to resembl
 
 ## Current Evidence
 
-### Skogestad Column A
+### Skogestad Column A source-equation regression
 
-The Skogestad relative-volatility case remains a valid Tier 1 source-topology validation because:
+The Skogestad relative-volatility case remains a valid source-equation/topology regression because:
 
 - the model topology is intentionally matched to the source equations,
 - the source does not include energy, vapor holdup, named chemicals, density, or hydraulic pressure,
 - the steady profile and feed-disturbance response are compared against the source-equation behavior.
 
-This validates the source-equivalent material-balance/liquid-holdup path. It does not validate rigorous thermo, vapor holdup, stage energy, hydraulic pressure, or controllers.
+This validates only the abstract source-equivalent material-balance/liquid-holdup path. Because the components are not specified, it does not validate component properties, rigorous thermodynamics, vapor holdup, stage energy, hydraulic pressure, or controllers.
 
 ### Gani/ChemSep Debutanizer
 
@@ -93,6 +93,7 @@ Before claiming rigorous dynamic validation for a case involving real components
    - A case with stage energy balance must show acceptable energy residuals before its dynamic energy response is compared.
    - Material-only reconciliation cannot be used as proof of energy-model validity.
    - A total-condenser case must pass a condenser/reflux-drum energy closure check before it is used for full-topology energy validation.
+   - The current model assumes zero column-wall heat loss. No ambient/wall-temperature or per-volume `U A` data are available, so heat-loss effects are outside the current validation claim; introducing them requires a separately parameterized and validated model variant.
 
 7. Numerical steadiness is not enough.
    - `steady_state_flag` and `steady_state_score` remain diagnostics.
@@ -114,7 +115,7 @@ Before claiming rigorous dynamic validation for a case involving real components
 
 ## Recommended Path
 
-1. Keep Skogestad as the accepted Tier 1 validation baseline.
+1. Keep Skogestad as the accepted abstract source-equation regression baseline, not as component or thermodynamic validation.
 2. Freeze Gani as:
    - accepted source-topology material parity,
    - useful full-topology material-reconciliation diagnostic,

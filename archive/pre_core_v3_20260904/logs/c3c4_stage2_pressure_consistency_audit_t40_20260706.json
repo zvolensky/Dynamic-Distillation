@@ -1,0 +1,128 @@
+{
+  "bubble_dew_consistency": {
+    "max_abs_bubble_residual": 0.12385465168323706,
+    "max_abs_dew_residual": 0.14115993161497364,
+    "worst_bubble": {
+      "bubble_residual": 0.12385465168323706,
+      "dew_residual": -0.008163264255189429,
+      "stage_1based": 20,
+      "time_s": 40.00000000000003
+    },
+    "worst_dew": {
+      "bubble_residual": -0.0031289517144839074,
+      "dew_residual": 0.14115993161497364,
+      "stage_1based": 4,
+      "time_s": 40.00000000000003
+    }
+  },
+  "energy_consistency": {
+    "max_abs_dT_energy_raw_F_per_s": 1.0491683569939856,
+    "max_abs_energy_residual_BTUps": 975.7308494502158,
+    "worst_dT_energy_raw": {
+      "dT_energy_raw_F_per_s": 1.0491683569939856,
+      "energy_residual_BTUps": -311.95590116549283,
+      "energy_residual_over_heat_capacity_F_per_s": -0.21073608069518235,
+      "stage_1based": 19,
+      "time_s": 40.00000000000003
+    },
+    "worst_energy_residual": {
+      "dT_energy_raw_F_per_s": -0.10841859000149992,
+      "energy_residual_BTUps": 975.7308494502158,
+      "energy_residual_over_heat_capacity_F_per_s": 1.20426197612013,
+      "stage_1based": 4,
+      "time_s": 40.00000000000003
+    }
+  },
+  "k_state_vs_thermo": {
+    "max_abs_ln_K_ratio": 1.3770112845368634,
+    "worst": {
+      "K_ratio": 3.9630395126090816,
+      "K_state": 0.90231252646357,
+      "K_thermo": 0.22768194048853407,
+      "component": "n_Pentane",
+      "ln_K_ratio": 1.3770112845368634,
+      "stage_1based": 4,
+      "time_s": 40.00000000000003
+    }
+  },
+  "n_stage_rows": 20,
+  "pressure_holdup_consistency": {
+    "available": true,
+    "max_abs_P_error_psia": 32.4909069464704,
+    "max_abs_relative_P_error": 0.14431444160037185,
+    "n_records": 19,
+    "worst_P_error": {
+      "MV_lbmol": 10.980917602671354,
+      "P_error_psia": -32.4909069464704,
+      "P_from_vapor_holdup_psia": 192.64877128782965,
+      "P_state_psia": 225.13967823430005,
+      "Z_tray": 0.7131037695906369,
+      "relative_P_error": -0.14431444160037185,
+      "stage_1based": 3,
+      "time_s": 40.00000000000003,
+      "tray_vapor_volume_ft3": 254.2092800994286
+    },
+    "worst_relative_P_error": {
+      "MV_lbmol": 10.980917602671354,
+      "P_error_psia": -32.4909069464704,
+      "P_from_vapor_holdup_psia": 192.64877128782965,
+      "P_state_psia": 225.13967823430005,
+      "Z_tray": 0.7131037695906369,
+      "relative_P_error": -0.14431444160037185,
+      "stage_1based": 3,
+      "time_s": 40.00000000000003,
+      "tray_vapor_volume_ft3": 254.2092800994286
+    }
+  },
+  "profile_csv": "C:\\Users\\Thomas Zvolensky\\Documents\\Python Scripts\\Dynamic_DistillationII\\logs\\c3c4_stage2_pressureaudit_60s_20260706\\column_profile_20260706_182634.csv",
+  "time_s": 40.00000000000003,
+  "vapor_composition_closure": {
+    "max_abs_sum_y_error": 2.220446049250313e-16,
+    "max_abs_y_minus_normalized_Kx": 0.1263781722362075,
+    "worst_sum_y_error": {
+      "max_abs_y_minus_normalized_Kx": 0.012352479435184527,
+      "normalized_Kx": 0.41831752226351904,
+      "stage_1based": 8,
+      "sum_y_error": -2.220446049250313e-16,
+      "time_s": 40.00000000000003,
+      "worst_component": "n_Butane",
+      "y": 0.4059650428283345
+    },
+    "worst_y_minus_normalized_Kx": {
+      "max_abs_y_minus_normalized_Kx": 0.1263781722362075,
+      "normalized_Kx": 0.8371193593099334,
+      "stage_1based": 4,
+      "sum_y_error": 0.0,
+      "time_s": 40.00000000000003,
+      "worst_component": "n_Propane",
+      "y": 0.7107411870737259
+    }
+  },
+  "vapor_flow_sensitivity": {
+    "max_abs_V_calc_minus_used_lbmolph": 911.7905734437918,
+    "max_abs_estimated_dVdP_lbmolph_per_psia": 19483.343014345803,
+    "negative_or_zero_flow_count": 0,
+    "worst_V_calc_minus_used": {
+      "V_calc_lbmolph": 8801.810721808739,
+      "V_calc_minus_used_lbmolph": 911.7905734437918,
+      "V_used_lbmolph": 7890.020148364947,
+      "estimated_dVdP_lbmolph_per_psia": 15998.552560795502,
+      "hydraulic_dp_raw_psia": 0.0025021501283735365,
+      "hydraulic_dp_used_psia": 0.5501629405761119,
+      "negative_or_zero_flow": false,
+      "stage_1based": 19,
+      "time_s": 40.00000000000003
+    },
+    "worst_estimated_dVdP": {
+      "V_calc_lbmolph": 6675.38240324006,
+      "V_calc_minus_used_lbmolph": -58.140579446026095,
+      "V_used_lbmolph": 6733.522982686086,
+      "estimated_dVdP_lbmolph_per_psia": 19483.343014345803,
+      "hydraulic_dp_raw_psia": 0.0015582412758591681,
+      "hydraulic_dp_used_psia": 0.34261997021378215,
+      "negative_or_zero_flow": false,
+      "stage_1based": 9,
+      "time_s": 40.00000000000003
+    }
+  }
+}

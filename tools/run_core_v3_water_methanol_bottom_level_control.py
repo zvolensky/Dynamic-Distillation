@@ -533,6 +533,7 @@ def main() -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
     args.json.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     args.doc.write_text(_markdown(report), encoding="utf-8")
+    support.write_core_v3_docx_report(report["end_of_run"], args.doc.with_suffix(".docx"), title="Core V3 Water-Methanol Bottom-Level Control Run", metadata=report, trajectory=evidence)
     np.savez_compressed(args.matrix, **evidence)
     print(support.format_end_of_run_summary(report["end_of_run"]), flush=True)
     print(

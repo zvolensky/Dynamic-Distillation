@@ -1,0 +1,52 @@
+{
+  "block_summary": [
+    {
+      "max_abs_rate_per_h": 0.00043650482678403435,
+      "max_abs_rate_per_s": 1.2125134077334287e-07,
+      "max_relative_rate_per_s": 3.2573684703376374e-08,
+      "state_block": "tray_L",
+      "worst_component_1based": 2,
+      "worst_component_name": "Isobutene",
+      "worst_stage_1based": 6
+    },
+    {
+      "max_abs_rate_per_h": 0.0,
+      "max_abs_rate_per_s": 0.0,
+      "max_relative_rate_per_s": 0.0,
+      "state_block": "tray_T_f",
+      "worst_component_1based": "",
+      "worst_component_name": "",
+      "worst_stage_1based": 1
+    }
+  ],
+  "clapeyron_model": "PR",
+  "debug_freeze_active_diag": 0.0,
+  "debug_freeze_tray_vapor_derivatives": false,
+  "debug_max_orig_dmVdt": 0.0,
+  "debug_max_orig_dmVdt_rel_per_s": 0.0,
+  "debug_worst_v_comp": -1.0,
+  "debug_worst_v_stage": -1.0,
+  "diag_dM_total_dt_lbmolph": NaN,
+  "diag_global_mass_closure_error_lbmolph": NaN,
+  "equilibrium_relaxation": false,
+  "excel": "C:\\Users\\Thoma\\Documents\\Python Scripts\\Dynamic_DistillationII\\validation_gani_1986_debutanizer_chemsep_source_topology.xlsx",
+  "flash_feed_at_stage_conditions": false,
+  "gate_pass": true,
+  "include_boundary_states": false,
+  "include_energy": false,
+  "include_temperature": true,
+  "include_vapor_states": false,
+  "max_abs_rate_per_s": 1.2125134077334287e-07,
+  "max_abs_tray_total_rate_lbmolph": 0.0007936641446033496,
+  "max_relative_rate_per_s": 3.2573684703376374e-08,
+  "pressure_model": "spec",
+  "relative_rate_gate": 0.0001,
+  "runtime_mode": "parity",
+  "scenario": "default",
+  "thermo_mode": "clapeyron",
+  "total_state_inventory_rate_lbmolph": -8.783214402968116e-06,
+  "tray_total_rate_gate_lbmolph": 1.0,
+  "use_excel_vapor_holdup": false,
+  "vapor_flow_model": "profile",
+  "vapor_holdup_relaxation_sec": null
+}

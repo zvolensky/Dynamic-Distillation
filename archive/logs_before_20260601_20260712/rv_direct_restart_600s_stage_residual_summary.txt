@@ -1,0 +1,35 @@
+Stage Residual Breakdown Report
+excel: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs\validation_relative_volatility_energy_30stage_directrv_mainprovider_600s\validation_relative_volatility_energy_30stage__restart_20260524_155027.xlsx
+thermo_mode: relative-volatility
+scenario: default
+pressure_model: spec
+vapor_flow_model: profile
+flash_feed_at_stage_conditions: True
+include_temperature: True
+include_energy: True
+
+feed_stage_1based: 16
+feed_total_lbmolph: 120.000000
+feed_vf_effective: 1.8626451492309574e-09
+
+max_abs_tray_residual_lbmolph: 0.000000
+rms_tray_residual_lbmolph: 0.000000
+worst_stage_1based: 26
+top_pool_rate_lbmolph: 0.000000
+bottom_pool_rate_lbmolph: -0.000000
+total_state_inventory_rate_lbmolph: -0.000000
+global_mass_closure_error_lbmolph: nan
+
+Top stages by |dM_tray|:
+  stage 26: dM=-0.000 lbmol/h, conv= 0.000, feed= 0.000, other=-0.000
+  stage 30: dM= 0.000 lbmol/h, conv= 0.000, feed= 0.000, other= 0.000
+  stage 20: dM=-0.000 lbmol/h, conv= 0.000, feed= 0.000, other=-0.000
+  stage 23: dM= 0.000 lbmol/h, conv= 0.000, feed= 0.000, other= 0.000
+  stage 21: dM= 0.000 lbmol/h, conv= 0.000, feed= 0.000, other= 0.000
+  stage  6: dM=-0.000 lbmol/h, conv= 0.000, feed= 0.000, other=-0.000
+  stage 25: dM= 0.000 lbmol/h, conv= 0.000, feed= 0.000, other= 0.000
+  stage 22: dM=-0.000 lbmol/h, conv= 0.000, feed= 0.000, other=-0.000
+  stage 19: dM= 0.000 lbmol/h, conv= 0.000, feed= 0.000, other= 0.000
+  stage 29: dM=-0.000 lbmol/h, conv= 0.000, feed= 0.000, other=-0.000
+
+csv: C:\Users\Thoma\Documents\Python Scripts\Dynamic_DistillationII\logs\rv_direct_restart_600s_stage_residual.csv

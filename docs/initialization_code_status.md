@@ -1,6 +1,9 @@
 # Initialization Code Status
 
-Updated: 2026-07-12
+Updated: 2026-09-02
+
+Operator workflow: [`new_simulation_workflow_chemsep_to_dynamic.md`](new_simulation_workflow_chemsep_to_dynamic.md)
+describes the complete ChemSep-to-Excel-to-steady-state-to-dynamic sequence.
 
 This note classifies the current initialization-related code after the ChemSep steady-state startup work showed that raw steady profiles are not model-consistent dynamic initial conditions.
 
@@ -9,6 +12,30 @@ Current model-state note: `docs/dynamic_model_current_state_2026-08-20.md`.
 ## Position
 
 ChemSep and other steady-state exports are seed data, not accepted dynamic initial states.
+
+## Core V3 workflow status
+
+Core V3 now supports the main equation-level stages of the documented
+ChemSep-to-dynamic process: normalized Excel loading, generic component and
+topology contracts, zero-time closure audits, stationary residuals and root
+kernels, implicit dynamic steps, geometry-based terminal controllers, and
+end-of-run summaries.
+
+It is not yet a single general-purpose pipeline for arbitrary ChemSep cases.
+The Excel loader accepts `.xlsx` workbooks, not ChemSep `.sep` files, so the
+ChemSep-to-workbook mapping remains an operator step. The accepted stationary
+and dynamic water-methanol runs use prepared case data and a water-methanol
+support module. They demonstrate the Core V3 equations, but they do not yet
+provide a generic workbook-to-Core-V3 state adapter or a reusable native Core
+V3 checkpoint/reload command.
+
+The remaining integration boundary is therefore:
+
+`ChemSep export -> normalized Excel -> generic Core V3 state adapter -> generic stationary run -> Core V3 checkpoint/reload -> dynamic run`
+
+This boundary must be closed without adding component-specific exceptions to
+the Core V3 equations. The detailed operator procedure is in
+[`new_simulation_workflow_chemsep_to_dynamic.md`](new_simulation_workflow_chemsep_to_dynamic.md).
 
 DD-060 adds a stronger prerequisite: initialization acceptance is meaningful only after the runtime model has unique physical ownership. The current C3/C4 model permits hydraulic pressure and explicit vapor holdup to imply materially different pressures, while its accepted composition-only equilibrium mode suppresses net phase-total transfer. Residual least-squares and projection tools therefore remain diagnostics; they cannot manufacture a rigorous steady state for an internally inconsistent equation set. DD-058 is the preferred operational checkpoint, not a rigorous golden seed.
 

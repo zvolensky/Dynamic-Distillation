@@ -1,5 +1,10 @@
 # Streamlit UI
 
+The planned product workflow is documented in
+[`ui_workflow_roadmap.md`](ui_workflow_roadmap.md). It defines New Simulation
+as a first-class workbook-to-case initialization page, followed by Run Setup,
+Run Monitor, Results, and Cases/Checkpoints.
+
 This repo includes a Streamlit UI for the latest Core V3 continuation runner and the legacy runner.
 
 Launch:
@@ -79,6 +84,10 @@ pip install -e ".[ui]"
 - Advanced Core V3 CLI continuations may override drum PI tuning with `--drum-level-kc` and `--drum-level-ti-sec`. The runner reconstructs live geometry-based levels, converts PI memory bumplessly, records the effective tuning in the checkpoint, and inherits that tuning on later continuations. These development controls are not yet exposed as ordinary UI fields.
 - Core V3 summary rows record each implicit root's wall time, objective/Jacobian work, color count, and exact-state thermo memoization hit rate. Run metadata also records aggregate endpoint timing, memoization totals, and provider-family call counters so performance changes can be judged without altering the governing model.
 - Core V3 UI/CLI launches use eight persistent worker processes for the 16-color Jacobian by default. A four-step serial/parallel proof produced identical solver decisions and bit-exact endpoints while reducing post-startup trajectory wall time by about 36%. Worker startup costs about nine seconds, so use `--parallel-workers 1` for very short probes.
+- Core V3 evaluates and logs a tray hydraulic operating envelope at every accepted endpoint. The dashboard shows the current classification and plots the maximum flooding and backup fractions; the stage-profile table includes the corresponding per-tray loading, classifications, and limitations.
+- The `Tray Hydraulic Envelope` form expander can declare or override a Souders-Brown tray capacity factor, a system factor, and an optional hard-stop load fraction. There is deliberately no assumed capacity-factor default. With no inherited or declared value, the UI reports flooding capacity as `NOT EVALUATED`; it does not display an assumed-safe condition. Weeping also remains `not_evaluated` until hole or valve geometry is declared.
+- Core V3 CLI mode accepts `--tray-flood-capacity-factor-ft-s`, `--tray-hydraulic-system-factor`, `--tray-flood-advisory-fraction`, `--tray-flood-high-loading-fraction`, `--tray-flood-predicted-fraction`, and `--tray-flood-hard-stop-fraction`. Alerts do not change the equations or controls; only the explicit hard-stop option terminates a run.
+- For cases with no tray capacity data, the UI displays the critical effective capacity factor required by the limiting live tray state and its ratio to the saved baseline. The stage table retains the inverse factor and relative vapor velocity, F-factor, phase traffic, pressure-drop, backup, and critical-factor fields. This screening display retains the absolute classification `NOT EVALUATED`; it is not an actual flooding prediction and cannot trigger the hydraulic hard stop.
 - `tools/run_ui.ps1` launches Streamlit via `python -m streamlit` with `PYTHONPATH=src`.
 - The UI passes workbook-derived `n_steps`, `dt`, and `log_every` explicitly.
 - The UI emits an explicit `--thermo` mode in the command by default.

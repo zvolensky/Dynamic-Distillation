@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\tools\solve_conservative_checkpoint_redistribution.py", line 259, in <module>
+    print(json.dumps(run(_parser().parse_args()), indent=2))
+                     ~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\tools\solve_conservative_checkpoint_redistribution.py", line 117, in run
+    result = solve_energy_only_pressure_ordering(
+        provider=provider,
+        targets=targets,
+        minimum_pressure_increment_psi=args.minimum_pressure_increment,
+    )
+  File "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\src\dynamic_distillation\conservative_checkpoint_redistribution_v1.py", line 440, in solve_energy_only_pressure_ordering
+    solved_root = root_scalar(
+        lambda shift: evaluate_shift(float(shift))[0],
+    ...<4 lines>...
+        maxiter=40,
+    )
+  File "C:\Users\Thomas Zvolensky\anaconda3\Lib\site-packages\scipy\optimize\_root_scalar.py", line 286, in root_scalar
+    r, sol = methodc(f, a, b, args=args, **kwargs)
+             ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Thomas Zvolensky\anaconda3\Lib\site-packages\scipy\optimize\_zeros_py.py", line 846, in brentq
+    r = _zeros._brentq(f, a, b, xtol, rtol, maxiter, args, full_output, disp)
+  File "C:\Users\Thomas Zvolensky\anaconda3\Lib\site-packages\scipy\optimize\_zeros_py.py", line 94, in f_raise
+    fx = f(x, *args)
+  File "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\src\dynamic_distillation\conservative_checkpoint_redistribution_v1.py", line 441, in <lambda>
+    lambda shift: evaluate_shift(float(shift))[0],
+                  ~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\Thomas Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\src\dynamic_distillation\conservative_checkpoint_redistribution_v1.py", line 388, in evaluate_shift
+    raise RuntimeError("one or more fixed-pressure node closures failed")
+RuntimeError: one or more fixed-pressure node closures failed

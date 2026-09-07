@@ -1,0 +1,16 @@
+usage: solve_canonical_checkpoint_repair.py [-h] --excel EXCEL
+                                            --checkpoint CHECKPOINT
+                                            [--thermo {dwsim,table,table-pool,auto}]
+                                            [--thermo-table THERMO_TABLE]
+                                            [--dd067-report DD067_REPORT]
+                                            [--starts STARTS]
+                                            [--minimum-pressure-increment MINIMUM_PRESSURE_INCREMENT]
+                                            [--max-outer-iterations MAX_OUTER_ITERATIONS]
+                                            [--sensitivity-relative-step SENSITIVITY_RELATIVE_STEP]
+                                            [--maximum-scaled-movement MAXIMUM_SCALED_MOVEMENT]
+                                            [--random-small-magnitude RANDOM_SMALL_MAGNITUDE]
+                                            [--random-moderate-magnitude RANDOM_MODERATE_MAGNITUDE]
+                                            [--random-seed RANDOM_SEED]
+                                            [--objective-spread-tolerance OBJECTIVE_SPREAD_TOLERANCE]
+                                            [--out-prefix OUT_PREFIX]
+solve_canonical_checkpoint_repair.py: error: unrecognized arguments: Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_initializer_residual_vapor_state_stage2_20260706.xlsx Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\c3c4_QR_xB_C3_control_continue2400s_QR65_Qc65_20260717\c3c4_initializer_residual_vapor_state_stage2_20260706__checkpoint_20260717_111627.npz Zvolensky\Documents\Python Scripts\Dynamic_DistillationII\logs\conservative_checkpoint_redistribution_20260717.json

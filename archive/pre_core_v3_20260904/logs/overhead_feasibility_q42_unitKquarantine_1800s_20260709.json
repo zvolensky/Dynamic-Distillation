@@ -1,0 +1,54 @@
+{
+  "diagnosis": "top_starved_before_distillate",
+  "final_window_s": 300.0,
+  "final_top_boundary": {
+    "time_s": 1800.0000000002722,
+    "condensate_lbmolph": 5035.124200227804,
+    "reflux_lbmolph": 5967.322711692588,
+    "distillate_lbmolph": 1155.886166392468,
+    "top_draw_demand_lbmolph": 7123.208878085056,
+    "condensate_minus_reflux_lbmolph": -932.1985114647841,
+    "condensate_minus_top_draws_lbmolph": -2088.0846778572522,
+    "reflux_to_distillate_ratio": 5.162552234980595,
+    "top_level_pv": 0.3298674700461941,
+    "top_level_sp": 0.5095141427006786,
+    "top_drum_pressure_psia": 195.19721806692652,
+    "top_drum_pressure_raw_psia": 195.19721806692652,
+    "q_cond_used_BTUph": -42000000.0,
+    "q_cond_calc_BTUph": -32451919.217281975,
+    "mean_window_s": 300.0,
+    "mean_condensate_lbmolph": 5191.299463936542,
+    "mean_reflux_lbmolph": 5967.322711692588,
+    "mean_distillate_lbmolph": 1388.8059726499218,
+    "mean_top_draw_demand_lbmolph": 7356.12868434251,
+    "mean_condensate_minus_reflux_lbmolph": -776.0232477560457,
+    "mean_condensate_minus_top_draws_lbmolph": -2164.829220405967,
+    "mean_reflux_to_distillate_ratio": 4.296728865808801
+  },
+  "profile": {
+    "final_time_s": 1800.0000000002722,
+    "top_stage": 1,
+    "bottom_stage": 20,
+    "top_stage_v_out_lbmolph": 0.0,
+    "bottom_stage_v_out_lbmolph": 8030.025322439712,
+    "overhead_vapor_stage": 2,
+    "overhead_vapor_to_condenser_lbmolph": 5035.124200227804,
+    "overhead_vapor_fraction_of_bottom": 0.6270371509486117,
+    "top_vapor_fraction_of_bottom": 0.0,
+    "largest_adjacent_vapor_drop": {
+      "from_stage": 17.0,
+      "to_stage": 16.0,
+      "delta_lbmolph": 2045.13388404138
+    },
+    "vflow_clamped_rows_in_final_window": 0,
+    "vflow_rows_in_final_window": 320,
+    "vflow_clamped_fraction_in_final_window": 0.0
+  },
+  "reference": {
+    "reflux_lbmolph": 5945.41,
+    "distillate_lbmolph": 2386.929,
+    "overhead_condensate_demand_lbmolph": 8332.339,
+    "final_condensate_fraction_of_reference": 0.6042870075530777,
+    "mean_condensate_fraction_of_reference": 0.623030275644875
+  }
+}

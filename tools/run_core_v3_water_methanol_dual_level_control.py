@@ -57,6 +57,38 @@ COMPONENT_LIMIT_LBMOL = 1.0e-6
 ENERGY_ABSOLUTE_LIMIT_BTU = 1.0e-4
 ENERGY_RELATIVE_LIMIT = 1.0e-8
 MAX_NFEV = 40
+RECOVERY_MAX_NFEV = 160
+
+
+def _solver_diagnostics(solution: Any, *, attempt: str) -> dict[str, Any]:
+    """Capture convergence evidence without treating an under-solved step as valid."""
+
+    return {
+        "attempt": str(attempt),
+        "success": bool(solution.success),
+        "status": int(solution.status),
+        "message": str(solution.message),
+        "nfev": int(solution.nfev),
+        "njev": int(solution.njev or 0),
+        "cost": float(solution.cost),
+        "optimality": float(solution.optimality),
+    }
+
+
+def _solve_with_recovery(
+    solve: Any,
+    initial_point: np.ndarray,
+) -> tuple[Any, list[dict[str, Any]]]:
+    """Retry only an exhausted nonlinear solve; all physics gates stay strict."""
+
+    primary = solve(initial_point, MAX_NFEV)
+    attempts = [_solver_diagnostics(primary, attempt="primary")]
+    if bool(primary.success):
+        return primary, attempts
+
+    retry = solve(np.asarray(primary.x, dtype=float), RECOVERY_MAX_NFEV)
+    attempts.append(_solver_diagnostics(retry, attempt="extended-warm-start"))
+    return retry, attempts
 
 
 def _bounds(contract) -> tuple[np.ndarray, np.ndarray]:
@@ -231,19 +263,22 @@ def execute(
             previous_coordinates=previous_coordinates,
             product_log_ratios_previous=product_logs,
         )
-        solution = least_squares(
-            objective,
-            point,
-            jac=jacobian,
-            bounds=(lower, upper),
-            method="trf",
-            x_scale=1.0,
-            ftol=1.0e-9,
-            xtol=1.0e-9,
-            gtol=1.0e-9,
-            max_nfev=MAX_NFEV,
-            verbose=0,
-        )
+        def solve(candidate: np.ndarray, max_nfev: int) -> Any:
+            return least_squares(
+                objective,
+                candidate,
+                jac=jacobian,
+                bounds=(lower, upper),
+                method="trf",
+                x_scale=1.0,
+                ftol=1.0e-9,
+                xtol=1.0e-9,
+                gtol=1.0e-9,
+                max_nfev=max_nfev,
+                verbose=0,
+            )
+
+        solution, solver_attempts = _solve_with_recovery(solve, point)
         evaluation = evaluate_vapor_holdup_terminal_control_implicit_residual(
             contract,
             case.problem["geometry"],
@@ -313,6 +348,8 @@ def execute(
             "solver_success": bool(solution.success),
             "nfev": int(solution.nfev),
             "njev": int(solution.njev or 0),
+            "solver_attempts": solver_attempts,
+            "retry_attempted": len(solver_attempts) > 1,
             "scaled_residual_inf_norm": residual_norm,
             "controller_residual_inf_norm": float(
                 np.max(np.abs(evaluation.scaled[-4:]))

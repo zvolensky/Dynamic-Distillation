@@ -12,6 +12,16 @@ Primary searchable source: `docs/experiment_ledger.csv`.
 
 Duplicate indicators in CSV: `exact_command_dup_group`, `exact_command_dup_count`, `suspected_dup_group`, `suspected_dup_count`, `suspected_duplicate`.
 
+## Manual validation entries
+
+Entries in this section document validations whose compact evidence is retained
+locally under ignored `logs/` paths and therefore is not represented in the
+auto-generated CSV index.
+
+| Date | Run | Status | Requested / completed | Assessment | Evidence |
+|---|---|---|---:|---|---|
+| 2026-09-08 | Water-methanol Core V3 dual-level 5% feed-step hold | stopped on residual acceptance gate | 1800.0 s / 1619.5 s | Reached steady state (`score=0.81215924`), with bounded drum/sump levels (50.2475% / 51.7311%). The final implicit residual was `3.49865e-8`, above the `1.0e-8` limit; component, energy, and provider gates passed. | `logs/core_v3_water_methanol_dual_level_control_feed_step_5pct_1800s_r3_20260908/result.json` |
+
 ## Duplicate Signals
 
 Exact-command duplicate groups: **90** (rows in groups: **301**)  

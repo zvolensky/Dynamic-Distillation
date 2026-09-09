@@ -20,6 +20,7 @@ auto-generated CSV index.
 
 | Date | Run | Status | Requested / completed | Assessment | Evidence |
 |---|---|---|---:|---|---|
+| 2026-09-08 | Water-methanol Core V3 dual-level 5% feed-step revalidation with nonlinear recovery | passed | 1800.0 s / 1800.0 s | Reached steady state (`score=0.73512488`) with every structural, trajectory-completion, component, energy, and provider gate passing. Drum/sump levels remained bounded (50.2471% / 51.7319%); final implicit residual was `1.02283e-11`. The retry capability was available but not invoked in this run. | `logs/core_v3_water_methanol_dual_level_control_feed_step_5pct_1800s_recovery_20260908/result.json` |
 | 2026-09-08 | Water-methanol Core V3 dual-level 5% feed-step hold | stopped on residual acceptance gate | 1800.0 s / 1619.5 s | Reached steady state (`score=0.81215924`), with bounded drum/sump levels (50.2475% / 51.7311%). The final implicit residual was `3.49865e-8`, above the `1.0e-8` limit; component, energy, and provider gates passed. | `logs/core_v3_water_methanol_dual_level_control_feed_step_5pct_1800s_r3_20260908/result.json` |
 
 ## Duplicate Signals

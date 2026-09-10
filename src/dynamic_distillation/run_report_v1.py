@@ -23,6 +23,9 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
 
+from dynamic_distillation.core_v3.report_summary_v2 import build_report_summary_v2
+from dynamic_distillation.core_v3.report_narrative_v1 import build_report_narrative_v1
+
 
 NAVY = "18324A"
 TEAL = "247B7B"
@@ -230,12 +233,172 @@ def _add_metric_strip(doc: Document, metrics: Sequence[tuple[str, str, str]]) ->
         _set_run(r2, size=13, color=NAVY, bold=True)
 
 
+def _controller_display(value: Any, *, digits: int = 5) -> str:
+    return _fmt(value, digits) if value is not None else "Not reported"
+
+
+def _evidence_display(value: Any, *, digits: int = 5) -> str:
+    if value is None:
+        return "Not reported"
+    if isinstance(value, float):
+        return _fmt(value, digits)
+    if isinstance(value, (dict, list, tuple)):
+        return json.dumps(value, sort_keys=True)
+    return str(value)
+
+
+def _balance_display(value: Any, *, digits: int = 5) -> str:
+    """Keep small but nonzero residuals visible instead of rounding them to zero."""
+
+    if value is None:
+        return "Not reported"
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+    if number != 0.0 and abs(number) < 10.0 ** (-digits + 1):
+        return f"{number:.3e}"
+    return _fmt(number, digits)
+
+
+def _add_constraint_table(doc: Document, constraints: Sequence[Mapping[str, Any]]) -> None:
+    rows = [
+        [
+            item.get("check", "Not reported"), item.get("variable", "Not reported"),
+            _evidence_display(item.get("limit")), _evidence_display(item.get("observed")),
+            _controller_display(item.get("time_sec"), digits=3), item.get("location", "Not reported"),
+            item.get("status", "NOT EVALUATED"), item.get("evidence", "Not reported"),
+        ]
+        for item in constraints
+    ] or [["Constraints", "Not reported", "", "", "Not reported", "Not reported", "NOT EVALUATED", "Not reported"]]
+    _add_table(
+        doc, ("Check", "Variable", "Limit", "Observed", "Time (s)", "Location", "Status", "Evidence"),
+        rows, (0.82, 0.92, 0.55, 0.83, 0.52, 0.7, 0.55, 1.05), font_size=5.8,
+    )
+
+
+def _add_event_table(doc: Document, events: Sequence[Mapping[str, Any]]) -> None:
+    rows = [
+        [
+            _controller_display(item.get("time_sec"), digits=3), item.get("event_type", "Not reported"),
+            item.get("variable", "Not reported"), _evidence_display(item.get("before")),
+            _evidence_display(item.get("after")), item.get("message", "Not reported"),
+            item.get("severity", "Not reported"), item.get("source_component", "Not reported"),
+            item.get("related_gate", "Not reported"),
+        ]
+        for item in events
+    ]
+    _add_table(
+        doc, ("Time (s)", "Event", "Variable", "Before", "After", "Consequence", "Severity", "Source", "Related gate"),
+        rows, (0.5, 0.8, 0.8, 0.72, 0.72, 1.43, 0.55, 0.62, 0.75), font_size=5.7,
+    )
+
+
+def _add_balance_summary_table(doc: Document, balances: Mapping[str, Any]) -> None:
+    """Render rate-residual aggregates separately from endpoint ledger rows."""
+
+    summaries = balances.get("summaries", [])
+    if not summaries:
+        return
+    doc.add_paragraph("Balance Summary", style="Heading 2")
+    rows = []
+    for item in summaries:
+        tolerance = []
+        if item.get("tolerance_absolute") is not None:
+            tolerance.append(f"abs <= {_fmt(item['tolerance_absolute'], 5)}")
+        if item.get("tolerance_normalized") is not None:
+            tolerance.append(f"norm <= {_fmt(item['tolerance_normalized'], 5)}")
+        tolerance_text = "; ".join(tolerance) if tolerance else "Not configured"
+        rows.append([
+            item.get("quantity", "Not reported"), item.get("units", "Not reported"),
+            _balance_display(item.get("maximum_absolute_residual")),
+            _balance_display(item.get("maximum_normalized_residual")),
+            _balance_display(item.get("integrated_absolute_residual")),
+            _balance_display(item.get("final_window_maximum_absolute_residual")),
+            _controller_display(item.get("worst_time_sec"), digits=3),
+            item.get("worst_location", "Not reported"),
+            f"{item.get('status', 'NOT EVALUATED')}; {tolerance_text}",
+        ])
+    _add_table(
+        doc,
+        ("Quantity", "Units", "Max |residual|", "Max normalized", "Integrated |residual|", "Final-window max", "Worst time (s)", "Location", "Tolerance / status"),
+        rows,
+        (0.65, 0.5, 0.66, 0.66, 0.84, 0.73, 0.65, 0.62, 1.37),
+        font_size=5.7,
+    )
+
+
+def _add_controller_performance_tables(doc: Document, controllers: Sequence[Mapping[str, Any]]) -> None:
+    """Render all available controller KPIs without presenting absent policy as data."""
+
+    if not controllers:
+        doc.add_paragraph("Controller performance: not available in this artifact version.")
+        return
+    doc.add_paragraph("Tracking Performance", style="Heading 2")
+    tracking_rows = [
+        [
+            item.get("controller", "Not reported"), item.get("controlled_variable", "Not reported"),
+            _controller_display(item.get("final_pv")), _controller_display(item.get("setpoint")),
+            _controller_display(item.get("final_error")), _controller_display(item.get("maximum_absolute_error")),
+            _controller_display(item.get("mean_absolute_error")), _controller_display(item.get("integral_absolute_error")),
+            _controller_display(item.get("overshoot")), _controller_display(item.get("undershoot")),
+        ]
+        for item in controllers
+    ]
+    _add_table(
+        doc,
+        ("Controller", "Controlled variable", "Final PV", "SP", "Final error", "Max |error|", "Mean |error|", "IAE", "Overshoot", "Undershoot"),
+        tracking_rows,
+        (0.73, 1.16, 0.53, 0.46, 0.61, 0.66, 0.68, 0.52, 0.59, 0.67),
+        font_size=5.8,
+    )
+    doc.add_paragraph("Output and Settling", style="Heading 2")
+    output_rows = [
+        [
+            item.get("controller", "Not reported"), item.get("output_units", "Not reported"),
+            _controller_display(item.get("output_minimum")), _controller_display(item.get("output_maximum")),
+            _controller_display(item.get("maximum_output_slew_per_sec")),
+            _controller_display(item.get("lower_saturation_time_sec"), digits=3),
+            _controller_display(item.get("upper_saturation_time_sec"), digits=3),
+            _controller_display(item.get("settling_time_sec"), digits=3),
+            _controller_display(item.get("settling_criterion_absolute_error")),
+            f"output: {item.get('output_data_state', 'not_available')}; saturation: {item.get('saturation_data_state', 'not_evaluated')}; settling: {item.get('settling_data_state', 'not_evaluated')}",
+        ]
+        for item in controllers
+    ]
+    _add_table(
+        doc,
+        ("Controller", "Output units", "Min", "Max", "Max slew /s", "At low bound (s)", "At high bound (s)", "Settling time (s)", "Settling |error|", "Data state"),
+        output_rows,
+        (0.7, 0.55, 0.48, 0.48, 0.62, 0.72, 0.72, 0.66, 0.64, 1.19),
+        font_size=5.7,
+    )
+    doc.add_paragraph("Controller Evidence and Tuning", style="Heading 2")
+    evidence_rows = [
+        [
+            item.get("controller", "Not reported"),
+            f"{item.get('history_record_count', 'Not reported')} accepted endpoints; "
+            f"{_controller_display(item.get('history_start_time_sec'), digits=3)} to "
+            f"{_controller_display(item.get('history_end_time_sec'), digits=3)} s",
+            json.dumps(item.get("tuning"), sort_keys=True) if item.get("tuning") else "Not reported",
+            item.get("completeness", "not_available"),
+        ]
+        for item in controllers
+    ]
+    _add_table(
+        doc, ("Controller", "History", "Tuning", "Completeness"), evidence_rows,
+        (0.95, 1.75, 2.2, 1.5), font_size=6.5,
+    )
+
+
 def _plot_series(
     summary: pd.DataFrame,
     output: Path,
     panels: Sequence[tuple[str, Sequence[tuple[str, str, float]]]],
     *,
     cumulative_offset_s: float,
+    event_times_s: Sequence[float] = (),
+    qualification_time_s: float | None = None,
 ) -> bool:
     if "time_s" not in summary or summary.empty:
         return False
@@ -245,6 +408,23 @@ def _plot_series(
         axes = [axes]
     palette = ["#247B7B", "#C9942E", "#345B7E", "#A64B3C", "#6C7A3D", "#7D5A8C"]
     plotted = False
+    axis_units = {
+        "Feed and product flows": "lbmol/h",
+        "Column traffic": "lbmol/h",
+        "Top pressure": "psia",
+        "Heat duties": "MMBtu/h",
+        "Level-controller outputs": "lbmol/h",
+        "Column pressure (psia)": "psia",
+        "Product temperature (deg F)": "deg F",
+        "Total inventory (lbmol)": "lbmol",
+        "Distillate composition (mole fraction)": "mole fraction",
+        "Bottoms composition (mole fraction)": "mole fraction",
+        "Product flows (lbmol/h)": "lbmol/h",
+        "Pressure (psia)": "psia",
+        "Temperature (deg F)": "deg F",
+        "Duties (MMBtu/h)": "MMBtu/h",
+        "Stored inventories (lbmol)": "lbmol",
+    }
     for ax, (title, series) in zip(axes, panels):
         for index, (column, label, scale) in enumerate(series):
             if column not in summary:
@@ -254,7 +434,12 @@ def _plot_series(
                 continue
             ax.plot(t_min, values, label=label, color=palette[index % len(palette)], linewidth=1.8)
             plotted = True
+        for event_time in event_times_s:
+            ax.axvline((float(event_time) + cumulative_offset_s) / 60.0, color="#66727D", linewidth=0.8, linestyle=":", alpha=0.75)
+        if qualification_time_s is not None:
+            ax.axvline((float(qualification_time_s) + cumulative_offset_s) / 60.0, color="#247B7B", linewidth=1.0, linestyle="--", alpha=0.85)
         ax.set_title(title, loc="left", fontsize=10, fontweight="bold", color="#18324A")
+        ax.set_ylabel(axis_units.get(title, "%" if "levels (%)" in title else "value"), fontsize=8.5)
         ax.grid(True, alpha=0.22, linewidth=0.7)
         ax.spines[["top", "right"]].set_visible(False)
         ax.tick_params(labelsize=8)
@@ -268,13 +453,109 @@ def _plot_series(
     return plotted
 
 
+def _plot_steady_state_score(
+    summary: pd.DataFrame,
+    output: Path,
+    *,
+    cumulative_offset_s: float,
+    event_times_s: Sequence[float] = (),
+    qualification_time_s: float | None = None,
+) -> bool:
+    """Plot accepted score history and its dimensionless acceptance threshold."""
+
+    if "time_s" not in summary or "steady_state_score" not in summary or summary.empty:
+        return False
+    time_min = (pd.to_numeric(summary["time_s"], errors="coerce") + cumulative_offset_s) / 60.0
+    score = pd.to_numeric(summary["steady_state_score"], errors="coerce")
+    valid = time_min.notna() & score.notna()
+    if not valid.any():
+        return False
+    fig, ax = plt.subplots(figsize=(9.0, 2.55))
+    ax.plot(time_min[valid], score[valid], color="#247B7B", linewidth=1.8, label="Steady-state score")
+    ax.axhline(1.0, color="#A64B3C", linewidth=1.0, linestyle="--", label="Acceptance limit")
+    for event_time in event_times_s:
+        ax.axvline((float(event_time) + cumulative_offset_s) / 60.0, color="#66727D", linewidth=0.8, linestyle=":", alpha=0.75)
+    if qualification_time_s is not None:
+        ax.axvline((float(qualification_time_s) + cumulative_offset_s) / 60.0, color="#247B7B", linewidth=1.0, linestyle="--", alpha=0.85, label="Qualification")
+    ax.set_title("Steady-state score", loc="left", fontsize=10, fontweight="bold", color="#18324A")
+    ax.set_xlabel("Cumulative simulation time (min)", fontsize=8.5)
+    ax.set_ylabel("Score (ratio to limit)", fontsize=8.5)
+    ax.grid(True, alpha=0.22, linewidth=0.7)
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.tick_params(labelsize=8)
+    ax.legend(loc="best", frameon=False, fontsize=8)
+    fig.tight_layout(pad=1.1)
+    fig.savefig(output, dpi=180, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    return True
+
+
+def _plot_balance_and_constraint_trends(
+    trajectory: pd.DataFrame,
+    balance_rows: Sequence[Mapping[str, Any]],
+    output: Path,
+    *,
+    cumulative_offset_s: float,
+    event_times_s: Sequence[float] = (),
+    qualification_time_s: float | None = None,
+) -> bool:
+    """Plot only persisted residual evidence and the explicit solver margin."""
+
+    panels: list[tuple[str, np.ndarray, np.ndarray, str, str]] = []
+    if balance_rows:
+        ledger = pd.DataFrame(balance_rows)
+        if {"time_sec", "quantity", "residual"}.issubset(ledger.columns):
+            ledger["time_sec"] = pd.to_numeric(ledger["time_sec"], errors="coerce")
+            ledger["residual"] = pd.to_numeric(ledger["residual"], errors="coerce")
+            material = ledger[ledger["quantity"].astype(str) != "energy"].dropna(subset=["time_sec", "residual"])
+            energy = ledger[ledger["quantity"].astype(str) == "energy"].dropna(subset=["time_sec", "residual"])
+            if not material.empty:
+                grouped = material.assign(absolute_residual=material["residual"].abs()).groupby("time_sec")["absolute_residual"].sum()
+                panels.append(("Total material residual", grouped.index.to_numpy(), grouped.to_numpy(), "lbmol/h", "Material residual"))
+            if not energy.empty:
+                grouped = energy.assign(absolute_residual=energy["residual"].abs()).groupby("time_sec")["absolute_residual"].max()
+                panels.append(("Maximum per-volume energy residual", grouped.index.to_numpy(), grouped.to_numpy(), "BTU/h", "Energy residual"))
+    if {"time_sec", "solver_residual_inf_norm"}.issubset(trajectory.columns):
+        time = pd.to_numeric(trajectory["time_sec"], errors="coerce")
+        residual = pd.to_numeric(trajectory["solver_residual_inf_norm"], errors="coerce")
+        valid = time.notna() & residual.notna()
+        if valid.any():
+            panels.append(("Solver residual constraint margin", time[valid].to_numpy(), 1.0e-8 - residual[valid].to_numpy(), "margin to 1e-8", "Residual margin"))
+    if not panels:
+        return False
+    fig, axes = plt.subplots(len(panels), 1, figsize=(9.0, 2.2 * len(panels)), sharex=True)
+    if len(panels) == 1:
+        axes = [axes]
+    for ax, (title, time, values, units, label) in zip(axes, panels):
+        ax.plot((time + cumulative_offset_s) / 60.0, values, color="#7D5A8C", linewidth=1.7, label=label)
+        if title == "Solver residual constraint margin":
+            ax.axhline(0.0, color="#A64B3C", linewidth=1.0, linestyle="--", label="Acceptance boundary")
+        for event_time in event_times_s:
+            ax.axvline((float(event_time) + cumulative_offset_s) / 60.0, color="#66727D", linewidth=0.8, linestyle=":", alpha=0.75)
+        if qualification_time_s is not None:
+            ax.axvline((float(qualification_time_s) + cumulative_offset_s) / 60.0, color="#247B7B", linewidth=1.0, linestyle="--", alpha=0.85)
+        ax.set_title(title, loc="left", fontsize=10, fontweight="bold", color="#18324A")
+        ax.set_ylabel(units, fontsize=8.5)
+        ax.grid(True, alpha=0.22, linewidth=0.7)
+        ax.spines[["top", "right"]].set_visible(False)
+        ax.tick_params(labelsize=8)
+        ax.legend(loc="best", frameon=False, fontsize=8)
+    axes[-1].set_xlabel("Cumulative simulation time (min)", fontsize=8.5)
+    fig.tight_layout(pad=1.1)
+    fig.savefig(output, dpi=180, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    return True
+
+
 def _plot_final_profiles(profile: pd.DataFrame, output: Path) -> bool:
     if profile.empty or "time_s" not in profile or "stage" not in profile:
         return False
     t = pd.to_numeric(profile["time_s"], errors="coerce").max()
     final = profile[np.isclose(pd.to_numeric(profile["time_s"], errors="coerce"), t)]
     if "node_type" in final:
-        final = final[final["node_type"].astype(str).eq("stage")]
+        # Current Core V3 trajectory artifacts identify physical column stages
+        # as ``tray``; early artifacts used ``stage``.  Both are reportable.
+        final = final[final["node_type"].astype(str).isin(("stage", "tray"))]
     final = final.sort_values("stage")
     if final.empty:
         return False
@@ -314,6 +595,181 @@ def _plot_final_profiles(profile: pd.DataFrame, output: Path) -> bool:
     return True
 
 
+def _plot_core_v3_profiles(rows: Sequence[Mapping[str, Any]], output: Path) -> bool:
+    """Render distinct thermal/hydraulic, liquid-x, and vapor-y profile views."""
+    if not rows:
+        return False
+    stage = np.arange(1, len(rows) + 1)
+    components = tuple(rows[0].get("liquid_mole_fraction", {}).keys())
+    fig, axes = plt.subplots(1, 3, figsize=(10.0, 3.4))
+    axes[0].plot(stage, [float(row["temperature_F"]) for row in rows], label="Temperature (F)", color="#A64B3C")
+    pressure_axis = axes[0].twinx()
+    pressure_axis.plot(stage, [float(row["pressure_psia"]) for row in rows], label="Pressure (psia)", color="#345B7E")
+    axes[0].set_title("Thermal and hydraulic profile", loc="left", fontweight="bold", color="#18324A")
+    axes[0].set_ylabel("Temperature (F)")
+    pressure_axis.set_ylabel("Pressure (psia)")
+    colors = ["#247B7B", "#C9942E", "#7D5A8C", "#A64B3C"]
+    for index, component in enumerate(components):
+        axes[1].plot(stage, [float(row["liquid_mole_fraction"][component]) for row in rows], label=_pretty_component(component), color=colors[index % len(colors)])
+        axes[2].plot(stage, [float(row["vapor_mole_fraction"][component]) for row in rows], label=_pretty_component(component), color=colors[index % len(colors)])
+    axes[1].set_title("Liquid composition profile", loc="left", fontweight="bold", color="#18324A")
+    axes[2].set_title("Vapor composition profile", loc="left", fontweight="bold", color="#18324A")
+    for axis in axes:
+        axis.set_xlabel("Stage / volume order")
+        axis.set_ylabel("Mole fraction" if axis is not axes[0] else "")
+        axis.grid(True, alpha=0.22, linewidth=0.7)
+        axis.spines[["top", "right"]].set_visible(False)
+        if axis.lines:
+            axis.legend(frameon=False, fontsize=7)
+    fig.tight_layout(pad=1.0)
+    fig.savefig(output, dpi=180, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    return True
+
+
+def _final_profile_assessment(profile: pd.DataFrame) -> dict[str, Any]:
+    """Extract reportable profile facts without treating terminal nodes as trays."""
+
+    if profile.empty or "time_s" not in profile:
+        return {"available": False}
+    final_time = pd.to_numeric(profile["time_s"], errors="coerce").max()
+    final = profile[np.isclose(pd.to_numeric(profile["time_s"], errors="coerce"), final_time)].copy()
+    if final.empty:
+        return {"available": False}
+    tray = final[final.get("node_type", pd.Series("", index=final.index)).astype(str).isin(("stage", "tray"))].copy()
+    terminals = final[~final.index.isin(tray.index)]
+    volume_names = final.get("volume", final.get("stage", pd.Series("Not reported", index=final.index))).astype(str)
+    tray_volume_names = tray.get("volume", tray.get("stage", pd.Series("Not reported", index=tray.index))).astype(str)
+    assessment: dict[str, Any] = {
+        "available": True,
+        "final_time_s": float(final_time),
+        "feed_stage": None,
+        "terminal_volumes": list(volume_names.loc[terminals.index]),
+        "non_stage_nodes": list(volume_names.loc[terminals.index]),
+        "flow_reversals": [],
+        "composition_extrema": {},
+    }
+    feed = final[volume_names.eq("feed_tray")]
+    if not feed.empty and "stage" in feed:
+        assessment["feed_stage"] = int(float(feed.iloc[0]["stage"]))
+    if not tray.empty:
+        for key, label in (("T_F", "temperature_range_F"), ("P_psia_hyd", "pressure_range_psia")):
+            values = pd.to_numeric(tray.get(key, pd.Series(np.nan, index=tray.index)), errors="coerce")
+            if values.notna().any():
+                assessment[label] = (float(values.min()), float(values.max()))
+        pressure = pd.to_numeric(tray.get("P_psia_hyd", pd.Series(np.nan, index=tray.index)), errors="coerce")
+        if pressure.notna().any():
+            assessment["top_to_bottom_pressure_drop_psia"] = float(pressure.iloc[-1] - pressure.iloc[0])
+        for key in ("L_out_used_lbmolph", "V_out_lbmolph"):
+            values = pd.to_numeric(tray.get(key, pd.Series(np.nan, index=tray.index)), errors="coerce")
+            assessment["flow_reversals"].extend(
+                f"{key}:{volume}" for volume in tray_volume_names.loc[values < 0.0]
+            )
+        for column in tray.columns:
+            if not str(column).startswith(("x_", "y_")):
+                continue
+            values = pd.to_numeric(tray[column], errors="coerce")
+            if values.notna().any():
+                assessment["composition_extrema"][str(column)] = (float(values.min()), float(values.max()))
+    return assessment
+
+
+def _add_profile_assessment_tables(doc: Document, assessment: Mapping[str, Any]) -> None:
+    """Present final-profile facts in scan-friendly tables, not a dense sentence."""
+
+    if not assessment.get("available"):
+        return
+    temperature = assessment.get("temperature_range_F")
+    pressure_drop = assessment.get("top_to_bottom_pressure_drop_psia")
+    summary_rows = [
+        ["Feed stage", assessment.get("feed_stage") if assessment.get("feed_stage") is not None else "Not reported"],
+        ["Terminal volumes", ", ".join(assessment.get("terminal_volumes", ())) or "None"],
+        ["Tray pressure drop", _fmt(pressure_drop, 3, " psia")],
+        ["Tray temperature range", f"{_fmt(temperature[0], 2)} to {_fmt(temperature[1], 2)} deg F" if temperature else "Not reported"],
+        ["Flow reversals", ", ".join(assessment.get("flow_reversals", ())) or "None observed"],
+    ]
+    doc.add_paragraph("Profile Summary", style="Heading 2")
+    _add_table(doc, ("Attribute", "Observed final-profile value"), summary_rows, (1.65, 5.19), header_fill=TEAL, font_size=8.0)
+    extrema = assessment.get("composition_extrema", {})
+    if not extrema:
+        return
+    components = sorted({key[2:] for key in extrema if key.startswith(("x_", "y_"))})
+    rows = []
+    for component in components:
+        liquid = extrema.get(f"x_{component}")
+        vapor = extrema.get(f"y_{component}")
+        rows.append([
+            _pretty_component(component),
+            _fmt(liquid[0], 4) if liquid else "Not reported",
+            _fmt(liquid[1], 4) if liquid else "Not reported",
+            _fmt(vapor[0], 4) if vapor else "Not reported",
+            _fmt(vapor[1], 4) if vapor else "Not reported",
+        ])
+    doc.add_paragraph("Composition Extrema", style="Heading 2")
+    _add_table(doc, ("Component", "Liquid min", "Liquid max", "Vapor min", "Vapor max"), rows, (1.4, 1.2, 1.2, 1.2, 1.2), header_fill=TEAL, font_size=7.8)
+
+
+def _add_artifact_index(doc: Document, report: Mapping[str, Any]) -> None:
+    """Show provenance identifiers in a compact, audit-friendly final index."""
+
+    report_schema = str(report.get("report_schema_version", "Not reported"))
+    rows = []
+    for item in report.get("artifacts", []):
+        digest = item.get("sha256")
+        fingerprint = f"sha256:{str(digest)[:12]}" if digest else "Not reported"
+        schema = report_schema if item.get("artifact") == "report_summary" else "Not reported"
+        rows.append([
+            item.get("artifact", "Not reported"), str(item.get("path", "Not reported")), schema,
+            fingerprint, str(item.get("size_bytes")) if item.get("size_bytes") is not None else "Not reported",
+            item.get("status", "Not reported"),
+        ])
+    _add_table(
+        doc,
+        ("Artifact", "Path", "Schema/version", "Hash", "Size (bytes)", "Status"),
+        rows or [["Artifacts", "Not reported", "Not reported", "Not reported", "Not reported", "not_available"]],
+        (0.75, 2.35, 0.9, 0.9, 0.62, 0.58),
+        font_size=5.7,
+    )
+
+
+def _add_numerical_health_tables(doc: Document, health: Mapping[str, Any]) -> None:
+    """Group numeric solver evidence and avoid dumping nested dictionaries into cells."""
+
+    primary = (
+        ("Integrator", health.get("integrator")),
+        ("Termination reason", health.get("termination_reason")),
+        ("Accepted / rejected steps", f"{health.get('accepted_steps', 'Not reported')} / {health.get('rejected_steps', 'Not reported')}"),
+        ("Configured timestep", _controller_display(health.get("configured_timestep_sec"), digits=3) + " s"),
+        ("Actual timestep min / mean / max", " / ".join(_controller_display(health.get(key), digits=3) for key in ("actual_timestep_min_sec", "actual_timestep_mean_sec", "actual_timestep_max_sec")) + " s"),
+        ("Maximum scaled residual", _balance_display(health.get("maximum_residual_infinity_norm"))),
+        ("Maximum Jacobian condition", _balance_display(health.get("maximum_jacobian_condition"))),
+        ("Function evaluations total / max", f"{health.get('nonlinear_function_evaluations_total', 'Not reported')} / {health.get('nonlinear_function_evaluations_maximum', 'Not reported')}"),
+        ("Jacobian evaluations", health.get("jacobian_evaluations_total")),
+        ("Configured max evaluations per root", health.get("configured_max_function_evaluations_per_root")),
+        ("Events / warnings / errors", f"{health.get('event_count', 'Not reported')} / {health.get('warning_count', 'Not reported')} / {health.get('error_count', 'Not reported')}"),
+    )
+    doc.add_paragraph("Solver and Acceptance", style="Heading 2")
+    _add_table(doc, ("Metric", "Observed"), [[label, _evidence_display(value)] for label, value in primary], (2.55, 4.29), font_size=7.5)
+    performance = health.get("performance", {})
+    if not isinstance(performance, Mapping):
+        return
+    performance_rows = [
+        ("Jacobian execution / workers", f"{performance.get('jacobian_execution', 'Not reported')} / {performance.get('parallel_workers', 'Not reported')}"),
+        ("Endpoint wall time total / mean / p95", " / ".join(_controller_display(performance.get(key), digits=3) for key in ("endpoint_wall_total_s", "endpoint_wall_mean_s", "endpoint_wall_p95_s")) + " s"),
+        ("Objective calls / Jacobian builds", f"{performance.get('objective_calls_total', 'Not reported')} / {performance.get('jacobian_builds_total', 'Not reported')}"),
+        ("Memo hits / misses / hit fraction", f"{performance.get('memo_hits_total', 'Not reported')} / {performance.get('memo_misses_total', 'Not reported')} / {_controller_display(performance.get('memo_hit_fraction'), digits=4)}"),
+    ]
+    doc.add_paragraph("Runtime and Cache", style="Heading 2")
+    _add_table(doc, ("Metric", "Observed"), [[label, value] for label, value in performance_rows], (2.55, 4.29), font_size=7.5)
+
+
+def _add_run_narrative(doc: Document, report: Mapping[str, Any], metadata: Mapping[str, Any]) -> None:
+    narrative = build_report_narrative_v1(report, metadata=metadata)
+    doc.add_heading("Run Narrative", level=1)
+    for text in narrative["paragraphs"]:
+        doc.add_paragraph(text)
+
+
 def _condition_rows(row: Mapping[str, Any]) -> list[list[str]]:
     top_pv = _number(row, "Top_level_ctrl_pv")
     top_sp = _number(row, "Top_level_ctrl_sp")
@@ -323,6 +779,8 @@ def _condition_rows(row: Mapping[str, Any]) -> list[list[str]]:
     bottom_is_fraction = _finite(bottom_pv) and _finite(bottom_sp) and max(abs(bottom_pv), abs(bottom_sp)) <= 1.5
     return [
         ["Feed", _fmt(_number(row, "F_lbmolph")), "lbmol/h"],
+        ["Feed temperature", _fmt(_number(row, "Feed_temperature_F"), 2), "deg F"],
+        ["Feed pressure", _fmt(_number(row, "Feed_pressure_psia"), 3), "psia"],
         ["Distillate", _fmt(_number(row, "D_lbmolph")), "lbmol/h"],
         ["Bottoms", _fmt(_number(row, "B_lbmolph")), "lbmol/h"],
         ["Reflux", _fmt(_number(row, "total_reflux_used_lbmolph")), "lbmol/h"],
@@ -388,6 +846,29 @@ def _parameter_rows(metadata: Mapping[str, Any]) -> list[list[str]]:
     return rows
 
 
+def _launch_command_for_report(metadata: Mapping[str, Any]) -> tuple[str | None, str]:
+    """Return the persisted CLI, or a visibly reconstructed command for old runs."""
+
+    command = str(metadata.get("launch_command") or "").strip()
+    if command:
+        return command, "Exact invoked command persisted by the runner."
+    required = ("excel_path", "started_from_checkpoint", "duration_sec", "dt_sec", "n_steps", "run_name")
+    if not all(metadata.get(key) is not None for key in required):
+        return None, "CLI command was not persisted for this artifact."
+    quote = lambda value: f'"{value}"' if any(char in str(value) for char in " \t") else str(value)
+    command = " ".join((
+        "python", "tools/run_core_v3_dynamic.py",
+        "--excel", quote(metadata["excel_path"]),
+        "--init-from-checkpoint", quote(metadata["started_from_checkpoint"]),
+        "--duration-sec", str(metadata["duration_sec"]),
+        "--dt", str(metadata["dt_sec"]),
+        "--log-every", "4",
+        "--logs-dir", quote(Path(str(metadata["summary_csv"])).parent),
+        "--run-name", quote(metadata["run_name"]),
+    ))
+    return command, "Reconstructed from persisted run metadata; the original CLI was not recorded."
+
+
 def generate_run_report(
     metadata_json_path: str | Path,
     *,
@@ -410,6 +891,85 @@ def generate_run_report(
         profile_path = (metadata_path.parent / profile_path).resolve()
     summary = pd.read_csv(summary_path)
     profile = pd.read_csv(profile_path)
+    trajectory = pd.DataFrame()
+    balance_rows: list[dict[str, Any]] = []
+    # Normalize Core V3's current result names to the report's stable semantic
+    # names.  Only measured quantities are aliased here: do not invent missing
+    # controller pressure/level setpoints merely to draw an extra trend line.
+    for report_name, result_name in {
+        "total_reflux_used_lbmolph": "Reflux_cmd_lbmolph",
+        "boilup_realized_lbmolph": "Boilup_lbmolph",
+        "P_top_ctrl_pv_psia": "P_top_drum_psia",
+        "Bottom_level_ctrl_pv": "Bottom_level_fraction",
+    }.items():
+        if report_name not in summary.columns and result_name in summary.columns:
+            summary[report_name] = summary[result_name]
+    # Core V3's report trajectory contains feed and pressure history that is
+    # intentionally absent from the compact legacy summary CSV.  Bring across
+    # only actual time-series evidence, aligned by simulation time; no endpoint
+    # value is used as a substitute when that history is unavailable.
+    trajectory_path = metadata.get("report_trajectory_jsonl")
+    if trajectory_path:
+        candidate = Path(str(trajectory_path)).expanduser()
+        if not candidate.is_absolute():
+            candidate = metadata_path.parent / candidate
+        try:
+            trajectory_records = [json.loads(line) for line in candidate.read_text(encoding="utf-8").splitlines() if line.strip()]
+            trajectory = pd.DataFrame(trajectory_records)
+        except (OSError, ValueError):
+            trajectory = pd.DataFrame()
+        if not trajectory.empty and "time_sec" in trajectory:
+            if "feed_component_lbmolph" in trajectory:
+                trajectory["F_lbmolph"] = trajectory["feed_component_lbmolph"].map(
+                    lambda values: float(np.sum(values)) if isinstance(values, list) else np.nan
+                )
+            for target, source in {
+                "F_lbmolph": "F_lbmolph",
+                "P_top_psia": "top_pressure_psia",
+                "P_bot_psia": "bottom_pressure_psia",
+                "Feed_temperature_F": "feed_temperature_F",
+                "Feed_pressure_psia": "feed_pressure_psia",
+                "Total_liquid_inventory_lbmol": "liquid_inventory_lbmol",
+                "Total_vapor_inventory_lbmol": "vapor_inventory_lbmol",
+            }.items():
+                if (
+                    source not in trajectory
+                    or (target in summary.columns and pd.to_numeric(summary[target], errors="coerce").notna().any())
+                ):
+                    continue
+                source_time = pd.to_numeric(trajectory["time_sec"], errors="coerce")
+                values = pd.to_numeric(trajectory[source], errors="coerce")
+                valid = source_time.notna() & values.notna()
+                if valid.any():
+                    summary[target] = np.interp(
+                        pd.to_numeric(summary["time_s"], errors="coerce"),
+                        source_time[valid], values[valid], left=np.nan, right=np.nan,
+                    )
+    balance_path = metadata.get("report_balance_ledger_jsonl")
+    if balance_path:
+        candidate = Path(str(balance_path)).expanduser()
+        if not candidate.is_absolute():
+            candidate = metadata_path.parent / candidate
+        try:
+            balance_rows = [json.loads(line) for line in candidate.read_text(encoding="utf-8").splitlines() if line.strip()]
+        except (OSError, ValueError):
+            balance_rows = []
+    feed_conditions = metadata.get("feed_temperature_disturbance", {})
+    if isinstance(feed_conditions, Mapping):
+        for target, source in {
+            "Feed_temperature_F": "disturbed_temperature_F",
+            "Feed_pressure_psia": "pressure_psia",
+        }.items():
+            if (
+                source not in feed_conditions
+                or (target in summary.columns and pd.to_numeric(summary[target], errors="coerce").notna().any())
+            ):
+                continue
+            value = _number(feed_conditions, source)
+            if _finite(value):
+                # This is a declared feed configuration, not a missing-history
+                # endpoint fallback.  It is constant unless a feed event says otherwise.
+                summary[target] = value
     start, end = _first_and_last(summary)
 
     run_id = str(metadata.get("run_id") or metadata_path.stem.replace("run_metadata_", ""))
@@ -464,6 +1024,84 @@ def generate_run_report(
             ("Final score", _fmt(end_score, 3), PALE_BLUE),
             ("Sim / wall", _fmt(sim_wall, 3), LIGHT_GRAY),
         ],
+    )
+    report_summary = None
+    report_summary_path = metadata.get("report_summary")
+    if report_summary_path:
+        candidate = Path(str(report_summary_path)).expanduser()
+        if not candidate.is_absolute():
+            candidate = metadata_path.parent / candidate
+        try:
+            report_summary = json.loads(candidate.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            report_summary = None
+    if report_summary:
+        doc.add_heading("Executive Verdict", level=1)
+        _add_table(
+            doc, ("Item", "Status"),
+            (("Overall status", report_summary.get("overall_status", "NOT AVAILABLE")),
+             ("Completion", report_summary.get("completion", {}).get("status", "NOT AVAILABLE")),
+             ("Steady state", report_summary.get("steady_state", {}).get("status", "NOT AVAILABLE"))),
+            (2.1, 4.84), header_fill=TEAL, font_size=8.2,
+        )
+        _add_run_narrative(doc, report_summary, metadata)
+        reasons = report_summary.get("verdict_reasons", [])
+        if reasons:
+            doc.add_heading("Ranked Verdict Reasons", level=2)
+            _add_table(doc, ("Check", "Severity", "Status", "Explanation"), [[item.get("check_id"), item.get("severity"), item.get("status"), item.get("explanation")] for item in reasons[:3]], (1.2, 0.8, 0.8, 4.14), font_size=7.8)
+        doc.add_heading("Operating-Limit Assessment", level=1)
+        _add_constraint_table(doc, report_summary.get("constraints", []))
+        balances = report_summary.get("balances", {})
+        balance_rows = balances.get("ledger_rows", [])
+        if balance_rows:
+            doc.add_heading("Material and Energy Balances", level=1)
+            doc.add_paragraph(str(balances.get("detail", "Balance detail not reported.")))
+            _add_balance_summary_table(doc, balances)
+            for title, is_energy, separate_terms in (
+                ("Material Balance", False, balances.get("material_has_separate_in_out", False)),
+                ("Energy Balance", True, balances.get("energy_has_separate_in_out", False)),
+            ):
+                endpoint_times = sorted({float(row.get("time_sec", 0.0)) for row in balance_rows})
+                selected_times = set(endpoint_times[:1] + endpoint_times[-1:])
+                rows = [
+                    row for row in balance_rows
+                    if (str(row.get("quantity")) == "energy") is is_energy
+                    and float(row.get("time_sec", 0.0)) in selected_times
+                ]
+                if not rows:
+                    continue
+                doc.add_heading(title, level=2)
+                headers = (
+                    ("Time (s)", "Volume", "Quantity", "In", "Out", "Accumulation", "Residual", "Normalized")
+                    if separate_terms else
+                    ("Time (s)", "Volume", "Quantity", "Net expected", "Accumulation", "Residual", "Normalized")
+                )
+                table_rows = []
+                for row in rows:
+                    base = [_fmt(row.get("time_sec"), 3), str(row.get("volume", "Not reported")), str(row.get("quantity", "Not reported"))]
+                    terms = ([_fmt(row.get("in"), 5), _fmt(row.get("out"), 5)] if separate_terms else [_fmt(row.get("net_expected_change", row.get("in")), 5)])
+                    table_rows.append([*base, *terms, _fmt(row.get("accumulation"), 5), _fmt(row.get("residual"), 5), _fmt(row.get("normalized_residual"), 5)])
+                widths = (0.55, 0.75, 0.8, 0.65, 0.65, 0.85, 0.7, 0.85) if separate_terms else (0.55, 0.85, 0.9, 1.0, 0.95, 0.8, 0.9)
+                _add_table(doc, headers, table_rows, widths, font_size=6.2)
+        doc.add_heading("Controller Performance", level=1)
+        controllers = report_summary.get("controllers", [])
+        _add_controller_performance_tables(doc, controllers)
+        doc.add_heading("Event and Disturbance Timeline", level=1)
+        events = report_summary.get("events", {})
+        doc.add_paragraph(str(events.get("detail", "Event timeline: not available in this artifact version.")))
+        if events.get("records"):
+            _add_event_table(doc, events["records"])
+        doc.add_heading("Numerical Health", level=1)
+        health = report_summary.get("numerical_health", {})
+        _add_numerical_health_tables(doc, health)
+    event_times_s = tuple(
+        float(item["time_sec"])
+        for item in (report_summary or {}).get("events", {}).get("records", ())
+        if item.get("time_sec") is not None
+    )
+    qualification_time_s = next(
+        (float(item["time_sec"]) for item in (report_summary or {}).get("events", {}).get("records", ()) if item.get("event_type") == "steady_state_qualification"),
+        None,
     )
 
     assessment_notes = []
@@ -540,6 +1178,10 @@ def generate_run_report(
         temp = Path(temp_dir)
         flow_chart = temp / "flows.png"
         control_chart = temp / "controls.png"
+        steady_state_chart = temp / "steady_state_score.png"
+        composition_chart = temp / "product_composition.png"
+        state_chart = temp / "state_trends.png"
+        balance_chart = temp / "balance_and_constraints.png"
         profile_chart = temp / "profiles.png"
         top_level_scale = 100.0 if max(
             abs(_number(end, "Top_level_ctrl_pv")), abs(_number(end, "Top_level_ctrl_sp"))
@@ -560,6 +1202,8 @@ def generate_run_report(
                 ("Column traffic", (("total_reflux_used_lbmolph", "Reflux", 1.0), ("V_condensed_in_lbmolph", "Condensate", 1.0), ("boilup_realized_lbmolph", "Boilup", 1.0))),
             ],
             cumulative_offset_s=source_time,
+            event_times_s=event_times_s,
+            qualification_time_s=qualification_time_s,
         ):
             doc.add_picture(str(flow_chart), width=Inches(6.75))
         if _plot_series(
@@ -572,10 +1216,67 @@ def generate_run_report(
                 ("Level-controller outputs", (("D_lbmolph", "Distillate MV", 1.0), ("B_lbmolph", "Bottoms MV", 1.0))),
             ],
             cumulative_offset_s=source_time,
+            event_times_s=event_times_s,
+            qualification_time_s=qualification_time_s,
         ):
             doc.add_picture(str(control_chart), width=Inches(6.75))
+        if _plot_series(
+            summary,
+            state_chart,
+            [
+                ("Column pressure (psia)", (("P_top_psia", "Top", 1.0), ("P_bot_psia", "Bottom", 1.0))),
+                ("Product temperature (deg F)", (("T_Distillate_F", "Distillate", 1.0), ("T_sump_F", "Bottoms", 1.0))),
+                ("Total inventory (lbmol)", (("Total_liquid_inventory_lbmol", "Liquid", 1.0), ("Total_vapor_inventory_lbmol", "Vapor", 1.0))),
+            ],
+            cumulative_offset_s=source_time,
+            event_times_s=event_times_s,
+            qualification_time_s=qualification_time_s,
+        ):
+            doc.add_picture(str(state_chart), width=Inches(6.75))
+        if _plot_steady_state_score(
+            summary,
+            steady_state_chart,
+            cumulative_offset_s=source_time,
+            event_times_s=event_times_s,
+            qualification_time_s=qualification_time_s,
+        ):
+            doc.add_picture(str(steady_state_chart), width=Inches(6.75))
+        components = sorted(
+            set(_component_names(summary.columns, "Distillate_x_"))
+            | set(_component_names(summary.columns, "Bottoms_x_"))
+        )
+        composition_panels = [
+            (
+                "Distillate composition (mole fraction)",
+                tuple((f"Distillate_x_{component}", _pretty_component(component), 1.0) for component in components),
+            ),
+            (
+                "Bottoms composition (mole fraction)",
+                tuple((f"Bottoms_x_{component}", _pretty_component(component), 1.0) for component in components),
+            ),
+        ] if components else []
+        if composition_panels and _plot_series(
+            summary,
+            composition_chart,
+            composition_panels,
+            cumulative_offset_s=source_time,
+            event_times_s=event_times_s,
+            qualification_time_s=qualification_time_s,
+        ):
+            doc.add_picture(str(composition_chart), width=Inches(6.75))
+        if _plot_balance_and_constraint_trends(
+            trajectory,
+            balance_rows,
+            balance_chart,
+            cumulative_offset_s=source_time,
+            event_times_s=event_times_s,
+            qualification_time_s=qualification_time_s,
+        ):
+            doc.add_picture(str(balance_chart), width=Inches(6.75))
 
         doc.add_heading("Final Tray Profiles", level=1)
+        profile_assessment = _final_profile_assessment(profile)
+        _add_profile_assessment_tables(doc, profile_assessment)
         if _plot_final_profiles(profile, profile_chart):
             doc.add_picture(str(profile_chart), width=Inches(6.75))
 
@@ -592,7 +1293,9 @@ def generate_run_report(
         final_t = pd.to_numeric(profile["time_s"], errors="coerce").max()
         final_profile = profile[np.isclose(pd.to_numeric(profile["time_s"], errors="coerce"), final_t)]
         if "node_type" in final_profile:
-            final_profile = final_profile[final_profile["node_type"].astype(str).eq("stage")]
+            final_profile = final_profile[
+                final_profile["node_type"].astype(str).isin(("stage", "tray"))
+            ]
         final_profile = final_profile.sort_values("stage")
         comp_names = [c[2:] for c in final_profile.columns if str(c).startswith("x_") and not str(c).startswith("x_eq_")][:3]
         tray_rows = []
@@ -625,13 +1328,18 @@ def generate_run_report(
     _add_header_footer(doc, case_name)
     doc.add_heading("Simulation Configuration", level=1)
     _add_table(doc, ["Parameter", "Value"], _parameter_rows(metadata), [3.0, 3.94], header_fill=TEAL, font_size=7.8)
-    command = str(metadata.get("launch_command") or "").strip()
+    command, command_note = _launch_command_for_report(metadata)
     if command:
-        doc.add_heading("Exact Launch Command", level=2)
+        doc.add_heading("CLI Command", level=2)
         p = doc.add_paragraph()
         p.paragraph_format.space_before = Pt(3)
         p.paragraph_format.space_after = Pt(3)
         _set_run(p.add_run(command), size=7.5, color=INK)
+        note = doc.add_paragraph(command_note)
+        _set_run(note.runs[0], size=7.5, color=MID_GRAY, italic=True)
+    if report_summary:
+        doc.add_heading("Artifact Index", level=1)
+        _add_artifact_index(doc, report_summary)
 
     doc.core_properties.title = f"Dynamic Distillation Run Report - {case_name}"
     doc.core_properties.subject = f"Run {run_id}"
@@ -656,6 +1364,9 @@ def generate_core_v3_run_report(
     levels = summary["terminal_levels"]
     steady = summary["steady_state"]
     metadata_values = metadata or {}
+    report = build_report_summary_v2(
+        summary, metadata=metadata_values, trajectory=trajectory
+    )
     simulated_seconds = float(summary["time_sec"])
     elapsed_seconds = metadata_values.get(
         "wall_clock_sec",
@@ -709,6 +1420,82 @@ def generate_core_v3_run_report(
     ]
     _add_table(doc, ("Item", "Value"), identity, (1.55, 5.39), header_fill=TEAL, font_size=8.2)
 
+    doc.add_paragraph("Executive Verdict", style="Heading 1")
+    verdict_rows = [
+        ["Overall status", report["overall_status"]],
+        ["Simulation completed", report["completion"]["status"]],
+        ["Steady state", report["steady_state"]["status"]],
+        ["Evidence completeness", "PARTIAL" if any(item["status"] == "NOT EVALUATED" for item in report["constraints"]) else "COMPLETE"],
+    ]
+    _add_table(doc, ("Item", "Status"), verdict_rows, (2.2, 4.74), header_fill=TEAL)
+    _add_run_narrative(doc, report, metadata or {})
+    doc.add_paragraph("Ranked Verdict Reasons", style="Heading 2")
+    reason_rows = [[item["check_id"], item["severity"], item["status"], item["explanation"]] for item in report["verdict_reasons"]] or [["None", "", "", "No adverse reason reported."]]
+    _add_table(doc, ("Check", "Severity", "Status", "Explanation"), reason_rows, (1.25, 0.8, 0.8, 4.09), font_size=8.0)
+
+    doc.add_paragraph("Initial, Final, and Delta", style="Heading 1")
+    metric_rows = []
+    for item in report["initial_final_delta"]:
+        def display(field: str) -> str:
+            value = item[field]
+            return _fmt(value["value"], 4) if value["data_state"] == "observed" else "Not reported"
+        metric_rows.append([item["variable"], display("initial"), display("final"), display("change"), display("minimum"), display("maximum"), item["units"]])
+    _add_table(doc, ("Variable", "Initial", "Final", "Change", "Minimum", "Maximum", "Units"), metric_rows, (1.35, 0.75, 0.75, 0.75, 0.75, 0.75, 0.84), font_size=7.5)
+
+    doc.add_paragraph("Steady-State Assessment", style="Heading 1")
+    steady_rows = []
+    for name, value in sorted(report["steady_state"].get("terms", {}).items()):
+        steady_rows.append([name.replace("_", " "), _fmt(value, 6), "1.0", _fmt(value, 6), "PASS" if value <= 1.0 else "REVIEW"])
+    _add_table(doc, ("Term", "Score", "Limit", "Ratio to limit", "Status"), steady_rows, (2.5, 1.0, 0.85, 1.35, 1.24), font_size=8.0)
+
+    doc.add_paragraph("Operating-Limit Assessment", style="Heading 1")
+    _add_constraint_table(doc, report["constraints"])
+    doc.add_paragraph("Material and Energy Balances", style="Heading 1")
+    doc.add_paragraph(report["balances"]["detail"])
+    _add_balance_summary_table(doc, report["balances"])
+    def add_balance_table(title: str, *, energy: bool, has_separate_terms: bool) -> None:
+        rows = []
+        for key in ("initial_interval", "final_interval"):
+            interval = report["balances"].get(key)
+            if interval:
+                rows.extend(
+                    [
+                        interval["label"], _fmt(interval["time_sec"], 3),
+                        str(row.get("volume", "Not reported")),
+                        str(row.get("component") or row.get("quantity", "Not reported")),
+                        *(
+                            [_fmt(row.get("in"), 5), _fmt(row.get("out"), 5)]
+                            if has_separate_terms else
+                            [_fmt(row.get("net_expected_change", row.get("in")), 5)]
+                        ),
+                        _fmt(row.get("accumulation"), 5), _fmt(row.get("residual"), 5),
+                        _fmt(row.get("normalized_residual"), 5),
+                    ]
+                    for row in interval["rows"] if (row.get("quantity") == "energy") is energy
+                )
+        if not rows:
+            return
+        doc.add_paragraph(title, style="Heading 2")
+        headers = (
+            ("Interval", "Time (s)", "Volume", "Quantity", "In", "Out", "Accumulation", "Residual", "Normalized")
+            if has_separate_terms else
+            ("Interval", "Time (s)", "Volume", "Quantity", "Net expected", "Accumulation", "Residual", "Normalized")
+        )
+        widths = (0.8, 0.55, 0.75, 0.75, 0.65, 0.65, 0.85, 0.7, 0.85) if has_separate_terms else (0.85, 0.55, 0.75, 0.75, 0.95, 0.9, 0.8, 0.85)
+        _add_table(doc, headers, rows, widths, font_size=6.2)
+
+    add_balance_table("Material Balance", energy=False, has_separate_terms=report["balances"].get("material_has_separate_in_out", False))
+    add_balance_table("Energy Balance", energy=True, has_separate_terms=report["balances"].get("energy_has_separate_in_out", False))
+    doc.add_paragraph("Controller Performance", style="Heading 1")
+    _add_controller_performance_tables(doc, report["controllers"])
+    doc.add_paragraph("Event and Disturbance Timeline", style="Heading 1")
+    doc.add_paragraph(report["events"]["detail"])
+    if report["events"].get("records"):
+        _add_event_table(doc, report["events"]["records"])
+    doc.add_paragraph("Numerical Health", style="Heading 1")
+    numerical_health = report["numerical_health"]
+    _add_numerical_health_tables(doc, numerical_health)
+
     doc.add_paragraph("Operating Summary", style="Heading 1")
     _add_metric_strip(
         doc,
@@ -719,6 +1506,10 @@ def generate_core_v3_run_report(
         ),
     )
     product_rows = []
+    component_count = max(
+        (len(products[key].get("mole_fraction", {})) for key in ("distillate", "bottoms")),
+        default=0,
+    )
     for key, label in (("distillate", "Distillate"), ("bottoms", "Bottoms")):
         stream = products[key]
         composition = ", ".join(
@@ -731,15 +1522,32 @@ def generate_core_v3_run_report(
                 _fmt(stream["flow_lbmolph"], 3, " lbmol/h"),
                 _fmt(stream["temperature_F"], 2, " F"),
                 _fmt(stream["pressure_psia"], 2, " psia"),
-                composition,
+                _fmt(stream.get("molar_enthalpy_BTU_lbmol"), 2, " BTU/lbmol"),
+                _fmt(stream.get("molar_density_lbmol_ft3"), 4, " lbmol/ft3"),
+                composition if component_count <= 2 else "See product composition table",
             ]
         )
     _add_table(
         doc,
-        ("Product", "Flow", "Temperature", "Pressure", "Mole fractions"),
+        ("Product", "Flow", "Temperature", "Pressure", "Enthalpy", "Density", "Mole fractions"),
         product_rows,
-        (0.9, 1.25, 1.0, 1.0, 2.75),
+        (0.65, 0.95, 0.8, 0.75, 1.0, 0.9, 1.89),
+        font_size=7.5,
     )
+    if component_count > 2:
+        doc.add_paragraph("Product Composition", style="Heading 2")
+        composition_rows = [
+            [label, component, _fmt(value, 6)]
+            for key, label in (("distillate", "Distillate"), ("bottoms", "Bottoms"))
+            for component, value in products[key]["mole_fraction"].items()
+        ]
+        _add_table(
+            doc,
+            ("Product", "Component", "Mole fraction"),
+            composition_rows,
+            (1.5, 2.5, 2.79),
+            font_size=8.0,
+        )
     doc.add_paragraph(
         f"Terminal levels: distillate drum {_fmt(100.0 * float(levels['distillate_drum_fraction']), 3, '%')}; "
         f"bottom drum {_fmt(100.0 * float(levels['bottom_drum_fraction']), 3, '%')}. "
@@ -767,25 +1575,60 @@ def generate_core_v3_run_report(
                     values = np.asarray(trajectory[key], dtype=float)
                     if values.ndim == 3 and values.shape[0] == times.size:
                         trend[column] = np.sum(values, axis=(1, 2))
-            trend["distillate_lbmolph"] = float(products["distillate"]["flow_lbmolph"])
-            trend["bottoms_lbmolph"] = float(products["bottoms"]["flow_lbmolph"])
+            product_history = False
+            for key, column in (
+                ("distillate_flow_lbmolph", "distillate_lbmolph"),
+                ("bottoms_flow_lbmolph", "bottoms_lbmolph"),
+            ):
+                values = np.asarray(trajectory[key], dtype=float) if key in trajectory else None
+                if values is not None and values.shape == times.shape:
+                    trend[column] = values
+                    product_history = True
             doc.add_page_break()
             doc.add_paragraph("Dynamic Trends", style="Heading 1")
+            if not product_history:
+                doc.add_paragraph(
+                    "Product-flow trend: not available; terminal values were not substituted for a history."
+                )
             with tempfile.TemporaryDirectory(prefix="core_v3_report_") as temp_dir:
                 chart = Path(temp_dir) / "dynamic_trends.png"
                 if _plot_series(
                     trend,
                     chart,
                     [
-                        ("Product flows", (("distillate_lbmolph", "Distillate", 1.0), ("bottoms_lbmolph", "Bottoms", 1.0))),
-                        ("Pressure and temperature", (("P_psia_top", "Top pressure", 1.0), ("P_psia_bottom", "Bottom pressure", 1.0), ("T_F_top", "Top temperature", 1.0), ("T_F_bottom", "Bottom temperature", 1.0))),
-                        ("Duties and stored inventories", (("Qc_BTUph", "Condenser duty", 1.0e-6), ("liquid_inventory_lbmol", "Liquid inventory", 1.0), ("vapor_inventory_lbmol", "Vapor inventory", 1.0))),
+                        ("Product flows (lbmol/h)", (("distillate_lbmolph", "Distillate", 1.0), ("bottoms_lbmolph", "Bottoms", 1.0))),
+                        ("Pressure (psia)", (("P_psia_top", "Top", 1.0), ("P_psia_bottom", "Bottom", 1.0))),
+                        ("Temperature (deg F)", (("T_F_top", "Top", 1.0), ("T_F_bottom", "Bottom", 1.0))),
+                        ("Duties (MMBtu/h)", (("Qc_BTUph", "Condenser", 1.0e-6),)),
+                        ("Stored inventories (lbmol)", (("liquid_inventory_lbmol", "Liquid", 1.0), ("vapor_inventory_lbmol", "Vapor", 1.0))),
                     ],
                     cumulative_offset_s=0.0,
+                    event_times_s=tuple(
+                        float(item["time_sec"])
+                        for item in report["events"].get("records", ())
+                        if item.get("time_sec") is not None
+                    ),
+                    qualification_time_s=next(
+                        (float(item["time_sec"]) for item in report["events"].get("records", ()) if item.get("event_type") == "steady_state_qualification"),
+                        None,
+                    ),
                 ):
                     doc.add_picture(str(chart), width=Inches(6.75))
 
     doc.add_paragraph("Final Volume Profiles", style="Heading 1")
+    profile_assessment = report.get("profile_assessment", {})
+    if profile_assessment.get("data_state") == "observed":
+        doc.add_paragraph(
+            "Profile summary: "
+            f"feed stage {profile_assessment.get('feed_stage', 'Not reported')}; "
+            f"top-to-bottom pressure drop {_fmt(profile_assessment['top_to_bottom_pressure_drop_psia'], 3, ' psia')}; "
+            f"temperature range {_fmt(profile_assessment['temperature_minimum_F'], 2, ' F')} to "
+            f"{_fmt(profile_assessment['temperature_maximum_F'], 2, ' F')}."
+        )
+    with tempfile.TemporaryDirectory(prefix="core_v3_profiles_") as temp_dir:
+        profile_chart = Path(temp_dir) / "final_profiles.png"
+        if _plot_core_v3_profiles(summary["profiles"], profile_chart):
+            doc.add_picture(str(profile_chart), width=Inches(6.75))
     components = tuple(products["distillate"]["mole_fraction"].keys())
     profile_rows = []
     for row in summary["profiles"]:
@@ -809,13 +1652,16 @@ def generate_core_v3_run_report(
                 vapor_y,
             ]
         )
-    _add_table(
-        doc,
-        ("Volume", "Type", "T (F)", "P (psia)", "ML", "MV", "L out", "V out", "Liquid x", "Vapor y"),
-        profile_rows,
-        (0.95, 0.65, 0.5, 0.6, 0.55, 0.55, 0.6, 0.6, 1.2, 1.2),
-        font_size=7.5,
-    )
+    for start in range(0, len(profile_rows), 15):
+        if start:
+            doc.add_paragraph("Final Volume Profiles (continued)", style="Heading 2")
+        _add_table(
+            doc,
+            ("Volume", "Type", "T (F)", "P (psia)", "ML", "MV", "L out", "V out", "Liquid x", "Vapor y"),
+            profile_rows[start : start + 15],
+            (0.95, 0.65, 0.5, 0.6, 0.55, 0.55, 0.6, 0.6, 1.2, 1.2),
+            font_size=7.5,
+        )
     config_rows = []
     for key in (
         "classification",
@@ -841,6 +1687,8 @@ def generate_core_v3_run_report(
         doc.add_paragraph("Exact Launch Command", style="Heading 2")
         paragraph = doc.add_paragraph(launch_command)
         _set_run(paragraph.runs[0], size=7.5, color=INK)
+    doc.add_paragraph("Artifact Index", style="Heading 1")
+    _add_artifact_index(doc, report)
     output.parent.mkdir(parents=True, exist_ok=True)
     doc.save(output)
     return str(output)

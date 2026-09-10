@@ -12,6 +12,7 @@ import json
 import multiprocessing as mp
 import os
 from pathlib import Path
+import subprocess
 import sys
 import time
 from types import SimpleNamespace
@@ -41,6 +42,9 @@ from dynamic_distillation.core_v3.vapor_holdup_implicit_residual_v1 import (  # 
 )
 from dynamic_distillation.core_v3.vapor_holdup_terminal_control_contract_v1 import (  # noqa: E402
     terminal_level_fractions,
+)
+from dynamic_distillation.core_v3.report_summary_v2 import (  # noqa: E402
+    build_report_summary_from_tabular_v2,
 )
 from dynamic_distillation.core_v3.vapor_holdup_regulatory_control_contract_v1 import (  # noqa: E402
     VaporHoldupRegulatoryControlContract,
@@ -83,6 +87,10 @@ SS_RATE_DENOM_FLOOR_LBMOL = 1.0
 SS_WINDOW_SEC = 30.0
 SS_MIN_TIME_SEC = 60.0
 FEED_TEMPERATURE_DISTURBANCE_MAX_NFEV_PER_ROOT = 160
+DEFAULT_MAX_NFEV_PER_ROOT = 40
+DEFAULT_SOLVER_DIFFERENCE_STEP = 1.0e-5
+DEFAULT_SOLVER_X_SCALE = 1.0
+DEFAULT_SOLVER_TOLERANCE = 1.0e-11
 _PARALLEL_WORKER_CONTEXT: dict[str, Any] | None = None
 
 
@@ -129,6 +137,7 @@ def _context(
     feed_temperature_step_F: float = 0.0,
 ) -> dict[str, Any]:
     original = dd267._context()
+    source_mapping = dict(original["source"]["source_mapping"])
     feed_step = float(feed_temperature_step_F)
     if not np.isfinite(feed_step):
         raise ValueError("Feed-temperature step must be finite")
@@ -141,9 +150,11 @@ def _context(
         "disturbed_enthalpy_BTUph": float(
             original["balance_inputs"].feed_enthalpy_BTUph
         ),
+        "baseline_temperature_F": float(source_mapping["feed_temperature_F"]),
+        "disturbed_temperature_F": float(source_mapping["feed_temperature_F"]),
+        "pressure_psia": float(source_mapping["feed_pressure_psia"]),
     }
     if abs(feed_step) > 1.0e-15:
-        source_mapping = dict(original["source"]["source_mapping"])
         feed_component = np.asarray(
             original["balance_inputs"].feed_component_lbmolph, dtype=float
         )
@@ -1610,6 +1621,103 @@ def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         writer.writerows(rows)
 
 
+def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
+    """Write append-friendly report evidence with native JSON primitives."""
+    with path.open("w", encoding="utf-8") as stream:
+        for row in rows:
+            stream.write(json.dumps(row, default=_json_default, sort_keys=True) + "\n")
+
+
+def _report_trajectory_row(
+    context: Mapping[str, Any], evaluation: Any, report: Mapping[str, Any], *, time_s: float
+) -> dict[str, Any]:
+    """Capture every accepted endpoint for reporting; this does not affect solving."""
+    endpoint = evaluation.base.endpoint
+    liquid = np.asarray(endpoint.liquid_component_inventory_lbmol, dtype=float)
+    vapor = np.asarray(endpoint.vapor_component_inventory_lbmol, dtype=float)
+    components = tuple(context["contract"].base.component_names)
+    top_x = liquid[0] / np.sum(liquid[0])
+    bottom_x = liquid[-1] / np.sum(liquid[-1])
+    regulatory = getattr(context["contract"], "regulatory", None)
+    row = {
+        "time_sec": float(time_s), "data_state": "observed",
+        "feed_component_lbmolph": list(map(float, context["balance_inputs"].feed_component_lbmolph)),
+        "feed_temperature_F": float(context["feed_temperature_disturbance"]["disturbed_temperature_F"]),
+        "feed_pressure_psia": float(context["feed_temperature_disturbance"]["pressure_psia"]),
+        "distillate_flow_lbmolph": float(evaluation.distillate_lbmolph),
+        "bottoms_flow_lbmolph": float(evaluation.bottoms_lbmolph),
+        "reflux_flow_lbmolph": float(getattr(evaluation, "reflux_lbmolph", context["spec"].reflux_lbmolph)),
+        "condenser_duty_BTUph": float(endpoint.condenser_duty_BTUph),
+        "reboiler_duty_BTUph": float(context["balance_inputs"].reboiler_duty_BTUph),
+        "top_pressure_psia": float(endpoint.pressure_psia[0]), "bottom_pressure_psia": float(endpoint.pressure_psia[-1]),
+        "top_temperature_F": float(endpoint.temperature_F[0]), "bottom_temperature_F": float(endpoint.temperature_F[-1]),
+        "liquid_inventory_lbmol": float(np.sum(liquid)), "vapor_inventory_lbmol": float(np.sum(vapor)),
+        "drum_level_fraction": float(evaluation.level_fraction[0]), "sump_level_fraction": float(evaluation.level_fraction[1]),
+        "distillate_mole_fraction": dict(zip(components, map(float, top_x), strict=True)),
+        "bottoms_mole_fraction": dict(zip(components, map(float, bottom_x), strict=True)),
+        "solver_residual_inf_norm": float(report["scaled_residual_inf_norm"]),
+        "jacobian_condition": float(report["jacobian_condition"]),
+        "nfev": int(report.get("nfev", 0)), "njev": int(report.get("njev", 0)),
+        "active_lower_bounds": list(report.get("active_lower_bounds", ())),
+        "active_upper_bounds": list(report.get("active_upper_bounds", ())),
+        "controllers": {
+            "drum_level": {"pv": float(evaluation.level_fraction[0]), "sp": float(context["contract"].controllers.drum_level_setpoint_fraction), "output_lbmolph": float(evaluation.distillate_lbmolph)},
+            "sump_level": {"pv": float(evaluation.level_fraction[1]), "sp": float(context["contract"].controllers.sump_level_setpoint_fraction), "output_lbmolph": float(evaluation.bottoms_lbmolph)},
+        },
+    }
+    if regulatory is not None and hasattr(evaluation, "pressure_error_psia"):
+        row["controllers"]["pressure"] = {"pv": float(evaluation.pressure_error_psia + regulatory.pressure_setpoint_psia), "sp": float(regulatory.pressure_setpoint_psia), "output_BTUph": float(endpoint.condenser_duty_BTUph)}
+        row["controllers"]["distillate_composition"] = {"pv": float(evaluation.composition_molfrac), "sp": float(regulatory.composition_setpoint_molfrac), "output_lbmolph": float(evaluation.reflux_lbmolph)}
+    return row
+
+
+def _material_balance_ledger_rows(
+    context: Mapping[str, Any], previous: Any, current: Any, *, time_s: float, interval_sec: float
+) -> list[dict[str, Any]]:
+    """Persist signed global component terms where the endpoint exposes them."""
+    if interval_sec <= 0.0:
+        return []
+    old = np.asarray(previous.liquid_component_inventory_lbmol, dtype=float) + np.asarray(previous.vapor_component_inventory_lbmol, dtype=float)
+    endpoint = current.base.endpoint
+    now = np.asarray(endpoint.liquid_component_inventory_lbmol, dtype=float) + np.asarray(endpoint.vapor_component_inventory_lbmol, dtype=float)
+    top_x = endpoint.liquid_component_inventory_lbmol[0] / np.sum(endpoint.liquid_component_inventory_lbmol[0])
+    bottom_x = endpoint.liquid_component_inventory_lbmol[-1] / np.sum(endpoint.liquid_component_inventory_lbmol[-1])
+    feed = np.asarray(context["balance_inputs"].feed_component_lbmolph, dtype=float)
+    rows = []
+    for index, component in enumerate(context["contract"].base.component_names):
+        accumulation = float((np.sum(now[:, index]) - np.sum(old[:, index])) * 3600.0 / interval_sec)
+        outlet = float(current.distillate_lbmolph * top_x[index] + current.bottoms_lbmolph * bottom_x[index])
+        inlet = float(feed[index])
+        rows.append({"time_sec": float(time_s), "volume": "global_column", "quantity": str(component), "units": "lbmol/h", "in": inlet, "out": outlet, "accumulation": accumulation, "residual": accumulation - (inlet - outlet), "normalized_residual": abs(accumulation - (inlet - outlet)) / max(abs(inlet), 1.0), "data_state": "derived"})
+    return rows
+
+
+def _energy_balance_ledger_rows(current: Any, *, time_s: float) -> list[dict[str, Any]]:
+    """Persist signed per-volume energy terms exposed by the solved residual."""
+    base = current.base
+    transport = np.asarray(
+        base.transport.liquid_energy_transport_BTUph
+        + base.transport.vapor_energy_transport_BTUph,
+        dtype=float,
+    )
+    residual = np.asarray(base.balances.energy_residual_BTUph, dtype=float)
+    accumulation = transport + residual
+    return [
+        {
+            "time_sec": float(time_s), "volume": str(volume),
+            "quantity": "energy", "units": "BTU/h",
+            "in": float(max(value, 0.0)), "out": float(max(-value, 0.0)),
+            "accumulation": float(accumulation[index]),
+            "residual": float(residual[index]),
+            "normalized_residual": float(abs(residual[index]) / max(abs(value), 1.0)),
+            "data_state": "observed",
+        }
+        for index, (volume, value) in enumerate(
+            zip(base.transport.volume_ids, transport, strict=True)
+        )
+    ]
+
+
 def _requested_total_steps(control_path: Path, current: int) -> int:
     if not control_path.exists():
         return int(current)
@@ -2035,6 +2143,7 @@ def run(
     logs_dir: Path,
     run_name: str,
     run_description: str = "",
+    launch_command: str | None = None,
     parallel_workers: int = 1,
     drum_level_kc: float | None = None,
     drum_level_ti_sec: float | None = None,
@@ -2258,24 +2367,48 @@ def run(
         )
         memory = np.asarray(memory, dtype=float).copy()
         memory[:2] = level_memory
-    solver_payload = json.loads((ROOT / dd274.CONTRACT).read_text(encoding="utf-8"))
-    if abs(effective_feed_step) > 1.0e-15:
-        solver_payload["solver"]["max_nfev_per_root"] = max(
-            int(solver_payload["solver"]["max_nfev_per_root"]),
-            FEED_TEMPERATURE_DISTURBANCE_MAX_NFEV_PER_ROOT,
-        )
-    effective_max_nfev = int(solver_payload["solver"]["max_nfev_per_root"])
+    # A continuation already carries its complete physical state in the
+    # checkpoint.  Keep the accepted endpoint limit local instead of requiring
+    # the historical DD-274 contract artifact merely to read this constant.
+    effective_max_nfev = (
+        FEED_TEMPERATURE_DISTURBANCE_MAX_NFEV_PER_ROOT
+        if abs(effective_feed_step) > 1.0e-15
+        else DEFAULT_MAX_NFEV_PER_ROOT
+    )
+    solver_payload = {
+        "solver": {
+            "difference_step": DEFAULT_SOLVER_DIFFERENCE_STEP,
+            "x_scale": DEFAULT_SOLVER_X_SCALE,
+            "ftol": DEFAULT_SOLVER_TOLERANCE,
+            "xtol": DEFAULT_SOLVER_TOLERANCE,
+            "gtol": DEFAULT_SOLVER_TOLERANCE,
+            "max_nfev_per_root": effective_max_nfev,
+        }
+    }
     specified_duty = float(metadata["specified_condenser_duty_BTUph"])
     logs_dir = logs_dir.expanduser().resolve()
     logs_dir.mkdir(parents=True, exist_ok=True)
     run_id = time.strftime("%Y%m%d_%H%M%S")
     summary_path = logs_dir / f"column_summary_{run_id}.csv"
     profile_path = logs_dir / f"column_profile_{run_id}.csv"
+    report_trajectory_path = logs_dir / f"report_trajectory_{run_id}.jsonl"
+    event_path = logs_dir / f"report_events_{run_id}.jsonl"
+    balance_ledger_path = logs_dir / f"report_balance_ledger_{run_id}.jsonl"
     metadata_path = logs_dir / f"run_metadata_{run_id}.json"
     output_checkpoint = logs_dir / f"core_v3_checkpoint_{run_id}.npz"
     recovery_checkpoint = logs_dir / f"core_v3_recovery_checkpoint_{run_id}.npz"
     summary_rows: list[dict[str, Any]] = []
     profile_rows: list[dict[str, Any]] = []
+    report_trajectory_rows: list[dict[str, Any]] = []
+    event_rows: list[dict[str, Any]] = [
+        {"event_id": "checkpoint_restore", "time_sec": 0.0, "event_type": "checkpoint_restore", "severity": "info", "variable": None, "location": "column", "before": None, "after": str(checkpoint.resolve()), "message": "Continuation initialized from source checkpoint.", "source_component": "runner", "related_gate": None},
+        {"event_id": "initialization_complete", "time_sec": 0.0, "event_type": "initialization_complete", "severity": "info", "variable": "continuation_state", "location": "column", "before": "checkpoint loaded", "after": "accepted initial state", "message": "Checkpoint state passed continuation initialization and is ready for the first implicit endpoint.", "source_component": "runner", "related_gate": "initialization"},
+    ]
+    balance_ledger_rows: list[dict[str, Any]] = []
+    prior_active_bounds: tuple[str, ...] = ()
+    steady_qualified = False
+    if abs(effective_feed_step) > 1.0e-15:
+        event_rows.append({"event_id": "feed_temperature_disturbance", "time_sec": 0.0, "event_type": "feed_change", "severity": "info", "variable": "feed_temperature_F", "location": "feed", "before": float(metadata.get("feed_temperature_F", np.nan)), "after": float(metadata.get("feed_temperature_F", np.nan)) + effective_feed_step, "message": "Configured feed-temperature disturbance applied at continuation start.", "source_component": "runner", "related_gate": "disturbance_quality"})
     initial_liquid = reference.liquid_component_inventory_lbmol
     initial_products = np.asarray(
         (
@@ -2363,7 +2496,9 @@ def run(
                     effective_refresh_interval,
                     effective_composition_limit,
                 )
-        except BaseException:
+        except BaseException as exc:
+            event_rows.append({"event_id": f"solver_exception_{index}", "time_sec": float(index * timestep_sec), "event_type": "hard_stop", "severity": "error", "variable": None, "location": "nonlinear_solver", "before": None, "after": None, "message": str(exc), "source_component": "nonlinear_solver", "related_gate": "SOLVER-SUCCESS"})
+            _write_jsonl(event_path, event_rows)
             if parallel_executor is not None:
                 parallel_executor.shutdown(wait=True, cancel_futures=True)
             raise
@@ -2403,9 +2538,37 @@ def run(
                 and not report.get("disturbance_quality_pass", False)
             )
         ):
+            failed_checks = [
+                name for name, passed in {
+                    "SOLVER-SUCCESS": report["scipy_success"],
+                    "RESIDUAL-INFINITY-NORM": report["scaled_residual_inf_norm"] < 1.0e-8,
+                    "JACOBIAN-RANK": report["jacobian_rank"] == len(context["contract"].rows),
+                    "JACOBIAN-CONDITION": report["jacobian_condition"] < 1.0e8,
+                    "PHYSICAL": report["physical_pass"],
+                    "HYDRAULIC-QUALITY": report.get("hydraulic_envelope_quality_pass", True),
+                }.items() if not passed
+            ]
+            event_rows.append({"event_id": f"acceptance_hard_stop_{index}", "time_sec": float(index * timestep_sec), "event_type": "hard_stop", "severity": "error", "variable": ", ".join(failed_checks), "location": "acceptance_gate", "before": None, "after": "failed", "message": "Endpoint failed one or more required acceptance gates.", "source_component": "runner", "related_gate": ", ".join(failed_checks)})
+            _write_jsonl(event_path, event_rows)
             if parallel_executor is not None:
                 parallel_executor.shutdown(wait=True, cancel_futures=True)
             raise RuntimeError(f"Core V3 endpoint {index} failed its acceptance gate: {report}")
+        report_trajectory_rows.append(
+            _report_trajectory_row(context, final, report, time_s=index * timestep_sec)
+        )
+        balance_ledger_rows.extend(
+            _material_balance_ledger_rows(
+                context, reference, final, time_s=index * timestep_sec,
+                interval_sec=timestep_sec,
+            )
+        )
+        balance_ledger_rows.extend(
+            _energy_balance_ledger_rows(final, time_s=index * timestep_sec)
+        )
+        active_bounds = tuple(sorted((*report.get("active_lower_bounds", ()), *report.get("active_upper_bounds", ()))))
+        if active_bounds != prior_active_bounds:
+            event_rows.append({"event_id": f"active_bounds_{index}", "time_sec": float(index * timestep_sec), "event_type": "active_bound_transition", "severity": "warning" if active_bounds else "info", "variable": ", ".join(active_bounds) or None, "location": "solver", "before": list(prior_active_bounds), "after": list(active_bounds), "message": "Active solver-bound set changed.", "source_component": "nonlinear_solver", "related_gate": None})
+            prior_active_bounds = active_bounds
         next_reference = dd249._next_reference(reference, final.base)
         memory = final.controller_memory_endpoint.copy()
         prior = final
@@ -2442,6 +2605,9 @@ def run(
             )
             _write_csv(summary_path, summary_rows)
             _write_csv(profile_path, profile_rows)
+            if steady["steady_state_flag"] and not steady_qualified:
+                event_rows.append({"event_id": f"steady_state_{index}", "time_sec": float(segment_time), "event_type": "steady_state_qualification", "severity": "info", "variable": "steady_state_score", "location": "column", "before": None, "after": float(steady["steady_state_score"]), "message": "Existing steady-state criterion qualified.", "source_component": "steady_state_contract", "related_gate": "steady_state"})
+                steady_qualified = True
             _write_checkpoint(
                 recovery_checkpoint,
                 workbook=workbook,
@@ -2478,6 +2644,9 @@ def run(
         raise RuntimeError("Core V3 continuation produced no endpoint")
     actual_duration_sec = float(target_steps) * float(timestep_sec)
     final_time = float(metadata["final_time_s"]) + actual_duration_sec
+    _write_jsonl(report_trajectory_path, report_trajectory_rows)
+    _write_jsonl(event_path, event_rows)
+    _write_jsonl(balance_ledger_path, balance_ledger_rows)
     _write_checkpoint(
         output_checkpoint,
         workbook=workbook,
@@ -2510,6 +2679,7 @@ def run(
         "run_id": run_id,
         "run_name": run_name,
         "run_description": str(run_description or ""),
+        "launch_command": launch_command,
         "controller_tuning": {
             "drum_kc": float(context["contract"].controllers.drum_kc),
             "drum_ti_sec": float(context["contract"].controllers.drum_ti_sec),
@@ -2576,6 +2746,13 @@ def run(
         "recovery_checkpoint": str(recovery_checkpoint),
         "summary_csv": str(summary_path),
         "profile_csv": str(profile_path),
+        "report_trajectory_jsonl": str(report_trajectory_path),
+        "report_events_jsonl": str(event_path),
+        "report_balance_ledger_jsonl": str(balance_ledger_path),
+        "report_balance_ledger": {
+            "material": "signed_global_component_terms",
+            "energy": "signed_per_volume_terms",
+        },
         "performance": {
             "jacobian_execution": "persistent_parallel" if parallel_workers > 1 else "serial",
             "parallel_workers": int(parallel_workers),
@@ -2601,6 +2778,20 @@ def run(
             "provider_call_counters": provider_call_counters,
         },
         "final_endpoint": reports[-1],
+        "gates": {
+            "SOLVER-SUCCESS": bool(reports[-1]["scipy_success"]),
+            "RESIDUAL-INFINITY-NORM": bool(
+                reports[-1]["scaled_residual_inf_norm"] < 1.0e-8
+            ),
+            "JACOBIAN-RANK": bool(
+                reports[-1]["jacobian_rank"] == len(context["contract"].rows)
+            ),
+            "JACOBIAN-CONDITION": bool(reports[-1]["jacobian_condition"] < 1.0e8),
+            "PHYSICAL": bool(reports[-1]["physical_pass"]),
+            "HYDRAULIC-QUALITY": bool(
+                reports[-1].get("hydraulic_envelope_quality_pass", True)
+            ),
+        },
         "final_steady_state": {
             key: summary_rows[-1][key]
             for key in (
@@ -2614,7 +2805,33 @@ def run(
             )
         },
     }
+    report_summary_path = metadata_path.with_name(
+        f"{metadata_path.stem}_report_summary.json"
+    )
+    run_metadata["report_metadata"] = str(metadata_path)
+    run_metadata["report_summary"] = str(report_summary_path)
     metadata_path.write_text(json.dumps(run_metadata, indent=2, default=_json_default) + "\n", encoding="utf-8")
+    try:
+        report_summary_path.write_text(
+            json.dumps(
+                build_report_summary_from_tabular_v2(
+                    summary_rows, metadata=run_metadata
+                ),
+                indent=2,
+                default=_json_default,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        print(f"[Output] Wrote Core V3 report summary: {report_summary_path}", flush=True)
+    except Exception as exc:
+        # Reporting remains non-fatal and does not reclassify an accepted run.
+        run_metadata["report_summary_error"] = str(exc)
+        metadata_path.write_text(
+            json.dumps(run_metadata, indent=2, default=_json_default) + "\n",
+            encoding="utf-8",
+        )
+        print(f"[Warn] Failed to write Core V3 report summary: {exc}", flush=True)
     try:
         from dynamic_distillation.run_report_v1 import generate_run_report
 
@@ -2807,6 +3024,7 @@ def main() -> int:
         tray_flood_high_loading_fraction=args.tray_flood_high_loading_fraction,
         tray_flood_predicted_fraction=args.tray_flood_predicted_fraction,
         tray_flood_hard_stop_fraction=args.tray_flood_hard_stop_fraction,
+        launch_command=subprocess.list2cmdline([sys.executable, *sys.argv]),
     )
     return 0
 

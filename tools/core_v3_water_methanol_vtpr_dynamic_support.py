@@ -29,6 +29,9 @@ from dynamic_distillation.core_v3.end_of_run_summary_v1 import (  # noqa: E402
     build_end_of_run_summary,
     format_end_of_run_summary,
 )
+from dynamic_distillation.core_v3.report_summary_v2 import (  # noqa: E402
+    build_report_summary_v2,
+)
 from dynamic_distillation.core_v3.provider_call_audit_v1 import ProviderCallAudit  # noqa: E402
 from dynamic_distillation.core_v3.stationary_specification_ownership_v1 import (  # noqa: E402
     fixed_bottoms_solved_reboiler_trial,
@@ -801,8 +804,12 @@ def write_core_v3_docx_report(
     title: str,
     metadata: Mapping[str, Any] | None = None,
     trajectory: Mapping[str, Any] | None = None,
-) -> Path:
-    """Write the human-readable DOCX companion to a Core V3 summary."""
+) -> Path | None:
+    """Write report metadata and the human-readable DOCX companion.
+
+    The JSON sidecar is report evidence only; callers still own any non-fatal
+    DOCX error handling, so a Word failure cannot reclassify a completed run.
+    """
     if isinstance(metadata, dict):
         metadata.setdefault(
             "launch_command",
@@ -810,11 +817,29 @@ def write_core_v3_docx_report(
         )
     from dynamic_distillation.run_report_v1 import generate_core_v3_run_report
 
-    generate_core_v3_run_report(
-        summary,
-        output_path=rooted(output_path),
-        title=title,
-        metadata=metadata,
-        trajectory=trajectory,
-    )
+    report_summary_path = rooted(output_path).with_suffix(".report_summary.json")
+    report_metadata = dict(metadata or {})
+    report_metadata["word_report"] = str(rooted(output_path))
+    report_metadata["report_summary"] = str(report_summary_path)
+    try:
+        report_summary_path.write_text(
+            json.dumps(
+                build_report_summary_v2(summary, metadata=report_metadata, trajectory=trajectory),
+                indent=2,
+                default=lambda value: value.item() if isinstance(value, np.generic) else str(value),
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        generate_core_v3_run_report(
+            summary,
+            output_path=rooted(output_path),
+            title=title,
+            metadata=report_metadata,
+            trajectory=trajectory,
+        )
+    except Exception as exc:
+        if isinstance(metadata, dict):
+            metadata["word_report_error"] = str(exc)
+        return None
     return rooted(output_path)

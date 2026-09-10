@@ -117,6 +117,15 @@ def _stack(values: list[np.ndarray]) -> np.ndarray:
     return np.stack(values)
 
 
+def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
+    """Persist report evidence without altering the native result artifact."""
+
+    path.write_text(
+        "".join(json.dumps(row, sort_keys=True) + "\n" for row in rows),
+        encoding="utf-8",
+    )
+
+
 def execute(
     *, duration_sec: float, feed_multiplier: float
 ) -> tuple[dict[str, Any], dict[str, np.ndarray]]:
@@ -355,7 +364,15 @@ def execute(
                 np.max(np.abs(evaluation.scaled[-4:]))
             ),
             "component_identity_error_lbmol": component_error,
+            "component_actual_change_lbmol": actual_component_step.tolist(),
+            "component_expected_change_lbmol": expected_component_step.tolist(),
+            "component_signed_residual_lbmol": (
+                actual_component_step - expected_component_step
+            ).tolist(),
             "energy_identity_absolute_error_BTU": energy_error_abs,
+            "energy_actual_change_BTU": actual_energy_step,
+            "energy_expected_change_BTU": expected_energy_step,
+            "energy_signed_residual_BTU": actual_energy_step - expected_energy_step,
             "minimum_bound_distance": minimum_bound_distance,
             "distillate_lbmolph": evaluation.distillate_lbmolph,
             "bottoms_lbmolph": evaluation.bottoms_lbmolph,
@@ -485,6 +502,7 @@ def execute(
             else ("dual_level_control_hold_passed" if passed else "dual_level_control_run_failed")
         ),
         "component_specific_logic": False,
+        "component_names": list(case.contract.component_names),
         "starting_state": "accepted_hydraulic_partial_reboiler_stationary_root",
         "reboiler_type": "partial",
         "timestep_sec": TIMESTEP_SEC,
@@ -601,6 +619,90 @@ def main() -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
     args.json.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     args.doc.write_text(_markdown(report), encoding="utf-8")
+    evidence_dir = args.json.parent
+    trajectory_path = evidence_dir / "report_trajectory.jsonl"
+    events_path = evidence_dir / "report_events.jsonl"
+    balance_path = evidence_dir / "report_balance_ledger.jsonl"
+    controller_specs = report["controllers"]
+    trajectory_rows = []
+    balance_rows = []
+    for step in report["steps"]:
+        time_sec = float(step["time_sec"])
+        trajectory_rows.append(
+            {
+                "time_sec": time_sec,
+                "drum_level_fraction": float(step["drum_level_fraction"]),
+                "sump_level_fraction": float(step["bottom_level_fraction"]),
+                "nfev": int(step["nfev"]),
+                "njev": int(step["njev"]),
+                "retry_attempted": bool(step["retry_attempted"]),
+                "controllers": {
+                    "distillate_drum_level": {
+                        "pv": float(step["drum_level_fraction"]),
+                        "sp": float(controller_specs["drum"]["setpoint_fraction"]),
+                        "output_distillate_lbmolph": float(step["distillate_lbmolph"]),
+                    },
+                    "bottoms_sump_level": {
+                        "pv": float(step["bottom_level_fraction"]),
+                        "sp": float(controller_specs["bottom"]["setpoint_fraction"]),
+                        "output_bottoms_lbmolph": float(step["bottoms_lbmolph"]),
+                    },
+                },
+            }
+        )
+        for component, actual, expected, residual in zip(
+            report["component_names"],
+            step["component_actual_change_lbmol"],
+            step["component_expected_change_lbmol"],
+            step["component_signed_residual_lbmol"],
+            strict=True,
+        ):
+            balance_rows.append(
+                {
+                    "time_sec": time_sec,
+                    "quantity": "component",
+                    "volume": "global",
+                    "component": component,
+                    "net_expected_change": float(expected),
+                    "accumulation": float(actual),
+                    "residual": float(residual),
+                    "normalized_residual": abs(float(residual)) / max(abs(float(actual)), abs(float(expected)), 1.0),
+                    "units": "lbmol per step",
+                }
+            )
+        energy_actual = float(step["energy_actual_change_BTU"])
+        energy_expected = float(step["energy_expected_change_BTU"])
+        energy_residual = float(step["energy_signed_residual_BTU"])
+        balance_rows.append(
+            {
+                "time_sec": time_sec,
+                "quantity": "energy",
+                "volume": "global",
+                "component": None,
+                "net_expected_change": energy_expected,
+                "accumulation": energy_actual,
+                "residual": energy_residual,
+                "normalized_residual": abs(energy_residual) / max(abs(energy_actual), abs(energy_expected), 1.0),
+                "units": "BTU per step",
+            }
+        )
+    _write_jsonl(trajectory_path, trajectory_rows)
+    _write_jsonl(
+        events_path,
+        [
+            {"event_id": "run-start", "time_sec": 0.0, "event_type": "run_start", "detail": "Dual-level control reporting smoke run started."},
+            {"event_id": "feed-condition", "time_sec": 0.0, "event_type": "feed_multiplier", "detail": f"Feed multiplier configured at {args.feed_multiplier:g}."},
+        ],
+    )
+    _write_jsonl(balance_path, balance_rows)
+    report.update(
+        {
+            "report_trajectory_jsonl": str(trajectory_path),
+            "report_events_jsonl": str(events_path),
+            "report_balance_ledger_jsonl": str(balance_path),
+        }
+    )
+    args.json.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     support.write_core_v3_docx_report(report["end_of_run"], args.doc.with_suffix(".docx"), title="Core V3 Water-Methanol Dual-Level Control Run", metadata=report, trajectory=evidence)
     np.savez_compressed(args.matrix, **evidence)
     print(support.format_end_of_run_summary(report["end_of_run"]), flush=True)
